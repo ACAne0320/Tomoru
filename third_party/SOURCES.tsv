@@ -1,0 +1,45 @@
+file	component	version	license	source	notes
+boringssl.txt	BoringSSL	0.20261020.0	See file	https://github.com/google/boringssl/blob/0.20261020.0/LICENSE	Complete upstream file.
+coder-websocket.txt	github.com/coder/websocket	v1.8.14	ISC	https://github.com/coder/websocket/blob/v1.8.14/LICENSE.txt	Complete upstream file.
+darts-clone.txt	Darts clone	v0.7	BSD-2-Clause	https://github.com/pkufool/simple-sentencepiece/blob/v0.7/ssentencepiece/csrc/darts.h	Complete license comment extracted verbatim from the upstream header.
+eigen.txt	Eigen	5.0.1	MPL-2.0	https://gitlab.com/libeigen/eigen/-/blob/5.0.1/COPYING.MPL2	Complete upstream file.
+espeak-ng.txt	eSpeak NG	ed530aa113046142eb5115cf2fc9157854d0ffe1	GPL-3.0-or-later	https://github.com/csukuangfj/espeak-ng/blob/ed530aa113046142eb5115cf2fc9157854d0ffe1/COPYING	Complete upstream file.
+feather.txt	Feather portions of Lucide	v4.29.2	MIT	https://github.com/feathericons/feather/blob/v4.29.2/LICENSE	Complete upstream file.
+fluidinference-model-card.md	FluidInference Core ML conversion	b419383c55c110e2c9271fa6ee0ea83d03c70d96	MIT (model declaration)	https://huggingface.co/FluidInference/silero-vad-coreml/blob/b419383c55c110e2c9271fa6ee0ea83d03c70d96/README.md	Complete pinned model card. No separate LICENSE in this revision; see REVIEW.md.
+go.txt	Go runtime	go1.27.3	BSD-3-Clause	https://github.com/golang/go/blob/go1.27.3/LICENSE	Complete upstream file.
+golang-x-image-PATENTS.txt	golang.org/x/image	v0.46.0	Patent grant	https://github.com/golang/image/blob/v0.46.0/PATENTS	Complete upstream file.
+golang-x-image.txt	golang.org/x/image	v0.46.0	BSD-3-Clause	https://github.com/golang/image/blob/v0.46.0/LICENSE	Complete upstream file.
+golang-x-net-PATENTS.txt	golang.org/x/net	v0.59.0	Patent grant	https://github.com/golang/net/blob/v0.59.0/PATENTS	Complete upstream file; linked on Windows (publicsuffix, through MyGo).
+golang-x-net.txt	golang.org/x/net	v0.59.0	BSD-3-Clause	https://github.com/golang/net/blob/v0.59.0/LICENSE	Complete upstream file; linked on Windows (publicsuffix, through MyGo).
+golang-x-sys-PATENTS.txt	golang.org/x/sys	v0.49.0	Patent grant	https://github.com/golang/sys/blob/v0.49.0/PATENTS	Complete upstream file.
+golang-x-sys.txt	golang.org/x/sys	v0.49.0	BSD-3-Clause	https://github.com/golang/sys/blob/v0.49.0/LICENSE	Complete upstream file.
+golang-x-text-PATENTS.txt	golang.org/x/text	v0.43.0	Patent grant	https://github.com/golang/text/blob/v0.43.0/PATENTS	Complete upstream file.
+golang-x-text.txt	golang.org/x/text	v0.43.0	BSD-3-Clause	https://github.com/golang/text/blob/v0.43.0/LICENSE	Complete upstream file.
+hclust-cpp.txt	hclust-cpp	2026-02-25	BSD-3-Clause	https://github.com/csukuangfj/hclust-cpp/blob/2026-02-25/LICENSE	Complete upstream file.
+kaldi-decoder.txt	kaldi-decoder	v0.3.0	Apache-2.0	https://github.com/k2-fsa/kaldi-decoder/blob/v0.3.0/LICENSE	Complete upstream file.
+kaldi-native-fbank.txt	kaldi-native-fbank	v1.22.3	Apache-2.0	https://github.com/csukuangfj/kaldi-native-fbank/blob/v1.22.3/LICENSE	Complete upstream file.
+kissfft-COPYING.txt	KISS FFT	febd4caeed32e33ad8b2e0bb5ea77542c40f18ec	BSD-3-Clause	https://github.com/mborgerding/kissfft/blob/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec/COPYING	Complete upstream file.
+kissfft.txt	KISS FFT	febd4caeed32e33ad8b2e0bb5ea77542c40f18ec	BSD-3-Clause	https://github.com/mborgerding/kissfft/blob/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec/LICENSES/BSD-3-Clause	Complete upstream file.
+llama-httplib.txt	cpp-httplib in llama.cpp	b11960	MIT	https://github.com/ggml-org/llama.cpp/blob/b11960/vendor/cpp-httplib/LICENSE	Complete upstream file.
+llama-json.txt	nlohmann/json in llama.cpp	b11960	MIT	https://github.com/ggml-org/llama.cpp/blob/b11960/licenses/LICENSE-jsonhpp	Complete upstream file.
+llama-rotate-bits.txt	rotate-bits in llama.cpp	b11960	MIT	https://github.com/ggml-org/llama.cpp/blob/b11960/vendor/hash/rotate-bits/LICENSE.md	Complete upstream file.
+llama-stb-image.txt	stb_image	b11960	MIT OR Unlicense	https://github.com/ggml-org/llama.cpp/blob/b11960/vendor/stb/stb_image.h	Complete license comment extracted verbatim from the upstream header.
+llama-subprocess.txt	subprocess.h	b11960	Unlicense	https://github.com/ggml-org/llama.cpp/blob/b11960/vendor/sheredom/subprocess.h	Complete license comment extracted verbatim from the upstream header.
+llama-xxhash.txt	xxHash in llama.cpp	b11960	BSD-2-Clause	https://github.com/ggml-org/llama.cpp/blob/b11960/vendor/hash/xxhash/LICENSE	Complete upstream file.
+llama.cpp.txt	llama.cpp / ggml	b11960	MIT	https://github.com/ggml-org/llama.cpp/blob/b11960/LICENSE	Complete upstream file.
+llvm-openmp.txt	LLVM OpenMP runtime (libomp.dll, Windows)	20.1.8	Apache-2.0 WITH LLVM-exception	https://github.com/llvm/llvm-project/blob/llvmorg-20.1.8/LICENSE.TXT	Complete upstream file, as LICENSE-LLVM-OpenMP in llama.cpp's Windows archive.
+lucide.txt	Lucide icons	lucide-static 0.469.0	ISC AND MIT	https://github.com/lucide-icons/lucide/blob/0.469.0/LICENSE	Complete upstream file; the version is the one in each SVG's header.
+mygo-ebitengine-shader.txt	MyGo / Ebitengine shader code	v0.7.3	Apache-2.0	https://github.com/egoist/mygo/blob/v0.7.3/internal/shader/LICENSE	Complete upstream file; app/go.mod pins this public release.
+mygo.txt	MyGo / Ebitengine shader code	v0.7.3	MIT	https://github.com/egoist/mygo/blob/v0.7.3/LICENSE	Complete upstream file; app/go.mod pins this public release.
+onnxruntime-ThirdPartyNotices.txt	ONNX Runtime dependencies	v1.28.2	See individual notices	https://github.com/microsoft/onnxruntime/blob/v1.28.2/ThirdPartyNotices.txt	Full upstream notice set, including optional features.
+onnxruntime.txt	ONNX Runtime	v1.28.2	MIT	https://github.com/microsoft/onnxruntime/blob/v1.28.2/LICENSE	Complete upstream file.
+openfst.txt	OpenFst	v1.8.5-2026-07-09	Apache-2.0	https://github.com/csukuangfj/openfst/blob/v1.8.5-2026-07-09/COPYING	Complete upstream file.
+piper-phonemize.txt	piper-phonemize	f3ff95afc03640bc1399e113e83361192a2fafb4	MIT	https://github.com/csukuangfj/piper-phonemize/blob/f3ff95afc03640bc1399e113e83361192a2fafb4/LICENSE.md	Complete upstream file.
+piper-uni-algo.txt	uni-algo in piper-phonemize	f3ff95afc03640bc1399e113e83361192a2fafb4	Unlicense OR MIT	https://github.com/csukuangfj/piper-phonemize/blob/f3ff95afc03640bc1399e113e83361192a2fafb4/licenses/uni-algo/LICENSE.md	Complete upstream file.
+purego.txt	github.com/ebitengine/purego	v0.11.1	Apache-2.0	https://github.com/ebitengine/purego/blob/v0.11.1/LICENSE	Complete upstream file.
+sherpa-json.txt	nlohmann/json in sherpa-onnx	v3.12.0	MIT	https://github.com/nlohmann/json/blob/v3.12.0/LICENSE.MIT	Complete upstream file.
+sherpa-onnx.txt	sherpa-onnx	v1.13.8	Apache-2.0	https://github.com/k2-fsa/sherpa-onnx/blob/v1.13.8/LICENSE	Complete upstream file.
+silero-vad.txt	Silero VAD	Core ML base v6.0; ONNX asset pinned by SHA-256	MIT	https://github.com/snakers4/silero-vad/blob/fba061dc5559f696e62171e9a0741782b0fdc23c/LICENSE	v5.1.2 and v6.0 license texts are byte-identical; ONNX model version is not inferred from filename.
+simple-sentencepiece.txt	simple-sentencepiece	v0.7	Apache-2.0	https://github.com/pkufool/simple-sentencepiece/blob/v0.7/LICENSE	Complete upstream file.
+typesetting-harfbuzz.txt	github.com/go-text/typesetting	v0.3.5	See file	https://github.com/go-text/typesetting/blob/v0.3.5/harfbuzz/LICENSE	Complete upstream file.
+typesetting.txt	github.com/go-text/typesetting	v0.3.5	Unlicense OR BSD-3-Clause	https://github.com/go-text/typesetting/blob/v0.3.5/LICENSE	Complete upstream file.

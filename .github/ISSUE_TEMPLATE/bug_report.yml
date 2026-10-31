@@ -1,0 +1,45 @@
+name: Bug report / 问题报告
+description: Something doesn't work as it should. / 有地方不对劲。
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Tomoru version / 版本
+      description: Settings › About / 设置 › 关于
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform / 平台
+      options:
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version and computer / 系统版本和电脑
+      placeholder: "macOS 26.1, MacBook Air M3 / Windows 11 24H2, RTX 4060"
+  - type: input
+    id: engines
+    attributes:
+      label: Engines / 引擎
+      description: Recognition and translation, and the languages. / 识别、翻译引擎和语言。
+      placeholder: "Apple → Index-Translate cloud, ja → zh-Hans"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened / 发生了什么
+      description: What you did, what you expected, and what happened instead. / 你做了什么、预期是什么、实际发生了什么。
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / 日志
+      description: Settings › About › Show logs. Look through them first; they may name apps you listened to. / 设置 › 关于 › 显示日志。附上前请先看一遍，里面可能有你收听的应用名。
+      render: text

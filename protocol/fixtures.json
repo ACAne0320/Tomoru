@@ -1,0 +1,171 @@
+{
+  "events": [
+    {
+      "type": "hello",
+      "protocol": 1,
+      "engine": "mac",
+      "version": "0.1.0"
+    },
+    {
+      "type": "hello",
+      "protocol": 1,
+      "engine": "asr",
+      "version": "0.1.0"
+    },
+    {
+      "type": "state",
+      "state": "listening"
+    },
+    {
+      "type": "result",
+      "final": false,
+      "start": 0,
+      "end": 0.8,
+      "tokens": [
+        {
+          "text": "Hello"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "final": true,
+      "start": 0,
+      "end": 0.8,
+      "tokens": [
+        {
+          "text": "Hello",
+          "start": 0,
+          "end": 0.8,
+          "conf": 0.9
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "final": true,
+      "start": 0.8,
+      "end": 1,
+      "tokens": []
+    },
+    {
+      "type": "clock",
+      "t": 1.234
+    },
+    {
+      "type": "voice",
+      "on": false,
+      "t": 0
+    },
+    {
+      "type": "audio",
+      "t": 0,
+      "pcm": "AAD//wEA/38="
+    },
+    {
+      "type": "error",
+      "code": "no-permission",
+      "message": "off"
+    },
+    {
+      "type": "access",
+      "state": "granted"
+    },
+    {
+      "type": "app",
+      "id": "example.app",
+      "name": "Example",
+      "playing": false
+    },
+    {
+      "type": "hello",
+      "protocol": 1,
+      "engine": "windows",
+      "version": "0.1.0"
+    },
+    {
+      "type": "area",
+      "x": -1920,
+      "y": 40,
+      "width": 300,
+      "height": 120
+    },
+    {
+      "type": "locale",
+      "id": "ja-JP"
+    },
+    {
+      "type": "decoded",
+      "id": "7",
+      "tokens": [
+        {
+          "text": "Hello",
+          "start": 0
+        },
+        {
+          "text": ".",
+          "start": 0.48
+        }
+      ]
+    },
+    {
+      "type": "decoded",
+      "id": "8",
+      "tokens": []
+    }
+  ],
+  "streams": [
+    {
+      "name": "forward compatible",
+      "input": "{\"type\":\"hello\",\"protocol\":1,\"engine\":\"mac\",\"version\":\"0.1.0\",\"extension\":\"safe\"}\n{\"type\":\"state\",\"state\":\"listening\"}\n{\"type\":\"result\",\"final\":false,\"start\":0,\"end\":0.8,\"tokens\":[{\"text\":\"Hello\"}]}\n{\"type\":\"result\",\"final\":true,\"start\":0,\"end\":0.8,\"tokens\":[{\"text\":\"Hello\",\"start\":0,\"end\":0.8,\"conf\":0.9}]}\n{\"type\":\"result\",\"final\":true,\"start\":0.8,\"end\":1,\"tokens\":[]}\n{\"type\":\"clock\",\"t\":1.234}\n{\"type\":\"voice\",\"on\":false,\"t\":0}\n{\"type\":\"audio\",\"t\":0,\"pcm\":\"AAD//wEA/38=\"}\n{\"type\":\"future-event\",\"extra\":true}\n",
+      "received": 8,
+      "error": ""
+    },
+    {
+      "name": "unsupported version",
+      "input": "{\"type\":\"hello\",\"protocol\":2,\"engine\":\"mac\",\"version\":\"0.1.0\"}\n",
+      "received": 0,
+      "error": "protocol"
+    },
+    {
+      "name": "missing handshake",
+      "input": "{\"type\":\"state\",\"state\":\"listening\"}\n",
+      "received": 0,
+      "error": "protocol"
+    },
+    {
+      "name": "empty stdout",
+      "input": "",
+      "received": 0,
+      "error": "missing hello"
+    },
+    {
+      "name": "error terminates stream",
+      "input": "{\"type\":\"hello\",\"protocol\":1,\"engine\":\"mac\",\"version\":\"0.1.0\"}\n{\"type\":\"error\",\"code\":\"no-permission\",\"message\":\"off\"}\n{\"type\":\"clock\",\"t\":1.234}\n",
+      "received": 0,
+      "error": "no-permission"
+    }
+  ],
+  "commands": [
+    {
+      "type": "audio",
+      "t": 0,
+      "pcm": "AAD//wEA/38=",
+      "extension": "safe"
+    },
+    {
+      "type": "finalize",
+      "through": 1.234
+    },
+    {
+      "type": "future-command",
+      "extra": true
+    },
+    {
+      "type": "decode",
+      "id": "7",
+      "pcm": "AAD//wEA/38="
+    }
+  ],
+  "samples": 4
+}

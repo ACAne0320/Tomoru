@@ -1,0 +1,58 @@
+# Changelog
+
+## 0.1.0
+
+The first beta.
+
+- Live subtitles over whatever your computer plays: the original and its translation, in any direction
+  between 31 languages, Chinese, English, Japanese and Korean among them, and into Traditional
+  Chinese. The languages to speak are those the recognition chosen hears: 10 with Apple's
+  recognizer on macOS 26, 5 with SenseVoice, 30 with Qwen ASR. Only Chinese, English, Japanese and
+  Korean have been benchmarked; the others segment by rules for languages written alike.
+- On Windows 11 x64 too: from the taskbar's corner, recognizing with SenseVoice,
+  downloaded in the first-run guide, or in the cloud. Selecting a part of the screen to translate
+  works there as on a Mac, and the local translation runs on any GPU (Vulkan), or on the CPU.
+- Hear all of the system's sound, or one app's.
+- Start and stop from anywhere with ⌥⇧T, or a shortcut you record in Settings.
+- Speech recognition on your computer: with Apple's recognizer on a Mac, or with SenseVoice or
+  Qwen3-ASR 1.7B, models downloaded from Settings (offline; Qwen3-ASR is recommended where a GPU can
+  run it); or in the cloud, with your API key: Qwen ASR on Alibaba Cloud Model Studio, which stops
+  sending audio while nothing plays, or OpenAI's live transcription, or its transcription API or a
+  service compatible with it, which are sent only speech. Chinese clauses show as soon as the speaker pauses.
+- Translation in the cloud (Index-Translate, free), on your computer with a model downloaded from
+  Settings (Index-Translate 2B or 9B, offline), or with a translation API of your own.
+- Translate ahead: the gist of a sentence shows before it ends.
+- Reaches the cloud through the system's proxy, as browsers do, or one set in Preferences, or
+  directly; models on your computer never go through it.
+- Subtitles you can move, resize and lock, in styles of your own, hidden from screen recordings if
+  you like: six color schemes, or any color you pick.
+- Subtitles in the order you like: the translation above the original, or under it.
+- Scenes: what you watch, each with its languages, a description and a glossary of names, so a
+  name comes out the same every time, and a name the recognizer mishears is corrected. The
+  description goes with each line to the translator (but the on-device 2B model, which made names
+  up from it), to help with titles and misheard names.
+- History, if you turn it on: the subtitles of each session kept on your computer, by scene and by day,
+  with the names corrected marked, each a file you can show in Finder or Explorer. A chat model of your own
+  can learn a scene's names from them.
+- Statistics: how long you translated, how much, and with which engines, day by day in a chart;
+  the minutes a cloud recognizer was sent and the tokens a translation API took; and how long you
+  wait, from the end of a sentence to its translation, step by step.
+- A menu bar panel to start, switch languages, sources and scenes, and adjust the subtitles; its
+  icon is Tomoru's girl, eyes open while translating.
+- Light and dark, as your Mac is, or as you choose.
+- Deleting asks first, and a scene, a session or an API deleted can be put back.
+- Translate text on screen, such as a game's dialogue: press ⌥⇧S and select it, once you turn on
+  selecting (it needs Screen Recording; only what you select is captured), or copy part of the
+  screen with ⌃⇧⌘4 first, then press ⌥⇧S. The translation streams into a card by what you selected (by
+  the menu bar icon for a copied picture), with the scene's names; click the picture on it to see
+  it whole. Neither the picture nor its translation is kept. Pictures go
+  to the translation engine you chose: an on-device model reads them itself (its download includes
+  the file for it, 360 MB for 2B, 620 MB for 9B); an API of yours that can't read them hands them
+  to the cloud, and the card says so.
+- A first-run guide that has you try it for real, on a video or on sentences your Mac says aloud,
+  and checks that hearing, recognition and translation all work.
+- Smoother subtitles: outlines and shadows drawn on the GPU, and a translation that replaces its
+  draft fades in.
+- Hovered or moved, the subtitles and their toolbar sit on clear Liquid Glass, what plays showing
+  through.
+- In English, Simplified and Traditional Chinese, Japanese and Korean.

@@ -1,0 +1,184 @@
+{"type": "hello", "protocol": 1, "engine": "mac", "version": "spike"}
+{"type": "state", "state": "listening"}
+{"type": "clock", "t": 0.1}
+{"type": "clock", "t": 0.2}
+{"type": "clock", "t": 0.3}
+{"type": "clock", "t": 0.4}
+{"type": "clock", "t": 0.5}
+{"type": "clock", "t": 0.6}
+{"type": "clock", "t": 0.7}
+{"type": "clock", "t": 0.8}
+{"type": "clock", "t": 0.9}
+{"type": "clock", "t": 1.0}
+{"type": "clock", "t": 1.1}
+{"type": "clock", "t": 1.2}
+{"type": "clock", "t": 1.3}
+{"type": "clock", "t": 1.4}
+{"type": "clock", "t": 1.5}
+{"type": "clock", "t": 1.6}
+{"type": "clock", "t": 1.7}
+{"type": "clock", "t": 1.8}
+{"type": "clock", "t": 1.9}
+{"type": "clock", "t": 2.0}
+{"type": "clock", "t": 2.1}
+{"type": "clock", "t": 2.2}
+{"type": "clock", "t": 2.3}
+{"type": "clock", "t": 2.4}
+{"type": "clock", "t": 2.5}
+{"type": "clock", "t": 2.6}
+{"type": "clock", "t": 2.7}
+{"type": "clock", "t": 2.8}
+{"type": "clock", "t": 2.9}
+{"type": "clock", "t": 3.0}
+{"type": "clock", "t": 3.1}
+{"type": "clock", "t": 3.2}
+{"type": "clock", "t": 3.3}
+{"type": "clock", "t": 3.4}
+{"type": "clock", "t": 3.5}
+{"type": "clock", "t": 3.6}
+{"type": "clock", "t": 3.7}
+{"type": "clock", "t": 3.8}
+{"type": "clock", "t": 3.9}
+{"type": "clock", "t": 4.0}
+{"type": "result", "final": false, "start": 0, "end": 4, "tokens": [{"text": "Hey", "start": 0, "end": 4}]}
+{"type": "result", "final": false, "start": 0, "end": 4, "tokens": [{"text": "Hey everyone", "start": 0, "end": 4}]}
+{"type": "clock", "t": 4.1}
+{"type": "clock", "t": 4.2}
+{"type": "clock", "t": 4.3}
+{"type": "clock", "t": 4.4}
+{"type": "clock", "t": 4.5}
+{"type": "clock", "t": 4.6}
+{"type": "clock", "t": 4.7}
+{"type": "clock", "t": 4.8}
+{"type": "clock", "t": 4.9}
+{"type": "result", "final": false, "start": 0, "end": 4.96, "tokens": [{"text": "Hey everyone,", "start": 0, "end": 4.96}]}
+{"type": "result", "final": false, "start": 0, "end": 4.96, "tokens": [{"text": "Hey everyone, welcome", "start": 0, "end": 4.96}]}
+{"type": "result", "final": false, "start": 0, "end": 4.96, "tokens": [{"text": "Hey everyone, welcome back", "start": 0, "end": 4.96}]}
+{"type": "result", "final": false, "start": 0, "end": 4.96, "tokens": [{"text": "Hey everyone, welcome back to", "start": 0, "end": 4.96}]}
+{"type": "clock", "t": 5.0}
+{"type": "clock", "t": 5.1}
+{"type": "clock", "t": 5.2}
+{"type": "clock", "t": 5.3}
+{"type": "clock", "t": 5.4}
+{"type": "clock", "t": 5.5}
+{"type": "clock", "t": 5.6}
+{"type": "clock", "t": 5.7}
+{"type": "clock", "t": 5.8}
+{"type": "result", "final": false, "start": 0, "end": 5.88, "tokens": [{"text": "Hey everyone, welcome back to the", "start": 0, "end": 5.88}]}
+{"type": "result", "final": false, "start": 0, "end": 5.88, "tokens": [{"text": "Hey everyone, welcome back to the stream", "start": 0, "end": 5.88}]}
+{"type": "clock", "t": 5.9}
+{"type": "result", "final": false, "start": 0, "end": 5.88, "tokens": [{"text": "Hey everyone, welcome back to the stream.", "start": 0, "end": 5.88}]}
+{"type": "result", "final": true, "start": 3, "end": 5.4, "tokens": [{"text": "Hey", "start": 3, "end": 3.06, "conf": 0.993}, {"text": " everyone,", "start": 3.06, "end": 3.96, "conf": 0.887}, {"text": " welcome", "start": 3.96, "end": 4.2, "conf": 0.95}, {"text": " back", "start": 4.2, "end": 4.56, "conf": 0.998}, {"text": " to", "start": 4.56, "end": 4.74, "conf": 0.998}, {"text": " the", "start": 4.74, "end": 4.86, "conf": 0.974}, {"text": " stream.", "start": 4.86, "end": 5.34, "conf": 0.925}]}
+{"type": "clock", "t": 6.0}
+{"type": "clock", "t": 6.1}
+{"type": "clock", "t": 6.2}
+{"type": "clock", "t": 6.3}
+{"type": "clock", "t": 6.4}
+{"type": "clock", "t": 6.5}
+{"type": "clock", "t": 6.6}
+{"type": "clock", "t": 6.7}
+{"type": "clock", "t": 6.8}
+{"type": "result", "final": false, "start": 5.4, "end": 6.88, "tokens": [{"text": " Today", "start": 5.4, "end": 6.88}]}
+{"type": "result", "final": false, "start": 5.4, "end": 6.88, "tokens": [{"text": " Today we", "start": 5.4, "end": 6.88}]}
+{"type": "result", "final": false, "start": 5.4, "end": 6.88, "tokens": [{"text": " Today we are", "start": 5.4, "end": 6.88}]}
+{"type": "result", "final": false, "start": 5.4, "end": 6.88, "tokens": [{"text": " Today we are finally", "start": 5.4, "end": 6.88}]}
+{"type": "clock", "t": 6.9}
+{"type": "clock", "t": 7.0}
+{"type": "clock", "t": 7.1}
+{"type": "clock", "t": 7.2}
+{"type": "clock", "t": 7.3}
+{"type": "clock", "t": 7.4}
+{"type": "clock", "t": 7.5}
+{"type": "clock", "t": 7.6}
+{"type": "clock", "t": 7.7}
+{"type": "clock", "t": 7.8}
+{"type": "result", "final": false, "start": 5.4, "end": 7.82, "tokens": [{"text": " Today we are finally going", "start": 5.4, "end": 7.82}]}
+{"type": "result", "final": false, "start": 5.4, "end": 7.82, "tokens": [{"text": " Today we are finally going to", "start": 5.4, "end": 7.82}]}
+{"type": "result", "final": false, "start": 5.4, "end": 7.82, "tokens": [{"text": " Today we are finally going to fight", "start": 5.4, "end": 7.82}]}
+{"type": "result", "final": false, "start": 5.4, "end": 7.82, "tokens": [{"text": " Today we are finally going to fight the", "start": 5.4, "end": 7.82}]}
+{"type": "clock", "t": 7.9}
+{"type": "clock", "t": 8.0}
+{"type": "clock", "t": 8.1}
+{"type": "clock", "t": 8.2}
+{"type": "clock", "t": 8.3}
+{"type": "clock", "t": 8.4}
+{"type": "clock", "t": 8.5}
+{"type": "clock", "t": 8.6}
+{"type": "clock", "t": 8.7}
+{"type": "result", "final": false, "start": 5.4, "end": 8.76, "tokens": [{"text": " Today we are finally going to fight the final", "start": 5.4, "end": 8.76}]}
+{"type": "result", "final": false, "start": 5.4, "end": 8.76, "tokens": [{"text": " Today we are finally going to fight the final boss", "start": 5.4, "end": 8.76}]}
+{"type": "clock", "t": 8.8}
+{"type": "clock", "t": 8.9}
+{"type": "clock", "t": 9.0}
+{"type": "clock", "t": 9.1}
+{"type": "clock", "t": 9.2}
+{"type": "clock", "t": 9.3}
+{"type": "clock", "t": 9.4}
+{"type": "clock", "t": 9.5}
+{"type": "clock", "t": 9.6}
+{"type": "clock", "t": 9.7}
+{"type": "result", "final": false, "start": 5.4, "end": 9.76, "tokens": [{"text": " Today we are finally going to fight the final boss,", "start": 5.4, "end": 9.76}]}
+{"type": "result", "final": false, "start": 5.4, "end": 9.76, "tokens": [{"text": " Today we are finally going to fight the final boss, so", "start": 5.4, "end": 9.76}]}
+{"type": "result", "final": false, "start": 5.4, "end": 9.76, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish", "start": 5.4, "end": 9.76}]}
+{"type": "result", "final": false, "start": 5.4, "end": 9.76, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me", "start": 5.4, "end": 9.76}]}
+{"type": "result", "final": false, "start": 5.4, "end": 9.76, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck", "start": 5.4, "end": 9.76}]}
+{"type": "clock", "t": 9.8}
+{"type": "clock", "t": 9.9}
+{"type": "clock", "t": 10.0}
+{"type": "clock", "t": 10.1}
+{"type": "clock", "t": 10.2}
+{"type": "clock", "t": 10.3}
+{"type": "clock", "t": 10.4}
+{"type": "clock", "t": 10.5}
+{"type": "clock", "t": 10.6}
+{"type": "clock", "t": 10.7}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your ti", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your tips", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your tips in", "start": 5.4, "end": 10.7}]}
+{"type": "result", "final": false, "start": 5.4, "end": 10.7, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your tips in the", "start": 5.4, "end": 10.7}]}
+{"type": "clock", "t": 10.8}
+{"type": "clock", "t": 10.9}
+{"type": "clock", "t": 11.0}
+{"type": "clock", "t": 11.1}
+{"type": "clock", "t": 11.2}
+{"type": "clock", "t": 11.3}
+{"type": "clock", "t": 11.4}
+{"type": "clock", "t": 11.5}
+{"type": "clock", "t": 11.6}
+{"type": "result", "final": false, "start": 5.4, "end": 11.64, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your tips in the chat", "start": 5.4, "end": 11.64}]}
+{"type": "result", "final": false, "start": 5.4, "end": 11.64, "tokens": [{"text": " Today we are finally going to fight the final boss, so wish me luck and drop your tips in the chat.", "start": 5.4, "end": 11.64}]}
+{"type": "clock", "t": 11.7}
+{"type": "result", "final": true, "start": 5.4, "end": 10.98, "tokens": [{"text": " Today", "start": 5.4, "end": 5.88, "conf": 0.988}, {"text": " we", "start": 5.88, "end": 6.12, "conf": 0.998}, {"text": " are", "start": 6.12, "end": 6.24, "conf": 0.9}, {"text": " finally", "start": 6.24, "end": 6.42, "conf": 0.999}, {"text": " going", "start": 6.42, "end": 6.84, "conf": 1}, {"text": " to", "start": 6.84, "end": 7.02, "conf": 0.999}, {"text": " fight", "start": 7.02, "end": 7.2, "conf": 0.997}, {"text": " the", "start": 7.2, "end": 7.5, "conf": 0.999}, {"text": " final", "start": 7.5, "end": 7.8, "conf": 0.952}, {"text": " boss,", "start": 7.8, "end": 8.7, "conf": 0.717}, {"text": " so", "start": 8.7, "end": 8.82, "conf": 0.696}, {"text": " wish", "start": 8.82, "end": 9, "conf": 0.999}, {"text": " me", "start": 9, "end": 9.18, "conf": 1}, {"text": " luck", "start": 9.18, "end": 9.36, "conf": 1}, {"text": " and", "start": 9.36, "end": 9.66, "conf": 0.994}, {"text": " drop", "start": 9.66, "end": 9.84, "conf": 0.999}, {"text": " your", "start": 9.84, "end": 10.02, "conf": 0.999}, {"text": " tips", "start": 10.02, "end": 10.2, "conf": 1}, {"text": " in", "start": 10.2, "end": 10.38, "conf": 0.997}, {"text": " the", "start": 10.38, "end": 10.5, "conf": 0.998}, {"text": " chat.", "start": 10.5, "end": 10.92, "conf": 0.993}]}
+{"type": "clock", "t": 11.8}
+{"type": "clock", "t": 11.9}
+{"type": "clock", "t": 12.0}
+{"type": "clock", "t": 12.1}
+{"type": "clock", "t": 12.2}
+{"type": "clock", "t": 12.3}
+{"type": "clock", "t": 12.4}
+{"type": "clock", "t": 12.5}
+{"type": "clock", "t": 12.6}
+{"type": "clock", "t": 12.7}
+{"type": "clock", "t": 12.8}
+{"type": "clock", "t": 12.9}
+{"type": "clock", "t": 13.0}
+{"type": "clock", "t": 13.1}
+{"type": "clock", "t": 13.2}
+{"type": "clock", "t": 13.3}
+{"type": "clock", "t": 13.4}
+{"type": "clock", "t": 13.5}
+{"type": "clock", "t": 13.6}
+{"type": "clock", "t": 13.7}
+{"type": "clock", "t": 13.8}
+{"type": "clock", "t": 13.9}
+{"type": "clock", "t": 14.0}
+{"type": "clock", "t": 14.1}
+{"type": "clock", "t": 14.2}
+{"type": "clock", "t": 14.3}
+{"type": "clock", "t": 14.4}
+{"type": "clock", "t": 14.5}
+{"type": "clock", "t": 14.6}
+{"type": "clock", "t": 14.7}

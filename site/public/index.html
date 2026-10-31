@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.documentElement.classList.add('js')</script>
+
+  <!-- SEO：站点地址 https://tomoru.acane.dev/。换域名时，改这里的 canonical / og:url / og:image、JSON-LD 和 sitemap.xml、robots.txt 里的地址。 -->
+  <title>Tomoru：看什么，都有字幕 | 电脑实时双语字幕翻译</title>
+  <meta name="description" content="Tomoru 直接听电脑播放的声音，把外语直播、生肉番剧、VTuber、游戏和会议实时变成双语字幕，浮在任何画面上。识别和翻译可以在本机或云端运行，开源免费，支持 macOS 和 Windows。">
+  <link rel="canonical" href="https://tomoru.acane.dev/">
+  <!-- 多语言：加英文页后取消注释，两边互相指向。
+  <link rel="alternate" hreflang="zh-CN" href="https://tomoru.acane.dev/">
+  <link rel="alternate" hreflang="en" href="https://tomoru.acane.dev/en/">
+  <link rel="alternate" hreflang="x-default" href="https://tomoru.acane.dev/en/">
+  -->
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#1b1949">
+  <meta name="color-scheme" content="light">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tomoru">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="Tomoru：看什么，都有字幕">
+  <meta property="og:description" content="直接听电脑播放的声音，实时生成双语字幕，浮在任何画面上。本机或云端，开源免费。">
+  <meta property="og:url" content="https://tomoru.acane.dev/">
+  <meta property="og:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="600">
+  <meta property="og:image:alt" content="Tomoru 和头顶的企鹅 ルビ 抬头看着一句日文和它亮成琥珀色的中文译文">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tomoru：看什么，都有字幕">
+  <meta name="twitter:description" content="直接听电脑播放的声音，实时生成双语字幕，浮在任何画面上。">
+  <meta name="twitter:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preload" as="image" href="assets/mascot.webp" type="image/webp">
+  <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Tomoru",
+        "alternateName": "灯る",
+        "description": "直接听电脑播放的声音，把外语实时变成双语字幕，浮在任何画面上。识别和翻译可以在本机或云端运行。",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "macOS 26 (Apple silicon), Windows 11 (x64)",
+        "url": "https://tomoru.acane.dev/",
+        "downloadUrl": "https://github.com/ACAne0320/Tomoru/releases/latest",
+        "image": "https://tomoru.acane.dev/assets/og-image.jpg",
+        "screenshot": "https://tomoru.acane.dev/assets/welcome-light.webp",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "inLanguage": ["zh-Hans", "zh-Hant", "en", "ja", "ko"],
+        "codeRepository": "https://github.com/ACAne0320/Tomoru"
+      },
+      {
+        "@type": "WebSite",
+        "name": "Tomoru",
+        "url": "https://tomoru.acane.dev/",
+        "inLanguage": "zh-CN"
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "Tomoru 要钱吗？", "acceptedAnswer": { "@type": "Answer", "text": "不要。Tomoru 免费，代码以 GPL-3.0 开源。自带的云端翻译免费；云端语音识别要用你自己的 API key，按服务商的价格计费。只用本机引擎就完全不花钱。" } },
+          { "@type": "Question", "name": "支持哪些系统？", "acceptedAnswer": { "@type": "Answer", "text": "macOS 26 或更新（Apple 芯片），以及 Windows 11（x64）。" } },
+          { "@type": "Question", "name": "支持哪些语言？", "acceptedAnswer": { "@type": "Answer", "text": "语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。界面有简体中文、繁体中文、英文、日文和韩文。" } },
+          { "@type": "Question", "name": "要装虚拟声卡或者开麦克风吗？", "acceptedAnswer": { "@type": "Answer", "text": "都不用。Tomoru 直接听电脑播放的声音，从不使用麦克风。" } },
+          { "@type": "Question", "name": "为什么第一次打开会被系统拦下？", "acceptedAnswer": { "@type": "Answer", "text": "Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开系统设置 › 隐私与安全性，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。" } },
+          { "@type": "Question", "name": "录屏或直播推流时，字幕会被录进去吗？", "acceptedAnswer": { "@type": "Answer", "text": "可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。" } }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- 图标：Lucide (ISC)，和 app 里用的是同一套 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+    <symbol id="i-captions" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></symbol>
+    <symbol id="i-audio" viewBox="0 0 24 24"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></symbol>
+    <symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></symbol>
+    <symbol id="i-mic-off" viewBox="0 0 24 24"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></symbol>
+    <symbol id="i-laptop" viewBox="0 0 24 24"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path stroke="none" fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 8.36 22.9c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></symbol>
+  </svg>
+
+  <a class="skip" href="#main">跳到正文</a>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="./" aria-label="Tomoru 首页">
+        <img src="assets/icon-128.webp" width="32" height="32" alt="">
+        <span class="brand-word">Tomoru</span>
+      </a>
+      <nav class="nav" aria-label="页面导航">
+        <a href="#features">功能</a>
+        <a href="#how">工作原理</a>
+        <a href="#privacy">隐私</a>
+        <a href="#faq">常见问题</a>
+      </nav>
+      <div class="header-actions">
+        <!-- 有英文页后加：<a class="lang" href="en/" hreflang="en" lang="en">English</a> -->
+        <a class="icon-link" href="https://github.com/ACAne0320/Tomoru" aria-label="GitHub 上的 Tomoru"><svg class="icon"><use href="#i-github"/></svg></a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/ACAne0320/Tomoru/releases/latest">下载</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ① 首屏：品牌主张 + 下载 -->
+    <section class="hero night" aria-labelledby="hero-title">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1 id="hero-title">
+            <span class="wordmark">Tomoru</span>
+            <span class="claim">看什么，都有字幕。</span>
+          </h1>
+          <p class="lead">Tomoru 直接听电脑播放的声音，把外语实时变成双语字幕，浮在任何画面上。外语直播、生肉番剧、VTuber、游戏、会议都能用，不用配置虚拟声卡。</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest">
+              <svg class="icon"><use href="#i-download"/></svg>
+              <span>免费下载<small data-platform>macOS 和 Windows</small></span>
+            </a>
+            <a class="btn btn-glass btn-lg" href="https://github.com/ACAne0320/Tomoru">
+              <svg class="icon"><use href="#i-github"/></svg><span>查看源码</span>
+            </a>
+          </div>
+          <ul class="facts" aria-label="要点">
+            <li>31 种语言互译</li>
+            <li>本机或云端</li>
+            <li>macOS / Windows</li>
+            <li>开源 GPL-3.0</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" role="img" aria-label="一个直播窗口上方浮着双语字幕：日文原文是白色，中文译文是琥珀色，新的一句从下面出现，旧的往上推">
+          <div class="screen">
+            <div class="screen-bar">
+              <i></i><i></i><i></i>
+              <span class="screen-title">直播 · 游戏实况</span>
+              <span class="live">LIVE</span>
+            </div>
+            <svg class="screen-scene" viewBox="0 0 560 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs>
+                <linearGradient id="h-sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#13123a"/><stop offset="1" stop-color="#33215c"/>
+                </linearGradient>
+                <radialGradient id="h-moon" cx=".5" cy=".5" r=".5">
+                  <stop offset=".55" stop-color="#fbf3e2"/><stop offset=".7" stop-color="#fbf3e2" stop-opacity=".25"/><stop offset="1" stop-color="#fbf3e2" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <rect width="560" height="330" fill="url(#h-sky)"/>
+              <g fill="#fff">
+                <circle cx="60" cy="40" r="1.2" opacity=".7"/><circle cx="140" cy="86" r="1" opacity=".5"/><circle cx="220" cy="30" r="1.4" opacity=".8"/>
+                <circle cx="300" cy="70" r="1" opacity=".5"/><circle cx="350" cy="24" r="1.2" opacity=".6"/><circle cx="500" cy="110" r="1" opacity=".5"/>
+                <circle cx="90" cy="130" r="1" opacity=".4"/><circle cx="260" cy="120" r="1.2" opacity=".5"/><circle cx="530" cy="40" r="1.3" opacity=".7"/>
+              </g>
+              <circle cx="440" cy="78" r="44" fill="url(#h-moon)"/>
+              <path d="M0 230 Q90 170 180 205 T360 190 T560 200 V330 H0Z" fill="#241f5c"/>
+              <path d="M0 262 Q120 225 250 250 T560 240 V330 H0Z" fill="#1b1949"/>
+              <g class="lanterns">
+                <g transform="translate(118 222)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
+                <g transform="translate(336 212)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
+              </g>
+              <path d="M0 290 Q140 270 280 288 T560 282 V330 H0Z" fill="#13123a"/>
+            </svg>
+            <div class="listening" aria-hidden="true">
+              <span class="levels"><i></i><i></i><i></i><i></i><i></i></span>
+              正在听 · 浏览器
+            </div>
+          </div>
+          <div class="overlay" aria-hidden="true">
+            <div class="roll" data-roll>
+              <div class="line old"><p class="src" lang="ja">皆さん、こんばんは。</p><p class="tgt">大家晚上好。</p></div>
+              <div class="line"><p class="src" lang="ja">今日の配信はいつもより少し長くなります。</p><p class="tgt">今天的直播会比平时长一点。</p></div>
+            </div>
+          </div>
+          <img class="hero-mascot" src="assets/mascot.webp" width="400" height="448" alt="" fetchpriority="high">
+        </div>
+      </div>
+    </section>
+
+    <!-- ② 核心卖点 -->
+    <section id="features" class="section paper" aria-labelledby="features-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">为什么用 Tomoru</p>
+          <h2 id="features-title">电脑在放什么，就翻译什么</h2>
+          <p class="section-lead">不挑播放器，不挑网站，也不挑游戏。只要电脑里有声音，就有字幕。</p>
+        </header>
+
+        <div class="pillars">
+          <article class="pillar" data-anim>
+            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="同一条字幕先后浮在番剧、游戏和会议窗口上">
+              <defs>
+                <clipPath id="a-win"><rect x="28" y="18" width="304" height="164" rx="10"/></clipPath>
+                <linearGradient id="a-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2870"/><stop offset="1" stop-color="#4a2e6e"/></linearGradient>
+              </defs>
+              <rect width="360" height="220" rx="16" fill="#15133d"/>
+              <g clip-path="url(#a-win)">
+                <rect x="28" y="18" width="304" height="164" fill="#211f55"/>
+                <g class="cyc c1">
+                  <rect x="28" y="42" width="304" height="140" fill="url(#a-sky)"/>
+                  <circle cx="60" cy="62" r="1.2" fill="#fff"/><circle cx="120" cy="76" r="1" fill="#fff" opacity=".6"/><circle cx="200" cy="58" r="1.3" fill="#fff" opacity=".8"/>
+                  <circle cx="276" cy="78" r="15" fill="#fbf3e2" opacity=".92"/>
+                  <path d="M28 150 Q90 112 150 138 T260 128 T332 140 V182 H28Z" fill="#1b1949"/>
+                  <path d="M28 164 Q110 142 190 160 T332 156 V182 H28Z" fill="#13123a"/>
+                </g>
+                <g class="cyc c2">
+                  <rect x="28" y="42" width="304" height="140" fill="#10213f"/>
+                  <rect x="28" y="160" width="304" height="22" fill="#0a1630"/>
+                  <rect x="44" y="54" width="90" height="7" rx="3.5" fill="#fff" fill-opacity=".15"/><rect x="44" y="54" width="62" height="7" rx="3.5" fill="#3fa463"/>
+                  <rect x="214" y="54" width="102" height="7" rx="3.5" fill="#fff" fill-opacity=".15"/><rect x="214" y="54" width="88" height="7" rx="3.5" fill="#e0564a"/>
+                  <path d="M222 160 C222 106 302 106 302 160Z M236 120 l-10 -20 l20 11Z M288 120 l10 -20 l-20 11Z" fill="#3a2a6e"/>
+                  <circle cx="250" cy="134" r="4" fill="#f5a524"/><circle cx="274" cy="134" r="4" fill="#f5a524"/>
+                  <circle cx="88" cy="126" r="7" fill="#d3cff6"/><rect x="80" y="134" width="16" height="26" rx="5" fill="#d3cff6"/>
+                </g>
+                <g class="cyc c3">
+                  <rect x="28" y="42" width="304" height="140" fill="#1d1b4a"/>
+                  <g fill="#2c2970">
+                    <rect x="38" y="50" width="138" height="58" rx="8"/><rect x="184" y="50" width="138" height="58" rx="8" stroke="#f5a524" stroke-width="2"/>
+                    <rect x="38" y="114" width="138" height="58" rx="8"/><rect x="184" y="114" width="138" height="58" rx="8"/>
+                  </g>
+                  <g fill="#d3cff6" opacity=".7">
+                    <circle cx="107" cy="74" r="10"/><path d="M89 102a18 14 0 0 1 36 0Z"/>
+                    <circle cx="253" cy="74" r="10"/><path d="M235 102a18 14 0 0 1 36 0Z"/>
+                    <circle cx="107" cy="138" r="10"/><circle cx="253" cy="138" r="10"/>
+                  </g>
+                </g>
+              </g>
+              <rect x="28" y="18" width="304" height="164" rx="10" fill="none" stroke="#fff" stroke-opacity=".14"/>
+              <circle cx="42" cy="30" r="3.2" fill="#ff5f57"/><circle cx="53" cy="30" r="3.2" fill="#febc2e"/><circle cx="64" cy="30" r="3.2" fill="#28c840"/>
+              <text class="cyc c1 t-mini" x="180" y="33.5" text-anchor="middle">番剧 · 第 7 话</text>
+              <text class="cyc c2 t-mini" x="180" y="33.5" text-anchor="middle">游戏</text>
+              <text class="cyc c3 t-mini" x="180" y="33.5" text-anchor="middle">线上会议</text>
+
+              <rect x="52" y="146" width="256" height="56" rx="9" fill="#08071c" fill-opacity=".88"/>
+              <g class="cyc c1"><text class="t-src" x="180" y="169" text-anchor="middle" lang="ja">今夜は、星がよく見えるね。</text><text class="t-tgt" x="180" y="192" text-anchor="middle">今晚的星星，看得好清楚。</text></g>
+              <g class="cyc c2"><text class="t-src" x="180" y="169" text-anchor="middle" lang="ja">あ、ボスが出てきた！</text><text class="t-tgt" x="180" y="192" text-anchor="middle">啊，Boss 出来了！</text></g>
+              <g class="cyc c3"><text class="t-src" x="180" y="169" text-anchor="middle" lang="en">Let's circle back on this next week.</text><text class="t-tgt" x="180" y="192" text-anchor="middle">这个我们下周再聊。</text></g>
+              <g transform="translate(308 146)">
+                <circle r="11" fill="#f5a524"/>
+                <g transform="translate(-7 -7.5) scale(.58)" fill="none" stroke="#232057" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
+              </g>
+            </svg>
+            <h3>浮在任何画面上</h3>
+            <p>视频、直播、游戏、会议，字幕都在最上层。可以拖动、缩放；锁定后，点击会直接穿过字幕；录屏时也能自动隐藏。</p>
+          </article>
+
+          <article class="pillar" data-anim>
+            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="可以听全部系统声音，也可以只听浏览器一个应用">
+              <defs>
+                <radialGradient id="b-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f5a524" stop-opacity=".45"/><stop offset="1" stop-color="#f5a524" stop-opacity="0"/></radialGradient>
+              </defs>
+              <rect width="360" height="220" rx="16" fill="#15133d"/>
+              <g class="flow">
+                <path class="dash" d="M190 48 C230 48 228 104 262 108"/>
+                <path class="dash ph-off" d="M190 110 L262 110"/>
+                <path class="dash ph-off" d="M190 172 C230 172 228 116 262 112"/>
+              </g>
+              <g class="tile">
+                <rect x="20" y="26" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
+                <circle cx="44" cy="48" r="12" fill="#2c2970"/>
+                <g fill="none" stroke="#d3cff6" stroke-width="1.4"><circle cx="44" cy="48" r="6.5"/><ellipse cx="44" cy="48" rx="2.8" ry="6.5"/><path d="M37.5 48h13"/></g>
+                <text class="t-label" x="64" y="52">浏览器 · 直播</text>
+                <g class="lv" transform="translate(152 48)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
+              </g>
+              <g class="tile ph-dim">
+                <rect x="20" y="88" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
+                <circle cx="44" cy="110" r="12" fill="#2c2970"/>
+                <g fill="none" stroke="#d3cff6" stroke-width="1.4" stroke-linecap="round"><rect x="36" y="105" width="16" height="10" rx="5"/><path d="M40 108.5v3M38.5 110h3"/><circle cx="48" cy="110" r=".6" fill="#d3cff6"/></g>
+                <text class="t-label" x="64" y="114">游戏</text>
+                <g class="lv" transform="translate(152 110)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
+              </g>
+              <g class="tile ph-dim">
+                <rect x="20" y="150" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
+                <circle cx="44" cy="172" r="12" fill="#2c2970"/>
+                <g fill="none" stroke="#d3cff6" stroke-width="1.4" stroke-linecap="round"><path d="M42 177v-10l7-2v10"/><circle cx="40" cy="177" r="2"/><circle cx="47" cy="175" r="2"/></g>
+                <text class="t-label" x="64" y="176">音乐</text>
+                <g class="lv" transform="translate(152 172)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
+              </g>
+              <rect class="frame ph-a" x="13" y="19" width="184" height="182" rx="16"/>
+              <rect class="frame ph-b" x="13" y="19" width="184" height="58" rx="16"/>
+              <circle cx="300" cy="110" r="56" fill="url(#b-glow)"/>
+              <image href="assets/icon-128.webp" x="266" y="76" width="68" height="68"/>
+              <text class="t-label ph-a" x="300" y="170" text-anchor="middle">全部系统声音</text>
+              <text class="t-label ph-b" x="300" y="170" text-anchor="middle">只听浏览器</text>
+            </svg>
+            <h3>直接听电脑的声音</h3>
+            <p>不用麦克风，也不用装虚拟声卡。可以听系统的全部声音，也可以只听一个应用，比如边打游戏边只听浏览器里的直播。</p>
+          </article>
+
+          <article class="pillar" data-anim>
+            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="在本机和云端之间切换：本机时数据留在电脑里，云端时只发给选定的服务">
+              <rect width="360" height="220" rx="16" fill="#15133d"/>
+              <rect x="106" y="14" width="148" height="32" rx="16" fill="#fff" fill-opacity=".08" stroke="#fff" stroke-opacity=".12"/>
+              <rect class="knob" x="110" y="18" width="68" height="24" rx="12" fill="#f5a524"/>
+              <text class="seg seg-a" x="144" y="34.5" text-anchor="middle">本机</text>
+              <text class="seg seg-b" x="216" y="34.5" text-anchor="middle">云端</text>
+
+              <rect x="56" y="80" width="136" height="88" rx="8" fill="#211f55" stroke="#d3cff6" stroke-opacity=".5" stroke-width="1.5"/>
+              <path d="M40 174 H208 L198 184 H50Z" fill="#d3cff6" fill-opacity=".5"/>
+              <g class="ph-local">
+                <circle class="ring" cx="124" cy="124" r="28" fill="none" stroke="#f5a524" stroke-width="2" stroke-dasharray="5 6"/>
+              </g>
+              <image href="assets/icon-128.webp" x="106" y="106" width="36" height="36"/>
+
+              <g class="ph-cloud">
+                <path class="dash" d="M194 112 C224 94 244 94 262 104"/>
+                <path class="dash rev" d="M262 124 C244 134 224 134 194 130"/>
+              </g>
+              <path class="cloud" d="M266 136 a17 17 0 0 1 2 -34 a24 24 0 0 1 45 -6 a19 19 0 0 1 6 40Z"/>
+              <text class="t-cap ph-a" x="180" y="206" text-anchor="middle">声音和文字留在你的电脑上</text>
+              <text class="t-cap ph-b" x="180" y="206" text-anchor="middle">只发给你选的那个服务</text>
+            </svg>
+            <h3>本机或云端，你来选</h3>
+            <p>识别和翻译都能在本机离线运行，也能用云端：自带免费的云端翻译，也能接你自己的 API。选本机时，声音和文字不会离开你的电脑。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ③ 工作原理 -->
+    <section id="how" class="section night stage-section" aria-labelledby="how-title">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="section-head on-night">
+          <p class="eyebrow">工作原理</p>
+          <h2 id="how-title">听、认、译，一句接一句</h2>
+          <p class="section-lead">语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。原文是白色，译文是灯笼的琥珀色。</p>
+        </header>
+        <ol class="pipeline" data-anim>
+          <li class="step">
+            <span class="step-no">1</span>
+            <svg class="step-art" viewBox="0 0 200 80" aria-hidden="true">
+              <g class="wave">
+                <rect x="20" y="30" width="6" height="20" rx="3"/><rect x="34" y="22" width="6" height="36" rx="3"/><rect x="48" y="12" width="6" height="56" rx="3"/>
+                <rect x="62" y="26" width="6" height="28" rx="3"/><rect x="76" y="16" width="6" height="48" rx="3"/><rect x="90" y="6" width="6" height="68" rx="3"/>
+                <rect x="104" y="20" width="6" height="40" rx="3"/><rect x="118" y="28" width="6" height="24" rx="3"/><rect x="132" y="14" width="6" height="52" rx="3"/>
+                <rect x="146" y="24" width="6" height="32" rx="3"/><rect x="160" y="32" width="6" height="16" rx="3"/><rect x="174" y="28" width="6" height="24" rx="3"/>
+              </g>
+            </svg>
+            <h3>听</h3>
+            <p>听电脑正在播放的声音，或只听你选的那个应用。</p>
+          </li>
+          <li class="step">
+            <span class="step-no">2</span>
+            <div class="step-sub"><p class="src typing" lang="ja">皆さん、こんばんは。</p></div>
+            <h3>认</h3>
+            <p>把说的话识别成原文，边说边出字。</p>
+          </li>
+          <li class="step">
+            <span class="step-no">3</span>
+            <div class="step-sub"><p class="src dim" lang="ja">皆さん、こんばんは。</p><p class="tgt appear">大家晚上好。</p></div>
+            <h3>译</h3>
+            <p>翻译成你选的语言，和原文一起浮在屏幕上。</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ④ 功能细节 -->
+    <section class="section paper" aria-labelledby="details-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">细节</p>
+          <h2 id="details-title">为看懂而做的那些小事</h2>
+        </header>
+
+        <article class="feature" data-anim>
+          <div class="feature-copy">
+            <p class="tag"><svg class="icon"><use href="#i-sparkles"/></svg>抢先翻译</p>
+            <h3>不用等一句话说完</h3>
+            <p>说话的人还没说完，Tomoru 先给出前半句的大意；整句说完，再换成完整译文。看直播不用干等。</p>
+          </div>
+          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="说话进行到一半时先出现译文大意，说完后换成完整译文">
+            <rect width="420" height="250" rx="16" fill="#15133d"/>
+            <g transform="translate(24 22)">
+              <circle class="rec" cx="6" cy="6" r="5" fill="#f5a524"/>
+              <text class="t-label ph-talk" x="18" y="10.5">正在说…</text>
+              <text class="t-label ph-done" x="18" y="10.5">说完了</text>
+            </g>
+            <defs>
+              <g id="wv">
+                <rect x="0" y="14" width="6" height="12" rx="3"/>
+                <rect x="11.5" y="8" width="6" height="24" rx="3"/>
+                <rect x="23" y="2" width="6" height="36" rx="3"/>
+                <rect x="34.5" y="10" width="6" height="20" rx="3"/>
+                <rect x="46" y="4" width="6" height="32" rx="3"/>
+                <rect x="57.5" y="12" width="6" height="16" rx="3"/>
+                <rect x="69" y="0" width="6" height="40" rx="3"/>
+                <rect x="80.5" y="6" width="6" height="28" rx="3"/>
+                <rect x="92" y="14" width="6" height="12" rx="3"/>
+                <rect x="103.5" y="5" width="6" height="30" rx="3"/>
+                <rect x="115" y="9" width="6" height="22" rx="3"/>
+                <rect x="126.5" y="2" width="6" height="36" rx="3"/>
+                <rect x="138" y="12" width="6" height="16" rx="3"/>
+                <rect x="149.5" y="7" width="6" height="26" rx="3"/>
+                <rect x="161" y="15" width="6" height="10" rx="3"/>
+                <rect x="172.5" y="3" width="6" height="34" rx="3"/>
+                <rect x="184" y="9" width="6" height="22" rx="3"/>
+                <rect x="195.5" y="1" width="6" height="38" rx="3"/>
+                <rect x="207" y="11" width="6" height="18" rx="3"/>
+                <rect x="218.5" y="6" width="6" height="28" rx="3"/>
+                <rect x="230" y="13" width="6" height="14" rx="3"/>
+                <rect x="241.5" y="4" width="6" height="32" rx="3"/>
+                <rect x="253" y="10" width="6" height="20" rx="3"/>
+                <rect x="264.5" y="2" width="6" height="36" rx="3"/>
+                <rect x="276" y="8" width="6" height="24" rx="3"/>
+                <rect x="287.5" y="14" width="6" height="12" rx="3"/>
+                <rect x="299" y="6" width="6" height="28" rx="3"/>
+                <rect x="310.5" y="11" width="6" height="18" rx="3"/>
+                <rect x="322" y="15" width="6" height="10" rx="3"/>
+                <rect x="333.5" y="12" width="6" height="16" rx="3"/>
+                <rect x="345" y="16" width="6" height="8" rx="3"/>
+                <rect x="356.5" y="17" width="6" height="6" rx="3"/>
+              </g>
+              <clipPath id="wv-clip"><rect class="sweep" x="0" y="-4" width="364" height="48"/></clipPath>
+            </defs>
+            <g class="wv-bars" transform="translate(24 44)">
+              <use class="dim" href="#wv"/>
+              <use class="lit" href="#wv" clip-path="url(#wv-clip)"/>
+              <line class="playhead" x1="-1" y1="-6" x2="-1" y2="46" stroke="#fbf3e2" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <rect x="20" y="104" width="380" height="104" rx="12" fill="#08071c" fill-opacity=".88"/>
+            <text class="t-src big" x="40" y="140" lang="ja"><tspan class="ck ck1">今日の配信は</tspan><tspan class="ck ck2">いつもより</tspan><tspan class="ck ck3">少し長くなります。</tspan></text>
+            <text class="t-tgt big ph-draft" x="40" y="180">今天的直播……</text>
+            <text class="t-tgt big ph-final" x="40" y="180">今天的直播会比平时长一点。</text>
+            <text class="t-note ph-draft" x="382" y="180" text-anchor="end">大意</text>
+            <text class="t-note ph-final" x="382" y="180" text-anchor="end">完整译文</text>
+            <text class="t-cap" x="210" y="234" text-anchor="middle">先看大意，说完换成完整的一句</text>
+          </svg>
+        </article>
+
+        <article class="feature flip" data-anim>
+          <div class="feature-copy">
+            <p class="tag"><svg class="icon"><use href="#i-book"/></svg>翻译场景和专名对照表</p>
+            <h3>人名和招式，不再翻错</h3>
+            <p>语音识别容易把角色名听成近音词（把 <span lang="ja">メテオ</span> 听成 <span lang="ja">メデオ</span>），翻译也常把名字按字面硬翻（把 <span lang="ja">クラウド</span> 译成「云」）。给常看的番剧、主播或游戏建一个场景，名字会保持统一，听错的原文也会一起改对。接上你自己的 API，还能从字幕记录里学到新名字。</p>
+          </div>
+          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="不用场景时，メテオ 被听成 メデオ、クラウド 被译成云；用了最终幻想 VII 场景后，原文和译文都对了">
+            <rect width="420" height="250" rx="16" fill="#15133d"/>
+            <rect x="70" y="16" width="280" height="32" rx="16" fill="#fff" fill-opacity=".08" stroke="#fff" stroke-opacity=".12"/>
+            <rect class="knob knob-wide" x="74" y="20" width="132" height="24" rx="12" fill="#f5a524"/>
+            <text class="seg seg-a" x="140" y="36.5" text-anchor="middle">不用场景</text>
+            <text class="seg seg-b" x="280" y="36.5" text-anchor="middle">场景：最终幻想 VII</text>
+
+            <rect x="20" y="62" width="380" height="84" rx="12" fill="#08071c" fill-opacity=".88"/>
+            <g class="ph-a">
+              <text class="t-src big" x="40" y="94" lang="ja">クラウド、<tspan class="bad">メデオ</tspan>が来る！</text>
+              <text class="t-tgt big" x="40" y="128"><tspan class="bad">云</tspan>，<tspan class="bad">美迪奥</tspan>要来了！</text>
+            </g>
+            <g class="ph-b">
+              <text class="t-src big" x="40" y="94" lang="ja">クラウド、<tspan class="good">メテオ</tspan>が来る！</text>
+              <text class="t-tgt big" x="40" y="128"><tspan class="good">克劳德</tspan>，<tspan class="good">陨石</tspan>要来了！</text>
+            </g>
+
+            <g class="gloss">
+              <rect x="20" y="160" width="380" height="74" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
+              <text class="t-note" x="36" y="181">专名对照表</text>
+              <text class="t-label" x="36" y="214"><tspan lang="ja">クラウド</tspan> → 克劳德</text>
+              <text class="t-label" x="160" y="214"><tspan lang="ja">メテオ</tspan> → 陨石</text>
+              <text class="t-label" x="272" y="214"><tspan lang="ja">エアリス</tspan> → 爱丽丝</text>
+            </g>
+          </svg>
+        </article>
+
+        <article class="feature" data-anim>
+          <div class="feature-copy">
+            <p class="tag"><svg class="icon"><use href="#i-scan"/></svg>翻译屏幕上的文字</p>
+            <h3>没有声音的字，也能翻</h3>
+            <p>没配音的游戏对话、视频里的招牌、直播间弹幕：按 <kbd>⌥⇧S</kbd>（Windows 为 <kbd>Alt+Shift+S</kbd>）框选一块屏幕，或者先截图再按快捷键。用的是你选的翻译引擎，选本机模型时，图片也在本机翻译。</p>
+          </div>
+          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="按下快捷键，框选游戏里的日文对话框，上方出现中文译文">
+            <defs>
+              <linearGradient id="c-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13123a"/><stop offset="1" stop-color="#33215c"/></linearGradient>
+            </defs>
+            <rect width="420" height="250" rx="16" fill="url(#c-sky)"/>
+            <path d="M0 120 Q100 90 210 110 T420 100 V250 H0Z" fill="#1b1949" opacity=".8"/>
+            <g class="keys">
+              <g class="key k1"><rect x="150" y="40" width="34" height="32" rx="8"/><text x="167" y="61" text-anchor="middle">⌥</text></g>
+              <g class="key k2"><rect x="193" y="40" width="34" height="32" rx="8"/><text x="210" y="61" text-anchor="middle">⇧</text></g>
+              <g class="key k3"><rect x="236" y="40" width="34" height="32" rx="8"/><text x="253" y="61" text-anchor="middle">S</text></g>
+            </g>
+            <rect x="24" y="148" width="372" height="86" rx="10" fill="#0b0a1e" stroke="#cfcfe0" stroke-width="2"/>
+            <text class="t-name" x="42" y="172" lang="ja">エルナ</text>
+            <text class="t-src" x="42" y="196" lang="ja">クロード、あの塔のてっぺんで光ってるもの……</text>
+            <text class="t-src" x="42" y="219" lang="ja">まさか「星の欠片」じゃないよね？</text>
+            <rect class="sel" x="16" y="140" width="388" height="102" rx="6"/>
+            <g class="cross"><path d="M0 -9V9M-9 0H9" stroke="#fff" stroke-width="1.6"/></g>
+            <g class="result">
+              <rect x="24" y="18" width="372" height="104" rx="12" fill="#1b1949" stroke="#f5a524" stroke-opacity=".7"/>
+              <text class="t-name" x="42" y="44">艾露娜</text>
+              <text class="t-note" x="378" y="44" text-anchor="end">译文</text>
+              <text class="t-tgt" x="42" y="72">克劳德，塔顶上那个发光的东西……</text>
+              <text class="t-tgt" x="42" y="100">该不会就是「星之碎片」吧？</text>
+            </g>
+          </svg>
+        </article>
+      </div>
+    </section>
+
+    <!-- ⑤ 使用场景 -->
+    <section class="section sand" aria-labelledby="uses-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">适合这些时候</p>
+          <h2 id="uses-title">没有字幕的，都交给它</h2>
+        </header>
+        <ul class="uses">
+          <li class="use"><h3>外语直播</h3><div class="sub-card"><p class="src" lang="ja">みんな、ギフトありがとう！</p><p class="tgt">谢谢大家的礼物！</p></div></li>
+          <li class="use"><h3>生肉番剧</h3><div class="sub-card"><p class="src" lang="ja">今夜は、星がよく見えるね。</p><p class="tgt">今晚的星星，看得好清楚。</p></div></li>
+          <li class="use"><h3>VTuber 和切片</h3><div class="sub-card"><p class="src" lang="ko">여러분, 안녕하세요.</p><p class="tgt">大家晚上好。</p></div></li>
+          <li class="use"><h3>游戏</h3><div class="sub-card"><p class="src" lang="en">This boss's second phase is really tough.</p><p class="tgt">这个 Boss 的第二阶段超强的。</p></div></li>
+          <li class="use"><h3>会议和网课</h3><div class="sub-card"><p class="src" lang="en">Let's circle back on this next week.</p><p class="tgt">这个我们下周再聊。</p></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ⑥ 三步上手 -->
+    <section id="start" class="section paper" aria-labelledby="start-title">
+      <div class="wrap start-grid">
+        <div>
+          <header class="section-head left">
+            <p class="eyebrow">上手</p>
+            <h2 id="start-title">三步，字幕就出来了</h2>
+          </header>
+          <ol class="steps">
+            <li><h3>下载并打开</h3><p>第一次打开要多一步：macOS 在「系统设置 › 隐私与安全性」里点「仍要打开」；Windows 在 SmartScreen 警告里点「更多信息」，再点「仍要运行」。</p></li>
+            <li><h3>选语言和引擎</h3><p>引导会带你选听到的语言、要翻译成的语言，以及用本机还是云端来识别和翻译。</p></li>
+            <li><h3>试一下，然后开始</h3><p>引导里会播一段示例直播，字幕出来就说明一切就绪。之后 Tomoru 待在菜单栏，随时开始、停止。</p></li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/welcome-dark.webp">
+            <img src="assets/welcome-light.webp" width="1600" height="1160" loading="lazy" decoding="async" alt="Tomoru 的首次使用引导：左边选听到的语言和翻译成的语言，右边播放示例直播，原文在上，琥珀色的是译文">
+          </picture>
+          <figcaption>首次使用引导：设置 › 体验一下 › 开始用</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ⑦ 隐私 -->
+    <section id="privacy" class="section paper-2" aria-labelledby="privacy-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">隐私</p>
+          <h2 id="privacy-title">声音和文字去哪，由你决定</h2>
+        </header>
+        <ul class="cards">
+          <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-mic-off"/></svg></span><h3>不碰麦克风</h3><p>只听电脑播放的声音，从不使用麦克风。声音从不保存。</p></li>
+          <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-laptop"/></svg></span><h3>本机就留在本机</h3><p>本地识别和本地翻译都在你的电脑上完成。用云端引擎时，数据只发给你选的服务。</p></li>
+          <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-history"/></svg></span><h3>字幕记录默认关闭</h3><p>打开后，原文和译文只存在你的电脑上，随时可以删除。</p></li>
+          <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-eye-off"/></svg></span><h3>没有遥测</h3><p>只在检查更新时连接 GitHub，下载模型时连接 Hugging Face 或 ModelScope。</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ⑧ 看板娘 -->
+    <section class="section night mascot-section" aria-labelledby="mascot-title">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="wrap mascot-grid" data-anim>
+        <div class="mascot-art">
+          <img src="assets/mascot.webp" width="400" height="448" loading="lazy" decoding="async" alt="Tomoru：靛蓝短发、发尾琥珀色的女孩，开心地抬头看着头顶抱着纸灯笼的企鹅 ルビ">
+        </div>
+        <div class="mascot-copy">
+          <p class="eyebrow">Tomoru 和 ルビ</p>
+          <h2 id="mascot-title">提着灯笼的女孩，和头顶的企鹅</h2>
+          <p>app 的名字来自看板娘 Tomoru（<span lang="ja">ともる</span>），一个提着纸灯笼的女孩：<span lang="ja">灯る</span> 是「点亮」的意思。她头顶的企鹅叫 <span lang="ja">ルビ</span>（Rubi），名字取自标在难字上方、帮人读懂的那行小字。</p>
+          <p>没在翻译时，她们在菜单栏里打瞌睡；开始翻译，就一起醒过来。</p>
+          <div class="menubar" aria-hidden="true">
+            <svg viewBox="0 0 320 40">
+              <rect width="320" height="40" rx="10" fill="#fff" fill-opacity=".08"/>
+              <g class="tray tray-idle"><svg x="150" y="10.8" width="20" height="18.4" viewBox="0 -2.4 20 18.4"><g transform="rotate(-10 10 9)" fill="#fbf3e2"><path fill-rule="evenodd" d="M1 17L1 8.6C1 3.6 5 .8 10 .8C15 .8 19 3.6 19 8.6L19 17L15.6 17L15.6 10.6Q14.8 8.2 12.6 7.5Q13 9.2 12.3 10.7Q10.9 8.3 7.9 7.7Q8.7 9.6 7.7 11.1Q6.3 9.4 4.4 9.8L4.4 17Z"/><path d="M9.5 1.3C9.1-1.1 11.5-2.4 13.7-1.4C14.4-1.1 14.7-.4 14.5.2C13.9-.6 12.5-1 11.3-.2C10.9.2 10.9.8 11 1.3Z"/><path d="M6.1 13.6q1.4 1.4 2.8 0M11.1 13.6q1.4 1.4 2.8 0" fill="none" stroke="#fbf3e2" stroke-width="1.35" stroke-linecap="round"/></g></svg></g>
+              <g class="tray tray-on"><svg x="150" y="10.8" width="20" height="18.4" viewBox="0 -2.4 20 18.4"><g transform="rotate(-10 10 9)" fill="#fbf3e2"><path fill-rule="evenodd" d="M1 17L1 8.6C1 3.6 5 .8 10 .8C15 .8 19 3.6 19 8.6L19 17L15.6 17L15.6 10.6Q14.8 8.2 12.6 7.5Q13 9.2 12.3 10.7Q10.9 8.3 7.9 7.7Q8.7 9.6 7.7 11.1Q6.3 9.4 4.4 9.8L4.4 17Z"/><path d="M9.5 1.3C9.1-1.1 11.5-2.4 13.7-1.4C14.4-1.1 14.7-.4 14.5.2C13.9-.6 12.5-1 11.3-.2C10.9.2 10.9.8 11 1.3Z"/><ellipse cx="7.5" cy="13.6" rx="1.15" ry="1.65"/><ellipse cx="12.5" cy="13.6" rx="1.15" ry="1.65"/></g></svg></g>
+              <g fill="none" stroke="#d3cff6" stroke-width="1.6" stroke-linecap="round" opacity=".8">
+                <path d="M196 17a9 9 0 0 1 12 0M199 20.5a4.5 4.5 0 0 1 6 0"/><circle cx="202" cy="24" r=".9" fill="#d3cff6"/>
+                <rect x="222" y="14" width="20" height="11" rx="3"/><path d="M244.5 18v3"/>
+              </g>
+              <rect x="224" y="16" width="13" height="7" rx="1.5" fill="#d3cff6" opacity=".8"/>
+              <text class="t-label" x="300" y="25" text-anchor="end">21:30</text>
+              <text class="t-label tray-idle" x="20" y="25">没在翻译</text>
+              <text class="t-label tray-on lit" x="20" y="25">翻译中</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑨ 常见问题（内容和 head 里的 FAQPage JSON-LD 保持一致） -->
+    <section id="faq" class="section paper" aria-labelledby="faq-title">
+      <div class="wrap narrow">
+        <header class="section-head">
+          <p class="eyebrow">常见问题</p>
+          <h2 id="faq-title">常见问题</h2>
+        </header>
+        <div class="faq">
+          <details open><summary>Tomoru 要钱吗？</summary><p>不要。Tomoru 免费，代码以 GPL-3.0 开源。自带的云端翻译免费；云端语音识别要用你自己的 API key，按服务商的价格计费。只用本机引擎就完全不花钱。</p></details>
+          <details><summary>支持哪些系统？</summary><p>macOS 26 或更新（Apple 芯片），以及 Windows 11（x64）。</p></details>
+          <details><summary>支持哪些语言？</summary><p>语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。界面有简体中文、繁体中文、英文、日文和韩文。</p></details>
+          <details><summary>要装虚拟声卡或者开麦克风吗？</summary><p>都不用。Tomoru 直接听电脑播放的声音，从不使用麦克风。</p></details>
+          <details><summary>为什么第一次打开会被系统拦下？</summary><p>Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开「系统设置 › 隐私与安全性」，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。</p></details>
+          <details><summary>录屏或直播推流时，字幕会被录进去吗？</summary><p>可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑩ 收尾：再放一次首屏主张 -->
+    <section id="download" class="section night callback" aria-labelledby="callback-title">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="wrap callback-inner">
+        <h2 id="callback-title"><span class="wordmark">Tomoru</span><span class="claim">看什么，都有字幕。</span></h2>
+        <p class="lead">下载之后，app 会自己更新。</p>
+        <div class="cta-row center">
+          <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest">
+            <svg class="icon"><use href="#i-download"/></svg>
+            <span>免费下载<small data-platform>macOS 和 Windows</small></span>
+          </a>
+          <a class="btn btn-glass btn-lg" href="https://github.com/ACAne0320/Tomoru">
+            <svg class="icon"><use href="#i-github"/></svg><span>查看源码</span>
+          </a>
+        </div>
+        <p class="req">macOS 26 或更新 · Apple 芯片　|　Windows 11 · x64</p>
+      </div>
+      <img class="peek" src="assets/mascot.webp" width="400" height="448" loading="lazy" decoding="async" alt="">
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="./"><img src="assets/icon-128.webp" width="32" height="32" alt=""><span class="brand-word">Tomoru</span></a>
+        <p>把电脑播放的声音变成双语字幕。</p>
+      </div>
+      <nav aria-label="产品">
+        <h2>产品</h2>
+        <a href="#features">功能</a>
+        <a href="#privacy">隐私</a>
+        <a href="https://github.com/ACAne0320/Tomoru/releases">下载</a>
+        <a href="https://github.com/ACAne0320/Tomoru/blob/main/app/CHANGELOG.md">更新记录</a>
+      </nav>
+      <nav aria-label="开源">
+        <h2>开源</h2>
+        <a href="https://github.com/ACAne0320/Tomoru">GitHub</a>
+        <a href="https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING_zh.md">参与贡献</a>
+        <a href="https://github.com/ACAne0320/Tomoru/blob/main/SECURITY_zh.md">报告安全问题</a>
+        <a href="https://github.com/ACAne0320/Tomoru/issues">反馈问题</a>
+      </nav>
+      <nav aria-label="致谢">
+        <h2>致谢</h2>
+        <a href="https://github.com/egoist/mygo">MyGo</a>
+        <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a>
+        <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>
+        <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a>
+        <a href="https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md">第三方许可</a>
+      </nav>
+    </div>
+    <div class="wrap footer-legal">
+      <p>代码以 <a href="https://github.com/ACAne0320/Tomoru/blob/main/LICENSE">GPL-3.0-or-later</a> 授权。Tomoru 的名字、图标和看板娘保留所有权利，见 <a href="https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS_zh.md">商标说明</a>。</p>
+    </div>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>

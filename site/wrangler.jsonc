@@ -1,0 +1,14 @@
+// Tomoru's website: static files served as Cloudflare Workers static assets. Deploy with
+// `npx wrangler deploy` from site/.
+{
+  "name": "tomoru-site",
+  "compatibility_date": "2026-10-29",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  // Deploying creates the DNS record and certificate
+  "routes": [{ "pattern": "tomoru.acane.dev", "custom_domain": true }],
+  // No *.workers.dev address, so the page has a single URL
+  "workers_dev": false
+}

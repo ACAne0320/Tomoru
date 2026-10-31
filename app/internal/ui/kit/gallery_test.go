@@ -1,0 +1,273 @@
+package kit
+
+import (
+	"fmt"
+	"image"
+	"image/draw"
+	"image/png"
+	"math"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/egoist/mygo/ui"
+
+	"tomoru/internal/ui/assets"
+)
+
+// The gallery shows each of kit's components in its states, light and dark, to review them by eye:
+// TOMORU_GALLERY=<dir> go test ./internal/ui/kit -run Gallery writes it there as pictures.
+
+type gallery struct {
+	on, off   bool
+	seg, seg2 int
+	clicks    int
+	bar       int
+	tile      int
+	bin, day  int
+}
+
+func (g *gallery) view(c *ui.Context) {
+	Paper(c)
+	p := Colors(c)
+	section := func(name string, fn func()) {
+		ui.Column(c).Gap(Space(2.5)).Children(func() {
+			ui.Text(c, name).FontSize(TextCaption).FontWeight(WeightBold).TextColor(p.InkMuted)
+			ui.Row(c).Gap(Space(2.5)).AlignItems(ui.Center).Wrap().Children(fn)
+		})
+	}
+	ui.Column(c).Fill().Background(p.Paper).Padding(Space(6)).Gap(Space(5)).Children(func() {
+		section("Button · Large", func() {
+			if Button(c, Primary, Large, assets.Play, "开始翻译").Clicked() {
+				g.clicks++
+			}
+			Button(c, Strong, Large, assets.Stop, "停止翻译")
+		})
+		section("Button · Medium", func() {
+			Button(c, Primary, Medium, nil, "使用这个场景")
+			Button(c, Strong, Medium, assets.Plus, "新建场景")
+			Button(c, Plain, Medium, nil, "取消")
+			Button(c, Soft, Medium, assets.Sparkles, "从字幕记录学习")
+			Button(c, Quiet, Medium, nil, "稍后")
+		})
+		section("Button · Small", func() {
+			Button(c, Primary, Small, nil, "改用 阿里云百炼")
+			Button(c, Strong, Small, assets.Download, "下载")
+			Button(c, Plain, Small, nil, "设置")
+			Button(c, Soft, Small, assets.Sparkles, "学习专名")
+		})
+		section("IconButton", func() {
+			IconButton(c, Plain, Medium, assets.Reset, "恢复默认样式")
+			IconButton(c, Plain, Small, assets.Sliders, "管理场景")
+			IconButton(c, Plain, Small, assets.Arrow, "查看全部")
+			IconButton(c, Strong, Small, assets.Plus, "添加专名")
+			IconButton(c, Soft, Small, assets.Sparkles, "学习专名")
+			IconButton(c, Quiet, Small, assets.Trash, "删除")
+			IconButton(c, Quiet, Small, assets.More, "更多操作")
+		})
+		section("Chip", func() {
+			Chip(c, "通用", false, 0)
+			Chip(c, "最终幻想7 重制版", true, 12)
+			Chip(c, "雷军演讲", false, 0)
+			Chip(c, "Running Man", false, 3)
+		})
+		section("Switch · Segmented", func() {
+			Switch(c, &g.on, "抢先翻译")
+			Switch(c, &g.off, "录屏时隐藏")
+			Segmented(c, &g.seg, "带底框", "沉浸").Label("背景")
+			Segmented(c, &g.seg2, "无", "描边", "阴影").Label("文字边缘")
+		})
+		section("Caption · Waiting · Warning · Levels", func() {
+			Caption(c, "改了就生效")
+			Waiting(c, "测试中…")
+			Warning(c, "下载失败")
+			MenuLevels(c, true)
+			MenuLevels(c, false)
+		})
+		section("BarChart · StatStrip", func() {
+			Card(c).Width(340).Children(func() {
+				var bars []Bar
+				for i, v := range []float64{1.5, 3.2, math.NaN(), 0.4, 2.8, 4.1, 2.2} {
+					bar := Bar{Label: fmt.Sprintf("10/%d", 15+i), Value: v, Tip: fmt.Sprintf("10/%d · %.1f 小时", 15+i, v)}
+					if i >= 4 { // stacked, by engine
+						bar.Parts = []BarPart{{v * .6, p.Series[0]}, {v * .3, p.Series[1]}, {v * .1, p.LineStrong}}
+					}
+					bars = append(bars, bar)
+				}
+				BarChart(c, "每天的运行时长", bars, func(v float64) string { return fmt.Sprintf("%gh", v) }, &g.bar)
+			})
+			StatStrip(c, "延迟", []Stat{{Label: "识别定稿", Value: "0.62", Unit: "秒", Note: "90% 在 1.1 秒内"}, {Label: "翻译首字", Value: "0.41", Unit: "秒"}}).Width(340)
+			Card(c).Width(340).Children(func() {
+				PickTiles(c, &g.tile, []TileGroup{
+					{Label: "你等的", Tiles: []Tile{{Label: "说完到出译文", Value: "1.3", Unit: "秒", Strong: true}}},
+					{Label: "识别", Tiles: []Tile{{Label: "识别首字", Value: "0.45", Unit: "秒"}, {Label: "识别定稿", Value: "—"}}},
+				}).Label("延迟")
+				var bins []Bin
+				for i, share := range []float64{0, .02, .05, .1, .16, .2, .15, .1, .08, .06, .04, .02, .02} {
+					bins = append(bins, Bin{Lo: float64(i) * .2, Hi: float64(i+1) * .2, Share: share, Tip: fmt.Sprintf("%.0f%%", share*100)})
+				}
+				Histogram(c, "说完到出译文", bins, []HistMark{{At: 1.1, Label: "一半在 1.1 秒内", Strong: true}, {At: 1.8, Label: "90% 在 1.8 秒内"}},
+					func(v float64) string { return fmt.Sprintf("%g 秒", v) }, &g.bin)
+				var ws []Whisker
+				for i, v := range []float64{1.2, math.NaN(), 1.4, 1.1, 1.3} {
+					ws = append(ws, Whisker{Label: fmt.Sprintf("10/%d", 15+i), Mid: v, Hi: v * 1.5, Tip: fmt.Sprintf("%.1f 秒", v)})
+				}
+				WhiskerChart(c, "每天", ws, func(v float64) string { return fmt.Sprintf("%g 秒", v) }, &g.day)
+				ShareRow(c, Share{Color: p.Series[1], Name: "OpenRouter", Sub: "qwen/qwen3-30b-a3b", Value: "610", Unit: "句", Share: .3}, true)
+				ShareRow(c, Share{Color: p.LineStrong, Name: "未记录引擎", Value: "210", Unit: "句", Share: .08, Muted: true}, false)
+			})
+			Card(c).Width(340).Children(func() {
+				var days []HeatDay
+				for i := range 7 * 8 {
+					v := float64((i * 7) % 11)
+					if i%5 == 0 || i > 7*8-3 {
+						v = 0
+					}
+					days = append(days, HeatDay{Value: v, Tip: fmt.Sprintf("%d 句", int(v))})
+				}
+				days[len(days)-1].Value = math.NaN()
+				Heatmap(c, "每日句数", days, []string{"9月", "", "", "", "10月", "", "", ""}, [7]string{0: "周一", 2: "周三", 4: "周五"}, "少", "多", func(int) {})
+			})
+			Facts(c, []Fact{{Label: "译文", Value: "6,039 字"}, {Label: "输入 tokens", Value: "130,423"}, {Label: "输出 tokens", Value: "11,424"}, {Label: "失败", Value: "1 句"}}).Width(340)
+		})
+		ui.Row(c).Gap(Space(3.5)).AlignItems(ui.Start).Children(func() {
+			Card(c).Width(300).Children(func() {
+				CardHeader(c, "外观", func() { IconButton(c, Plain, Small, assets.Reset, "恢复默认") })
+				ui.Text(c, "白卡：一组设置").FontSize(TextBody).TextColor(p.Ink)
+			})
+			SandCard(c).Width(300).Children(func() {
+				CardHeader(c, "在看什么", func() { IconButton(c, Plain, Small, assets.Sliders, "管理场景") })
+				ui.Text(c, "沙色卡：首页的次要内容").FontSize(TextBody).TextColor(p.Ink)
+			})
+		})
+	})
+}
+
+const galleryW, galleryH = 760, 1000
+
+func TestGallery(t *testing.T) {
+	g := &gallery{on: true, seg2: 1, bar: 5, bin: 6, day: -1}
+	tt := ui.NewTester(g.view, galleryW, galleryH)
+	tt.SetScale(2)
+	dir := os.Getenv("TOMORU_GALLERY")
+	save := func(name string, img image.Image) {
+		if dir == "" {
+			return
+		}
+		f, err := os.Create(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer f.Close()
+		if err := png.Encode(f, img); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, dark := range []bool{false, true} {
+		tt.SetDark(dark)
+		tt.Advance(1e9)
+		tt.Frame()
+		name := "gallery-light.png"
+		if dark {
+			name = "gallery-dark.png"
+		}
+		save(name, tt.Image())
+	}
+	tt.SetDark(false)
+	tt.Frame()
+
+	// Each button at rest, hovered and pressed, side by side.
+	labels := []string{"开始翻译", "停止翻译", "取消", "从字幕记录学习", "稍后", "最终幻想7 重制版", "通用"}
+	var strip *image.RGBA
+	const cw, ch, padX, padY = 300, 64, 44, 18
+	if dir != "" {
+		strip = image.NewRGBA(image.Rect(0, 0, 3*cw*2, len(labels)*ch*2))
+		draw.Draw(strip, strip.Bounds(), image.White, image.Point{}, draw.Src)
+	}
+	for i, label := range labels {
+		r, ok := tt.Find(label)
+		if !ok {
+			t.Fatalf("no %q", label)
+		}
+		x, y := r.X+r.W/2, r.Y+r.H/2
+		for j, state := range []string{"rest", "hover", "pressed"} {
+			switch state {
+			case "rest":
+				tt.Move(1, 1)
+			case "hover":
+				tt.Move(x, y)
+			case "pressed":
+				tt.Press(x, y)
+			}
+			tt.Advance(3e8)
+			tt.Frame()
+			if strip != nil {
+				src := image.Rect(int(r.X-padX)*2, int(r.Y-padY)*2, int(r.X+r.W+padX)*2, int(r.Y+r.H+padY)*2)
+				at := image.Pt(j*cw*2, i*ch*2)
+				draw.Draw(strip, image.Rectangle{Min: at, Max: at.Add(src.Size())}, tt.Image(), src.Min, draw.Src)
+			}
+			if state == "pressed" {
+				tt.Release(x, y)
+				tt.Frame()
+			}
+		}
+	}
+	if strip != nil {
+		save("gallery-states.png", strip)
+	}
+
+	// What they do.
+	clicks := g.clicks
+	if err := tt.Click("开始翻译"); err != nil || g.clicks != clicks+1 {
+		t.Errorf("button: %v, clicks %d", err, g.clicks)
+	}
+	if err := tt.Click("抢先翻译"); err != nil || g.on {
+		t.Errorf("switch: %v, on %v", err, g.on)
+	}
+	if err := tt.Click("沉浸"); err != nil || g.seg != 1 {
+		t.Errorf("segmented: %v, %d", err, g.seg)
+	}
+	if _, ok := tt.Find("恢复默认样式"); !ok {
+		t.Error("an icon button is not named")
+	}
+}
+
+// TestEmptyGallery draws each Art in its Empty, light and dark, as the pages have them: every one
+// parses in either theme. TOMORU_GALLERY=<dir> writes empty-light.png and empty-dark.png there.
+func TestEmptyGallery(t *testing.T) {
+	view := func(c *ui.Context) {
+		Paper(c)
+		ui.Box(c).Fill().Background(Colors(c).Paper).Padding(Space(6)).Grid().ColumnTracks(ui.Fr(1), ui.Fr(1), ui.Fr(1)).Gap(Space(3.5)).Children(func() {
+			Empty(c, ArtScenes, "还没有自己的场景。给常看的节目、游戏或会议建一个，分别设置语言和专名。", nil)
+			Empty(c, ArtHistoryOff, "字幕记录没有开启。开启后，翻译过的字幕会保存在这台电脑上。", func() {
+				Button(c, Primary, Small, nil, "开启保存记录")
+			})
+			Empty(c, ArtHistory, "去放一段视频或音频，翻译过的字幕会出现在这里。", nil)
+			Empty(c, ArtStats, "还没有数据。翻译时放一段视频或音频，这里会显示用了多久、翻了多少、有多快。", nil)
+			Empty(c, ArtTermsLearn, "还没有专名。可以从这个场景的字幕记录里学习，找出容易听错的名字。", nil)
+			Empty(c, ArtTerms, "还没有专名。可以手动添加；这个场景有了字幕记录后，也能从记录里学习。", nil)
+		})
+	}
+	tt := ui.NewTester(view, 1000, 640)
+	tt.SetScale(2)
+	dir := os.Getenv("TOMORU_GALLERY")
+	for _, dark := range []bool{false, true} {
+		tt.SetDark(dark)
+		tt.Frame()
+		if dir == "" {
+			continue
+		}
+		name := "empty-light.png"
+		if dark {
+			name = "empty-dark.png"
+		}
+		f, err := os.Create(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := png.Encode(f, tt.Image()); err != nil {
+			t.Fatal(err)
+		}
+		f.Close()
+	}
+}

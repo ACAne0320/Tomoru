@@ -1,0 +1,8 @@
+<!-- The menu bar icon while translating, a template: black on clear. Tomoru peeks up, her head tilted, her ahoge up, eyes open. scripts/tray-icons.swift makes tray-on.png of it. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -2.4 20 18.4" width="20" height="18.4">
+<g transform="rotate(-10 10 9)">
+<path fill-rule="evenodd" d="M1 17L1 8.6C1 3.6 5 .8 10 .8C15 .8 19 3.6 19 8.6L19 17L15.6 17L15.6 10.6Q14.8 8.2 12.6 7.5Q13 9.2 12.3 10.7Q10.9 8.3 7.9 7.7Q8.7 9.6 7.7 11.1Q6.3 9.4 4.4 9.8L4.4 17Z"/>
+<path d="M9.5 1.3C9.1-1.1 11.5-2.4 13.7-1.4C14.4-1.1 14.7-.4 14.5.2C13.9-.6 12.5-1 11.3-.2C10.9.2 10.9.8 11 1.3Z"/>
+<ellipse cx="7.5" cy="13.6" rx="1.15" ry="1.65"/><ellipse cx="12.5" cy="13.6" rx="1.15" ry="1.65"/>
+</g>
+</svg>

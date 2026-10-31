@@ -1,0 +1,29 @@
+{
+  "name": "Tomoru",
+  "identifier": "dev.acane.tomoru",
+  "version": "0.1.0",
+  "copyright": "Copyright © 2026 Tomoru contributors. Licensed under GPL-3.0-or-later.",
+  "icon": "internal/ui/assets/icon.png",
+  "out": "build",
+  "updates": {
+    "github": "ACAne0320/Tomoru",
+    "publicKey": "6DlHxc5DY4SdzO8UBBtEBj5RbNyTE+3Zy2UyjbhwCaQ="
+  },
+  "i18n": {
+    "dir": "locales",
+    "source": "en"
+  },
+  "macos": {
+    "icon": "icon/Tomoru.icns",
+    "minimumSystemVersion": "26.0",
+    "infoPlist": {
+      "LSUIElement": true,
+      "NSAudioCaptureUsageDescription": "Used to make subtitles from the sound your Mac plays."
+    },
+    "signingIdentity": "Tomoru Self-Signed",
+    "helperEntitlements": {
+      "bin/llama-server": "entitlements/bundled-libraries.plist",
+      "bin/tomoru-asr": "entitlements/bundled-libraries.plist"
+    }
+  }
+}

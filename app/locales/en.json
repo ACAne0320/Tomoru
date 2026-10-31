@@ -1,0 +1,2192 @@
+{
+  "@@locale": "en",
+  "tagline": "Live translated subtitles for anything you watch.",
+  "@tagline": {
+    "description": "Under the app's name, where it introduces itself."
+  },
+  "mygo.appDescription": "Live translated subtitles for anything you watch",
+  "statusPreparing": "Getting ready to listen…",
+  "@statusPreparing": {
+    "description": "Where the subtitles show, while recognition starts."
+  },
+  "statusDownloading": "Downloading speech recognition for this language…",
+  "@statusDownloading": {
+    "description": "Where the subtitles show, while the system downloads recognition for the spoken language (about 20 s)."
+  },
+  "statusNoPermission": "Tomoru can't hear your Mac. Allow it in System Settings › Privacy & Security › Screen & System Audio Recording.",
+  "@statusNoPermission": {
+    "description": "Where the subtitles show, when the System Audio Recording permission is off. Name the settings as System Settings does in the language."
+  },
+  "statusStopped": "Translation stopped: {reason}",
+  "@statusStopped": {
+    "description": "Where the subtitles show, when translating stopped on an error.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "the engine exited"
+      }
+    }
+  },
+  "translationFailed": "Couldn't translate this line.",
+  "@translationFailed": {
+    "description": "Under a subtitle line whose translation failed."
+  },
+  "translationFailedCloud": "Index-Translate's cloud isn't answering. Try again later, or choose a local model or your own API in Settings › Speech & Translation.",
+  "@translationFailedCloud": {
+    "description": "In the first-run guide, under the translation check, when lines failed to translate with Index-Translate's cloud: it may be down."
+  },
+  "spokenLanguage": "Spoken language",
+  "@spokenLanguage": {
+    "description": "Label of the menu of the language spoken in the video."
+  },
+  "translateInto": "Translate into",
+  "@translateInto": {
+    "description": "Label of the menu of the language to translate into."
+  },
+  "swapLanguages": "Swap languages",
+  "@swapLanguages": {
+    "description": "Button that swaps the spoken language and the one to translate into."
+  },
+  "source": "Sound from",
+  "@source": {
+    "description": "Label of the menu of what to hear: all the system's sound, or one app's."
+  },
+  "sourceAll": "All system sound",
+  "@sourceAll": {
+    "description": "In the menu of what to hear: everything the computer plays."
+  },
+  "sourcePlaying": "Playing",
+  "@sourcePlaying": {
+    "description": "Heading in the menu of what to hear, over the apps playing sound now."
+  },
+  "sourceOtherApps": "Other apps",
+  "@sourceOtherApps": {
+    "description": "Heading in the menu of what to hear, over the other running apps."
+  },
+  "sourceNotRunning": "{app} (not running)",
+  "@sourceNotRunning": {
+    "description": "In the menu of what to hear: the app chosen, which is not running now.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "Safari"
+      }
+    }
+  },
+  "shortcut": "Start / stop",
+  "@shortcut": {
+    "description": "Label of the global shortcut that starts and stops translating."
+  },
+  "shortcutRecording": "Press the new shortcut",
+  "@shortcutRecording": {
+    "description": "In the shortcut field while it records a new global shortcut, before any key is pressed."
+  },
+  "shortcutChange": "Click to change",
+  "@shortcutChange": {
+    "description": "Tooltip of the shortcut field, whose keycaps a click records anew."
+  },
+  "shortcutNeedsModifier": "Include ⌃, ⌥ or ⌘",
+  "@shortcutNeedsModifier": {
+    "description": "Under the shortcut field, when the keys pressed have no Control, Option or Command."
+  },
+  "shortcutTaken": "{keys} can't be used; another app may have it",
+  "@shortcutTaken": {
+    "description": "Under the shortcut field, when the system refused the shortcut pressed.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌘Space"
+      }
+    }
+  },
+  "uiLanguage": "Language",
+  "@uiLanguage": {
+    "description": "Label of the menu of the language the app's own words are in."
+  },
+  "uiLanguageSystem": "Same as the system",
+  "@uiLanguageSystem": {
+    "description": "In the menu of the app's language: follow the system's."
+  },
+  "autoStart": "Start translating when Tomoru opens",
+  "@autoStart": {
+    "description": "A setting's name."
+  },
+  "hideFromCapture": "Hide subtitles from screen recording",
+  "@hideFromCapture": {
+    "description": "A setting's name."
+  },
+  "openAtLogin": "Open at login",
+  "@openAtLogin": {
+    "description": "A setting's name."
+  },
+  "prefsNetwork": "Network",
+  "@prefsNetwork": {
+    "description": "A card's title in Preferences: how the app reaches the cloud."
+  },
+  "useProxy": "Use a proxy",
+  "@useProxy": {
+    "description": "A switch in Preferences: reach the cloud through a proxy."
+  },
+  "useProxyDesc": "Cloud recognition and translation, and model downloads, go through it. Models on this computer don't.",
+  "@useProxyDesc": {
+    "description": "Under the switch that uses a proxy: what goes through it."
+  },
+  "proxyAddress": "Proxy address",
+  "@proxyAddress": {
+    "description": "A field's name in Preferences: the address of the user's proxy."
+  },
+  "proxySystem": "Empty for the system's: {proxy}",
+  "@proxySystem": {
+    "description": "Under the proxy address: empty, the system's proxy is used, which is this one.",
+    "placeholders": {
+      "proxy": {
+        "type": "String",
+        "example": "127.0.0.1:7897"
+      }
+    }
+  },
+  "proxySystemNone": "Empty for the system's proxy; the system has none set now.",
+  "@proxySystemNone": {
+    "description": "Under the proxy address: empty, the system's proxy is used, and the system has none."
+  },
+  "proxyInvalid": "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used.",
+  "@proxyInvalid": {
+    "description": "Under the proxy address, when what is typed is no address."
+  },
+  "settingsTitle": "Tomoru Settings",
+  "@settingsTitle": {
+    "description": "The settings window's title."
+  },
+  "tabGeneral": "Preferences",
+  "@tabGeneral": {
+    "description": "A page of the settings."
+  },
+  "tabSubtitles": "Subtitle style",
+  "@tabSubtitles": {
+    "description": "A page of the settings."
+  },
+  "tabEngines": "Speech & Translation",
+  "@tabEngines": {
+    "description": "A page of the settings, and a step of the first-run guide: speech recognition and translation."
+  },
+  "tabAbout": "About",
+  "@tabAbout": {
+    "description": "A page of the settings."
+  },
+  "styleLabel": "Background",
+  "@styleLabel": {
+    "description": "Label of the subtitles' style: on a box, or text alone."
+  },
+  "styleBox": "Box",
+  "@styleBox": {
+    "description": "A subtitle style: on a dark box, as closed captions."
+  },
+  "styleImmersive": "Immersive",
+  "@styleImmersive": {
+    "description": "A subtitle style: the text alone, as a film's."
+  },
+  "alignLabel": "Alignment",
+  "@alignLabel": {
+    "description": "Label of the subtitles' alignment."
+  },
+  "alignLeft": "Left",
+  "@alignLeft": {
+    "description": "An alignment."
+  },
+  "alignCenter": "Center",
+  "@alignCenter": {
+    "description": "An alignment."
+  },
+  "edgeLabel": "Text edge",
+  "@edgeLabel": {
+    "description": "Label of what goes around the subtitles' letters."
+  },
+  "edgeNone": "None",
+  "@edgeNone": {
+    "description": "A text edge."
+  },
+  "edgeOutline": "Outline",
+  "@edgeOutline": {
+    "description": "A text edge."
+  },
+  "edgeShadow": "Shadow",
+  "@edgeShadow": {
+    "description": "A text edge."
+  },
+  "edgeColor": "Edge color",
+  "@edgeColor": {
+    "description": "Label of the text edge's color."
+  },
+  "fontLabel": "Font",
+  "@fontLabel": {
+    "description": "Label of the subtitles' font."
+  },
+  "fontSystem": "System",
+  "@fontSystem": {
+    "description": "A font: the system's."
+  },
+  "fontSerif": "Serif",
+  "@fontSerif": {
+    "description": "A font: Song / Mincho."
+  },
+  "fontRounded": "Rounded",
+  "@fontRounded": {
+    "description": "A font: rounded sans-serif."
+  },
+  "srcSize": "Original text size",
+  "@srcSize": {
+    "description": "Label of the size of the original text."
+  },
+  "tgtSize": "Translation size",
+  "@tgtSize": {
+    "description": "Label of the size of the translation."
+  },
+  "srcColor": "Original text color",
+  "@srcColor": {
+    "description": "Label of the color of the original text."
+  },
+  "tgtColor": "Translation color",
+  "@tgtColor": {
+    "description": "Label of the color of the translation."
+  },
+  "customColor": "Custom color",
+  "@customColor": {
+    "description": "Name of the swatch after the preset colors that opens a color picker, for any color."
+  },
+  "colorScheme": "Color scheme",
+  "@colorScheme": {
+    "description": "Label of the row of color schemes of the subtitles, each setting the colors of the original, the translation and the edge."
+  },
+  "schemeClassic": "Classic",
+  "@schemeClassic": {
+    "description": "A color scheme: white original, light yellow translation, black edge. The default."
+  },
+  "schemeIce": "Ice",
+  "@schemeIce": {
+    "description": "A color scheme: white original, light blue translation, navy edge."
+  },
+  "schemeAmber": "Amber",
+  "@schemeAmber": {
+    "description": "A color scheme: white original, light orange translation, dark brown edge."
+  },
+  "schemeSakura": "Sakura",
+  "@schemeSakura": {
+    "description": "A color scheme, after cherry blossoms: white original, light pink translation, dark plum edge."
+  },
+  "schemeMint": "Mint",
+  "@schemeMint": {
+    "description": "A color scheme: white original, light green translation, black edge."
+  },
+  "schemeFocus": "Focus",
+  "@schemeFocus": {
+    "description": "A color scheme: gray original and white translation, which stands out. Keep it short: it is the tooltip of a small swatch."
+  },
+  "displayLabel": "Show",
+  "@displayLabel": {
+    "description": "Label of what the subtitles show."
+  },
+  "displayBoth": "Original + translation",
+  "@displayBoth": {
+    "description": "The subtitles show both."
+  },
+  "displayTgt": "Translation only",
+  "@displayTgt": {
+    "description": "The subtitles show the translation alone."
+  },
+  "shownLabel": "Sentences at once",
+  "@shownLabel": {
+    "description": "Label of how many sentences show at once."
+  },
+  "shownFewer": "Show one fewer",
+  "@shownFewer": {
+    "description": "Button: show one sentence fewer at once."
+  },
+  "shownMore": "Show one more",
+  "@shownMore": {
+    "description": "Button: show one sentence more at once."
+  },
+  "hideAfterLabel": "Hide when nobody speaks",
+  "@hideAfterLabel": {
+    "description": "Label of how long the subtitles stay when nobody speaks."
+  },
+  "hideAfterValue": "after {seconds} s",
+  "@hideAfterValue": {
+    "description": "The value of how long the subtitles stay when nobody speaks.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "adjustPosition": "Adjust position",
+  "@adjustPosition": {
+    "description": "Button that shows the subtitles' frame to move them."
+  },
+  "resetStyle": "Reset style",
+  "@resetStyle": {
+    "description": "Button that sets the subtitles' look back to the defaults."
+  },
+  "enginesAsr": "Speech recognition",
+  "@enginesAsr": {
+    "description": "Heading: the engines that turn speech into text."
+  },
+  "engineApple": "Apple Speech",
+  "@engineApple": {
+    "description": "The name of Apple's speech recognition."
+  },
+  "tagLocal": "On device",
+  "@tagLocal": {
+    "description": "A tag: it runs on this computer."
+  },
+  "tagBuiltIn": "Built in",
+  "@tagBuiltIn": {
+    "description": "A tag: it comes with the system."
+  },
+  "engineAppleDescription": "Fast. Good at Japanese, English, Korean.",
+  "@engineAppleDescription": {
+    "description": "Under Apple's speech recognition."
+  },
+  "enginesMt": "Translation",
+  "@enginesMt": {
+    "description": "Heading: the engines that translate."
+  },
+  "tagCloud": "Cloud",
+  "@tagCloud": {
+    "description": "A tag: it runs on a server."
+  },
+  "tagRecommended": "Recommended",
+  "@tagRecommended": {
+    "description": "A tag beside the name of the local translation model to pick, Index-Translate 9B. One short word."
+  },
+  "engineCloudThanks": "Free, thanks to the bilibili team",
+  "@engineCloudThanks": {
+    "description": "In the settings, under Index-Translate 35B in the cloud's list: thanks to the team that serves it free. A few words: a Star button is beside it."
+  },
+  "starOnGithub": "Star",
+  "@starOnGithub": {
+    "description": "A small button beside the thanks to Index-Translate's team: opens its repository on GitHub, to star it. One short word."
+  },
+  "cloudSendsText": "The cloud service you choose receives the recognized text.",
+  "@cloudSendsText": {
+    "description": "Under the cloud's translation services, in the settings and the guide: what leaves the computer. One short line."
+  },
+  "cloudSendsAudio": "The cloud service you choose receives the sound your computer plays.",
+  "@cloudSendsAudio": {
+    "description": "Under the cloud's recognition services, in the settings and the guide: what leaves the computer. One short line."
+  },
+  "draftLabel": "Translate ahead (show an early draft before a sentence ends)",
+  "@draftLabel": {
+    "description": "A setting's name: translating sentences before they end."
+  },
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "description": "The app's version, in About.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0"
+      }
+    }
+  },
+  "aboutLicense": "Free software, under the GPL-3.0",
+  "@aboutLicense": {
+    "description": "In About: the app's license."
+  },
+  "aboutCredits": "Translation model Index-Translate (bilibili, Apache-2.0) · UI MyGo · Icons Lucide (ISC)",
+  "@aboutCredits": {
+    "description": "In About: the works the app is built on, with their licenses."
+  },
+  "rerunGuide": "Run the first-run guide again",
+  "@rerunGuide": {
+    "description": "Button in About."
+  },
+  "start": "Start",
+  "@start": {
+    "description": "Button that starts translating."
+  },
+  "stop": "Stop",
+  "@stop": {
+    "description": "Button that stops translating."
+  },
+  "shortcutHint": "{keys} start / stop",
+  "@shortcutHint": {
+    "description": "At the bottom of the menu bar panel.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "aboutTomoru": "About Tomoru",
+  "@aboutTomoru": {
+    "description": "The menu bar icon's menu: opens the About page."
+  },
+  "quitTomoru": "Quit Tomoru",
+  "@quitTomoru": {
+    "description": "Menu bar panel, the last icon's tooltip, and the menu bar icon's menu: quits the app."
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "The settings button on the subtitles' toolbar, as a tooltip."
+  },
+  "dragHint": "Drag here to place the subtitles",
+  "@dragHint": {
+    "description": "On the hovered subtitle area, while it is empty."
+  },
+  "adjustHint": "The subtitles go here · point here to drag them",
+  "@adjustHint": {
+    "description": "On the subtitle area's frame, shown to find it."
+  },
+  "dragSubtitles": "Drag subtitles",
+  "@dragSubtitles": {
+    "description": "For assistive technology: the area that drags the subtitles."
+  },
+  "resizeWidth": "Resize",
+  "@resizeWidth": {
+    "description": "For assistive technology: a handle that resizes the subtitle area."
+  },
+  "lockedToast": "Locked. To move them again, unlock them from the menu bar or settings.",
+  "@lockedToast": {
+    "description": "Over the subtitles, once locked."
+  },
+  "pause": "Pause",
+  "@pause": {
+    "description": "Tooltip of the subtitles' toolbar."
+  },
+  "startTranslating": "Start translating",
+  "@startTranslating": {
+    "description": "Button, and tooltip of the subtitles' toolbar."
+  },
+  "lockTooltip": "Lock: only the text stays, and clicks go through",
+  "@lockTooltip": {
+    "description": "Tooltip of the subtitles' toolbar."
+  },
+  "noticeRetry": "{error} · press {keys} to try again",
+  "@noticeRetry": {
+    "description": "Where the subtitles show, after an error stopped translating.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Couldn't hear the system's sound."
+      },
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "noticeSlowNetwork": "The network is unstable: subtitles may come late. Check your network or proxy.",
+  "@noticeSlowNetwork": {
+    "description": "Where the subtitles show, while translating: the cloud recognition's network is slow, its text comes late."
+  },
+  "noticePaused": "Paused · {keys} to go on",
+  "@noticePaused": {
+    "description": "Where the subtitles show, while paused from their toolbar.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "noticeStatus": "{status} · {from} → {to}",
+  "@noticeStatus": {
+    "description": "Where the subtitles show, while translating gets ready.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "Getting ready to listen…"
+      },
+      "from": {
+        "type": "String",
+        "example": "Japanese"
+      },
+      "to": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  "noticeListening": "Listening · {from} → {to} · {keys} to stop",
+  "@noticeListening": {
+    "description": "Where the subtitles show, for a few seconds after listening starts.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "Japanese"
+      },
+      "to": {
+        "type": "String",
+        "example": "English"
+      },
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "noticeReady": "Tomoru is ready · press {keys} to translate",
+  "@noticeReady": {
+    "description": "Where the subtitles show, for a few seconds after the app opens without translating.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "noticeStopped": "Stopped translating · {keys} to start again",
+  "@noticeStopped": {
+    "description": "Where the subtitles show, for a few seconds after translating stops.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "sampleNoteRunning": "Sample subtitles · when someone speaks, subtitles show here",
+  "@sampleNoteRunning": {
+    "description": "Over sample subtitles, after the first-run guide, while listening."
+  },
+  "sampleNoteIdle": "Sample subtitles · press {keys} to translate",
+  "@sampleNoteIdle": {
+    "description": "Over sample subtitles, while not translating.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "errUnsupportedLocale": "Speech recognition on this Mac doesn't support the spoken language.",
+  "@errUnsupportedLocale": {
+    "description": "Why translating stopped."
+  },
+  "errAssets": "Couldn't download speech recognition for this language.",
+  "@errAssets": {
+    "description": "Why translating stopped."
+  },
+  "errCapture": "Couldn't hear the system's sound.",
+  "@errCapture": {
+    "description": "Why translating stopped."
+  },
+  "errEngineExited": "The recognition engine quit unexpectedly.",
+  "@errEngineExited": {
+    "description": "Why translating stopped."
+  },
+  "guideTitle": "Welcome to Tomoru",
+  "@guideTitle": {
+    "description": "The first-run guide's title."
+  },
+  "guideWelcomeBody": "Turns what your computer plays into bilingual subtitles.",
+  "@guideWelcomeBody": {
+    "description": "The first-run guide's first page."
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Button of the first-run guide."
+  },
+  "continue": "Continue",
+  "@continue": {
+    "description": "Button of the first-run guide."
+  },
+  "allow": "Allow",
+  "@allow": {
+    "description": "Button of the first-run guide: have the system ask for the permission."
+  },
+  "openSystemSettings": "Open System Settings",
+  "@openSystemSettings": {
+    "description": "Button of the first-run guide."
+  },
+  "guidePermissionTitle": "Let Tomoru hear your computer",
+  "@guidePermissionTitle": {
+    "description": "The permission page of the first-run guide."
+  },
+  "accessNoteAsking": "Choose Allow in the window the system shows.",
+  "@accessNoteAsking": {
+    "description": "Under the permission, while the system asks."
+  },
+  "accessNoteDenied": "In System Settings › Privacy & Security › Screen & System Audio Recording, turn on Tomoru under System Audio Recording Only, then reopen Tomoru.",
+  "@accessNoteDenied": {
+    "description": "Under the permission, when it is off. Name the settings as System Settings does in the language."
+  },
+  "systemAudioOnly": "System Audio Recording Only",
+  "@systemAudioOnly": {
+    "description": "The permission's name, as System Settings lists it."
+  },
+  "systemAudioOnlyDescription": "Hears only what your computer plays",
+  "@systemAudioOnlyDescription": {
+    "description": "Under the permission's name."
+  },
+  "asrDownloadFailedNote": "Recognition didn't download; it tries again when translating starts.",
+  "@asrDownloadFailedNote": {
+    "description": "Under Apple's speech recognition, when preparing it failed."
+  },
+  "asrFirstDownload": "The first time, recognition for it downloads in about 20 s. No need to wait.",
+  "@asrFirstDownload": {
+    "description": "Under Apple's speech recognition, while preparing it."
+  },
+  "statusLoadingModel": "Loading the on-device model…",
+  "@statusLoadingModel": {
+    "description": "While the on-device translation model loads, before listening."
+  },
+  "errModelMissing": "The on-device model isn't downloaded. Download it in Settings › Recognition & Translation.",
+  "@errModelMissing": {
+    "description": "Why translating could not start."
+  },
+  "errLocal": "Couldn't run the on-device model.",
+  "@errLocal": {
+    "description": "Why translating stopped."
+  },
+  "errNoEndpoint": "The translation API chosen was deleted.",
+  "@errNoEndpoint": {
+    "description": "Why translating could not start."
+  },
+  "needsMemory": "Needs {gb} GB of memory",
+  "@needsMemory": {
+    "description": "After a translation model's size, on a Mac: the memory it needs to run.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "16"
+      }
+    }
+  },
+  "needsVram": "Needs {gb} GB of video memory",
+  "@needsVram": {
+    "description": "After a translation model's size, on Windows: the graphics card's memory it needs to run.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "guideEnginesLater": "You can change this any time in Settings.",
+  "@guideEnginesLater": {
+    "description": "Under the title of the guide's recognition and translation steps."
+  },
+  "guideMtLater": "Start with the cloud. An on-device model downloads in the background meanwhile and takes over once it's done.",
+  "@guideMtLater": {
+    "description": "The guide's translation step, under its title: the cloud first; a local model downloads meanwhile without blocking the guide."
+  },
+  "memoryWarning": "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
+  "@memoryWarning": {
+    "description": "Under the 9B model, on a computer with less memory than it needs.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "meteredNote": "You're on a metered connection: downloading uses {size} of data.",
+  "@meteredNote": {
+    "description": "Under a model to download, on a metered connection.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "1.2 GB"
+      }
+    }
+  },
+  "offlineNote": "You're offline: the cloud and translation APIs need the internet; on-device models work offline.",
+  "@offlineNote": {
+    "description": "Over the translation engines, while offline."
+  },
+  "downloadResume": "Continue download",
+  "@downloadResume": {
+    "description": "Button that goes on with a download stopped before; how much is in shows beside it."
+  },
+  "downloading": "{done} of {size}",
+  "@downloading": {
+    "description": "Under a download's progress bar.",
+    "placeholders": {
+      "done": {
+        "type": "String",
+        "example": "400 MB"
+      },
+      "size": {
+        "type": "String",
+        "example": "1.2 GB"
+      }
+    }
+  },
+  "verifying": "Checking the download…",
+  "@verifying": {
+    "description": "While a downloaded model's checksum is checked."
+  },
+  "downloadDamaged": "The download was damaged, and was deleted. Try again.",
+  "@downloadDamaged": {
+    "description": "Under a model whose download was damaged."
+  },
+  "noSpace": "Not enough disk space: {size} is needed.",
+  "@noSpace": {
+    "description": "Under a model that does not fit on the disk.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "1.2 GB"
+      }
+    }
+  },
+  "downloadFailed": "Download failed: {reason}",
+  "@downloadFailed": {
+    "description": "Under a model whose download failed.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "connection reset"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button."
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Button: deletes a downloaded model, or a translation API."
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "Button: edits a translation API."
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Button."
+  },
+  "addEndpoint": "Add a translation API…",
+  "@addEndpoint": {
+    "description": "Button that adds a translation API, and that dialog's title."
+  },
+  "endpointEditTitle": "Edit translation API",
+  "@endpointEditTitle": {
+    "description": "The title of the dialog that edits a translation API."
+  },
+  "endpointIntro": "Works with OpenAI-compatible APIs, such as DeepSeek or Ollama.",
+  "@endpointIntro": {
+    "description": "Under the title of the dialog that adds or edits a translation API: which APIs work."
+  },
+  "endpointDescription": "{model} at {host}. The recognized text is sent there.",
+  "@endpointDescription": {
+    "description": "Under a translation API the user added.",
+    "placeholders": {
+      "model": {
+        "type": "String",
+        "example": "deepseek-chat"
+      },
+      "host": {
+        "type": "String",
+        "example": "api.deepseek.com"
+      }
+    }
+  },
+  "endpointName": "Name",
+  "@endpointName": {
+    "description": "A field of a translation API."
+  },
+  "endpointUrl": "API address",
+  "@endpointUrl": {
+    "description": "A field of a translation API."
+  },
+  "endpointModel": "Model",
+  "@endpointModel": {
+    "description": "A field of a translation API."
+  },
+  "endpointKey": "API key",
+  "@endpointKey": {
+    "description": "A field of a translation API."
+  },
+  "endpointKeyKeep": "Saved; leave empty to keep",
+  "@endpointKeyKeep": {
+    "description": "Placeholder of the API key, when one is kept."
+  },
+  "endpointFormat": "Prompt",
+  "@endpointFormat": {
+    "description": "A field of a translation API: how the model is prompted."
+  },
+  "endpointFormatChat": "Chat model",
+  "@endpointFormatChat": {
+    "description": "A prompt format: for general chat models."
+  },
+  "test": "Test",
+  "@test": {
+    "description": "Button that translates a sample with the API being edited."
+  },
+  "testing": "Testing…",
+  "@testing": {
+    "description": "While the test runs."
+  },
+  "testSucceeded": "Worked · {ms} ms",
+  "@testSucceeded": {
+    "description": "The test translated the sample, in so many milliseconds. Its translation shows under it.",
+    "placeholders": {
+      "ms": {
+        "type": "String",
+        "example": "812"
+      }
+    }
+  },
+  "testFailed": "Failed · {ms} ms",
+  "@testFailed": {
+    "description": "The test failed, after so many milliseconds. Why shows under it.",
+    "placeholders": {
+      "ms": {
+        "type": "String",
+        "example": "812"
+      }
+    }
+  },
+  "testNoTranslation": "No translation returned.",
+  "@testNoTranslation": {
+    "description": "Why a test failed: the response had no translation in it."
+  },
+  "testOnlyThinking": "The model only returned its reasoning process. Use a standard non-reasoning chat model instead.",
+  "@testOnlyThinking": {
+    "description": "Why a test failed: a reasoning model spent its answer thinking."
+  },
+  "showLogs": "Show logs",
+  "@showLogs": {
+    "description": "Button in About: shows the log files in Finder, to attach to a report."
+  },
+  "checkForUpdates": "Check for Updates…",
+  "@checkForUpdates": {
+    "description": "Button in About."
+  },
+  "endpointDeleted": "Deleted {name}",
+  "@endpointDeleted": {
+    "description": "A toast after deleting a translation API, beside an Undo button.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "DeepSeek"
+      }
+    }
+  },
+  "endpointSaved": "Saved {name}",
+  "@endpointSaved": {
+    "description": "A toast after saving a translation API.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "DeepSeek"
+      }
+    }
+  },
+  "undo": "Undo",
+  "@undo": {
+    "description": "The button of a toast that takes back what was just done."
+  },
+  "modelReady": "{name} is ready to use",
+  "@modelReady": {
+    "description": "A toast once a local translation model has downloaded and can be chosen.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 2B"
+      }
+    }
+  },
+  "modelDeleted": "Deleted {name}",
+  "@modelDeleted": {
+    "description": "A toast after deleting a local translation model.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 2B"
+      }
+    }
+  },
+  "reopenApp": "Reopen Tomoru",
+  "@reopenApp": {
+    "description": "Guide, permission step: quits and opens the app again, which a permission turned on in System Settings needs."
+  },
+  "guideTryTitle": "Try it now",
+  "@guideTryTitle": {
+    "description": "Guide, the step where the user tries translating for real."
+  },
+  "guideTryBody": "Play a video in {language}, or have Tomoru say a few sample sentences.",
+  "guideTryVideo": "Play a video in {language}.",
+  "@guideTryBody": {
+    "description": "Guide, try step: under the title. language is the spoken language's name.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Japanese"
+      }
+    }
+  },
+  "@guideTryVideo": {
+    "description": "Guide, try step: under the title, in place of guideTryBody when there are no sample sentences in the spoken language. language is its name.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Thai"
+      }
+    }
+  },
+  "playSample": "Play a sample",
+  "@playSample": {
+    "description": "Guide, try step: a button that has the system's voice say sample sentences aloud, to be translated."
+  },
+  "stopSample": "Stop",
+  "@stopSample": {
+    "description": "Guide, try step: the button stopping the sample being said."
+  },
+  "tryHearing": "Receiving sound from your Mac",
+  "@tryHearing": {
+    "description": "Guide, try step: the first check, that the app hears the computer's sound."
+  },
+  "tryHearingWait": "Play something with someone speaking",
+  "@tryHearingWait": {
+    "description": "Guide, try step: under the first check, until speech is heard."
+  },
+  "tryRecognizing": "Recognizing {language}",
+  "@tryRecognizing": {
+    "description": "Guide, try step: the second check, that speech is recognized.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Japanese"
+      }
+    }
+  },
+  "tryRecognizingWait": "Waiting for speech in {language}",
+  "@tryRecognizingWait": {
+    "description": "Guide, try step: under the second check, until text comes.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Japanese"
+      }
+    }
+  },
+  "tryTranslating": "Translating into {language}",
+  "@tryTranslating": {
+    "description": "Guide, try step: the third check, that the text is translated.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Chinese"
+      }
+    }
+  },
+  "tryTranslatingWith": "With {engine}",
+  "@tryTranslatingWith": {
+    "description": "Guide, try step: under the third check, the translation engine.",
+    "placeholders": {
+      "engine": {
+        "type": "String",
+        "example": "Index-Translate Cloud"
+      }
+    }
+  },
+  "trySuccess": "All set!",
+  "@trySuccess": {
+    "description": "Guide, try step: once all three checks pass."
+  },
+  "sampleNoVoice": "This Mac has no {language} voice to say the sample. Play a video in {language} instead.",
+  "@sampleNoVoice": {
+    "description": "Guide, try step: the system has no voice to say the sample in the spoken language.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Japanese"
+      }
+    }
+  },
+  "tryListening": "Listening…",
+  "@tryListening": {
+    "description": "Guide, try step: in the preview, while nothing has been said yet."
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "Guide: goes on without finishing the step."
+  },
+  "guideReadyTitle": "You're all set",
+  "@guideReadyTitle": {
+    "description": "Guide, the last step."
+  },
+  "guideReadyMenuBar": "Click Tomoru's icon in the menu bar to change languages, what to hear, and settings.",
+  "@guideReadyMenuBar": {
+    "description": "Guide, last step: where the app is."
+  },
+  "guideReadySubtitles": "Drag the subtitles where you like. Locked, clicks go through them.",
+  "@guideReadySubtitles": {
+    "description": "Guide, last step: moving and locking the subtitles."
+  },
+  "done": "Done",
+  "@done": {
+    "description": "Guide, last step: closes the guide."
+  },
+  "retry": "Try again",
+  "@retry": {
+    "description": "Guide, try step: starts translating again after it failed."
+  },
+  "engineWhere": "Runs",
+  "@engineWhere": {
+    "description": "A field's name, before the choice between on device and cloud for recognition or translation."
+  },
+  "engineWaiting": "Switches over once downloaded; until then, {current} is used.",
+  "@engineWaiting": {
+    "description": "Under a model chosen and not downloaded yet: the engine in use meanwhile.",
+    "placeholders": {
+      "current": {
+        "type": "String",
+        "example": "Index-Translate Cloud"
+      }
+    }
+  },
+  "asrLocalNone": "There's no on-device recognition for this computer yet.",
+  "@asrLocalNone": {
+    "description": "Where the on-device recognition engines would be listed, on a system that has none yet."
+  },
+  "modelReadyInUse": "{name} is downloaded and now in use",
+  "@modelReadyInUse": {
+    "description": "A toast once a model chosen before it downloaded has come in and is used.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 9B"
+      }
+    }
+  },
+  "engineSenseVoiceDescription": "Works offline. Good at Chinese.",
+  "@engineSenseVoiceDescription": {
+    "description": "Under SenseVoice, a speech recognition model to download."
+  },
+  "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Recognition & Translation.",
+  "@errAsrModelMissing": {
+    "description": "Where the subtitles show, when translating can't start: the recognition model chosen isn't downloaded."
+  },
+  "engineQwenAsr": "Qwen ASR (Alibaba Cloud)",
+  "@engineQwenAsr": {
+    "description": "The name of the cloud speech recognition: Qwen ASR on Alibaba Cloud Model Studio."
+  },
+  "engineQwenAsrDescription": "Billed by the length of the audio sent; nothing is sent while nothing plays.",
+  "@engineQwenAsrDescription": {
+    "description": "Under the cloud speech recognition: what it sends where, and what it costs."
+  },
+  "engineOpenAiDescription": "Billed by the length of the speech sent. Services compatible with OpenAI's transcription API work too.",
+  "@engineOpenAiDescription": {
+    "description": "Under OpenAI's speech recognition: what it costs, and that compatible services work."
+  },
+  "engineWaitingSetup": "Used once set up; until then, {current} is used.",
+  "@engineWaitingSetup": {
+    "description": "Under a cloud service chosen and not set up yet: the engine in use meanwhile.",
+    "placeholders": {
+      "current": {
+        "type": "String",
+        "example": "Apple Speech"
+      }
+    }
+  },
+  "setUp": "Set Up…",
+  "@setUp": {
+    "description": "Button that opens the dialog setting up a cloud service."
+  },
+  "asrCloudTitle": "Cloud Recognition",
+  "@asrCloudTitle": {
+    "description": "Title of the dialog setting up the cloud speech recognition."
+  },
+  "asrCloudIntro": "Create an API key in the Alibaba Cloud Model Studio console.",
+  "@asrCloudIntro": {
+    "description": "Under the title of the cloud recognition dialog."
+  },
+  "asrOpenAiIntro": "Create an API key on the OpenAI platform, or use one of a service compatible with its transcription API.",
+  "@asrOpenAiIntro": {
+    "description": "Under the title of the dialog setting up OpenAI's speech recognition."
+  },
+  "asrCloudHost": "Address",
+  "@asrCloudHost": {
+    "description": "A field's name: the domain of the cloud recognition service."
+  },
+  "asrCloudHostDescription": "Empty for Beijing; dashscope-intl.aliyuncs.com for Singapore, or your workspace's domain.",
+  "@asrCloudHostDescription": {
+    "description": "Under the address field of the cloud recognition dialog."
+  },
+  "asrOpenAiHostDescription": "Empty for OpenAI; for a compatible service, the base URL of its API.",
+  "@asrOpenAiHostDescription": {
+    "description": "Under the address field of the dialog setting up OpenAI's speech recognition."
+  },
+  "asrOpenAiModelDescription": "Empty for live transcription. A model of the transcription API, gpt-transcribe or a compatible service's, is more accurate, and shows each sentence once it ends.",
+  "@asrOpenAiModelDescription": {
+    "description": "Under the model field of the dialog setting up OpenAI's speech recognition: what leaving it empty does, and what a model of the transcription API does."
+  },
+  "errAsrCloudKey": "Cloud recognition has no API key. Set it up in Settings › Recognition & Translation.",
+  "@errAsrCloudKey": {
+    "description": "Where the subtitles show, when translating can't start: the cloud recognition chosen has no API key."
+  },
+  "errAsrCloudAuth": "Model Studio refused the API key. Check it in Settings › Recognition & Translation.",
+  "@errAsrCloudAuth": {
+    "description": "Where the subtitles show, and in the cloud recognition dialog's test: the service refused the API key."
+  },
+  "errAsrApiAuth": "The recognition service refused the API key. Check it in Settings › Recognition & Translation.",
+  "@errAsrApiAuth": {
+    "description": "Where the subtitles show, and in the cloud recognition dialog's test: OpenAI's service, or a compatible one, refused the API key."
+  },
+  "errAsrCloud": "Cloud recognition stopped: {reason}",
+  "@errAsrCloud": {
+    "description": "Where the subtitles show, when the cloud recognition failed.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "connection reset"
+      }
+    }
+  },
+  "tabScenes": "Scenes",
+  "@tabScenes": {
+    "description": "A tab of the settings: the translation scenes, what the user watches, each with its own languages and names."
+  },
+  "scene": "Scene",
+  "@scene": {
+    "description": "Label of the menu that chooses the translation scene in use."
+  },
+  "sceneGeneral": "General",
+  "@sceneGeneral": {
+    "description": "The translation scene used when the user chose none."
+  },
+  "newScene": "New Scene",
+  "@newScene": {
+    "description": "Button that adds a translation scene; also the new scene's name until the user names it."
+  },
+  "noScenes": "No scenes of your own yet. Make one for a show, game or meeting you watch often, with its own languages and names.",
+  "@noScenes": {
+    "description": "Under the scenes' list while it has only the general scene: what a scene is for. The New Scene button is in the page's header."
+  },
+  "sceneName": "Name",
+  "@sceneName": {
+    "description": "Label of a translation scene's name."
+  },
+  "sceneAbout": "Background",
+  "@sceneAbout": {
+    "description": "Label of a translation scene's description: what the user watches in it."
+  },
+  "sceneAboutPlaceholder": "e.g. The Apothecary Diaries, with Maomao and Jinshi",
+  "@sceneAboutPlaceholder": {
+    "description": "Placeholder of a translation scene's description."
+  },
+  "useScene": "Use This Scene",
+  "@useScene": {
+    "description": "Button that makes the translation scene being edited the one in use."
+  },
+  "sceneInUse": "In use",
+  "@sceneInUse": {
+    "description": "Beside a translation scene being edited, when it is the one in use."
+  },
+  "deletedItem": "Deleted {name}",
+  "@deletedItem": {
+    "description": "A toast after deleting a translation scene or a name, beside an Undo button.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "FF7"
+      }
+    }
+  },
+  "glossary": "Names",
+  "@glossary": {
+    "description": "Heading of a translation scene's glossary: names, how they are written in the language heard, and how to translate them."
+  },
+  "termSrc": "As written",
+  "@termSrc": {
+    "description": "Field of a name in a scene's glossary: how it is written in the language heard."
+  },
+  "termTgt": "Translation",
+  "@termTgt": {
+    "description": "Field of a name in a scene's glossary: its translation."
+  },
+  "termHeard": "Misheard as",
+  "@termHeard": {
+    "description": "Field of a name in a scene's glossary: how speech recognition writes it wrong, comma-separated, optional."
+  },
+  "addTerm": "Add",
+  "@addTerm": {
+    "description": "Button that adds the name typed to a scene's glossary."
+  },
+  "noTermsLearn": "No names yet. Learn them from this scene's history: the names that keep being misheard.",
+  "@noTermsLearn": {
+    "description": "In a scene's glossary while it has none, and the scene has sessions kept: the Learn from History button is above."
+  },
+  "noTermsYet": "No names yet. Add one by hand; once this scene has history, you can learn them from it too.",
+  "@noTermsYet": {
+    "description": "In a scene's glossary while it has none, and the scene has no sessions kept to learn from."
+  },
+  "tabHistory": "History",
+  "@tabHistory": {
+    "description": "A tab of the settings: the subtitles kept on this Mac, when the user asks."
+  },
+  "keepHistory": "Keep subtitles",
+  "@keepHistory": {
+    "description": "Switch that keeps the subtitles of each session on this Mac."
+  },
+  "historyOff": "Subtitles aren't being kept. Turn it on to keep what's translated, on this computer only.",
+  "@historyOff": {
+    "description": "The history's list while it has none and the subtitles aren't kept."
+  },
+  "turnOnHistory": "Keep Subtitles",
+  "@turnOnHistory": {
+    "description": "Button under historyOff: turns on the switch that keeps the subtitles."
+  },
+  "noHistory": "Play a video or some audio, and the subtitles translated will show here.",
+  "@noHistory": {
+    "description": "The history's list while it has none and the subtitles are kept: what to do for some to be."
+  },
+  "historySceneEmpty": "No subtitles kept for this scene yet",
+  "@historySceneEmpty": {
+    "description": "The history's list, filtered to a scene that has no sessions kept while others have."
+  },
+  "allScenes": "All Scenes",
+  "@allScenes": {
+    "description": "The history's filter that shows the sessions of every scene."
+  },
+  "historyLines": "{n, plural, one {# line} other {# lines}}",
+  "@historyLines": {
+    "description": "How many lines a session kept has.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "deleteAll": "Delete All",
+  "@deleteAll": {
+    "description": "Button that deletes all the sessions listed."
+  },
+  "deletedSessions": "{n, plural, one {Deleted # session} other {Deleted # sessions}}",
+  "@deletedSessions": {
+    "description": "A toast after deleting sessions kept, beside an Undo button.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "deletedScene": "Deleted scene",
+  "@deletedScene": {
+    "description": "Where a session kept names its scene, when the scene was deleted since."
+  },
+  "learnNames": "Learn Names",
+  "@learnNames": {
+    "description": "Button, and the title of its dialog, that has a chat model find the names subtitles kept got wrong, to add to a scene."
+  },
+  "learnEndpoint": "API",
+  "@learnEndpoint": {
+    "description": "Label of the menu choosing the chat model's API that learns names."
+  },
+  "learnSends": "The text of these subtitles is sent to {name}.",
+  "@learnSends": {
+    "description": "Under the menu choosing the API that learns names: what it is sent.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "DeepSeek"
+      }
+    }
+  },
+  "learnNoEndpoint": "Learning names requires your own chat API (OpenAI-compatible, such as DeepSeek or Ollama). Add one first.",
+  "@learnNoEndpoint": {
+    "description": "In the dialog that learns names, when the user has no API of a chat model."
+  },
+  "learnStart": "Start",
+  "@learnStart": {
+    "description": "Button that starts learning names."
+  },
+  "learnProgress": "Checking… {done} of {total}",
+  "@learnProgress": {
+    "description": "While names are learned: the parts of the subtitles checked, of all.",
+    "placeholders": {
+      "done": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "learnNone": "No names to correct were found.",
+  "@learnNone": {
+    "description": "When learning names found none."
+  },
+  "learnFailed": "{n, plural, one {# part could not be checked} other {# parts could not be checked}}: {why}",
+  "@learnFailed": {
+    "description": "When the chat model did not answer about some parts of the subtitles, and why the last did not.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "2"
+      },
+      "why": {
+        "type": "String",
+        "example": "401 Unauthorized"
+      }
+    }
+  },
+  "learnAddTo": "Add to",
+  "@learnAddTo": {
+    "description": "Label of the menu choosing the scene the names learned go to."
+  },
+  "learnTook": "{n, plural, one {Added # name to {scene}} other {Added # names to {scene}}}",
+  "@learnTook": {
+    "description": "After the names learned were added to a scene; also a toast beside Undo.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "5"
+      },
+      "scene": {
+        "type": "String",
+        "example": "FF7"
+      }
+    }
+  },
+  "retranslate": "Retranslate with These Names",
+  "@retranslate": {
+    "description": "Button that translates the subtitles kept again, with the scene's names."
+  },
+  "retranslating": "Retranslating… {done} of {total}",
+  "@retranslating": {
+    "description": "While the subtitles kept are translated again: lines done, of all.",
+    "placeholders": {
+      "done": {
+        "type": "int",
+        "example": "12"
+      },
+      "total": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "retranslated": "{n, plural, one {Retranslated # line} other {Retranslated # lines}}",
+  "@retranslated": {
+    "description": "When the subtitles kept were translated again.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "tabHome": "Home",
+  "@tabHome": {
+    "description": "The settings window's first page, in its sidebar."
+  },
+  "homeTranslating": "Translating",
+  "@homeTranslating": {
+    "description": "The home page's title while translating."
+  },
+  "homeIdle": "Not translating",
+  "@homeIdle": {
+    "description": "The home page's title while not translating."
+  },
+  "homeListen": "Listen to",
+  "@homeListen": {
+    "description": "On the home page, before the menu of what is heard (all of the system's sound, or an app): the sound translated."
+  },
+  "stopTranslating": "Stop translating",
+  "@stopTranslating": {
+    "description": "The home page's button while translating."
+  },
+  "homeStats": "Numbers",
+  "@homeStats": {
+    "description": "Assistive technology's name of the home page's numbers."
+  },
+  "statRunning": "Listening for",
+  "@statRunning": {
+    "description": "Elapsed listening time of the current session, including silence. Used on the home page and compact panel."
+  },
+  "statToday": "Listened today",
+  "@statToday": {
+    "description": "Listening time accumulated today, including silence. Shown while stopped."
+  },
+  "statLines": "Translated",
+  "@statLines": {
+    "description": "A number of the home page: the sentences translated."
+  },
+  "unitLines": "lines",
+  "@unitLines": {
+    "description": "The unit after the number of sentences translated."
+  },
+  "statSpeech": "Speech time",
+  "@statSpeech": {
+    "description": "Duration of the segments detected as speech."
+  },
+  "unitMinutes": "min",
+  "@unitMinutes": {
+    "description": "The unit after a number of minutes."
+  },
+  "statChars": "Translations",
+  "@statChars": {
+    "description": "A number of the home page: how long the translations were."
+  },
+  "unitChars": "chars",
+  "@unitChars": {
+    "description": "The unit after the number of characters translated."
+  },
+  "manageScenes": "Manage scenes",
+  "@manageScenes": {
+    "description": "Icon button of the home page's card of scenes."
+  },
+  "homeRecent": "Recent",
+  "@homeRecent": {
+    "description": "The home page's card of the subtitles kept last."
+  },
+  "allRecords": "All records",
+  "@allRecords": {
+    "description": "Icon button of the home page's card of records."
+  },
+  "schemeCustom": "Custom",
+  "@schemeCustom": {
+    "description": "The last color scheme's swatch: colors of one's own, chosen below it."
+  },
+  "styleLook": "Look",
+  "@styleLook": {
+    "description": "A card of the subtitle style page: the background, edges, alignment and font."
+  },
+  "styleText": "Text",
+  "@styleText": {
+    "description": "A card of the subtitle style page: sizes and colors."
+  },
+  "styleShow": "Showing and hiding",
+  "@styleShow": {
+    "description": "A card of the subtitle style page: what shows, and when."
+  },
+  "addApi": "Add API",
+  "@addApi": {
+    "description": "The last tile of the cloud translation: add an API of one's own."
+  },
+  "downloadModel": "Download",
+  "@downloadModel": {
+    "description": "Button beside a model to download, whose size its tag says."
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "A setting of Preferences: light, dark, or as the system is."
+  },
+  "appearanceLight": "Light",
+  "@appearanceLight": {
+    "description": "An appearance: light."
+  },
+  "appearanceDark": "Dark",
+  "@appearanceDark": {
+    "description": "An appearance: dark."
+  },
+  "prefsLook": "Appearance & language",
+  "@prefsLook": {
+    "description": "A card of Preferences: the appearance and the language the app shows."
+  },
+  "prefsStart": "Startup & shortcut",
+  "@prefsStart": {
+    "description": "A card of Preferences: what happens at launch, and the shortcut."
+  },
+  "appearanceSystem": "Auto",
+  "@appearanceSystem": {
+    "description": "An appearance: light or dark as the system is."
+  },
+  "moveSubtitles": "Move subtitles",
+  "@moveSubtitles": {
+    "description": "Menu bar panel, an icon's tooltip: shows the subtitle area's frame, to move it even while no subtitles show; unlocks them first."
+  },
+  "lockSubtitles": "Lock subtitles",
+  "@lockSubtitles": {
+    "description": "Menu bar panel, the open lock's tooltip: locks the subtitles where they are, so clicks pass through them."
+  },
+  "unlockSubtitles": "Unlock subtitles",
+  "@unlockSubtitles": {
+    "description": "Menu bar panel, the shut lock's tooltip while the subtitles are locked: unlocks them, to hover and move them again."
+  },
+  "translateScreen": "Screenshot",
+  "@translateScreen": {
+    "description": "Menu bar panel, an icon's tooltip, followed by its shortcut: has the user select a part of the screen, and translates it; the picture on the clipboard when the app may not capture the screen. Also in the menu bar icon's menu."
+  },
+  "openTomoru": "Open Settings",
+  "@openTomoru": {
+    "description": "Menu bar panel, an icon's tooltip: opens the app's window. Also in the menu bar icon's menu."
+  },
+  "termCount": "{n, plural, one {# name} other {# names}}",
+  "@termCount": {
+    "description": "How many names a scene's glossary has.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "sceneAboutHint": "Sent with each line to translate (not to the on-device 2B model), and used when learning names",
+  "@sceneAboutHint": {
+    "description": "Beside a scene's description: what uses it."
+  },
+  "sceneLangs": "Languages",
+  "@sceneLangs": {
+    "description": "A scene's languages, spoken and translated into."
+  },
+  "learnFromRecords": "Learn from History",
+  "@learnFromRecords": {
+    "description": "Button of a scene: learns names from its sessions kept."
+  },
+  "deleteScene": "Delete Scene",
+  "@deleteScene": {
+    "description": "Menu item of a scene."
+  },
+  "moreActions": "More",
+  "@moreActions": {
+    "description": "Button opening a menu of more actions."
+  },
+  "newTerm": "Add a Name",
+  "@newTerm": {
+    "description": "Button adding a row to a scene's glossary."
+  },
+  "termHeardHint": "Optional, e.g. Infia, Medeo",
+  "@termHeardHint": {
+    "description": "Placeholder of the ways a name was misheard."
+  },
+  "termHeardSep": ", ",
+  "@termHeardSep": {
+    "description": "What separates the ways a name was misheard, as shown."
+  },
+  "termLearned": "Learned",
+  "@termLearned": {
+    "description": "Tooltip of a name learned from the history, not added by hand."
+  },
+  "dayToday": "Today",
+  "@dayToday": {
+    "description": "A day of the history's list."
+  },
+  "dayYesterday": "Yesterday",
+  "@dayYesterday": {
+    "description": "A day of the history's list."
+  },
+  "deleteRecord": "Delete This Session",
+  "@deleteRecord": {
+    "description": "Button of a session kept."
+  },
+  "termFixed": "Heard as “{heard}”, corrected by the names",
+  "@termFixed": {
+    "description": "Under a line kept: recognition heard a name wrong, and the glossary corrected it.",
+    "placeholders": {
+      "heard": {
+        "type": "String",
+        "example": "刘北"
+      }
+    }
+  },
+  "recordSource": "From {app}",
+  "@recordSource": {
+    "description": "What a session kept heard: an app.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "Safari"
+      }
+    }
+  },
+  "orderLabel": "Order",
+  "@orderLabel": {
+    "description": "A setting of the subtitles' text: which line is on top."
+  },
+  "orderSrcFirst": "Original on top",
+  "@orderSrcFirst": {
+    "description": "The original above its translation."
+  },
+  "orderTgtFirst": "Translation on top",
+  "@orderTgtFirst": {
+    "description": "The translation above the original."
+  },
+  "askDeleteScene": "Delete the scene “{name}”?",
+  "@askDeleteScene": {
+    "description": "Asks before deleting a scene.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Final Fantasy VII"
+      }
+    }
+  },
+  "askDeleteSceneDetail": "Its names go with it. Its sessions are kept.",
+  "@askDeleteSceneDetail": {
+    "description": "Under askDeleteScene: what goes with the scene, and what stays."
+  },
+  "askDeleteRecord": "Delete this session?",
+  "@askDeleteRecord": {
+    "description": "Asks before deleting a session kept."
+  },
+  "askDeleteSessions": "{n, plural, one {Delete # session?} other {Delete these # sessions?}}",
+  "@askDeleteSessions": {
+    "description": "Asks before deleting all the sessions listed.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "askDeleteEndpoint": "Delete this API and its key?",
+  "@askDeleteEndpoint": {
+    "description": "Asks, in the endpoint's dialog, before deleting it."
+  },
+  "askDeleteModel": "Delete {name}?",
+  "@askDeleteModel": {
+    "description": "Asks before deleting a local model.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 2B"
+      }
+    }
+  },
+  "askDeleteModelDetail": "To use it again, it downloads again ({size}).",
+  "@askDeleteModelDetail": {
+    "description": "Under askDeleteModel: deleting a model can't be undone.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "1.6 GB"
+      }
+    }
+  },
+  "imageTitle": "Picture Translation",
+  "@imageTitle": {
+    "description": "The title of the card that shows a picture's translation."
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Button that closes a card."
+  },
+  "imageTranslating": "Translating…",
+  "@imageTranslating": {
+    "description": "The picture's card, until the translation comes."
+  },
+  "imageNoText": "No translation came back: the picture may have no text.",
+  "@imageNoText": {
+    "description": "The picture's card, when the model sent no translation."
+  },
+  "imageFailed": "Couldn't translate this picture. Try again in a moment.",
+  "@imageFailed": {
+    "description": "The picture's card, when translating it failed; the error is under it."
+  },
+  "imageNote": "Powered by Index-Translate, in the cloud",
+  "@imageNote": {
+    "description": "The picture's card, at its foot: what translates the picture. \"Index-Translate\" is a link to its page."
+  },
+  "imageNoteLocal": "Powered by Index-Translate, on this computer",
+  "@imageNoteLocal": {
+    "description": "The picture's card, at its foot, when a local model translates it. \"Index-Translate\" is a link to its page."
+  },
+  "imageNoteEndpoint": "Translated by {name}",
+  "@imageNoteEndpoint": {
+    "description": "The picture's card, at its foot, when a translation API the user added translates it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "DeepSeek"
+      }
+    }
+  },
+  "imageEndpointFailed": "{name} couldn't translate this picture. It may not read pictures.",
+  "@imageEndpointFailed": {
+    "description": "The picture's card, when the user's translation API failed to translate it: it may not read pictures, and no other engine is asked. The API's error is under it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "DeepSeek"
+      }
+    }
+  },
+  "imageKept": "Neither the picture nor its translation is kept.",
+  "@imageKept": {
+    "description": "The tooltip of the picture card's foot."
+  },
+  "imageZoomIn": "See it whole",
+  "@imageZoomIn": {
+    "description": "The tooltip of the picture's thumbnail on its card: clicked, the picture shows whole, as large as it was on the screen."
+  },
+  "copy": "Copy",
+  "@copy": {
+    "description": "Button that copies the translation."
+  },
+  "copied": "Copied",
+  "@copied": {
+    "description": "The Copy button for a moment after a click."
+  },
+  "imageShortcut": "Translate Picture",
+  "@imageShortcut": {
+    "description": "Settings, General: the shortcut that translates the picture on the clipboard."
+  },
+  "imageShortcutDesc": "Copy a screenshot with {snap}, then press it",
+  "@imageShortcutDesc": {
+    "description": "Under imageShortcut.",
+    "placeholders": {
+      "snap": {
+        "type": "String",
+        "example": "⌃⇧⌘4"
+      }
+    }
+  },
+  "shortcutDuplicate": "{keys} is the other shortcut already",
+  "@shortcutDuplicate": {
+    "description": "A shortcut recorded that the other shortcut of the app already is.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "screenSelectWhy": "Needs Screen Recording. Only what you select is captured.",
+  "@screenSelectWhy": {
+    "description": "Under screenSelect, and in the guide: what the permission is for."
+  },
+  "screenSelectTurnOn": "Turn On Selecting",
+  "@screenSelectTurnOn": {
+    "description": "Button that asks for Screen Recording, to select a part of the screen."
+  },
+  "screenSelectAsking": "Waiting for the system…",
+  "@screenSelectAsking": {
+    "description": "The button while the system asks the user for Screen Recording."
+  },
+  "imageShortcutSelectDesc": "Press it, then select part of the screen",
+  "@imageShortcutSelectDesc": {
+    "description": "Under imageShortcut, when selecting a part of the screen is on."
+  },
+  "guidePhaseSetup": "Set Up",
+  "@guidePhaseSetup": {
+    "description": "Guide: the first phase, choosing languages, permissions and engines."
+  },
+  "guidePhaseTry": "Try It",
+  "@guidePhaseTry": {
+    "description": "Guide: the second phase, trying subtitles, pictures and the shortcuts."
+  },
+  "guidePhaseStart": "Get Started",
+  "@guidePhaseStart": {
+    "description": "Guide: the last phase, where the app is then."
+  },
+  "privacyTitle": "Your privacy",
+  "@privacyTitle": {
+    "description": "Guide, permissions: the card on the right about privacy."
+  },
+  "privacySound": "Nothing is recorded",
+  "@privacySound": {
+    "description": "Privacy: the sound."
+  },
+  "privacySoundDetail": "What your Mac plays is only turned into live subtitles, and not kept.",
+  "@privacySoundDetail": {
+    "description": "Under privacySound."
+  },
+  "privacyScreen": "Your screen isn't seen",
+  "@privacyScreen": {
+    "description": "Privacy: the screen."
+  },
+  "privacyScreenDetail": "Only a screenshot you take yourself is translated, and it's gone once translated.",
+  "@privacyScreenDetail": {
+    "description": "Under privacyScreen."
+  },
+  "privacyHistory": "Records stay on this Mac",
+  "@privacyHistory": {
+    "description": "Privacy: the subtitles kept."
+  },
+  "privacyHistoryDetail": "Subtitles aren't kept unless you turn it on, and then only here.",
+  "@privacyHistoryDetail": {
+    "description": "Under privacyHistory."
+  },
+  "guideShortcutsTitle": "Shortcuts",
+  "@guideShortcutsTitle": {
+    "description": "Guide: the step with the shortcuts."
+  },
+  "guideShortcutsBody": "Press it anywhere to start or stop translating. Try it now.",
+  "@guideShortcutsBody": {
+    "description": "Guide, shortcuts step."
+  },
+  "guideSelectTitle": "Select to translate",
+  "@guideSelectTitle": {
+    "description": "Guide: the step that offers selecting text on screen to translate."
+  },
+  "guideSelectAsk": "Press a shortcut and select text on screen to see it translated. Want it?",
+  "@guideSelectAsk": {
+    "description": "Guide, selecting step: what it is, before it is on."
+  },
+  "guideSelectSettings": "Turn on Tomoru under Screen & System Audio Recording in System Settings. When asked to reopen Tomoru, click Later.",
+  "@guideSelectSettings": {
+    "description": "Guide, selecting step: once asked, it is turned on in System Settings."
+  },
+  "guideSelectIntro": "Follow the two steps below to try a real translation.",
+  "@guideSelectIntro": {
+    "description": "The guide's select-to-translate step, once it is on: what to do, over its two checks."
+  },
+  "guideSelectPress": "Press {keys}",
+  "@guideSelectPress": {
+    "description": "The first check of the select-to-translate step: press the shortcut once.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧S"
+      }
+    }
+  },
+  "guideSelectFrame": "Press it again and select the dialogue on the right",
+  "@guideSelectFrame": {
+    "description": "The second check of the select-to-translate step, once the shortcut works: press it again and select the sample dialogue on the stage, which is translated for real."
+  },
+  "guideSelectAllow": "The first time, macOS asks again: click Allow.",
+  "@guideSelectAllow": {
+    "description": "Under the second check, on a Mac: macOS asks again the first time."
+  },
+  "guideSelectHere": "Select this dialogue",
+  "@guideSelectHere": {
+    "description": "Over the sample dialogue on the guide's stage, until it is selected."
+  },
+  "shortcutWorks": "That works",
+  "@shortcutWorks": {
+    "description": "Guide: under a shortcut, once pressed right."
+  },
+  "showInFinder": "Show in Finder",
+  "@showInFinder": {
+    "description": "Button of a session kept: shows its file in Finder."
+  },
+  "tabStats": "Statistics",
+  "@tabStats": {
+    "description": "The statistics page, in the sidebar."
+  },
+  "statsRange": "Period",
+  "@statsRange": {
+    "description": "Statistics page: names the choice of period."
+  },
+  "statsRange7": "7 days",
+  "@statsRange7": {
+    "description": "Statistics page: the last 7 days."
+  },
+  "statsRange30": "30 days",
+  "@statsRange30": {
+    "description": "Statistics page: the last 30 days."
+  },
+  "statsRangeAll": "All",
+  "@statsRangeAll": {
+    "description": "Statistics page: every day."
+  },
+  "statsEmpty": "Nothing yet. Play a video or some audio while translating, and this shows how long, how much and how fast.",
+  "@statsEmpty": {
+    "description": "The statistics while nothing was ever translated."
+  },
+  "statsActivity": "Lines by day",
+  "@statsActivity": {
+    "description": "Home page: the card of a square a day, deeper for more lines, from the week Tomoru was first used."
+  },
+  "statsLess": "Less",
+  "@statsLess": {
+    "description": "Home page: the light end of the daily squares' legend."
+  },
+  "statsMore": "More",
+  "@statsMore": {
+    "description": "Home page: the deep end of the daily squares' legend."
+  },
+  "homeOpenStats": "Open Statistics",
+  "@homeOpenStats": {
+    "description": "Home page: the button by the lines by day that goes to the statistics page."
+  },
+  "statRun": "Listening time",
+  "@statRun": {
+    "description": "Listening time across the selected period, including silence."
+  },
+  "unitHours": "h",
+  "@unitHours": {
+    "description": "Unit after a number of hours."
+  },
+  "statsDaily": "By day",
+  "@statsDaily": {
+    "description": "Statistics page: the chart's title, by day."
+  },
+  "statsMonthly": "By month",
+  "@statsMonthly": {
+    "description": "Statistics page: the chart's title, by month."
+  },
+  "statsChartShows": "Shows",
+  "@statsChartShows": {
+    "description": "Statistics page: names the choice of what the chart shows."
+  },
+  "statsLatency": "Latency",
+  "@statsLatency": {
+    "description": "Statistics page: the card of how long each step takes."
+  },
+  "latFirstText": "First words heard",
+  "@latFirstText": {
+    "description": "A latency: from someone starting to speak to the first words recognized."
+  },
+  "latFirstTextDescription": "From someone starting to speak to the first words recognized",
+  "@latFirstTextDescription": {
+    "description": "Tooltip of latFirstText."
+  },
+  "latFinal": "Recognition settled",
+  "@latFinal": {
+    "description": "A latency: from a word spoken to recognition settling on it."
+  },
+  "latFinalDescription": "From a word spoken to the recognizer settling on it",
+  "@latFinalDescription": {
+    "description": "Tooltip of latFinal."
+  },
+  "latFirstTranslation": "First words translated",
+  "@latFirstTranslation": {
+    "description": "A latency: from a line showing to the first words of its translation."
+  },
+  "latFirstTranslationDescription": "From a line showing to the first words of its translation, waiting for the lines before it included",
+  "@latFirstTranslationDescription": {
+    "description": "Tooltip of latFirstTranslation."
+  },
+  "latTranslation": "Line translated",
+  "@latTranslation": {
+    "description": "A latency: from a line showing to its translation done."
+  },
+  "latTranslationDescription": "From a line showing to its translation done",
+  "@latTranslationDescription": {
+    "description": "Tooltip of latTranslation."
+  },
+  "latEndToEnd": "Speech to translation",
+  "@latEndToEnd": {
+    "description": "A latency: from the end of a sentence's speech to the first words of its translation."
+  },
+  "latEndToEndDescription": "From the end of a sentence to the first words of its translation: what you wait",
+  "@latEndToEndDescription": {
+    "description": "Tooltip of latEndToEnd."
+  },
+  "latP90": "90% within {time}",
+  "@latP90": {
+    "description": "Under a latency: the time 90% of them came within.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1.2 s"
+      }
+    }
+  },
+  "statsSpread": "Spread",
+  "@statsSpread": {
+    "description": "Statistics page, the latency card: shows how a latency's times spread, as a histogram."
+  },
+  "latYouWait": "Total wait",
+  "@latYouWait": {
+    "description": "Statistics page, over the latency of what the user waits: from the end of speech to its translation."
+  },
+  "latHalf": "Half within {time}",
+  "@latHalf": {
+    "description": "Statistics page, on a latency's histogram: the median.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1.2 s"
+      }
+    }
+  },
+  "latNone": "Not timed in this period yet",
+  "@latNone": {
+    "description": "Statistics page: a latency chosen that has no times in the period."
+  },
+  "statsVsBefore": "{change} vs the {n} days before",
+  "@statsVsBefore": {
+    "description": "Statistics page, under the total: how much more or less than in as many days before the period.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "30"
+      },
+      "change": {
+        "type": "String",
+        "example": "+18%"
+      }
+    }
+  },
+  "latFaster": "{time} faster than the {n} days before",
+  "@latFaster": {
+    "description": "Statistics page, by a latency: its median is this much shorter than in as many days before the period.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "30"
+      },
+      "time": {
+        "type": "String",
+        "example": "0.3 s"
+      }
+    }
+  },
+  "latSlower": "{time} slower than the {n} days before",
+  "@latSlower": {
+    "description": "Statistics page, by a latency: its median is this much longer than in as many days before the period.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "30"
+      },
+      "time": {
+        "type": "String",
+        "example": "0.3 s"
+      }
+    }
+  },
+  "latSame": "About as fast as the {n} days before",
+  "@latSame": {
+    "description": "Statistics page, by a latency: its median is about what it was in as many days before the period.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "unitSeconds": "s",
+  "@unitSeconds": {
+    "description": "Unit after a number of seconds."
+  },
+  "seconds": "{n} s",
+  "@seconds": {
+    "description": "A number of seconds.",
+    "placeholders": {
+      "n": {
+        "type": "String",
+        "example": "0.8"
+      }
+    }
+  },
+  "engineUnknown": "Engine not recorded",
+  "@engineUnknown": {
+    "description": "Statistics page: what was counted before Tomoru noted the engines."
+  },
+  "useChars": "{n} chars",
+  "@useChars": {
+    "description": "Statistics page, of a translator: the letters of its translations.",
+    "placeholders": {
+      "n": {
+        "type": "String",
+        "example": "12,345"
+      }
+    }
+  },
+  "useImages": "{n, plural, one {# picture} other {# pictures}}",
+  "@useImages": {
+    "description": "How many pictures were translated, on the statistics' Translation side, after Picture Translation."
+  },
+  "minutes": "{n} min",
+  "@minutes": {
+    "description": "A number of minutes.",
+    "placeholders": {
+      "n": {
+        "type": "String",
+        "example": "45"
+      }
+    }
+  },
+  "hours": "{n} h",
+  "@hours": {
+    "description": "A number of hours.",
+    "placeholders": {
+      "n": {
+        "type": "String",
+        "example": "1.5"
+      }
+    }
+  },
+  "statsPerDay": "{n} a day",
+  "@statsPerDay": {
+    "description": "Statistics page, under the total: the average of a day of the period.",
+    "placeholders": {
+      "n": {
+        "type": "String",
+        "example": "42 lines"
+      }
+    }
+  },
+  "factAudio": "Billed audio",
+  "@factAudio": {
+    "description": "Statistics page, of a cloud recognizer: names the minutes of audio sent, which it bills."
+  },
+  "factInTokens": "Input tokens",
+  "@factInTokens": {
+    "description": "Statistics page, of a translator: names the input tokens it took, as the service counted them."
+  },
+  "factOutTokens": "Output tokens",
+  "@factOutTokens": {
+    "description": "Statistics page, of a translator: names the output tokens it took, as the service counted them."
+  },
+  "factFailed": "Failed",
+  "@factFailed": {
+    "description": "Statistics page, of a translator: names the lines it failed."
+  },
+  "shortcutNeedsModifierWin": "Include Ctrl, Alt or Win",
+  "@shortcutNeedsModifierWin": {
+    "description": "Shortcut field, on Windows: a key alone cannot be a global shortcut."
+  },
+  "lockedToastWin": "Locked. To move them again, right-click Tomoru's icon in the taskbar to unlock them, or unlock them in settings.",
+  "@lockedToastWin": {
+    "description": "Over the subtitles, on Windows, once they are locked in place."
+  },
+  "memoryWarningWin": "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
+  "@memoryWarningWin": {
+    "description": "Under the 9B model, on a Windows computer with less memory than it needs.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "sampleNoVoiceWin": "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings › Time & language › Speech.",
+  "@sampleNoVoiceWin": {
+    "description": "Guide, try step, on Windows: the system has no voice to say the sample in the spoken language.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Japanese"
+      }
+    }
+  },
+  "guideReadyTray": "Click Tomoru's icon in the corner of the taskbar to change languages and what to hear; right-click it to start translating or open settings. If it isn't there, it's under ^.",
+  "@guideReadyTray": {
+    "description": "Guide, last step, on Windows: where the app is afterwards."
+  },
+  "showInExplorer": "Show in File Explorer",
+  "@showInExplorer": {
+    "description": "Button of a session kept, on Windows: shows its file in File Explorer."
+  },
+  "engineNone": "None yet",
+  "@engineNone": {
+    "description": "In use, where no speech recognition is chosen yet (Windows has none of its own)."
+  },
+  "errNoAsr": "Choose speech recognition first, a model or the cloud, in Settings › Speech & Translation.",
+  "@errNoAsr": {
+    "description": "Translating could not start: no speech recognition is chosen yet."
+  },
+  "guideAsrChoose": "Choose one: a model on this computer, downloaded when you choose it, or the cloud's.",
+  "@guideAsrChoose": {
+    "description": "Guide, engines step, where the system has no speech recognition: what to choose."
+  },
+  "tryModelDownloading": "Downloading the model, {done} of {size}",
+  "tryModelThen": "Translating starts once it is downloaded.",
+  "@tryModelDownloading": {
+    "description": "The guide's try step, while the recognition model chosen is still downloading.",
+    "placeholders": {
+      "done": {
+        "type": "String",
+        "example": "120 MB"
+      },
+      "size": {
+        "type": "String",
+        "example": "240 MB"
+      }
+    }
+  },
+  "@tryModelThen": {
+    "description": "Under tryModelDownloading."
+  },
+  "tryHearingWin": "Receiving sound from your computer",
+  "@tryHearingWin": {
+    "description": "tryHearing on Windows."
+  }
+}

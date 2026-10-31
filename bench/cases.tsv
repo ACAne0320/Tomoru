@@ -1,0 +1,50 @@
+# The benchmark's cases: a stretch of a YouTube video each (bench/README.md). ref is the subtitle
+# track in the case's language to score recognition against, or "todo" while there is none; tgt
+# are the human translations it has, to score translation against. Times are m:ss or seconds.
+id	lang	scene	video	start	end	ref	tgt	note
+en-talk-ted	en	talk	LpSDuDIaBGk	0:00	5:00	en	ja,ko,zh-CN	TED, Kasley Killam: social health
+en-science-kurz	en	science	75d_29QWELk	0:00	5:00	en	ja,ko	Kurzgesagt: Change Your Life; ja-science-kurz is its Japanese version. Its zh track is broken (timestamps in the text)
+en-lecture-mit	en	lecture	Unzc731iCUY	5:00	10:00	en	zh-Hans	MIT OCW, Patrick Winston: How to Speak; a lecture hall
+en-news-bbc	en	news	LXrh2AJa8nU	0:00	5:00	en-GB	-	BBC Learning English News Review: two presenters, headlines read in
+en-podcast-lex	en	podcast	FGCP2F_7rQk	10:00	15:00	en	-	Lex Fridman with Jensen Huang: names, accents
+en-keynote-apple	en	keynote	39BalPDuTo0	5:00	10:00	en	ja,ko,zh-Hans	Apple Event, September 2026: product names, music under it
+en-street-easy	en	street	OlyYE6USuO0	0:00	5:00	en-US	-	Easy English: people on the street, outdoor noise
+en-variety-snl	en	variety	skc24Hxp9hE	0:00	5:00	en-US	-	SNL stand-up monologue: laughter
+en-drama-trailer	en	drama	gDJ-ini7fF0	0:00	2:41	en-US	-	Netflix trailer, Narnia: score and effects over lines
+en-music-billie	en	music	V9PVRfjEBTI	0:00	3:51	en	ja	Billie Eilish, BIRDS OF A FEATHER: sung
+en-live-ludwig	en	live	B5hZa-9n1PY	1:00	6:00	todo	-	Ludwig stream clips: fast, crosstalk, chat read out
+en-game-markiplier	en	game	yFmizY7pe7U	5:00	10:00	todo	-	Markiplier, Silent Hill f: commentary over a game
+ja-talk-tedx	ja	talk	gBumdOWWMhY	1:00	6:00	ja	en,ko	TEDxSapporo, 植松努: Hope invites
+ja-science-kurz	ja	science	iivprdEFSvs	0:00	5:00	ja	-	Kurzgesagt 日本語: 人生を変える (en-science-kurz in Japanese)
+ja-podcast-coten	ja	podcast	aYSNX1DvLG8	1:00	6:00	ja	-	COTEN RADIO #40: three hosts talking
+ja-keynote-nintendo	ja	keynote	avtRda5IgeY	2:00	7:00	ja	-	Nintendo Direct 2026.9.9: narration between game trailers
+ja-anime-pv	ja	anime	9rProUQlD-I	0:00	1:44	ja	en,ko,zh-Hans	薬屋のひとりごと 第3期 PV: lines, then the opening song
+ja-music-firsttake	ja	music	Lz24PqZkF2s	0:00	5:12	ja	en	THE FIRST TAKE, T.M.Revolution: HOT LIMIT, sung live
+ja-live-holo	ja	live	cB0O_W4_JVM	1:00	6:00	todo	-	hololive clips: four streamers at once
+ja-game-udon	ja	game	JDdmVbfFgWE	5:00	10:00	todo	-	Minecraft let's play
+ja-news-tbs	ja	news	nTxnWVN05cQ	1:00	6:00	todo	-	TBS NEWS DIG morning news
+ja-variety-hatsumimi	ja	variety	7gknbzKIq8E	0:00	2:17	todo	-	日曜日の初耳学 clip: studio talk, laughter
+ja-lecture-yobinori	ja	lecture	MAW1NDHvhr0	5:00	10:00	todo	-	予備校のノリで学ぶ: a lecture at a whiteboard
+ja-street-shun	ja	street	swE3eLyJXOM	0:30	5:30	todo	-	Japanese with Shun: street interviews in Nagoya
+ko-talk-tedx	ko	talk	SP67ty4SXQA	1:00	6:00	ko	-	TEDxSeoul, 황두진
+ko-science-kurz	ko	science	W6nGBzpc1HY	0:00	5:00	ko	-	Kurzgesagt 한국어: 인류의 진정한 한계
+ko-lecture-sebasi	ko	lecture	-PmZ2KcfGCI	1:00	6:00	ko	en,zh	세바시, 나민애: 독서
+ko-podcast-shuka	ko	podcast	A0LQFQphEBg	1:00	6:00	ko	-	슈카월드: one host on investing, fast
+ko-music-killing	ko	music	6RQ-bBdASvk	0:00	5:00	ko	en,ja,zh	딩고 킬링보이스, 성시경: sung live
+ko-variety-runningman	ko	variety	8IyCPgwrJ24	1:00	6:00	ko	en,ja,zh	런닝맨: many at once, effects, captions
+ko-live-chim	ko	live	W_EK4WkIT1w	1:00	6:00	todo	-	침착맨 stream
+ko-game-sutak	ko	game	9TZjk7PIDPg	5:00	10:00	todo	-	수탉: horror game let's play
+ko-news-jtbc	ko	news	wnFBz2RA2Ik	0:00	2:14	todo	-	JTBC 뉴스룸 report
+ko-drama-netflix	ko	drama	9K9FF-jbTo0	0:00	2:11	todo	-	Netflix Korea trailer, 더 바디
+zh-talk-yixi	zh	talk	C-UBrnSjdLg	1:00	6:00	zh	-	一席, 吴翼: AI, English terms
+zh-talk-tedx	zh	talk	t7ZI9c6Ze7E	1:00	6:00	zh-TW	-	TEDx, 不要太努力: Taiwanese Mandarin
+zh-lecture-hylee	zh	lecture	TigfpYPJk1s	10:00	15:00	zh	-	李宏毅 2025 第1講: Taiwanese Mandarin, English terms all along
+zh-podcast-roundtable	zh	podcast	cguD1ryqDWU	10:00	15:00	zh-CN	en	圆桌派 第八季 EP01: four at a table, crosstalk
+zh-keynote-xiaomi	zh	keynote	RyV7BAbTG-E	30:00	35:00	zh-Hans	-	雷军 2025 年度演讲: a hall, product names
+zh-street-better	zh	street	97NV2txklwk	0:00	3:25	zh-Hans	en	Better in Chinese, Streettalk 4: an English intro the subtitles skip; the interview is played again after 3:25, unsubtitled
+zh-variety-standup	zh	variety	p24_kImEDCA	10:00	15:00	zh	en,ja,ko	脱口秀和Ta的朋友们 第3季: stand-up, laughter
+zh-music-jay	zh	music	DYptgVvkVLQ	0:00	5:18	todo	-	周杰倫, 晴天: sung; the lyrics are the reference
+zh-news-pts	zh	news	azEIKXIV94k	2:00	7:00	todo	-	公視晚間新聞: Taiwanese Mandarin
+zh-live-vtuber	zh	live	T0EG3qpwx7c	0:00	1:49	todo	-	VTuber stream clip
+zh-game-wukong	zh	game	IQrgpmfQWNI	5:00	10:00	todo	-	黑神话悟空 let's play
+zh-drama-taiping	zh	drama	HJdCDtygr2A	0:00	2:08	todo	en	太平年 trailer

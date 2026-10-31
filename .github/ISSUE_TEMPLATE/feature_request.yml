@@ -1,0 +1,14 @@
+name: Idea / 想法
+description: Something Tomoru could do better. / Tomoru 可以做得更好的地方。
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What were you watching, and what got in the way? / 你在看什么，哪里不顺手？
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help / 怎样会更好

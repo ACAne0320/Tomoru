@@ -1,0 +1,2 @@
+/* The reason macOS shows as it asks for the System Audio Recording permission. */
+"NSAudioCaptureUsageDescription" = "Mac에서 재생되는 소리로 자막을 만드는 데 사용합니다.";

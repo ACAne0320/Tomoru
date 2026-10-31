@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- llama-server and tomoru-asr load the libraries beside them (llama.cpp's, sherpa-onnx's). Under
+     the hardened runtime, library validation takes only libraries of the process's Team ID, which a
+     self-signed app has none of: without a Developer ID, it has to be off for them. -->
+<plist version="1.0">
+<dict>
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+</dict>
+</plist>

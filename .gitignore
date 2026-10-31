@@ -1,0 +1,46 @@
+# Local only: the validation work and design material stay out of the repository
+/spikes/
+/design/
+
+.DS_Store
+build/
+.build/
+.swiftpm/
+/app/resources/*/bin/
+/app/resources/*/licenses/
+/app/resources/*/vad/
+/bench/media/
+/bench/runs/
+.venv/
+__pycache__/
+*.log
+
+# What go build and go test leave behind
+/app/tomoru
+/app/tomoru-bench
+/engine/asr/tomoru-asr
+/app/tomoru.exe
+/app/tomoru-bench.exe
+/engine/asr/tomoru-asr.exe
+/engine/windows/tomoru-engine.exe
+*.test
+*.prof
+*.out
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Signing keys and API keys stay out of the repository
+*.p12
+*.key
+*.pem
+*.pfx
+*.env
+.env
+.env.*
+!.env.example
+
+# Cloudflare Wrangler cache (site/)
+.wrangler/

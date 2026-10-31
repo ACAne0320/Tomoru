@@ -1,0 +1,2 @@
+/* The reason macOS shows as it asks for the System Audio Recording permission. */
+"NSAudioCaptureUsageDescription" = "用于给电脑播放的声音生成字幕。";

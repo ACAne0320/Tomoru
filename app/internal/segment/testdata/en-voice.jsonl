@@ -1,0 +1,263 @@
+{"engine":"mac","protocol":1,"type":"hello","version":"0.1.0"}
+{"state":"listening","type":"state"}
+{"t":0.074,"type":"clock"}
+{"t":0.178,"type":"clock"}
+{"t":0.278,"type":"clock"}
+{"t":0.378,"type":"clock"}
+{"on":true,"t":0.32,"type":"voice"}
+{"t":0.478,"type":"clock"}
+{"t":0.578,"type":"clock"}
+{"t":0.678,"type":"clock"}
+{"t":0.778,"type":"clock"}
+{"t":0.878,"type":"clock"}
+{"t":0.978,"type":"clock"}
+{"t":1.078,"type":"clock"}
+{"end":1.098,"final":false,"start":0,"tokens":[{"end":1.098,"start":0,"text":"Hey"}],"type":"result"}
+{"end":1.098,"final":false,"start":0,"tokens":[{"end":1.098,"start":0,"text":"Hey everyone"}],"type":"result"}
+{"t":1.178,"type":"clock"}
+{"on":false,"t":1.152,"type":"voice"}
+{"t":1.278,"type":"clock"}
+{"t":1.376,"type":"clock"}
+{"on":true,"t":1.344,"type":"voice"}
+{"t":1.478,"type":"clock"}
+{"t":1.578,"type":"clock"}
+{"t":1.678,"type":"clock"}
+{"t":1.778,"type":"clock"}
+{"t":1.878,"type":"clock"}
+{"t":1.978,"type":"clock"}
+{"end":2.048,"final":false,"start":0,"tokens":[{"end":2.048,"start":0,"text":"Hey everyone,"}],"type":"result"}
+{"end":2.048,"final":false,"start":0,"tokens":[{"end":2.048,"start":0,"text":"Hey everyone, welcome"}],"type":"result"}
+{"t":2.078,"type":"clock"}
+{"t":2.178,"type":"clock"}
+{"t":2.278,"type":"clock"}
+{"t":2.378,"type":"clock"}
+{"t":2.478,"type":"clock"}
+{"t":2.578,"type":"clock"}
+{"t":2.676,"type":"clock"}
+{"t":2.778,"type":"clock"}
+{"on":false,"t":2.72,"type":"voice"}
+{"t":2.879,"type":"clock"}
+{"t":2.975,"type":"clock"}
+{"end":3.008,"final":false,"start":0,"tokens":[{"end":3.008,"start":0,"text":"Hey everyone, welcome back"}],"type":"result"}
+{"end":3.008,"final":false,"start":0,"tokens":[{"end":3.008,"start":0,"text":"Hey everyone, welcome back to"}],"type":"result"}
+{"end":3.008,"final":false,"start":0,"tokens":[{"end":3.008,"start":0,"text":"Hey everyone, welcome back to the"}],"type":"result"}
+{"end":3.008,"final":false,"start":0,"tokens":[{"end":3.008,"start":0,"text":"Hey everyone, welcome back to the stream"}],"type":"result"}
+{"on":true,"t":2.976,"type":"voice"}
+{"t":3.078,"type":"clock"}
+{"t":3.178,"type":"clock"}
+{"t":3.278,"type":"clock"}
+{"t":3.378,"type":"clock"}
+{"t":3.478,"type":"clock"}
+{"t":3.578,"type":"clock"}
+{"t":3.678,"type":"clock"}
+{"t":3.778,"type":"clock"}
+{"t":3.878,"type":"clock"}
+{"t":3.978,"type":"clock"}
+{"end":3.978,"final":false,"start":0,"tokens":[{"end":3.978,"start":0,"text":"Hey everyone, welcome back to the stream."}],"type":"result"}
+{"end":3,"final":true,"start":0,"tokens":[{"conf":0.997,"end":0.42,"start":0,"text":"Hey"},{"conf":0.917,"end":1.2,"start":0.42,"text":" everyone,"},{"conf":0.96,"end":1.56,"start":1.2,"text":" welcome"},{"conf":0.998,"end":2.04,"start":1.56,"text":" back"},{"conf":0.998,"end":2.16,"start":2.04,"text":" to"},{"conf":0.983,"end":2.28,"start":2.16,"text":" the"},{"conf":0.943,"end":2.94,"start":2.28,"text":" stream."}],"type":"result"}
+{"end":4.01,"final":false,"start":3,"tokens":[{"end":4.01,"start":3,"text":" Today"}],"type":"result"}
+{"end":4.01,"final":false,"start":3,"tokens":[{"end":4.01,"start":3,"text":" Today we"}],"type":"result"}
+{"end":4.01,"final":false,"start":3,"tokens":[{"end":4.01,"start":3,"text":" Today we are"}],"type":"result"}
+{"t":4.078,"type":"clock"}
+{"t":4.178,"type":"clock"}
+{"t":4.278,"type":"clock"}
+{"t":4.378,"type":"clock"}
+{"t":4.478,"type":"clock"}
+{"t":4.578,"type":"clock"}
+{"t":4.678,"type":"clock"}
+{"t":4.778,"type":"clock"}
+{"t":4.878,"type":"clock"}
+{"end":4.938,"final":false,"start":3,"tokens":[{"end":4.938,"start":3,"text":" Today we are finally"}],"type":"result"}
+{"end":4.938,"final":false,"start":3,"tokens":[{"end":4.938,"start":3,"text":" Today we are finally going"}],"type":"result"}
+{"end":4.938,"final":false,"start":3,"tokens":[{"end":4.938,"start":3,"text":" Today we are finally going to"}],"type":"result"}
+{"end":4.938,"final":false,"start":3,"tokens":[{"end":4.938,"start":3,"text":" Today we are finally going to fight"}],"type":"result"}
+{"t":4.978,"type":"clock"}
+{"t":5.078,"type":"clock"}
+{"t":5.178,"type":"clock"}
+{"t":5.278,"type":"clock"}
+{"t":5.378,"type":"clock"}
+{"t":5.477,"type":"clock"}
+{"t":5.578,"type":"clock"}
+{"t":5.678,"type":"clock"}
+{"t":5.778,"type":"clock"}
+{"on":false,"t":5.728,"type":"voice"}
+{"t":5.878,"type":"clock"}
+{"end":5.898,"final":false,"start":3,"tokens":[{"end":5.898,"start":3,"text":" Today we are finally going to fight the"}],"type":"result"}
+{"end":5.898,"final":false,"start":3,"tokens":[{"end":5.898,"start":3,"text":" Today we are finally going to fight the final"}],"type":"result"}
+{"end":5.898,"final":false,"start":3,"tokens":[{"end":5.898,"start":3,"text":" Today we are finally going to fight the final boss"}],"type":"result"}
+{"t":5.978,"type":"clock"}
+{"on":true,"t":5.92,"type":"voice"}
+{"t":6.078,"type":"clock"}
+{"t":6.178,"type":"clock"}
+{"t":6.278,"type":"clock"}
+{"t":6.378,"type":"clock"}
+{"t":6.478,"type":"clock"}
+{"t":6.578,"type":"clock"}
+{"t":6.677,"type":"clock"}
+{"t":6.778,"type":"clock"}
+{"end":6.858,"final":false,"start":3,"tokens":[{"end":6.858,"start":3,"text":" Today we are finally going to fight the final boss,"}],"type":"result"}
+{"end":6.858,"final":false,"start":3,"tokens":[{"end":6.858,"start":3,"text":" Today we are finally going to fight the final boss, so"}],"type":"result"}
+{"end":6.858,"final":false,"start":3,"tokens":[{"end":6.858,"start":3,"text":" Today we are finally going to fight the final boss, so wish"}],"type":"result"}
+{"end":6.858,"final":false,"start":3,"tokens":[{"end":6.858,"start":3,"text":" Today we are finally going to fight the final boss, so wish me"}],"type":"result"}
+{"t":6.878,"type":"clock"}
+{"t":6.978,"type":"clock"}
+{"t":7.078,"type":"clock"}
+{"t":7.178,"type":"clock"}
+{"t":7.278,"type":"clock"}
+{"t":7.378,"type":"clock"}
+{"t":7.478,"type":"clock"}
+{"t":7.578,"type":"clock"}
+{"t":7.678,"type":"clock"}
+{"t":7.778,"type":"clock"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck"}],"type":"result"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and"}],"type":"result"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop"}],"type":"result"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your"}],"type":"result"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your ti"}],"type":"result"}
+{"end":7.818,"final":false,"start":3,"tokens":[{"end":7.818,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your tips"}],"type":"result"}
+{"t":7.878,"type":"clock"}
+{"t":7.978,"type":"clock"}
+{"t":8.078,"type":"clock"}
+{"t":8.178,"type":"clock"}
+{"t":8.278,"type":"clock"}
+{"on":false,"t":8.224,"type":"voice"}
+{"t":8.378,"type":"clock"}
+{"t":8.479,"type":"clock"}
+{"t":8.578,"type":"clock"}
+{"t":8.678,"type":"clock"}
+{"end":8.768,"final":false,"start":3,"tokens":[{"end":8.768,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your tips in"}],"type":"result"}
+{"end":8.768,"final":false,"start":3,"tokens":[{"end":8.768,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your tips in the"}],"type":"result"}
+{"end":8.768,"final":false,"start":3,"tokens":[{"end":8.768,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your tips in the chat"}],"type":"result"}
+{"t":8.778,"type":"clock"}
+{"t":8.878,"type":"clock"}
+{"t":8.978,"type":"clock"}
+{"t":9.078,"type":"clock"}
+{"t":9.178,"type":"clock"}
+{"t":9.278,"type":"clock"}
+{"t":9.378,"type":"clock"}
+{"t":9.478,"type":"clock"}
+{"t":9.578,"type":"clock"}
+{"t":9.678,"type":"clock"}
+{"end":9.738,"final":false,"start":3,"tokens":[{"end":9.738,"start":3,"text":" Today we are finally going to fight the final boss, so wish me luck and drop your tips in the chat."}],"type":"result"}
+{"t":9.778,"type":"clock"}
+{"end":8.76,"final":true,"start":3,"tokens":[{"conf":0.982,"end":3.18,"start":3,"text":" Today"},{"conf":0.998,"end":3.48,"start":3.18,"text":" we"},{"conf":0.925,"end":3.66,"start":3.48,"text":" are"},{"conf":1,"end":3.96,"start":3.66,"text":" finally"},{"conf":1,"end":4.2,"start":3.96,"text":" going"},{"conf":0.999,"end":4.44,"start":4.2,"text":" to"},{"conf":0.994,"end":4.62,"start":4.44,"text":" fight"},{"conf":0.997,"end":4.92,"start":4.62,"text":" the"},{"conf":0.92,"end":5.1,"start":4.92,"text":" final"},{"conf":0.783,"end":5.88,"start":5.1,"text":" boss,"},{"conf":0.844,"end":6.12,"start":5.88,"text":" so"},{"conf":0.999,"end":6.36,"start":6.12,"text":" wish"},{"conf":0.999,"end":6.6,"start":6.36,"text":" me"},{"conf":1,"end":6.84,"start":6.6,"text":" luck"},{"conf":0.993,"end":7.08,"start":6.84,"text":" and"},{"conf":0.999,"end":7.2,"start":7.08,"text":" drop"},{"conf":0.999,"end":7.38,"start":7.2,"text":" your"},{"conf":0.999,"end":7.68,"start":7.38,"text":" tips"},{"conf":0.999,"end":7.86,"start":7.68,"text":" in"},{"conf":0.999,"end":7.92,"start":7.86,"text":" the"},{"conf":0.979,"end":8.7,"start":7.92,"text":" chat."}],"type":"result"}
+{"t":9.878,"type":"clock"}
+{"t":9.978,"type":"clock"}
+{"t":10.078,"type":"clock"}
+{"t":10.178,"type":"clock"}
+{"t":10.276,"type":"clock"}
+{"t":10.378,"type":"clock"}
+{"t":10.478,"type":"clock"}
+{"t":10.578,"type":"clock"}
+{"t":10.678,"type":"clock"}
+{"t":10.779,"type":"clock"}
+{"t":10.878,"type":"clock"}
+{"t":10.978,"type":"clock"}
+{"t":11.078,"type":"clock"}
+{"t":11.178,"type":"clock"}
+{"t":11.278,"type":"clock"}
+{"t":11.378,"type":"clock"}
+{"t":11.478,"type":"clock"}
+{"t":11.578,"type":"clock"}
+{"t":11.678,"type":"clock"}
+{"t":11.778,"type":"clock"}
+{"t":11.878,"type":"clock"}
+{"t":11.978,"type":"clock"}
+{"t":12.078,"type":"clock"}
+{"t":12.175,"type":"clock"}
+{"t":12.277,"type":"clock"}
+{"t":12.377,"type":"clock"}
+{"t":12.479,"type":"clock"}
+{"t":12.578,"type":"clock"}
+{"t":12.678,"type":"clock"}
+{"t":12.778,"type":"clock"}
+{"t":12.879,"type":"clock"}
+{"t":12.978,"type":"clock"}
+{"t":13.078,"type":"clock"}
+{"t":13.178,"type":"clock"}
+{"t":13.28,"type":"clock"}
+{"t":13.38,"type":"clock"}
+{"t":13.483,"type":"clock"}
+{"t":13.578,"type":"clock"}
+{"t":13.68,"type":"clock"}
+{"t":13.781,"type":"clock"}
+{"t":13.883,"type":"clock"}
+{"t":13.983,"type":"clock"}
+{"t":14.082,"type":"clock"}
+{"t":14.184,"type":"clock"}
+{"t":14.282,"type":"clock"}
+{"t":14.378,"type":"clock"}
+{"t":14.48,"type":"clock"}
+{"t":14.58,"type":"clock"}
+{"t":14.683,"type":"clock"}
+{"t":14.783,"type":"clock"}
+{"t":14.879,"type":"clock"}
+{"t":14.981,"type":"clock"}
+{"t":15.083,"type":"clock"}
+{"t":15.183,"type":"clock"}
+{"t":15.282,"type":"clock"}
+{"t":15.376,"type":"clock"}
+{"t":15.483,"type":"clock"}
+{"t":15.578,"type":"clock"}
+{"t":15.68,"type":"clock"}
+{"t":15.776,"type":"clock"}
+{"t":15.882,"type":"clock"}
+{"t":15.984,"type":"clock"}
+{"t":16.08,"type":"clock"}
+{"t":16.18,"type":"clock"}
+{"t":16.281,"type":"clock"}
+{"t":16.383,"type":"clock"}
+{"t":16.479,"type":"clock"}
+{"t":16.58,"type":"clock"}
+{"t":16.682,"type":"clock"}
+{"t":16.778,"type":"clock"}
+{"t":16.88,"type":"clock"}
+{"t":16.983,"type":"clock"}
+{"t":17.083,"type":"clock"}
+{"t":17.178,"type":"clock"}
+{"t":17.28,"type":"clock"}
+{"t":17.381,"type":"clock"}
+{"t":17.478,"type":"clock"}
+{"t":17.578,"type":"clock"}
+{"t":17.68,"type":"clock"}
+{"t":17.78,"type":"clock"}
+{"t":17.881,"type":"clock"}
+{"t":17.982,"type":"clock"}
+{"t":18.08,"type":"clock"}
+{"t":18.18,"type":"clock"}
+{"t":18.283,"type":"clock"}
+{"t":18.378,"type":"clock"}
+{"t":18.48,"type":"clock"}
+{"t":18.581,"type":"clock"}
+{"t":18.683,"type":"clock"}
+{"t":18.784,"type":"clock"}
+{"t":18.879,"type":"clock"}
+{"t":18.981,"type":"clock"}
+{"t":19.082,"type":"clock"}
+{"t":19.178,"type":"clock"}
+{"t":19.283,"type":"clock"}
+{"t":19.381,"type":"clock"}
+{"t":19.481,"type":"clock"}
+{"t":19.578,"type":"clock"}
+{"t":19.68,"type":"clock"}
+{"t":19.78,"type":"clock"}
+{"t":19.882,"type":"clock"}
+{"t":19.978,"type":"clock"}
+{"t":20.081,"type":"clock"}
+{"t":20.181,"type":"clock"}
+{"t":20.282,"type":"clock"}
+{"t":20.378,"type":"clock"}
+{"t":20.48,"type":"clock"}
+{"t":20.581,"type":"clock"}
+{"t":20.683,"type":"clock"}
+{"t":20.778,"type":"clock"}
+{"t":20.88,"type":"clock"}
+{"t":20.981,"type":"clock"}
+{"t":21.082,"type":"clock"}
+{"t":21.178,"type":"clock"}
+{"t":21.28,"type":"clock"}
+{"t":21.38,"type":"clock"}
+{"t":21.478,"type":"clock"}
+{"t":21.578,"type":"clock"}
+{"t":21.68,"type":"clock"}
+{"t":21.78,"type":"clock"}

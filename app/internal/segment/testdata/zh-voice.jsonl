@@ -1,0 +1,283 @@
+{"engine":"mac","protocol":1,"type":"hello","version":"0.1.0"}
+{"state":"listening","type":"state"}
+{"t":0.109,"type":"clock"}
+{"t":0.209,"type":"clock"}
+{"t":0.311,"type":"clock"}
+{"t":0.412,"type":"clock"}
+{"on":true,"t":0.416,"type":"voice"}
+{"t":0.512,"type":"clock"}
+{"t":0.609,"type":"clock"}
+{"t":0.711,"type":"clock"}
+{"t":0.812,"type":"clock"}
+{"t":0.912,"type":"clock"}
+{"t":1.01,"type":"clock"}
+{"end":1.088,"final":false,"start":0,"tokens":[{"end":1.088,"start":0,"text":"大"}],"type":"result"}
+{"end":1.088,"final":false,"start":0,"tokens":[{"end":1.088,"start":0,"text":"大家"}],"type":"result"}
+{"end":1.088,"final":false,"start":0,"tokens":[{"end":1.088,"start":0,"text":"大家好"}],"type":"result"}
+{"t":1.11,"type":"clock"}
+{"on":false,"t":1.088,"type":"voice"}
+{"t":1.212,"type":"clock"}
+{"t":1.309,"type":"clock"}
+{"t":1.409,"type":"clock"}
+{"t":1.511,"type":"clock"}
+{"on":true,"t":1.44,"type":"voice"}
+{"t":1.612,"type":"clock"}
+{"t":1.708,"type":"clock"}
+{"t":1.81,"type":"clock"}
+{"t":1.911,"type":"clock"}
+{"t":2.012,"type":"clock"}
+{"end":2.058,"final":false,"start":0,"tokens":[{"end":2.058,"start":0,"text":"大家好 ，"}],"type":"result"}
+{"end":2.058,"final":false,"start":0,"tokens":[{"end":2.058,"start":0,"text":"大家好 ，欢"}],"type":"result"}
+{"end":2.058,"final":false,"start":0,"tokens":[{"end":2.058,"start":0,"text":"大家好 ，欢迎"}],"type":"result"}
+{"t":2.113,"type":"clock"}
+{"t":2.209,"type":"clock"}
+{"t":2.311,"type":"clock"}
+{"t":2.412,"type":"clock"}
+{"t":2.508,"type":"clock"}
+{"t":2.609,"type":"clock"}
+{"t":2.711,"type":"clock"}
+{"t":2.812,"type":"clock"}
+{"t":2.908,"type":"clock"}
+{"t":3.009,"type":"clock"}
+{"end":3.018,"final":false,"start":0,"tokens":[{"end":3.018,"start":0,"text":"大家好 ，欢迎来"}],"type":"result"}
+{"end":3.018,"final":false,"start":0,"tokens":[{"end":3.018,"start":0,"text":"大家好 ，欢迎来到"}],"type":"result"}
+{"end":3.029,"final":false,"start":0,"tokens":[{"end":3.029,"start":0,"text":"大家好 ，欢迎来到今"}],"type":"result"}
+{"end":3.029,"final":false,"start":0,"tokens":[{"end":3.029,"start":0,"text":"大家好 ，欢迎来到今天"}],"type":"result"}
+{"t":3.11,"type":"clock"}
+{"t":3.212,"type":"clock"}
+{"t":3.312,"type":"clock"}
+{"t":3.409,"type":"clock"}
+{"on":false,"t":3.328,"type":"voice"}
+{"t":3.51,"type":"clock"}
+{"on":true,"t":3.52,"type":"voice"}
+{"t":3.611,"type":"clock"}
+{"t":3.712,"type":"clock"}
+{"t":3.809,"type":"clock"}
+{"t":3.911,"type":"clock"}
+{"end":3.978,"final":false,"start":0,"tokens":[{"end":3.978,"start":0,"text":"大家好 ，欢迎来到今天的"}],"type":"result"}
+{"end":3.978,"final":false,"start":0,"tokens":[{"end":3.978,"start":0,"text":"大家好 ，欢迎来到今天的直"}],"type":"result"}
+{"end":3.978,"final":false,"start":0,"tokens":[{"end":3.978,"start":0,"text":"大家好 ，欢迎来到今天的直播"}],"type":"result"}
+{"end":3.978,"final":false,"start":0,"tokens":[{"end":3.978,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，"}],"type":"result"}
+{"end":3.989,"final":false,"start":0,"tokens":[{"end":3.989,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我"}],"type":"result"}
+{"t":4.012,"type":"clock"}
+{"t":4.108,"type":"clock"}
+{"t":4.21,"type":"clock"}
+{"t":4.311,"type":"clock"}
+{"t":4.412,"type":"clock"}
+{"t":4.508,"type":"clock"}
+{"t":4.609,"type":"clock"}
+{"t":4.711,"type":"clock"}
+{"t":4.812,"type":"clock"}
+{"t":4.912,"type":"clock"}
+{"end":4.938,"final":false,"start":0,"tokens":[{"end":4.938,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们"}],"type":"result"}
+{"end":4.938,"final":false,"start":0,"tokens":[{"end":4.938,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今"}],"type":"result"}
+{"end":4.938,"final":false,"start":0,"tokens":[{"end":4.938,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天"}],"type":"result"}
+{"end":4.949,"final":false,"start":0,"tokens":[{"end":4.949,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要"}],"type":"result"}
+{"end":4.949,"final":false,"start":0,"tokens":[{"end":4.949,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩"}],"type":"result"}
+{"t":5.009,"type":"clock"}
+{"t":5.111,"type":"clock"}
+{"t":5.212,"type":"clock"}
+{"t":5.308,"type":"clock"}
+{"t":5.409,"type":"clock"}
+{"t":5.511,"type":"clock"}
+{"t":5.612,"type":"clock"}
+{"t":5.708,"type":"clock"}
+{"t":5.809,"type":"clock"}
+{"end":5.898,"final":false,"start":0,"tokens":[{"end":5.898,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的"}],"type":"result"}
+{"end":5.898,"final":false,"start":0,"tokens":[{"end":5.898,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是"}],"type":"result"}
+{"end":5.898,"final":false,"start":0,"tokens":[{"end":5.898,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一"}],"type":"result"}
+{"t":5.911,"type":"clock"}
+{"end":5.909,"final":false,"start":0,"tokens":[{"end":5.909,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款"}],"type":"result"}
+{"t":6.011,"type":"clock"}
+{"t":6.112,"type":"clock"}
+{"t":6.209,"type":"clock"}
+{"t":6.311,"type":"clock"}
+{"t":6.412,"type":"clock"}
+{"t":6.508,"type":"clock"}
+{"t":6.609,"type":"clock"}
+{"t":6.711,"type":"clock"}
+{"t":6.812,"type":"clock"}
+{"end":6.848,"final":false,"start":0,"tokens":[{"end":6.848,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新"}],"type":"result"}
+{"end":6.848,"final":false,"start":0,"tokens":[{"end":6.848,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出"}],"type":"result"}
+{"end":6.848,"final":false,"start":0,"tokens":[{"end":6.848,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的"}],"type":"result"}
+{"end":6.848,"final":false,"start":0,"tokens":[{"end":6.848,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角"}],"type":"result"}
+{"end":6.848,"final":false,"start":0,"tokens":[{"end":6.848,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色"}],"type":"result"}
+{"t":6.908,"type":"clock"}
+{"t":7.009,"type":"clock"}
+{"t":7.111,"type":"clock"}
+{"t":7.212,"type":"clock"}
+{"t":7.308,"type":"clock"}
+{"t":7.409,"type":"clock"}
+{"t":7.511,"type":"clock"}
+{"on":false,"t":7.456,"type":"voice"}
+{"t":7.612,"type":"clock"}
+{"t":7.708,"type":"clock"}
+{"t":7.809,"type":"clock"}
+{"end":7.818,"final":false,"start":0,"tokens":[{"end":7.818,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮"}],"type":"result"}
+{"end":7.818,"final":false,"start":0,"tokens":[{"end":7.818,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演"}],"type":"result"}
+{"end":7.818,"final":false,"start":0,"tokens":[{"end":7.818,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游"}],"type":"result"}
+{"end":7.829,"final":false,"start":0,"tokens":[{"end":7.829,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏"}],"type":"result"}
+{"on":true,"t":7.808,"type":"voice"}
+{"t":7.911,"type":"clock"}
+{"t":8.012,"type":"clock"}
+{"t":8.108,"type":"clock"}
+{"t":8.21,"type":"clock"}
+{"t":8.311,"type":"clock"}
+{"t":8.412,"type":"clock"}
+{"t":8.508,"type":"clock"}
+{"t":8.609,"type":"clock"}
+{"t":8.711,"type":"clock"}
+{"end":8.778,"final":false,"start":0,"tokens":[{"end":8.778,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听"}],"type":"result"}
+{"end":8.789,"final":false,"start":0,"tokens":[{"end":8.789,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说"}],"type":"result"}
+{"end":8.789,"final":false,"start":0,"tokens":[{"end":8.789,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧"}],"type":"result"}
+{"t":8.812,"type":"clock"}
+{"t":8.908,"type":"clock"}
+{"t":9.009,"type":"clock"}
+{"t":9.111,"type":"clock"}
+{"t":9.212,"type":"clock"}
+{"t":9.308,"type":"clock"}
+{"t":9.411,"type":"clock"}
+{"t":9.511,"type":"clock"}
+{"t":9.612,"type":"clock"}
+{"t":9.708,"type":"clock"}
+{"end":9.738,"final":false,"start":0,"tokens":[{"end":9.738,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情"}],"type":"result"}
+{"end":9.738,"final":false,"start":0,"tokens":[{"end":9.738,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非"}],"type":"result"}
+{"end":9.738,"final":false,"start":0,"tokens":[{"end":9.738,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常"}],"type":"result"}
+{"end":9.749,"final":false,"start":0,"tokens":[{"end":9.749,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感"}],"type":"result"}
+{"end":9.749,"final":false,"start":0,"tokens":[{"end":9.749,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感人"}],"type":"result"}
+{"t":9.81,"type":"clock"}
+{"on":false,"t":9.728,"type":"voice"}
+{"t":9.911,"type":"clock"}
+{"t":10.012,"type":"clock"}
+{"on":true,"t":9.952,"type":"voice"}
+{"t":10.108,"type":"clock"}
+{"t":10.209,"type":"clock"}
+{"t":10.311,"type":"clock"}
+{"t":10.412,"type":"clock"}
+{"t":10.508,"type":"clock"}
+{"t":10.61,"type":"clock"}
+{"end":10.698,"final":false,"start":0,"tokens":[{"end":10.698,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感人 ，"}],"type":"result"}
+{"end":10.698,"final":false,"start":0,"tokens":[{"end":10.698,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感人 ，先"}],"type":"result"}
+{"t":10.711,"type":"clock"}
+{"t":10.812,"type":"clock"}
+{"t":10.913,"type":"clock"}
+{"t":11.009,"type":"clock"}
+{"t":11.111,"type":"clock"}
+{"t":11.212,"type":"clock"}
+{"t":11.313,"type":"clock"}
+{"t":11.409,"type":"clock"}
+{"t":11.511,"type":"clock"}
+{"t":11.612,"type":"clock"}
+{"end":11.658,"final":false,"start":0,"tokens":[{"end":11.658,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感人 ，先看"}],"type":"result"}
+{"end":11.658,"final":false,"start":0,"tokens":[{"end":11.658,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏 ，听说剧情非常感人 ，先看看"}],"type":"result"}
+{"end":11.669,"final":false,"start":0,"tokens":[{"end":11.669,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角"}],"type":"result"}
+{"end":11.669,"final":false,"start":0,"tokens":[{"end":11.669,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色"}],"type":"result"}
+{"t":11.708,"type":"clock"}
+{"t":11.81,"type":"clock"}
+{"t":11.911,"type":"clock"}
+{"t":12.012,"type":"clock"}
+{"t":12.108,"type":"clock"}
+{"t":12.21,"type":"clock"}
+{"t":12.311,"type":"clock"}
+{"t":12.412,"type":"clock"}
+{"t":12.508,"type":"clock"}
+{"t":12.609,"type":"clock"}
+{"on":false,"t":12.512,"type":"voice"}
+{"end":12.618,"final":false,"start":0,"tokens":[{"end":12.618,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创"}],"type":"result"}
+{"end":12.618,"final":false,"start":0,"tokens":[{"end":12.618,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创建"}],"type":"result"}
+{"end":12.629,"final":false,"start":0,"tokens":[{"end":12.629,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创建界"}],"type":"result"}
+{"end":12.629,"final":false,"start":0,"tokens":[{"end":12.629,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创建界面"}],"type":"result"}
+{"t":12.711,"type":"clock"}
+{"t":12.812,"type":"clock"}
+{"t":12.911,"type":"clock"}
+{"t":13.009,"type":"clock"}
+{"t":13.111,"type":"clock"}
+{"t":13.212,"type":"clock"}
+{"t":13.313,"type":"clock"}
+{"t":13.409,"type":"clock"}
+{"t":13.511,"type":"clock"}
+{"end":13.578,"final":false,"start":0,"tokens":[{"end":13.578,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创建界面吧"}],"type":"result"}
+{"end":13.578,"final":false,"start":0,"tokens":[{"end":13.578,"start":0,"text":"大家好 ，欢迎来到今天的直播 ，我们今天要玩的是一款新出的角色扮演游戏。听说剧情非常感人 ，先看看角色创建界面吧。"}],"type":"result"}
+{"t":13.612,"type":"clock"}
+{"t":13.711,"type":"clock"}
+{"t":13.812,"type":"clock"}
+{"t":13.911,"type":"clock"}
+{"t":14.012,"type":"clock"}
+{"t":14.113,"type":"clock"}
+{"t":14.209,"type":"clock"}
+{"t":14.311,"type":"clock"}
+{"t":14.412,"type":"clock"}
+{"t":14.508,"type":"clock"}
+{"end":13.56,"final":true,"start":0,"tokens":[{"conf":1,"end":0.48,"start":0,"text":"大"},{"conf":1,"end":0.66,"start":0.48,"text":"家"},{"conf":0.554,"end":0.9,"start":0.66,"text":"好"},{"conf":0.984,"end":1.38,"start":0.9,"text":" ，"},{"conf":1,"end":1.56,"start":1.38,"text":"欢"},{"conf":1,"end":1.74,"start":1.56,"text":"迎"},{"conf":0.999,"end":2.04,"start":1.74,"text":"来"},{"conf":0.999,"end":2.16,"start":2.04,"text":"到"},{"conf":0.999,"end":2.46,"start":2.16,"text":"今"},{"conf":0.999,"end":2.64,"start":2.46,"text":"天"},{"conf":0.999,"end":2.94,"start":2.64,"text":"的"},{"conf":1,"end":3.06,"start":2.94,"text":"直"},{"conf":1,"end":3.24,"start":3.06,"text":"播"},{"conf":0.858,"end":3.54,"start":3.24,"text":" ，"},{"conf":0.999,"end":3.66,"start":3.54,"text":"我"},{"conf":0.999,"end":3.9,"start":3.66,"text":"们"},{"conf":1,"end":4.02,"start":3.9,"text":"今"},{"conf":1,"end":4.14,"start":4.02,"text":"天"},{"conf":0.999,"end":4.44,"start":4.14,"text":"要"},{"conf":0.998,"end":4.68,"start":4.44,"text":"玩"},{"conf":0.999,"end":4.86,"start":4.68,"text":"的"},{"conf":0.999,"end":4.98,"start":4.86,"text":"是"},{"conf":0.771,"end":5.22,"start":4.98,"text":"一"},{"conf":1,"end":5.4,"start":5.22,"text":"款"},{"conf":1,"end":5.82,"start":5.4,"text":"新"},{"conf":1,"end":5.94,"start":5.82,"text":"出"},{"conf":1,"end":6.12,"start":5.94,"text":"的"},{"conf":0.999,"end":6.3,"start":6.12,"text":"角"},{"conf":1,"end":6.48,"start":6.3,"text":"色"},{"conf":0.998,"end":6.78,"start":6.48,"text":"扮"},{"conf":1,"end":6.96,"start":6.78,"text":"演"},{"conf":1,"end":7.14,"start":6.96,"text":"游"},{"conf":1,"end":7.32,"start":7.14,"text":"戏"},{"conf":0.514,"end":7.8,"start":7.32,"text":" ，"},{"conf":0.999,"end":7.98,"start":7.8,"text":"听"},{"conf":1,"end":8.16,"start":7.98,"text":"说"},{"conf":0.999,"end":8.46,"start":8.16,"text":"剧"},{"conf":1,"end":8.7,"start":8.46,"text":"情"},{"conf":1,"end":8.94,"start":8.7,"text":"非"},{"conf":1,"end":9.06,"start":8.94,"text":"常"},{"conf":1,"end":9.36,"start":9.06,"text":"感"},{"conf":0.998,"end":9.6,"start":9.36,"text":"人"},{"conf":0.734,"end":10.02,"start":9.6,"text":" ，"},{"conf":1,"end":10.2,"start":10.02,"text":"先"},{"conf":1,"end":10.62,"start":10.2,"text":"看"},{"conf":0.999,"end":10.74,"start":10.62,"text":"看"},{"conf":0.998,"end":10.98,"start":10.74,"text":"角"},{"conf":1,"end":11.16,"start":10.98,"text":"色"},{"conf":1,"end":11.58,"start":11.16,"text":"创"},{"conf":0.997,"end":11.76,"start":11.58,"text":"建"},{"conf":0.996,"end":12,"start":11.76,"text":"界"},{"conf":1,"end":12.18,"start":12,"text":"面"},{"conf":0.999,"end":12.54,"start":12.18,"text":"吧"},{"conf":0.833,"end":12.9,"start":12.54,"text":"。"}],"type":"result"}
+{"t":14.609,"type":"clock"}
+{"t":14.711,"type":"clock"}
+{"t":14.812,"type":"clock"}
+{"t":14.911,"type":"clock"}
+{"t":15.009,"type":"clock"}
+{"t":15.111,"type":"clock"}
+{"t":15.212,"type":"clock"}
+{"t":15.308,"type":"clock"}
+{"t":15.409,"type":"clock"}
+{"t":15.51,"type":"clock"}
+{"t":15.612,"type":"clock"}
+{"t":15.708,"type":"clock"}
+{"t":15.809,"type":"clock"}
+{"t":15.911,"type":"clock"}
+{"t":16.012,"type":"clock"}
+{"t":16.113,"type":"clock"}
+{"t":16.209,"type":"clock"}
+{"t":16.311,"type":"clock"}
+{"t":16.412,"type":"clock"}
+{"t":16.508,"type":"clock"}
+{"t":16.611,"type":"clock"}
+{"t":16.711,"type":"clock"}
+{"t":16.812,"type":"clock"}
+{"t":16.908,"type":"clock"}
+{"t":17.009,"type":"clock"}
+{"t":17.11,"type":"clock"}
+{"t":17.212,"type":"clock"}
+{"t":17.313,"type":"clock"}
+{"t":17.409,"type":"clock"}
+{"t":17.511,"type":"clock"}
+{"t":17.611,"type":"clock"}
+{"t":17.708,"type":"clock"}
+{"t":17.81,"type":"clock"}
+{"t":17.911,"type":"clock"}
+{"t":18.012,"type":"clock"}
+{"t":18.108,"type":"clock"}
+{"t":18.21,"type":"clock"}
+{"t":18.311,"type":"clock"}
+{"t":18.412,"type":"clock"}
+{"t":18.508,"type":"clock"}
+{"t":18.613,"type":"clock"}
+{"t":18.711,"type":"clock"}
+{"t":18.812,"type":"clock"}
+{"t":18.908,"type":"clock"}
+{"t":19.009,"type":"clock"}
+{"t":19.111,"type":"clock"}
+{"t":19.212,"type":"clock"}
+{"t":19.308,"type":"clock"}
+{"t":19.41,"type":"clock"}
+{"t":19.511,"type":"clock"}
+{"t":19.612,"type":"clock"}
+{"t":19.708,"type":"clock"}
+{"t":19.81,"type":"clock"}
+{"t":19.911,"type":"clock"}
+{"t":20.012,"type":"clock"}
+{"t":20.109,"type":"clock"}
+{"t":20.21,"type":"clock"}
+{"t":20.311,"type":"clock"}
+{"t":20.412,"type":"clock"}
+{"t":20.508,"type":"clock"}
+{"t":20.609,"type":"clock"}
+{"t":20.711,"type":"clock"}
+{"t":20.812,"type":"clock"}
+{"t":20.91,"type":"clock"}
+{"t":21.009,"type":"clock"}
+{"t":21.111,"type":"clock"}
+{"t":21.212,"type":"clock"}
+{"t":21.309,"type":"clock"}
+{"t":21.41,"type":"clock"}
+{"t":21.511,"type":"clock"}
+{"t":21.612,"type":"clock"}
+{"t":21.708,"type":"clock"}
