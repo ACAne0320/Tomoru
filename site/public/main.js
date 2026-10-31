@@ -1,4 +1,4 @@
-// Tomoru 官网的一点交互：下载按钮按系统改说明、滚动进场、动画只在看得见时跑、首屏字幕滚动。
+// Tomoru 官网的一点交互：下载按钮按系统改说明、复制安装命令、滚动进场、动画只在看得见时跑、首屏字幕滚动。
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -10,6 +10,25 @@
   else if (/Mac/i.test(plat) || /Macintosh/.test(ua)) label = '适用于 macOS · Apple 芯片';
   else if (/Win/i.test(plat) || /Windows/.test(ua)) label = '适用于 Windows 11 · x64';
   if (label) document.querySelectorAll('[data-platform]').forEach((el) => { el.textContent = label; });
+
+  // 安装命令的复制按钮：复制后两秒内显示「已复制」；不能写剪贴板时选中命令，好让人自己复制
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    const code = btn.parentElement.querySelector('code');
+    const text = btn.querySelector('span');
+    let timer;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+      } catch {
+        getSelection().selectAllChildren(code);
+        return;
+      }
+      btn.classList.add('done');
+      text.textContent = '已复制';
+      clearTimeout(timer);
+      timer = setTimeout(() => { btn.classList.remove('done'); text.textContent = '复制'; }, 2000);
+    });
+  });
 
   // 滚动进场：一次就好
   const reveal = document.querySelectorAll('.section-head, .pillar, .feature-copy, .feature .art, .step, .use, .card, .steps li, .shot, .mascot-grid, .faq');

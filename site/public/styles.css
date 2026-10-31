@@ -424,7 +424,7 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 
 /* ---------- ⑥ 三步上手 ---------- */
 .start-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(32px, 6vw, 80px); align-items: center; }
-.steps { counter-reset: s; display: grid; gap: 26px; }
+.steps { counter-reset: s; display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; }
 .steps li { counter-increment: s; position: relative; padding-left: 56px; }
 .steps li::before {
   content: counter(s); position: absolute; left: 0; top: 0;
@@ -433,6 +433,18 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 }
 .steps h3 { font-size: 20px; font-weight: 800; line-height: 38px; }
 .steps p { color: var(--ink-muted); margin-top: 4px; }
+.start-grid > div { min-width: 0; }
+.steps .or { margin-top: 14px; }
+.cmd { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 6px 6px 6px 14px; border-radius: 12px; background: var(--night); color: var(--night-text); }
+.cmd-os { flex: none; width: 58px; font-size: 12px; font-weight: 700; color: var(--lantern); }
+.cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font: 500 13px/32px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--sub-src); }
+.cmd code::-webkit-scrollbar { display: none; }
+.cmd code { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.copy { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: rgb(255 255 255 / .08); color: var(--night-text); font: 600 13px var(--sans); cursor: pointer; transition: background .15s, color .15s; }
+.copy:hover { background: rgb(255 255 255 / .16); color: var(--night-title); }
+.copy .icon { width: 15px; height: 15px; }
+.copy .i-done, .copy.done .i-copy { display: none; }
+.copy.done .i-done { display: block; color: var(--lantern); }
 .shot { margin: 0; }
 .shot img { border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 30px 70px rgb(27 25 73 / .2); }
 .shot figcaption { margin-top: 14px; text-align: center; font-size: 14px; color: var(--ink-muted); }

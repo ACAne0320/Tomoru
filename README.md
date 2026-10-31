@@ -61,6 +61,19 @@ Tomoru isn't notarized by Apple or signed for Windows yet, so the first launch n
   Recording, to hear what plays.
 - **Windows**: when SmartScreen warns, click "More info", then "Run anyway".
 
+Or install from a terminal: the script downloads the latest version, checks it, and
+installs it. On a Mac it goes in /Applications and opens without the "Open Anyway" step.
+
+```sh
+# macOS
+curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh
+```
+
+```powershell
+# Windows (PowerShell)
+irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | iex
+```
+
 ## Privacy
 
 - Tomoru listens to what your computer plays, not your microphone.

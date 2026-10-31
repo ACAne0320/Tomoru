@@ -43,6 +43,18 @@ Tomoru 目前没有经过 Apple 公证，Windows 版也没有签名，所以第�
 - **macOS**：打开 Tomoru。macOS 提示无法验证它时，打开 系统设置 › 隐私与安全性，点 Tomoru 旁边的「仍要打开」。之后 Tomoru 只申请「仅系统录音」权限，用来听播放的声音。
 - **Windows**：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。
 
+也可以在终端里安装：脚本会下载最新版本，校验无误后安装。在 Mac 上装到「应用程序」，打开时不用再点「仍要打开」。
+
+```sh
+# macOS
+curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh
+```
+
+```powershell
+# Windows（PowerShell）
+irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | iex
+```
+
 ## 隐私
 
 - Tomoru 听的是电脑播放的声音，不使用麦克风。
