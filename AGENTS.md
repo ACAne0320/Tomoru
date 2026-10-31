@@ -28,7 +28,7 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 
 ## Checks
 
-- Run the tests of what you changed; before committing, `scripts/check.sh --full --race` must pass (`--portable` off macOS).
+- After code changes (not docs), run `scripts/check.sh` and the tests of what you changed; `scripts/test.sh` runs them all. Releases build packages; checks and tests never do.
 - Tests must pass in any time zone: compare `time.Time` with `Equal`, not `==`.
 - Look at UI changes on screen as users see them: the subtitle overlay with another app in front.
 - Windows changes count as done only after a run on a real Windows 11 machine.
