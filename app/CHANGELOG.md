@@ -9,13 +9,13 @@ The first beta.
   Chinese. The languages to speak are those the recognition chosen hears: 10 with Apple's
   recognizer on macOS 26, 5 with SenseVoice, 30 with Qwen ASR. Only Chinese, English, Japanese and
   Korean have been benchmarked; the others segment by rules for languages written alike.
-- On Windows 11 x64 too: from the taskbar's corner, recognizing with SenseVoice,
-  downloaded in the first-run guide, or in the cloud. Selecting a part of the screen to translate
+- On Windows 11 x64 too: from the taskbar's corner, recognizing with SenseVoice or Qwen3-ASR,
+  downloaded in the first-run guide, or in the cloud, set up in Settings. Selecting a part of the screen to translate
   works there as on a Mac, and the local translation runs on any GPU (Vulkan), or on the CPU.
 - Hear all of the system's sound, or one app's.
 - Start and stop from anywhere with ⌥⇧T, or a shortcut you record in Settings.
 - Speech recognition on your computer: with Apple's recognizer on a Mac, or with SenseVoice or
-  Qwen3-ASR 1.7B, models downloaded from Settings (offline; Qwen3-ASR is recommended where a GPU can
+  Qwen3-ASR 1.7B, models downloaded in the first-run guide or Settings (offline; Qwen3-ASR is recommended where a GPU can
   run it); or in the cloud, with your API key: Qwen ASR on Alibaba Cloud Model Studio, which stops
   sending audio while nothing plays, or OpenAI's live transcription, or its transcription API or a
   service compatible with it, which are sent only speech. Chinese clauses show as soon as the speaker pauses.

@@ -16,31 +16,39 @@ import (
 	"tomoru/locales"
 )
 
-// recognition is the step choosing how what is heard is recognized: on this computer, the
-// system's or the model to download, or in the cloud, once set up. Without the system's, none is
-// chosen for the user.
+// recognition is the step choosing how what is heard is recognized, on this computer: the
+// system's, or a model to download. Without the system's, none is chosen for the user. The
+// cloud's are set up in the settings.
 func (g *Guide) recognition(c *ui.Context) {
-	k := g.core
 	g.part(c, 0, func() {
 		title(c, locales.EnginesAsr())
 		body(c, locales.GuideEnginesLater())
 	})
 	g.part(c, 1, func() { g.recognitionChoices(c) })
-	shared.ASRCloudDialog(c, k, &g.cloud)
 }
 
-// recognitionChoices are the recognition step's choices: this computer's, then the cloud's.
+// recognitionChoices are the recognition step's choices: the system's, then the models, Qwen3-ASR
+// recommended where the GPU runs it.
 func (g *Guide) recognitionChoices(c *ui.Context) {
+	k := g.core
 	ui.Column(c).Gap(kit.Space(2)).Role(ui.RoleRadioGroup).Label(locales.GuideAsrChoose()).Children(func() {
 		section(c, locales.TagLocal())
 		if prefs.SystemASR() != "" {
 			g.systemCard(c)
 		}
-		m, _ := models.ByID("sensevoice-small")
-		g.modelCard(c, core.ASR, m, "", locales.EngineSenseVoiceDescription())
-		section(c, locales.TagCloud())
-		g.cloudCard(c)
-		kit.Caption(c, shared.CloudSends(core.ASR)).Margin(0, kit.Space(3), 0, kit.Space(11))
+		for _, e := range k.Engines(core.ASR) {
+			if e.Model == nil {
+				continue
+			}
+			tag, body := "", ""
+			if k.Recommended(e) {
+				tag = locales.TagRecommended()
+			}
+			if e.ID == "sensevoice-small" {
+				body = locales.EngineSenseVoiceDescription()
+			}
+			g.modelCard(c, core.ASR, *e.Model, tag, body)
+		}
 	})
 }
 
@@ -110,38 +118,6 @@ func (g *Guide) systemCard(c *ui.Context) {
 		}
 	}).Role(ui.RoleRadio).Checked(on).Label(locales.EngineApple()).Clicked() && !on {
 		k.Choose(core.ASR, "apple")
-	}
-}
-
-// cloudCard is the cloud's recognition as a choice: chosen, it is set up, with its API key, and
-// used once it is.
-func (g *Guide) cloudCard(c *ui.Context) {
-	k := g.core
-	on := k.Chosen(core.ASR) == core.QwenCloud
-	ready := k.ASRAPI(core.QwenCloud).Key
-	set := func() {
-		g.edits++
-		g.cloud.Open(k, core.QwenCloud, g.edits)
-	}
-	if card(c, "qwen", on, func() {
-		dot := kit.Dot(c, on)
-		if !ready {
-			dot.Opacity(.4)
-		}
-		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.75)).Children(func() {
-			name(c, locales.EngineQwenAsr(), "") // its name says the cloud
-			kit.Caption(c, locales.EngineQwenAsrDescription())
-		})
-		// As the settings have it: set up from the button at its end.
-		if !ready && kit.Button(c, kit.Plain, kit.Small, assets.Pencil, locales.SetUp()).Clicked() {
-			k.Choose(core.ASR, core.QwenCloud)
-			set()
-		}
-	}).Role(ui.RoleRadio).Checked(on).Label(locales.EngineQwenAsr()).Clicked() && !on {
-		k.Choose(core.ASR, core.QwenCloud)
-		if !ready {
-			set()
-		}
 	}
 }
 

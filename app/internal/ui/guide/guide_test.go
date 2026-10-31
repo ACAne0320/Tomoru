@@ -26,7 +26,7 @@ import (
 func TestSteps(t *testing.T) {
 	k := coretest.New()
 	if prefs.SystemASR() == "" {
-		k.Prefs.ASR, k.Prefs.ASRAPIs = core.QwenCloud, []prefs.ASRAPI{{ID: core.QwenCloud, Key: true}} // the engines step has it chosen
+		k.Prefs.ASR = "sensevoice-small" // the engines step has it chosen
 	}
 	nav := &coretest.Nav{}
 	g := New(k, nav)
@@ -37,7 +37,7 @@ func TestSteps(t *testing.T) {
 	}{
 		{stepWelcome, locales.GuideWelcomeBody(), locales.Continue()},
 		{stepPermission, locales.SystemAudioOnlyDescription(), locales.Continue()},
-		{stepRecognition, locales.EngineQwenAsr(), locales.Continue()},
+		{stepRecognition, "Qwen3-ASR 1.7B", locales.Continue()},
 		{stepTranslation, shared.CloudName, locales.Continue()},
 		{stepTry, shared.OnWindows(locales.TryHearing(), locales.TryHearingWin()), locales.Skip()},
 		{stepShortcuts, locales.GuideShortcutsBody(), locales.Continue()},
@@ -295,31 +295,32 @@ func TestLocalModel(t *testing.T) {
 	}
 }
 
-// TestEnginesNeedRecognition goes on from the recognition step only with recognition chosen: none,
-// or the cloud's without its key, is no recognition.
+// TestEnginesNeedRecognition goes on from the recognition step only with recognition chosen, and
+// offers this computer's only: the cloud's are set up in the settings.
 func TestEnginesNeedRecognition(t *testing.T) {
 	k := coretest.New()
 	k.Prefs.ASR = ""
 	g := New(k, &coretest.Nav{})
 	g.Step, g.next = stepRecognition, stepRecognition
 	tt := ui.NewTester(g.View, Width, Height)
-	tt.Click(locales.Continue())
-	tt.Frame()
-	k.Choose(core.ASR, core.QwenCloud)
-	tt.Frame()
+	if tt.HasText(locales.EngineQwenAsr()) || tt.HasText(locales.TagCloud()) {
+		t.Errorf("the cloud's recognition offered: %q", tt.Texts())
+	}
 	tt.Click(locales.Continue())
 	tt.Frame()
 	if g.Step != stepRecognition {
 		t.Fatalf("went on to step %d without recognition", g.Step)
 	}
-	k.Prefs.ASR, k.Prefs.ASRAPIs = core.QwenCloud, []prefs.ASRAPI{{ID: core.QwenCloud, Key: true}}
+	if err := tt.Click("Qwen3-ASR 1.7B"); err != nil {
+		t.Fatal(err)
+	}
 	tt.Frame()
 	if err := tt.Click(locales.Continue()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if g.Step != stepTranslation {
-		t.Errorf("step %d with the cloud's recognition", g.Step)
+	if g.Step != stepTranslation || k.Chosen(core.ASR) != "qwen3-asr-1.7b" {
+		t.Errorf("step %d with %q chosen", g.Step, k.Chosen(core.ASR))
 	}
 }
 

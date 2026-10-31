@@ -67,10 +67,8 @@ type Guide struct {
 	// selected is the sample's translation once selecting worked: the check stays done, and the
 	// translation shows, after the card it came in is closed, which clears the core's picture.
 	selected string
-	swaps    int                 // the languages swapped, for the button to turn as often
-	picks    map[core.Kind]pick  // the engines the stage shows, to flash as they are chosen
-	cloud    shared.ASRCloudEdit // the cloud's recognition, as it is set up
-	edits    int                 // the cloud's set-up dialogs opened, to tell their tests apart
+	swaps    int                // the languages swapped, for the button to turn as often
+	picks    map[core.Kind]pick // the engines the stage shows, to flash as they are chosen
 	// keysStep is the step keysSince is of: when it showed, for a shortcut pressed since to be
 	// seen working.
 	keysStep  int
@@ -282,9 +280,7 @@ func (g *Guide) stepButton(c *ui.Context) {
 		}
 	case stepRecognition:
 		// Without the system's recognition, one is chosen first; a model may still be downloading.
-		asr := k.Chosen(core.ASR)
-		none := asr == "" || asr == core.QwenCloud && !k.ASRAPI(asr).Key
-		if kit.Off(next(c, locales.Continue()), none).Clicked() {
+		if kit.Off(next(c, locales.Continue()), k.Chosen(core.ASR) == "").Clicked() {
 			g.goTo(c, stepTranslation)
 		}
 	case stepTranslation:
