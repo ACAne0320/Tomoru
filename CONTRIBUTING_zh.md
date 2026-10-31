@@ -19,6 +19,6 @@
 5. 协议改动：同时更新 `protocol/fixtures.json`、所有实现和 [协议文档](docs/engine-protocol_zh.md)。
 6. 影响识别、断句或翻译质量的改动：附上 [评测](bench/README_zh.md) 的数字。
 
-代码注释和提交信息用英文。文档成对存放：`name.md` 是英文，`name_zh.md` 是中文；两份都更新，或者在 pull request 里说明哪一份还需要更新。
+代码注释和提交信息用英文，提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)（`fix(asr): …`）。文档成对存放：`name.md` 是英文，`name_zh.md` 是中文；两份都更新，或者在 pull request 里说明哪一份还需要更新。
 
 提交贡献即表示你同意你的贡献和其余代码一样，以 GPL-3.0-or-later 授权。名称、图标和吉祥物不在其中：见 [商标说明](TRADEMARKS_zh.md)。

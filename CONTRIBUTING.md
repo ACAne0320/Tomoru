@@ -29,8 +29,10 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 6. Changes to recognition, segmenting or translation quality: show numbers from the
    [benchmark](bench/README.md).
 
-Code comments and commit messages are in English. Documents come in pairs: `name.md` in English
-and `name_zh.md` in Chinese; update both, or say in the pull request which one still needs it.
+Code comments and commit messages are in English; commit messages follow
+[Conventional Commits](https://www.conventionalcommits.org) (`fix(asr): …`). Documents come in
+pairs: `name.md` in English and `name_zh.md` in Chinese; update both, or say in the pull request
+which one still needs it.
 
 By contributing, you agree that your contribution is licensed under the GPL-3.0-or-later, like
 the rest of the code. The name, icons and mascot are not part of it: see
