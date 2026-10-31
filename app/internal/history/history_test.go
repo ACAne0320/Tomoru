@@ -55,7 +55,7 @@ func TestHistory(t *testing.T) {
 	if _, err := Delete([]string{ff7.Path, rs[0].Path}); err != nil {
 		t.Fatal(err)
 	}
-	if rs, _ := List(dir); len(rs) != 1 || rs[0].Head.Start != start {
+	if rs, _ := List(dir); len(rs) != 1 || !rs[0].Head.Start.Equal(start) {
 		t.Fatalf("deleted: %+v", rs)
 	}
 }
