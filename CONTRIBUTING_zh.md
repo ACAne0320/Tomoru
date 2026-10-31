@@ -14,7 +14,7 @@
 
 1. 比小修复更大的改动，请先开 issue，商量好做法。
 2. 先读 [架构](docs/architecture_zh.md) 和 [开发指南](docs/development_zh.md)：代码放在哪里由测试检查（`app/layers_test.go`、`app/design_test.go`）。
-3. 改动保持聚焦，为你改变的行为补上测试。提交 pull request 前运行 `scripts/check.sh`（macOS）或 `scripts/check.sh --portable`；CI 运行的是同样的检查。
+3. 改动保持聚焦，为你改变的行为补上测试。提交 pull request 前运行 `scripts/check.sh` 和 `scripts/test.sh`；CI 运行的是同样的检查和测试。
 4. 界面改动：遵循 [设计系统](docs/design-system_zh.md)，在 `app/locales/` 的五个语言文件里都补上新文字，并附上截图（`TOMORU_GALLERY=<目录> go test ./internal/ui/<包> -run Gallery` 可以生成）。
 5. 协议改动：同时更新 `protocol/fixtures.json`、所有实现和 [协议文档](docs/engine-protocol_zh.md)。
 6. 影响识别、断句或翻译质量的改动：附上 [评测](bench/README_zh.md) 的数字。

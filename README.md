@@ -108,7 +108,7 @@ go test ./...                                 # test it
 go tool mygo build                            # package it into app/build/windows-amd64/
 ```
 
-The [development guide](docs/development.md) has the full checks, and the
+The [development guide](docs/development.md) has the checks and tests, and the
 [architecture](docs/architecture.md) says where the code lives.
 
 Want to contribute? See [CONTRIBUTING](CONTRIBUTING.md). Report security issues as

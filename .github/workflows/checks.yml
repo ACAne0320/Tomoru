@@ -1,0 +1,57 @@
+name: Checks
+
+# Static checks (scripts/check.sh), no tests or builds, for what changed (.github/paths.yml).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read # the files a pull request changed
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.paths.outputs.go == 'true' || steps.paths.outputs.licenses == 'true' || steps.paths.outputs.ci == 'true' }}
+      swift: ${{ steps.paths.outputs.swift == 'true' || steps.paths.outputs.ci == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: paths
+        with:
+          filters: .github/paths.yml
+
+  go:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the Windows C compiler, to vet the engines' cgo
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: app/go.mod
+          cache-dependency-path: |
+            app/go.sum
+            engine/asr/go.sum
+            engine/windows/go.sum
+      - run: scripts/check.sh go
+
+  swift:
+    needs: changes
+    if: needs.changes.outputs.swift == 'true'
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check.sh swift

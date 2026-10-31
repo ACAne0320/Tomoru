@@ -31,4 +31,4 @@
 - `app/internal/ui/settings/state_test.go`：绘制结束后的原生菜单提交。
 - `app/layers_test.go`：包族依赖与 UI 状态入口规则。
 - `protocol/fixtures.json`、两个 Go module 的契约测试、Swift 验证器。
-- `scripts/check.sh`：本地和 CI 共用验证入口。
+- `scripts/check.sh` 和 `scripts/test.sh`：本地和 CI 共用的检查与测试。

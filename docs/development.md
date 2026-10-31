@@ -46,7 +46,7 @@ those on the `PATH`:
 export PATH="$PATH:/c/Program Files/Go/bin:$PWD/app/resources/windows-amd64/bin"
 (cd engine/asr && go test ./...)
 (cd engine/windows && go test ./...)
-scripts/check.sh --portable                    # MSYS2's MinGW-w64 is the compiler it asks for
+scripts/check.sh go && scripts/test.sh go     # MSYS2's MinGW-w64 is the compiler they ask for
 pacman -S diffutils                            # once, for package-licenses.sh --release-check
 ```
 
@@ -69,34 +69,35 @@ The build scripts put programs in `app/resources/<os>-<arch>/bin/`. Models users
 the user data directory; unit tests don't need them. The directories and the protocol are in the
 [architecture](architecture.md) and the [engine protocol](engine-protocol.md).
 
-## One entry point for checks
+## Checks and tests
 
 From the repository root:
 
 ```sh
-scripts/check.sh                   # macOS: the full local check
-scripts/check.sh --full --race     # before a release, and in macOS CI
-scripts/check.sh --portable        # no desktop runtime: the portable checks of the Go modules
-scripts/check.sh --portable --race
+scripts/check.sh            # static checks: no tests, no builds
+scripts/test.sh             # tests
+scripts/test.sh --race      # with Go's race detector
 ```
 
-The full check runs all the app's tests (UI, layering, design rules and the Go protocol contract),
-the tests of the ASR and Windows engine modules, `gofmt`, Windows cross-builds of the app and both
-engines, the Swift protocol checker, the hearer's suspension/resume contract, and a build of the
-whole Swift engine. `HearerContract.swift` feeds synthetic PCM into the production hearer to check
-the silence limit and continuous audio timestamps without starting capture or a model. The full check requires
-mingw-w64 and fails if it is missing; Windows builds are part of the gate. The Swift module cache,
-checkers and build outputs use a temporary directory that is removed afterwards. `--race` turns
-on the race detector for the Go modules.
+Each takes the parts to run; with none it runs all this platform can (`ui` and `swift` need macOS
+26 and Xcode 26):
 
-The portable check runs all of the app's domain and runtime packages, the benchmark, the static
-layering and design checks, the ASR module and the platform-neutral tests of the Windows engine
-module, and cross-builds the Windows app and both engines. It leaves out `ui` tests and the
-`core/coretest` desktop adapter, so it doesn't exercise desktop windows or check the Swift engine.
-It needs a native C compiler, because local ASR uses cgo, and mingw-w64 for the required Windows
-builds (`brew install mingw-w64` on macOS, `apt install gcc-mingw-w64-x86-64` on Debian/Ubuntu).
-Linux CI and macOS CI run one tier each; the macOS runner is pinned to `macos-26` ([image
-list](https://github.com/actions/runner-images/blob/main/README.md)).
+| | Part | What it runs |
+|---|---|---|
+| `check.sh` | `go` | The license inventory, `gofmt`, `go vet` of the app for macOS and Windows and of the engines for this platform and Windows (mingw-w64 needed: `brew install mingw-w64`, `apt install gcc-mingw-w64-x86-64`), and the app's layering and design rules |
+| | `swift` | A type check of the Swift engine |
+| `test.sh` | `go` | The tests of the three Go modules but the UI's and the `core/coretest` desktop adapter, the benchmark's included |
+| | `ui` | The app's UI tests |
+| | `swift` | The Swift protocol checker against `protocol/fixtures.json`, and `HearerContract.swift`, which feeds synthetic PCM to the production hearer to check the silence limit and continuous timestamps without starting capture or a model |
+
+Neither builds what is shipped: that is the release's (`go tool mygo build`, see the
+[release guide](release.md)). Tests run uncached. Local ASR uses cgo, so `test.sh go` needs a C
+compiler.
+
+CI runs the same scripts, in the Checks and Tests workflows, on pushes to `main` and on pull
+requests. A job runs only when a path it looks at changed (`.github/paths.yml`), so a change to
+docs alone runs none; a skipped job counts as passing. Go runs on Linux; the UI and Swift on
+`macos-26` ([image list](https://github.com/actions/runner-images/blob/main/README.md)).
 
 To test only what you changed:
 
@@ -104,7 +105,6 @@ To test only what you changed:
 cd app
 go test ./internal/live ./internal/core
 go test ./internal/ui/settings
-go test layers_test.go design_test.go
 cd ../engine/asr
 go test ./...
 ```
@@ -117,10 +117,10 @@ local ports. Tests use only local fake servers and need no external API by defau
 | Tier | What it covers | When |
 | --- | --- | --- |
 | Tests of affected packages | Current behavior, failure and cancellation paths | Every change |
-| `--portable` | Domain rules, persistence, child processes, the Go protocol implementations, package boundaries and Windows app/engine builds | Linux CI; environments without a desktop runtime |
-| `--full --race` | All of the above, plus UI tests, concurrency, Swift protocol and hearer contracts, the Swift engine build and Windows app/engine builds | macOS CI; the release gate |
+| `check.sh` | Formatting, vet for macOS and Windows, package boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
+| `test.sh --race` | Domain rules, persistence, child processes, concurrency, the protocol implementations, the UI, the Swift contracts | Every code change; CI; the release gate |
 | Real audio and desktop acceptance | Permissions, real audio, shortcuts, subtitles across screens, quitting, packaged resources | Before a release, and when platform behavior changes |
-| A real Windows 11 x64 machine | `go test ./...` of the three modules and `scripts/check.sh --portable` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Windows changes, before a release |
+| A real Windows 11 x64 machine | `scripts/check.sh go` and `scripts/test.sh go` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Windows changes, before a release |
 | Optional real benchmark | Quality and latency with given audio, models or cloud services | Changes to recognition, segmenting or translation quality |
 
 The benchmark's inputs, options and scoring are in the [benchmark guide](../bench/README.md).

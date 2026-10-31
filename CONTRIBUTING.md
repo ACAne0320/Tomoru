@@ -19,8 +19,8 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 1. For anything larger than a small fix, open an issue first, so we can agree on the approach.
 2. Read the [architecture](docs/architecture.md) and the [development guide](docs/development.md):
    where code goes is checked by tests (`app/layers_test.go`, `app/design_test.go`).
-3. Keep changes focused, with tests for the behavior you change. Run `scripts/check.sh` (macOS) or
-   `scripts/check.sh --portable` before opening the pull request; CI runs the same.
+3. Keep changes focused, with tests for the behavior you change. Run `scripts/check.sh` and
+   `scripts/test.sh` before opening the pull request; CI runs the same.
 4. UI changes: follow the [design system](docs/design-system.md), add the new text to all five
    catalogs in `app/locales/`, and attach screenshots (`TOMORU_GALLERY=<dir> go test
    ./internal/ui/<package> -run Gallery` makes them).

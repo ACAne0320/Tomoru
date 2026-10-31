@@ -28,7 +28,7 @@ Windows 版在 Windows 上用 MSYS2 的 MINGW64 终端构建，步骤见 [README
 export PATH="$PATH:/c/Program Files/Go/bin:$PWD/app/resources/windows-amd64/bin"
 (cd engine/asr && go test ./...)
 (cd engine/windows && go test ./...)
-scripts/check.sh --portable                    # 它要的编译器就是 MSYS2 的 MinGW-w64
+scripts/check.sh go && scripts/test.sh go     # 它们要的编译器就是 MSYS2 的 MinGW-w64
 pacman -S diffutils                            # 装一次，package-licenses.sh --release-check 要用
 ```
 
@@ -43,20 +43,29 @@ cd app && go tool mygo build -platform windows/amd64
 
 构建脚本把程序放到 `app/resources/<os>-<arch>/bin/`。用户下载的模型放在用户数据目录；无需为了单元测试下载它们。目录及协议分别见 [架构说明](architecture_zh.md) 和 [引擎协议](engine-protocol_zh.md)。
 
-## 一个检查入口
+## 检查和测试
 
 在仓库根目录运行：
 
 ```sh
-scripts/check.sh                  # macOS：完整本地检查
-scripts/check.sh --full --race    # 发布前与 macOS CI 使用
-scripts/check.sh --portable       # 无桌面运行时：各 Go module 的可移植检查
-scripts/check.sh --portable --race
+scripts/check.sh            # 静态检查：不跑测试，不构建
+scripts/test.sh             # 测试
+scripts/test.sh --race      # 开启 Go 的 race detector
 ```
 
-完整检查运行应用全部测试（含 UI、分层、设计约束及 Go 协议契约）、ASR 与 Windows 引擎 module 的测试、`gofmt`、app 和两个引擎的 Windows 交叉构建、Swift 协议验证器和收听器暂停/恢复契约，并编译整个 Swift 引擎。`HearerContract.swift` 向生产收听器输入合成 PCM，验证恢复后的静音限额和音频时间连续性，不启动采集或模型。完整检查要求安装 mingw-w64，缺少时直接失败；Windows 构建是必过检查。Swift 模块缓存、验证器和构建产物使用临时目录，结束后清理。`--race` 为各 Go module 开启 race detector。
+两个脚本都可以指定要跑的部分；不指定时跑本平台能跑的全部（`ui` 和 `swift` 需要 macOS 26 和 Xcode 26）：
 
-可移植检查运行所有应用领域/运行时包、benchmark、静态分层/设计检查、ASR module 和 Windows 引擎 module 中与平台无关的测试，也交叉构建 Windows app 和两个引擎。它排除 `ui` 测试和 `core/coretest` 桌面适配器，不运行桌面窗口，也不检查 Swift 引擎。本地 ASR 使用 cgo，需要本机 C 编译器；Windows 构建还要求 mingw-w64（macOS 用 `brew install mingw-w64`，Debian/Ubuntu 用 `apt install gcc-mingw-w64-x86-64`）。Linux CI 和 macOS CI 分别运行这两个层级；macOS runner 固定为 `macos-26`（[官方镜像列表](https://github.com/actions/runner-images/blob/main/README.md)）。
+| | 部分 | 运行内容 |
+|---|---|---|
+| `check.sh` | `go` | 许可证清单、`gofmt`、app 针对 macOS 和 Windows 的 `go vet`、两个引擎针对本平台和 Windows 的 `go vet`（需要 mingw-w64：`brew install mingw-w64`，`apt install gcc-mingw-w64-x86-64`），以及 app 的分层和设计规则 |
+| | `swift` | Swift 引擎的类型检查 |
+| `test.sh` | `go` | 三个 Go module 的测试，含 benchmark，不含 UI 和 `core/coretest` 桌面适配器 |
+| | `ui` | app 的 UI 测试 |
+| | `swift` | Swift 协议验证器（对照 `protocol/fixtures.json`），以及 `HearerContract.swift`：向生产收听器输入合成 PCM，验证静音限额和时间连续性，不启动采集或模型 |
+
+两者都不构建要发布的包，那是发布时的事（`go tool mygo build`，见 [发布指南](release_zh.md)）。测试不使用缓存。本地 ASR 使用 cgo，`test.sh go` 需要本机 C 编译器。
+
+CI 在 Checks 和 Tests 两个 workflow 里运行同样的脚本，触发于推送到 `main` 和 pull request。每个 job 只在它关心的路径有改动时运行（`.github/paths.yml`），只改文档时一个都不跑；被跳过的 job 算作通过。Go 在 Linux 上跑，UI 和 Swift 在 `macos-26` 上跑（[官方镜像列表](https://github.com/actions/runner-images/blob/main/README.md)）。
 
 仅针对修改运行测试时：
 
@@ -64,7 +73,6 @@ scripts/check.sh --portable --race
 cd app
 go test ./internal/live ./internal/core
 go test ./internal/ui/settings
-go test layers_test.go design_test.go
 cd ../engine/asr
 go test ./...
 ```
@@ -76,10 +84,10 @@ go test ./...
 | 层级 | 作用 | 执行时机 |
 | --- | --- | --- |
 | 受影响包测试 | 验证当前行为、失败与取消路径 | 每次功能变更 |
-| `--portable` | 业务规则、持久化、子进程、Go 协议实现、包边界和 Windows app/引擎构建 | Linux CI、没有桌面运行时的开发环境 |
-| `--full --race` | 上述内容及 UI 测试、并发检查、Swift 协议和收听器契约、Swift 引擎构建及 Windows app/引擎构建 | macOS CI、发布门槛 |
+| `check.sh` | 格式、针对 macOS 和 Windows 的 vet、包边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
+| `test.sh --race` | 业务规则、持久化、子进程、并发、协议实现、UI、Swift 契约 | 每次代码变更、CI、发布门槛 |
 | 人工录音与桌面验收 | 权限、真实录音、快捷键、跨屏字幕、退出、打包资源 | 发布前及平台行为变更 |
-| Windows 11 x64 实机 | 在 MSYS2 里运行三个 module 的 `go test ./...` 和 `scripts/check.sh --portable`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 相关变更、发布前 |
+| Windows 11 x64 实机 | 在 MSYS2 里运行 `scripts/check.sh go` 和 `scripts/test.sh go`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 相关变更、发布前 |
 | 选配真实评测 | 指定音频、模型或云端服务的质量与延迟 | 识别/断句/翻译效果变更 |
 
 真实评测的输入、参数及评分见 [benchmark 指南](../bench/README_zh.md)。`TOMORU_E2E` 等变量启用真实端到端测试；`TOMORU_DOWNLOAD` 启用下载测试；普通检查保持这些变量未设置，避免自动下载或云端调用。UI gallery 通过 `TOMORU_GALLERY` 输出截图，是人工布局验收的补充。

@@ -52,4 +52,4 @@ permissions on real devices and actual model quality are verified by hand before
 - `app/internal/ui/settings/state_test.go`: native menus committing after their frame has ended.
 - `app/layers_test.go`: package family dependencies and the rules for UI state access.
 - `protocol/fixtures.json`, the contract tests of the Go modules, the Swift checker.
-- `scripts/check.sh`: the validation entry point shared by local runs and CI.
+- `scripts/check.sh` and `scripts/test.sh`: the checks and tests shared by local runs and CI.

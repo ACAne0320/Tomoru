@@ -1,0 +1,70 @@
+name: Tests
+
+# Tests (scripts/test.sh) for what changed (.github/paths.yml): the Go modules on Linux, the UI
+# and the Swift engine's contracts on macOS.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read # the files a pull request changed
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.paths.outputs.go == 'true' || steps.paths.outputs.ci == 'true' }}
+      ui: ${{ steps.paths.outputs.ui == 'true' || steps.paths.outputs.ci == 'true' }}
+      swift: ${{ steps.paths.outputs.swift == 'true' || steps.paths.outputs.ci == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: paths
+        with:
+          filters: .github/paths.yml
+
+  go:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: app/go.mod
+          cache-dependency-path: |
+            app/go.sum
+            engine/asr/go.sum
+            engine/windows/go.sum
+      - run: scripts/test.sh go --race
+
+  macos:
+    needs: changes
+    if: needs.changes.outputs.ui == 'true' || needs.changes.outputs.swift == 'true'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        if: needs.changes.outputs.ui == 'true'
+        with:
+          go-version-file: app/go.mod
+          cache-dependency-path: app/go.sum
+      - name: Run scripts/test.sh
+        env:
+          UI: ${{ needs.changes.outputs.ui }}
+          SWIFT: ${{ needs.changes.outputs.swift }}
+        run: |
+          parts=
+          [ "$UI" = true ] && parts="$parts ui"
+          [ "$SWIFT" = true ] && parts="$parts swift"
+          scripts/test.sh $parts --race

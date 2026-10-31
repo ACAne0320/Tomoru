@@ -38,10 +38,8 @@ The certificate and update key below are for official releases.
    [third-party license inventory](third-party-licenses.md) and resolve every failed check before
    uploading a public binary.
 
-3. Run `scripts/check.sh --full --race` from the repository root. The Go modules, UI and
-   dependency gates, all protocol fixtures, the full Swift engine build and the Windows app and
-   engine builds must pass. mingw-w64 is required. See
-   [validation tiers](development.md#validation-tiers). Then try the built app: first-run permissions,
+3. Run `scripts/check.sh` and `scripts/test.sh --race` from the repository root; both must pass
+   (mingw-w64 is required). See [validation tiers](development.md#validation-tiers). Then try the built app: first-run permissions,
    real audio with Apple and local ASR, language/scene changes, shortcuts, subtitle placement,
    history after a slow translation, settings after relaunch, and quitting during active work.
    Confirm the packaged app finds all bundled engines and libraries and includes their
@@ -72,9 +70,9 @@ export PATH="$PATH:/c/Program Files/Go/bin:$PWD/app/resources/windows-amd64/bin"
 scripts/setup.sh
 scripts/package-licenses.sh --check
 scripts/package-licenses.sh --release-check windows-amd64
-scripts/check.sh --portable
+scripts/check.sh go
+scripts/test.sh go ui
 cd app
-go test ./...
 MYGO_UPDATER_PRIVATE_KEY="$(cat ~/.config/tomoru/update-keys/mygo-update.key)" go tool mygo build -upload
 ```
 

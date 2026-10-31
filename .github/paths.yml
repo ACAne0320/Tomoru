@@ -1,0 +1,22 @@
+# What the jobs of Checks and Tests look at: a job runs when one of its paths changed on the
+# branch, else it is skipped, which counts as passing. Docs, site/ and images run nothing here.
+go:
+  - app/**
+  - engine/asr/**
+  - engine/windows/**
+  - protocol/**
+ui:
+  - app/**
+swift:
+  - engine/mac/**
+  - protocol/**
+licenses:
+  - third_party/**
+  - scripts/package-licenses.sh
+# A change to how checks and tests run runs them all.
+ci:
+  - scripts/check.sh
+  - scripts/test.sh
+  - .github/paths.yml
+  - .github/workflows/checks.yml
+  - .github/workflows/tests.yml

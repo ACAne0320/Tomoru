@@ -25,7 +25,7 @@
 
    许可证检查验证源许可证包，以及打包输入 `app/resources/<platform>/licenses`，并阻止存在未解决再分发问题的版本发布。上传公开二进制前，请查看 [第三方许可证清单](third-party-licenses_zh.md)，解决每个失败项。
 
-3. 在仓库根目录运行 `scripts/check.sh --full --race`。各 Go module、UI 和依赖检查、所有协议 fixtures、完整的 Swift 引擎构建，以及 Windows app 和引擎构建都必须通过；需要安装 mingw-w64。见[验证层级](development_zh.md#验证层级)。然后试用构建出的 app：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。确认打包后的 app 能找到所有随包的引擎和库，且 `licenses/` 包含它们的 [许可证正文和声明](third-party-licenses_zh.md)。自动检查不覆盖签名、权限和付费的云服务。
+3. 在仓库根目录运行 `scripts/check.sh` 和 `scripts/test.sh --race`，两者都必须通过（需要安装 mingw-w64）。见[验证层级](development_zh.md#验证层级)。然后试用构建出的 app：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。确认打包后的 app 能找到所有随包的引擎和库，且 `licenses/` 包含它们的 [许可证正文和声明](third-party-licenses_zh.md)。自动检查不覆盖签名、权限和付费的云服务。
 4. 构建、签名，并上传一个草稿 release：
 
    ```sh
@@ -45,9 +45,9 @@ export PATH="$PATH:/c/Program Files/Go/bin:$PWD/app/resources/windows-amd64/bin"
 scripts/setup.sh
 scripts/package-licenses.sh --check
 scripts/package-licenses.sh --release-check windows-amd64
-scripts/check.sh --portable
+scripts/check.sh go
+scripts/test.sh go ui
 cd app
-go test ./...
 MYGO_UPDATER_PRIVATE_KEY="$(cat ~/.config/tomoru/update-keys/mygo-update.key)" go tool mygo build -upload
 ```
 

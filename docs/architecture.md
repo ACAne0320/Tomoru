@@ -148,5 +148,5 @@ adapter and must not reach production dependencies.
 
 The same file forbids the UI from touching mutable settings or scene fields, or calling save;
 `design_test.go` keeps the design tokens and the dependency list. The protocol fixtures are read
-by the app's Go, the ASR engine's Go and a Swift checker; the full check also compiles the Swift
-production code. Ordinary checks use no real audio, download no models and use no cloud keys.
+by the app's Go, the ASR engine's Go and a Swift checker; the checks also type-check the Swift
+production code. Checks and tests use no real audio, download no models and use no cloud keys.

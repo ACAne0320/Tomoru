@@ -81,7 +81,7 @@ go test ./...                                 # 测试
 go tool mygo build                            # 打包到 app/build/windows-amd64/
 ```
 
-完整的检查见 [开发指南](docs/development_zh.md)，代码在哪里见 [架构](docs/architecture_zh.md)。
+检查和测试见 [开发指南](docs/development_zh.md)，代码在哪里见 [架构](docs/architecture_zh.md)。
 
 想要参与贡献？见 [贡献指南](CONTRIBUTING_zh.md)。安全问题请按 [安全策略](SECURITY_zh.md) 报告。
 
