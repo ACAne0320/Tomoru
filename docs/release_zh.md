@@ -10,52 +10,51 @@
 
 - **签名证书**：登录钥匙串里的「Tomoru Self-Signed」，备份（`.p12` 和它的密码）放在仓库以外。每个版本都必须用同一张证书签名：macOS 把「系统录音」权限绑定在证书上，换了证书就会再向用户要一次权限。
 - **更新密钥**：`mygo-update.key`，用 `go tool mygo keygen` 生成，放在仓库以外（下面的命令假定在 `~/.config/tomoru/update-keys/`）。已安装的 app 只接受用它签名的更新，所以要在密码管理器里留一份：丢了它，所有已安装的 app 就再也收不到更新。它的公钥是 `app/mygo.json` 里的 `updates.publicKey`。
-- **GitHub**：`gh` 已登录，并有权限在 `updates.github` 指定的仓库发布 release。
+- **GitHub secret**，发布 workflow（`.github/workflows/release.yml`）用它们签名：
+
+  ```sh
+  base64 -i tomoru-signing.p12 | gh secret set MACOS_CERTIFICATE
+  gh secret set MACOS_CERTIFICATE_PASSWORD   # .p12 的密码
+  gh secret set MYGO_UPDATER_PRIVATE_KEY < ~/.config/tomoru/update-keys/mygo-update.key
+  ```
 
 ## 每次发布
 
-1. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。更新窗口把这一节显示为更新说明。
-2. 获取并构建 app 随包带的东西：
+1. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。这一节就是这个版本的更新说明，GitHub 的 release 页面和 app 的更新窗口都显示它。
+2. 提交到 `main`，等 Checks 和 Tests 通过。
+3. 推送这个版本的 tag：
 
    ```sh
-   scripts/setup.sh
-   scripts/package-licenses.sh --check
-   scripts/package-licenses.sh --release-check darwin-arm64
+   git tag v0.1.1
+   git push origin v0.1.1
    ```
 
-   许可证检查验证源许可证包，以及打包输入 `app/resources/<platform>/licenses`，并阻止存在未解决再分发问题的版本发布。上传公开二进制前，请查看 [第三方许可证清单](third-party-licenses_zh.md)，解决每个失败项。
+   Release workflow 检查 tag 和版本号一致、changelog 里有这一节，用这一节作说明创建草稿 release，然后同时在 macOS 和 Windows（MSYS2）上构建：`scripts/setup.sh`、许可证发布检查，再 `go tool mygo build -upload`，签名 app 和更新包并上传到草稿。带连字符的 tag（`v0.2.0-beta.1`）发成预发布版。某个平台失败时，点「Re-run failed jobs」重新构建它，上传到同一个草稿。
+4. 发布前先试用草稿里的文件。在 Mac 上用 `tomoru-<version>-arm64.dmg`：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。在 Windows 11 x64 上用 `tomoru-setup-<version>-amd64.exe`：从头走一遍引导、收听全部声音和单个应用、托盘的面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。确认两边都能找到随包的引擎和库，且 `licenses/` 里有它们的 [许可证正文和声明](third-party-licenses_zh.md)：许可证检查只看打包前的资源，不看安装包。
+5. 在 GitHub 上发布草稿。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。
 
-3. 在仓库根目录运行 `scripts/check.sh` 和 `scripts/test.sh --race`，两者都必须通过（需要安装 mingw-w64）。见[验证层级](development_zh.md#验证层级)。然后试用构建出的 app：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。确认打包后的 app 能找到所有随包的引擎和库，且 `licenses/` 包含它们的 [许可证正文和声明](third-party-licenses_zh.md)。自动检查不覆盖签名、权限和付费的云服务。
-4. 构建、签名，并上传一个草稿 release：
+## 手动构建
 
-   ```sh
-   cd app
-   MYGO_UPDATER_PRIVATE_KEY="$(cat ~/.config/tomoru/update-keys/mygo-update.key)" go tool mygo build -upload
-   ```
-
-   它写出 `build/darwin-arm64/`：app、`tomoru-<version>-arm64.dmg`、更新包、相对之前几个版本的增量包、`update-darwin-arm64.json` 和 `install.sh`，并把它们上传到标签为 `v<version>` 的草稿 release。
-5. 在 GitHub 上检查草稿并发布。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。
-
-## Windows
-
-在 Windows 11 x64 电脑上用 MSYS2 的 MINGW64 终端构建，工具见 [README](../README_zh.md#windows)，许可证检查另需 `diffutils`（`pacman -S diffutils`）。更新密钥也要从密码管理器复制到那台电脑的 `~/.config/tomoru/update-keys/`，`gh` 也要在那里登录。安装包用的 NSIS 由 MyGo 第一次构建时自己下载：
+不用 workflow 时，每个平台在 `gh` 已登录、更新密钥放在 `~/.config/tomoru/update-keys/` 的电脑上构建；`go tool mygo build -upload` 上传到这个版本的草稿 release，没有就创建一个。在 Mac 上（证书在登录钥匙串里）：
 
 ```sh
-export PATH="$PATH:/c/Program Files/Go/bin:$PWD/app/resources/windows-amd64/bin"
 scripts/setup.sh
-scripts/package-licenses.sh --check
-scripts/package-licenses.sh --release-check windows-amd64
-scripts/check.sh go
-scripts/test.sh go ui
+scripts/package-licenses.sh --release-check darwin-arm64
 cd app
 MYGO_UPDATER_PRIVATE_KEY="$(cat ~/.config/tomoru/update-keys/mygo-update.key)" go tool mygo build -upload
 ```
 
-也可以在 Mac 上交叉编译，需要 mingw-w64（`brew install mingw-w64`）和 NSIS（`brew install makensis`）：先 `scripts/setup.sh windows-amd64`，再 `go tool mygo build -platform windows/amd64 -upload`。
+在 Windows 11 x64 上，用 MSYS2 的 MINGW64 终端，工具见 [README](../README_zh.md#windows)，另需 `diffutils`（`pacman -S diffutils`）；安装包用的 NSIS 由 MyGo 第一次构建时自己下载：
 
-它写出 `build/windows-amd64/`：`Tomoru.exe` 和旁边的 `bin/`、`vad/`、`licenses/`，以及 `tomoru-setup-<version>-amd64.exe`。先在 Windows 11 x64 电脑上试一下：从头走一遍引导（SenseVoice 下载到 `%LocalAppData%\Tomoru\models`）、收听全部声音和单个应用、托盘的面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。app 没有签名：SmartScreen 会在第一次启动时警告（点「更多信息」，再点「仍要运行」）。
+```sh
+export PATH="$PATH:/c/Program Files/Go/bin"
+scripts/setup.sh
+scripts/package-licenses.sh --release-check windows-amd64
+cd app
+MYGO_UPDATER_PRIVATE_KEY="$(cat ~/.config/tomoru/update-keys/mygo-update.key)" go tool mygo build -upload
+```
 
-许可证发布检查针对打包前的平台资源，不检查最终安装包。仍需确认成品中包含对应的许可证正文和声明。
+之后 `build/darwin-arm64/` 里有 app、磁盘映像、更新包、相对之前版本的增量包、`update-darwin-arm64.json` 和 `install.sh`；`build/windows-amd64/` 里有 `Tomoru.exe` 和旁边的 `bin/`、`vad/`、`licenses/`，以及安装包。Windows 版没有签名：SmartScreen 会在第一次启动时警告（点「更多信息」，再点「仍要运行」）。
 
 ## 用户第一次要做的
 

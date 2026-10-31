@@ -1,0 +1,2 @@
+# Shell scripts run in MSYS2 on Windows too, whose shell needs LF line ends.
+*.sh text eol=lf
