@@ -355,7 +355,7 @@
   "guideShortcutsBody": "どこでも押せば翻訳を開始・停止できます。押してみてください。",
   "guideSelectTitle": "範囲を選んで翻訳",
   "guideSelectAsk": "ショートカットを押して画面の文字を選ぶと、訳文が表示されます。使いますか？",
-  "guideSelectSettings": "システム設定の「画面収録とシステムオーディオ録音」で Tomoru をオンにしてください。開き直すか聞かれたら「後で」をクリックします。",
+  "guideSelectSettings": "システム設定の「画面収録とシステムオーディオ録音」で Tomoru をオンにしてください。終了して再度開くか聞かれたら「あとで行う」をクリックします。",
   "guideSelectIntro": "下の2ステップで、実際の翻訳を試してみましょう。",
   "guideSelectPress": "{keys} を押す",
   "guideSelectFrame": "もう一度押して、右の会話を囲む",

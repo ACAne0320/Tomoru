@@ -355,7 +355,7 @@
   "guideShortcutsBody": "在任何地方按它開始或停止翻譯。現在按一下試試。",
   "guideSelectTitle": "一鍵框選翻譯",
   "guideSelectAsk": "按快速鍵框住螢幕上的文字，就能看到譯文。要用嗎？",
-  "guideSelectSettings": "在系統設定的「螢幕與系統錄音」裡勾選 Tomoru。系統問要不要重新打開時，點「稍後」。",
+  "guideSelectSettings": "在系統設定的「螢幕與系統錄音」裡打開 Tomoru 的開關。系統問要不要結束並重新打開時，點「稍後」。",
   "guideSelectIntro": "跟著下面兩步，試一次真實的翻譯。",
   "guideSelectPress": "按一下 {keys}",
   "guideSelectFrame": "再按一次，框住右邊的對話",
