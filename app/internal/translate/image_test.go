@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -185,10 +186,10 @@ func TestImageStalled(t *testing.T) {
 	answer := 1 // the request that answers, from 0; others answer nothing
 	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
-		n := len(conns)
+		n, a := len(conns), answer
 		conns = append(conns, r.RemoteAddr)
 		mu.Unlock()
-		if n != answer {
+		if n != a {
 			<-r.Context().Done()
 			return
 		}
@@ -197,22 +198,36 @@ func TestImageStalled(t *testing.T) {
 	srv.EnableHTTP2 = true
 	srv.StartTLS()
 	defer srv.Close()
+	// stalled handlers may still run after a call returns, so the test reads and sets under mu too
+	seen := func() []string {
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Clone(conns)
+	}
+	reset := func(c []string, a int) {
+		mu.Lock()
+		defer mu.Unlock()
+		conns, answer = c, a
+	}
 
 	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, Client: srv.Client(), ImageWait: 50 * time.Millisecond}
 	out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
 	if err != nil || out != "完" {
 		t.Fatalf("%q %v", out, err)
 	}
-	if len(conns) != 2 || conns[0] == conns[1] {
-		t.Errorf("asked on %q, not on a new connection", conns)
+	c := seen()
+	if len(c) != 2 || c[0] == c[1] {
+		t.Errorf("asked on %q, not on a new connection", c)
 	}
-	answer = 2 // the next picture goes on a connection other than the one stalled
-	if _, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); err != nil || len(conns) != 3 || conns[2] == conns[0] {
-		t.Errorf("%v, asked on %q", err, conns)
+	reset(c, 2) // the next picture goes on a connection other than the one stalled
+	_, err = e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
+	if c = seen(); err != nil || len(c) != 3 || c[2] == c[0] {
+		t.Errorf("%v, asked on %q", err, c)
 	}
 
-	conns, answer = nil, -1
-	if _, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); !errors.Is(err, ErrStalled) || len(conns) != 2 {
-		t.Errorf("%v, asked %d times", err, len(conns))
+	reset(nil, -1)
+	_, err = e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
+	if c = seen(); !errors.Is(err, ErrStalled) || len(c) != 2 {
+		t.Errorf("%v, asked %d times", err, len(c))
 	}
 }
