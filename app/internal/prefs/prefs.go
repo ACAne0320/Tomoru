@@ -171,11 +171,12 @@ func SystemASR() string {
 // choose a model to download or the cloud's.
 func DefaultASR() string { return SystemASR() }
 
-// ResetStyle sets the subtitles' look back to the defaults.
+// ResetStyle sets the subtitles' look back to the defaults: the text alone, outlined, in the "ice"
+// scheme.
 func (p *Prefs) ResetStyle() {
-	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = 0, 0, "#1e2259", false
+	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = 1, 1, "#1e2259", false
 	p.Font, p.SrcSize, p.TgtSize = Fonts[0], 20, 28
-	p.SrcColor, p.TgtColor, p.HideAfter, p.KeepShown = "#ffffff", "#f5a524", 5, false
+	p.SrcColor, p.TgtColor, p.HideAfter, p.KeepShown = "#ffffff", "#7fdbff", 5, false
 }
 
 // Load reads the settings at path over the defaults for locale. A missing file gives the

@@ -83,7 +83,7 @@ Light values:
 | `Ok` | `#3fa463` / text `#2f6b45` / ground `#e7f3ea` | In use, ready, the "On device" tag | `Success` |
 | `Cloud` | text `#3b3592` / ground `#e8e6fb` | The "Cloud" tag | |
 | `Danger` | `#a4472f` | Delete | `Danger` |
-| `SubSrc` / `SubTgt` | `#f4f2ff` / `#f5a524` | Original and translation on the stage, as the default scheme ("Amber") colors them: the translation in the lantern's amber | |
+| `SubSrc` / `SubTgt` | `#f4f2ff` / `#f5a524` | Original and translation on the stage, as the "Amber" scheme colors them: the translation in the lantern's amber (the subtitles' default is "Ice", immersive and outlined) | |
 | `Series` | `#f5a524` `#8a5200` `#e8cf9f` `#4a3a24` | A chart's series of no color of their own: on the statistics page, one's own APIs and OpenAI's recognition, each by its id, so always the same; what no engine was noted of is `LineStrong` | |
 | `Apple` / `Qwen` / `Alibaba` | `#007aff` / `#615ced` / `#ff6a00` | The engines' makers' colors, so an engine keeps its color in any chart: Apple's speech recognition, Qwen's (its cloud and Qwen3-ASR), SenseVoice (Alibaba's Tongyi Lab) | |
 | `Bilibili` | `#fb7299` `#d63f73` `#fdb2c9` | Index-Translate's, bilibili's pink: in the cloud, deeper for 9B, paler for 2B | |

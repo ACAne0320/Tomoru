@@ -19,6 +19,7 @@ import (
 	"tomoru/internal/translate"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
+	"tomoru/internal/ui/subtitle"
 	"tomoru/locales"
 )
 
@@ -67,7 +68,7 @@ func TestCustomColor(t *testing.T) {
 	if err := tt.Click("Red"); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.SrcColor != "#ef4444" || k.Prefs.TgtColor != "#f5a524" {
+	if k.Prefs.SrcColor != "#ef4444" || k.Prefs.TgtColor != subtitle.Schemes[0].Tgt {
 		t.Errorf("colors %s %s", k.Prefs.SrcColor, k.Prefs.TgtColor)
 	}
 }

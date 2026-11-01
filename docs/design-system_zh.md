@@ -69,7 +69,7 @@ Tomoru 是「点亮字幕」的应用，名字是灯る，看板娘 Tomoru（と
 | `Ok` | `#3fa463` / 文字 `#2f6b45` / 底 `#e7f3ea` | 正在使用、就绪、「本地」标签 | `Success` |
 | `Cloud` | 文字 `#3b3592` / 底 `#e8e6fb` | 「云端」标签 | |
 | `Danger` | `#a4472f` | 删除 | `Danger` |
-| `SubSrc` / `SubTgt` | `#f4f2ff` / `#f5a524` | 舞台上的原文、译文，和默认配色「琥珀」一致：译文用灯的琥珀色 | |
+| `SubSrc` / `SubTgt` | `#f4f2ff` / `#f5a524` | 舞台上的原文、译文，和配色「琥珀」一致：译文用灯的琥珀色（字幕默认是沉浸式、描边、「冰蓝」） | |
 | `Series` | `#f5a524` `#8a5200` `#e8cf9f` `#4a3a24` | 没有自己颜色的数据：统计页里你自己的 API 和 OpenAI 识别，按 ID 取色，始终不变；未记录引擎用 `LineStrong` | |
 | `Apple` / `Qwen` / `Alibaba` | `#007aff` / `#615ced` / `#ff6a00` | 引擎出品方的颜色，让引擎在任何图表里颜色不变：Apple 语音识别、Qwen（云端和 Qwen3-ASR）、SenseVoice（阿里通义实验室） | |
 | `Bilibili` | `#fb7299` `#d63f73` `#fdb2c9` | Index-Translate 用 bilibili 粉：云端；9B 更深；2B 更浅 | |

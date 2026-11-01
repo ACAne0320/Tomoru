@@ -34,12 +34,12 @@ var (
 // people read.
 type Scheme struct{ ID, Src, Tgt, Edge string }
 
-// Schemes are the color schemes to choose from, the default first: the translation in the
-// lantern's amber of Tomoru's brand, edged in its night, as translating lights the words up.
+// Schemes are the color schemes to choose from, the default first: the translation in ice blue,
+// edged in Tomoru's night, which reads over most pictures. "amber" is the lantern's of its brand.
 var Schemes = []Scheme{
+	{"ice", "#ffffff", "#7fdbff", "#1e2259"},
 	{"amber", "#ffffff", "#f5a524", "#1e2259"},
 	{"classic", "#ffffff", "#ffec8c", "#000000"},
-	{"ice", "#ffffff", "#7fdbff", "#1e2259"},
 	{"sakura", "#ffffff", "#ffb3cf", "#4a1030"},
 	{"mint", "#ffffff", "#a8f0a0", "#000000"},
 	{"focus", "#c8c8c8", "#ffffff", "#000000"},
