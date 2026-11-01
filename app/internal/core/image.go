@@ -152,6 +152,9 @@ func (s *ImageService) translate(pic []byte, tgt string, terms []translate.Term,
 			}
 			s.Image.Text, s.Image.Err, s.Image.Running, s.Image.Via = text, err, false, via
 			s.imageCancel = nil
+			if err != nil {
+				log.Println("image:", via, err)
+			}
 			if err == nil && s.translated != nil {
 				s.translated(via)
 			}

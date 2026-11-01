@@ -8,6 +8,7 @@ package imagecard
 import (
 	"errors"
 	"math"
+	"net"
 	"strings"
 	"time"
 
@@ -241,11 +242,16 @@ func (d *Card) translation(c *ui.Context) {
 				kit.Warning(c, locales.ImageNoText())
 				return
 			}
+			via, _ := k.Engine(core.MT, im.Via)
 			why := im.Err.Error()
-			if errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)) {
+			var ne net.Error
+			switch {
+			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)):
 				why = shared.ErrorText(im.Err) // as the subtitles say it
+			case via.Cloud && errors.As(im.Err, &ne) && ne.Timeout():
+				why = locales.TranslationFailedCloud() // the free service is down at times
 			}
-			if via, _ := k.Engine(core.MT, im.Via); via.Endpoint != nil && !errors.Is(im.Err, core.ErrNoEndpoint) {
+			if via.Endpoint != nil && !errors.Is(im.Err, core.ErrNoEndpoint) {
 				// The user's API may read no pictures: no other engine is asked.
 				kit.Warning(c, locales.ImageEndpointFailed(shared.EngineName(via)))
 			} else {

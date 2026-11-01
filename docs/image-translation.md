@@ -65,7 +65,7 @@ translate on device doesn't send pictures to the cloud (`EngineService.imageEndp
 
 | Engine | Images |
 |---|---|
-| Index-Translate in the cloud | as before |
+| Index-Translate in the cloud | as before; when it doesn't answer within a minute (it stalls at times, 2026-11-01), the card says so as the subtitles do, not asking again |
 | A local model (2B / 9B) | read by llama-server with the model's vision projector, `--mmproj` (Q8_0: 345 MB for 2B, 592 MB for 9B, from the same repositories). It is one of the model's files (`models.Model.Vision`), downloaded and deleted with it, so a local model always reads images. llama-server loads it only for the first image (`Server.EnsureVision`): it costs 430 MB more memory for 2B, 680 MB for 9B, which subtitles alone needn't take. A server translating subtitles starts again with it on the same port, so the session's translator keeps its URL (the first image takes about 2 s, the next 0.6 s), and keeps it. If no session is translating, llama-server, started for an image, stops when the card closes |
 | An API of the user's | sent the image; if it fails (it may read no images), the card says so, with the API's error: no other engine is asked, as the picture goes only where the user chose |
 

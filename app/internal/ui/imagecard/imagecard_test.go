@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -124,6 +125,13 @@ func TestCard(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText(locales.ImageFailed()) || !tt.HasText("503 Service Unavailable") || !tt.HasText(locales.Retry()) {
 		t.Errorf("failed: %q", tt.Texts())
+	}
+	// The cloud not answering in time: said as the subtitles say it, not as Go does.
+	late := &url.Error{Op: "Post", URL: translate.CloudURL, Err: context.DeadlineExceeded}
+	k.Image = core.ImageView{PNG: b.Bytes(), Via: "cloud", Err: late}
+	tt.Frame()
+	if !tt.HasText(locales.TranslationFailedCloud()) || tt.HasText(late.Error()) {
+		t.Errorf("no answer: %q", tt.Texts())
 	}
 
 	if err := tt.Click(locales.Close()); err != nil || !closed {
