@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1
+
+- Subtitles start immersive, the text alone with an outline, in the Ice colors. Settings you
+  saved keep their look; Reset style takes this one.
+- Hiding the subtitles when no new ones come is now a switch: turn it off to keep the last
+  subtitles on screen until you stop translating. While it is on, choose how many seconds they
+  stay under it.
+- When Index-Translate's cloud doesn't answer a picture, its card says so plainly instead of
+  showing a raw error.
+
 ## 0.1.0
 
 The first beta.
