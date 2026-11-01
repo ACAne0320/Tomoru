@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
+- The app's icon is redrawn as Tomoru behind a glowing paper lantern. ([3485da8](https://github.com/ACAne0320/Tomoru/commit/3485da8))
 - A picture Index-Translate's cloud doesn't start answering within 10 seconds is asked again on
-  a new connection, instead of failing after a minute and failing again on retry.
+  a new connection, instead of failing after a minute and failing again on retry. ([ce1b8b3](https://github.com/ACAne0320/Tomoru/commit/ce1b8b3))
+- The website is translated into Traditional Chinese, English, Japanese and Korean, with
+  localized example subtitles and an on-page language switcher. ([7e56878](https://github.com/ACAne0320/Tomoru/commit/7e56878))
 
 ## 0.1.1
 
