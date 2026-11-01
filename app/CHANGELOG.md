@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- A picture Index-Translate's cloud doesn't start answering within 10 seconds is asked again on
+  a new connection, instead of failing after a minute and failing again on retry.
+
 ## 0.1.1
 
 - Subtitles start immersive, the text alone with an outline, in the Ice colors. Settings you

@@ -248,7 +248,7 @@ func (d *Card) translation(c *ui.Context) {
 			switch {
 			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)):
 				why = shared.ErrorText(im.Err) // as the subtitles say it
-			case via.Cloud && errors.As(im.Err, &ne) && ne.Timeout():
+			case via.Cloud && (errors.As(im.Err, &ne) && ne.Timeout() || errors.Is(im.Err, translate.ErrStalled)):
 				why = locales.TranslationFailedCloud() // the free service is down at times
 			}
 			if via.Endpoint != nil && !errors.Is(im.Err, core.ErrNoEndpoint) {

@@ -133,6 +133,11 @@ func TestCard(t *testing.T) {
 	if !tt.HasText(locales.TranslationFailedCloud()) || tt.HasText(late.Error()) {
 		t.Errorf("no answer: %q", tt.Texts())
 	}
+	k.Image = core.ImageView{PNG: b.Bytes(), Via: "cloud", Err: translate.ErrStalled}
+	tt.Frame()
+	if !tt.HasText(locales.TranslationFailedCloud()) {
+		t.Errorf("no words: %q", tt.Texts())
+	}
 
 	if err := tt.Click(locales.Close()); err != nil || !closed {
 		t.Errorf("close: %v, closed %v", err, closed)

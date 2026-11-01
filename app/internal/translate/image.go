@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"log"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -44,19 +46,62 @@ func (e *Endpoint) TranslateImage(ctx context.Context, pic []byte, tgt string, t
 		{"type": "image_url", "image_url": map[string]string{"url": "data:image/png;base64," + base64.StdEncoding.EncodeToString(pic)}},
 		{"type": "text", "text": imagePrompt(e.Style, tgt, terms)},
 	}
+	body := e.request([]message{{"user", parts}}, 0, 2048)
+	s, err := e.readImage(ctx, body, onDelta)
+	if errors.Is(err, ErrStalled) {
+		// Through a proxy, one connection in five to the cloud took a picture and answered
+		// nothing, not even a ping, until the server closed it minutes later; HTTP/2 sent each
+		// picture asked again on it (2026-11-01). Its first words come in 2 s, 7.5 s at most.
+		log.Printf("translate: no words in %v, asking again on a new connection", e.ImageWait)
+		c := e.anew(time.Minute)
+		defer c.CloseIdleConnections()
+		// The one stalled goes too, for the pictures after: idle once its request is done with.
+		defer cmp.Or(e.Client, &http.Client{}).CloseIdleConnections()
+		s, err = e.readImage(context.WithValue(ctx, clientKey{}, c), body, onDelta)
+	}
+	return Dedupe(s), err
+}
+
+// readImage reads a picture's translation, given up as ErrStalled when its first words have not
+// come within e.ImageWait.
+func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
-	s, err := e.complete(ctx, e.request([]message{{"user", parts}}, 0, 2048), time.Minute, func(s string) {
+	wait := time.AfterFunc(cmp.Or(e.ImageWait, time.Minute), func() { cancel(ErrStalled) })
+	defer wait.Stop()
+	s, err := e.complete(ctx, body, time.Minute, func(s string) {
+		wait.Stop()
 		if looping(s) {
 			cancel(errLooping)
 		} else if onDelta != nil {
 			onDelta(Dedupe(s))
 		}
 	})
-	if errors.Is(context.Cause(ctx), errLooping) {
+	switch cause := context.Cause(ctx); {
+	case err == nil:
+	case errors.Is(cause, errLooping):
 		err = nil
+	case errors.Is(cause, ErrStalled):
+		err = ErrStalled
 	}
-	return Dedupe(s), err
+	return s, err
+}
+
+// anew is a client like the one e sends with, on connections of its own, within timeout unless
+// e.Client says.
+func (e *Endpoint) anew(timeout time.Duration) *http.Client {
+	c := http.Client{Timeout: timeout}
+	if e.Client != nil {
+		c = *e.Client
+	}
+	t := c.Transport
+	if t == nil {
+		t = http.DefaultTransport
+	}
+	if t, ok := t.(*http.Transport); ok {
+		c.Transport = t.Clone()
+	}
+	return &c
 }
 
 // looping tells that the last line ended in s was said three times in a row: the 2B model, asked

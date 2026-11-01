@@ -5,13 +5,16 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 // picture is a PNG of w by h pixels.
@@ -171,5 +174,45 @@ func TestLooping(t *testing.T) {
 		if got := looping(in); got != want {
 			t.Errorf("looping(%q) = %v, want %v", in, got, want)
 		}
+	}
+}
+
+// TestImageStalled asks a picture whose first words have not come within ImageWait again, once,
+// on a new connection: over HTTP/2 the request would go on the one that answers nothing.
+func TestImageStalled(t *testing.T) {
+	var mu sync.Mutex
+	var conns []string
+	answer := 1 // the request that answers, from 0; others answer nothing
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		n := len(conns)
+		conns = append(conns, r.RemoteAddr)
+		mu.Unlock()
+		if n != answer {
+			<-r.Context().Done()
+			return
+		}
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"完\"}}]}\n\ndata: [DONE]\n\n")
+	}))
+	srv.EnableHTTP2 = true
+	srv.StartTLS()
+	defer srv.Close()
+
+	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, Client: srv.Client(), ImageWait: 50 * time.Millisecond}
+	out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
+	if err != nil || out != "完" {
+		t.Fatalf("%q %v", out, err)
+	}
+	if len(conns) != 2 || conns[0] == conns[1] {
+		t.Errorf("asked on %q, not on a new connection", conns)
+	}
+	answer = 2 // the next picture goes on a connection other than the one stalled
+	if _, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); err != nil || len(conns) != 3 || conns[2] == conns[0] {
+		t.Errorf("%v, asked on %q", err, conns)
+	}
+
+	conns, answer = nil, -1
+	if _, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); !errors.Is(err, ErrStalled) || len(conns) != 2 {
+		t.Errorf("%v, asked %d times", err, len(conns))
 	}
 }

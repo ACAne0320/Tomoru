@@ -75,6 +75,9 @@ type Endpoint struct {
 	WarmIdle time.Duration
 	// ImageSide is the longest side, in pixels, of a picture sent (image.go); 0 is MaxSide.
 	ImageSide int
+	// ImageWait is for the first words of a picture's translation (image.go): past it, the picture
+	// is asked again, once, on a connection of its own. 0 waits a minute in all.
+	ImageWait time.Duration
 
 	// plain is set once the server refused the parameters it may not know (those that turn a chat
 	// model's thinking off, and asking for the tokens used): they go no more.
@@ -104,7 +107,8 @@ const (
 // 1.5 s. It closes a connection unused for 40 to 60 s, and a new one takes 0.4 to 0.5 s more.
 func Cloud() *Endpoint {
 	return &Endpoint{URL: CloudURL, Model: CloudModel, Style: Index, Llama: true,
-		FirstWait: 2 * time.Second, Gap: 2 * time.Second, Timeout: 8 * time.Second, Parallel: 3, WarmIdle: 30 * time.Second}
+		FirstWait: 2 * time.Second, Gap: 2 * time.Second, Timeout: 8 * time.Second, Parallel: 3, WarmIdle: 30 * time.Second,
+		ImageWait: 10 * time.Second}
 }
 
 // zhName is a language's name in Chinese, for Index-Translate's prompts: "日语".
@@ -361,13 +365,19 @@ func (e *Endpoint) post(ctx context.Context, body map[string]any, timeout time.D
 	return e.do(req, timeout)
 }
 
-// do sends req to e, within timeout unless e.Client says.
+// clientKey is the client a request goes with, in place of e.Client: one of its own connections.
+type clientKey struct{}
+
+// do sends req to e, within timeout unless e.Client, or the client in req's context, says.
 func (e *Endpoint) do(req *http.Request, timeout time.Duration) (*http.Response, error) {
 	req.Header.Set("User-Agent", "Index-Translate-Client/1.0") // the public endpoint's firewall wants it
 	if e.APIKey != "" {
 		req.Header.Set("Authorization", "Bearer "+e.APIKey)
 	}
 	client := e.Client
+	if c, ok := req.Context().Value(clientKey{}).(*http.Client); ok {
+		client = c
+	}
 	if client == nil {
 		client = &http.Client{Timeout: timeout}
 	}
