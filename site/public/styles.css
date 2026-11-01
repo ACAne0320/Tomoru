@@ -480,13 +480,13 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .faq details p { padding: 0 4px 24px; color: var(--ink-muted); }
 
 /* ---------- ⑩ 收尾 ---------- */
-.callback { text-align: center; padding-bottom: clamp(140px, 16vw, 200px); }
+.callback { text-align: center; padding-bottom: clamp(180px, 20vw, 220px); }
 .callback-inner { position: relative; }
 .callback h2 { font-size: clamp(56px, 8vw, 96px); }
 .callback .lead { margin: 22px auto 0; }
 .callback .cta-row { margin-top: 32px; }
 .req { margin-top: 22px; font-size: 14px; opacity: .8; }
-.peek { position: absolute; width: 200px; left: 50%; bottom: -96px; transform: translateX(-50%); filter: drop-shadow(0 -6px 24px rgb(245 165 36 / .25)); }
+.peek { position: absolute; width: clamp(160px, 18vw, 190px); left: 50%; bottom: 0; transform: translateX(-50%); filter: drop-shadow(0 -6px 24px rgb(245 165 36 / .25)); pointer-events: none; }
 
 /* ---------- 页脚 ---------- */
 .site-footer { background: #13123a; color: var(--night-text); padding: 64px 0 40px; font-size: 14px; }
