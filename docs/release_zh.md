@@ -20,7 +20,7 @@
 
 ## 每次发布
 
-1. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。这一节就是这个版本的更新说明，GitHub 的 release 页面和 app 的更新窗口都显示它。
+1. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。这一节就是这个版本的更新说明，GitHub 的 release 页面和 app 的更新窗口都显示它。每一条末尾链接到它的 PR，没有 PR 就链接到它的提交：`([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))`。
 2. 提交到 `main`，等 Checks 和 Tests 通过。
 3. 推送这个版本的 tag：
 

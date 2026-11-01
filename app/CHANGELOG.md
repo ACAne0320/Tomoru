@@ -3,12 +3,12 @@
 ## 0.1.1
 
 - Subtitles start immersive, the text alone with an outline, in the Ice colors. Settings you
-  saved keep their look; Reset style takes this one.
+  saved keep their look; Reset style takes this one. ([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))
 - Hiding the subtitles when no new ones come is now a switch: turn it off to keep the last
   subtitles on screen until you stop translating. While it is on, choose how many seconds they
-  stay under it.
+  stay under it. ([f5c6ec2](https://github.com/ACAne0320/Tomoru/commit/f5c6ec2))
 - When Index-Translate's cloud doesn't answer a picture, its card says so plainly instead of
-  showing a raw error.
+  showing a raw error. ([92e35c0](https://github.com/ACAne0320/Tomoru/commit/92e35c0))
 
 ## 0.1.0
 
