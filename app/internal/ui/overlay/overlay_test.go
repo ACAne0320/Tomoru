@@ -33,11 +33,16 @@ func TestSubtitles(t *testing.T) {
 	if tt.HasText("みなさん、こんばんは。") {
 		t.Errorf("shows more than two: %q", tt.Texts())
 	}
-	// Without speech for a while, the subtitles go.
+	// With no new subtitles for a while, they go, unless they are kept.
 	k.Updated = time.Now().Add(-time.Minute)
 	tt.Frame()
 	if tt.HasText("コメントも") {
 		t.Errorf("still shows %q", tt.Texts())
+	}
+	k.Prefs.KeepShown = true
+	tt.Frame()
+	if !tt.HasText("コメントも") {
+		t.Errorf("kept: %q", tt.Texts())
 	}
 }
 

@@ -305,19 +305,21 @@
   "@shownMore": {
     "description": "Button: show one sentence more at once."
   },
-  "hideAfterLabel": "Hide when nobody speaks",
+  "hideAfterLabel": "Hide when subtitles stop",
   "@hideAfterLabel": {
-    "description": "Label of how long the subtitles stay when nobody speaks."
+    "description": "A switch: the subtitles go when no new ones come for a few seconds. The app hears the computer's sound, not people, so it names subtitles, not speech."
   },
-  "hideAfterValue": "after {seconds} s",
-  "@hideAfterValue": {
-    "description": "The value of how long the subtitles stay when nobody speaks.",
-    "placeholders": {
-      "seconds": {
-        "type": "int",
-        "example": "5"
-      }
-    }
+  "hideWait": "Seconds before hiding",
+  "@hideWait": {
+    "description": "A setting under Hide when nobody speaks: how many seconds the subtitles stay first."
+  },
+  "hideWaitLess": "One second sooner",
+  "@hideWaitLess": {
+    "description": "Button: hide the subtitles one second sooner."
+  },
+  "hideWaitMore": "One second later",
+  "@hideWaitMore": {
+    "description": "Button: hide the subtitles one second later."
   },
   "adjustPosition": "Adjust position",
   "@adjustPosition": {

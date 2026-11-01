@@ -44,7 +44,7 @@ func TestTranslated(t *testing.T) {
 			"tagline":            {l.Tagline(), en.Tagline()},
 			"statusNoPermission": {l.StatusNoPermission(), en.StatusNoPermission()},
 			"accessNoteDenied":   {l.AccessNoteDenied(), en.AccessNoteDenied()},
-			"hideAfterValue":     {l.HideAfterValue(5), en.HideAfterValue(5)},
+			"hideWait":           {l.HideWait(), en.HideWait()},
 			"sourceNotRunning":   {l.SourceNotRunning("Safari"), en.SourceNotRunning("Safari")},
 			"noticeListening":    {l.NoticeListening("A", "B", "⌥⇧T"), en.NoticeListening("A", "B", "⌥⇧T")},
 		} {
@@ -52,7 +52,7 @@ func TestTranslated(t *testing.T) {
 				t.Errorf("%s: %s is %q", tag, key, m[0])
 			}
 		}
-		if !strings.Contains(l.HideAfterValue(5), "5") || !strings.Contains(l.SourceNotRunning("Safari"), "Safari") {
+		if !strings.Contains(l.SourceNotRunning("Safari"), "Safari") {
 			t.Errorf("%s: arguments dropped", tag)
 		}
 	}

@@ -1045,32 +1045,66 @@ func (msgs Messages) ShownMore() string {
 	return Catalog.Format(msgs.locale, "shownMore", nil)
 }
 
-// HideAfterLabel says "Hide when nobody speaks"
+// HideAfterLabel says "Hide when subtitles stop"
 // in the language the app shows.
 //
-// Label of how long the subtitles stay when nobody speaks.
+// A switch: the subtitles go when no new ones come for a few seconds. The
+// app hears the computer's sound, not people, so it names subtitles, not
+// speech.
 func HideAfterLabel() string { return In(i18n.Locale()).HideAfterLabel() }
 
-// HideAfterLabel says "Hide when nobody speaks"
+// HideAfterLabel says "Hide when subtitles stop"
 // in the language of msgs.
 //
-// Label of how long the subtitles stay when nobody speaks.
+// A switch: the subtitles go when no new ones come for a few seconds. The
+// app hears the computer's sound, not people, so it names subtitles, not
+// speech.
 func (msgs Messages) HideAfterLabel() string {
 	return Catalog.Format(msgs.locale, "hideAfterLabel", nil)
 }
 
-// HideAfterValue says "after {seconds} s"
+// HideWait says "Seconds before hiding"
 // in the language the app shows.
 //
-// The value of how long the subtitles stay when nobody speaks.
-func HideAfterValue(seconds int) string { return In(i18n.Locale()).HideAfterValue(seconds) }
+// A setting under Hide when nobody speaks: how many seconds the subtitles
+// stay first.
+func HideWait() string { return In(i18n.Locale()).HideWait() }
 
-// HideAfterValue says "after {seconds} s"
+// HideWait says "Seconds before hiding"
 // in the language of msgs.
 //
-// The value of how long the subtitles stay when nobody speaks.
-func (msgs Messages) HideAfterValue(seconds int) string {
-	return Catalog.Format(msgs.locale, "hideAfterValue", map[string]any{"seconds": seconds})
+// A setting under Hide when nobody speaks: how many seconds the subtitles
+// stay first.
+func (msgs Messages) HideWait() string {
+	return Catalog.Format(msgs.locale, "hideWait", nil)
+}
+
+// HideWaitLess says "One second sooner"
+// in the language the app shows.
+//
+// Button: hide the subtitles one second sooner.
+func HideWaitLess() string { return In(i18n.Locale()).HideWaitLess() }
+
+// HideWaitLess says "One second sooner"
+// in the language of msgs.
+//
+// Button: hide the subtitles one second sooner.
+func (msgs Messages) HideWaitLess() string {
+	return Catalog.Format(msgs.locale, "hideWaitLess", nil)
+}
+
+// HideWaitMore says "One second later"
+// in the language the app shows.
+//
+// Button: hide the subtitles one second later.
+func HideWaitMore() string { return In(i18n.Locale()).HideWaitMore() }
+
+// HideWaitMore says "One second later"
+// in the language of msgs.
+//
+// Button: hide the subtitles one second later.
+func (msgs Messages) HideWaitMore() string {
+	return Catalog.Format(msgs.locale, "hideWaitMore", nil)
 }
 
 // AdjustPosition says "Adjust position"

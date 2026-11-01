@@ -47,6 +47,7 @@ type Prefs struct {
 	SrcColor         string
 	TgtColor         string
 	HideAfter        float64 // seconds without speech before the subtitles go
+	KeepShown        bool    // the subtitles stay while nobody speaks, rather than going after HideAfter
 	Locked           bool
 	// The subtitle area within the overlay, which spans the work area's width: its center and
 	// width, as fractions of that width.
@@ -174,7 +175,7 @@ func DefaultASR() string { return SystemASR() }
 func (p *Prefs) ResetStyle() {
 	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = 0, 0, "#1e2259", false
 	p.Font, p.SrcSize, p.TgtSize = Fonts[0], 20, 28
-	p.SrcColor, p.TgtColor, p.HideAfter = "#ffffff", "#f5a524", 5
+	p.SrcColor, p.TgtColor, p.HideAfter, p.KeepShown = "#ffffff", "#f5a524", 5, false
 }
 
 // Load reads the settings at path over the defaults for locale. A missing file gives the

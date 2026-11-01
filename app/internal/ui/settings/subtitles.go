@@ -132,18 +132,19 @@ func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 		kit.Stepper(c, &p.Shown, 1, prefs.MaxShown, locales.ShownFewer(), locales.ShownMore())
 	})
 	kit.SettingRow(c, 2, locales.HideAfterLabel(), "", func() {
-		var after []string
-		for n := 2; n <= 10; n++ {
-			after = append(after, strconv.Itoa(n))
+		hide := !p.KeepShown
+		if kit.Switch(c, &hide, locales.HideAfterLabel()).Changed() {
+			p.KeepShown = !hide
 		}
-		name := func(n string) string { v, _ := strconv.Atoi(n); return locales.HideAfterValue(v) }
-		value := strconv.Itoa(int(p.HideAfter))
-		kit.Picker(c, name(value), kit.Choices(value, after, name, func(n string) {
-			v, _ := strconv.Atoi(n)
-			s.core.UpdatePrefs(func(p *prefs.Prefs) { p.HideAfter = float64(v) })
-		})).Label(locales.HideAfterLabel())
 	})
-	kit.SettingRow(c, 3, locales.HideFromCapture(), "", func() {
+	i := 3
+	if !p.KeepShown {
+		kit.SettingRow(c, i, locales.HideWait(), "", func() {
+			kit.Stepper(c, &p.HideAfter, 2, 10, locales.HideWaitLess(), locales.HideWaitMore())
+		})
+		i++
+	}
+	kit.SettingRow(c, i, locales.HideFromCapture(), "", func() {
 		if kit.Switch(c, &p.HideFromCapture, locales.HideFromCapture()).Changed() {
 			s.nav.SetHideFromCapture(p.HideFromCapture)
 		}

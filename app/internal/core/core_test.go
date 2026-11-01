@@ -185,7 +185,7 @@ func TestEngineMissing(t *testing.T) {
 	}
 }
 
-// After nobody spoke for a while, the subtitles start afresh from the next line.
+// After no new subtitles for a while, they start afresh from the next line, unless they are kept.
 func TestSince(t *testing.T) {
 	c, f := newCore(t)
 	c.Start()
@@ -202,6 +202,13 @@ func TestSince(t *testing.T) {
 	f.flush(t, 1)
 	if c.Since != 2 {
 		t.Errorf("since %d, want 2", c.Since)
+	}
+	c.Prefs.KeepShown = true
+	c.Updated = time.Now().Add(-time.Minute)
+	report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}, {ID: 2, Src: "b"}, {ID: 3, Src: "c"}}})
+	f.flush(t, 1)
+	if c.Since != 2 {
+		t.Errorf("kept: since %d, want 2", c.Since)
 	}
 }
 

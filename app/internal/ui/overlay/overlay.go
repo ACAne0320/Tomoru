@@ -144,9 +144,9 @@ func (o *Overlay) View(c *ui.Context) {
 	entries := subtitle.Visible(k.State, k.Since, p)
 	idle := time.Since(k.Updated)
 	hideAfter := k.HideAfter()
-	show := k.Running && len(entries) > 0 && idle < hideAfter
-	if show {
-		c.After(hideAfter - idle) // hide once nobody has spoken for a while
+	show := k.Running && len(entries) > 0 && (hideAfter == 0 || idle < hideAfter)
+	if show && hideAfter > 0 {
+		c.After(hideAfter - idle) // hide once no new subtitles came for a while
 	}
 	sample := time.Until(o.sample)
 	if !show && sample > 0 {

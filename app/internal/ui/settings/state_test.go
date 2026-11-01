@@ -31,18 +31,39 @@ func TestNativePreferenceMenusPersist(t *testing.T) {
 	if got := k.Preferences().Font; got != "serif" {
 		t.Fatalf("font action: %s", got)
 	}
-	if err := tt.Click(locales.HideAfterValue(int(k.Preferences().HideAfter))); err != nil {
+	saved, err := prefs.Load(path, "en")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := tt.ChooseMenuItem(locales.HideAfterValue(7)); err != nil {
+	if saved.Font != "serif" {
+		t.Fatalf("menu settings were not saved: font=%s", saved.Font)
+	}
+}
+
+// Hiding the subtitles when no new ones come: how long first, which goes with it when turned off.
+func TestHideAfter(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	k := coretest.NewWith(func(d *core.Deps) { d.PrefsPath = path })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	if err := tt.Click(locales.HideWaitMore()); err != nil {
 		t.Fatal(err)
+	}
+	// The switch, at the end of its row as the stepper is: its name is the row's too.
+	row, _ := tt.Find(locales.HideAfterLabel())
+	more, _ := tt.Find(locales.HideWaitMore())
+	tt.ClickAt(more.X+more.W-12, row.Y+row.H/2)
+	tt.Frame()
+	if tt.HasText(locales.HideWait()) {
+		t.Errorf("the seconds show with hiding off: %q", tt.Texts())
 	}
 	saved, err := prefs.Load(path, "en")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if saved.Font != "serif" || saved.HideAfter != 7 {
-		t.Fatalf("menu settings were not saved: font=%s timeout=%v", saved.Font, saved.HideAfter)
+	if saved.HideAfter != 6 || !saved.KeepShown || k.HideAfter() != 0 {
+		t.Fatalf("saved %v s, kept %v; hides after %v", saved.HideAfter, saved.KeepShown, k.HideAfter())
 	}
 }
 

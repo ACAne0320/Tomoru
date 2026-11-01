@@ -266,8 +266,11 @@ func (c *Core) settingsChanged() {
 	c.changed()
 }
 
-// HideAfter is how long the subtitles stay when nobody speaks.
+// HideAfter is how long the subtitles stay when no new ones come; 0 when they stay.
 func (c *Core) HideAfter() time.Duration {
+	if c.Prefs.KeepShown {
+		return 0
+	}
 	return time.Duration(c.Prefs.HideAfter * float64(time.Second))
 }
 

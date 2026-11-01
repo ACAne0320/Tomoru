@@ -148,7 +148,7 @@ func (s *SessionController) apply(st live.State) {
 	case st.Phase == "listening" && prev.Phase != "listening":
 		s.NoteAt = time.Now()
 	case st.Phase == prev.Phase && !sameText(st, prev):
-		if time.Since(s.Updated) >= s.hideAfter() {
+		if after := s.hideAfter(); after > 0 && time.Since(s.Updated) >= after {
 			s.Since = lastID(prev.Lines) + 1
 		}
 		s.Updated = time.Now()
