@@ -74,7 +74,7 @@
           { "@type": "Question", "name": "支持哪些系统？", "acceptedAnswer": { "@type": "Answer", "text": "macOS 26 或更新（Apple 芯片），以及 Windows 11（x64）。" } },
           { "@type": "Question", "name": "支持哪些语言？", "acceptedAnswer": { "@type": "Answer", "text": "语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。界面有简体中文、繁体中文、英文、日文和韩文。" } },
           { "@type": "Question", "name": "要装虚拟声卡或者开麦克风吗？", "acceptedAnswer": { "@type": "Answer", "text": "都不用。Tomoru 直接听电脑播放的声音，从不使用麦克风。" } },
-          { "@type": "Question", "name": "为什么第一次打开会被系统拦下？", "acceptedAnswer": { "@type": "Answer", "text": "Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开系统设置 › 隐私与安全性，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。用终端命令安装的话，macOS 不会拦。" } },
+          { "@type": "Question", "name": "为什么第一次打开会被系统拦下？", "acceptedAnswer": { "@type": "Answer", "text": "Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开系统设置 › 隐私与安全性，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。用终端命令安装的话，macOS 和 Windows 都不会拦。" } },
           { "@type": "Question", "name": "录屏或直播推流时，字幕会被录进去吗？", "acceptedAnswer": { "@type": "Answer", "text": "可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。" } }
         ]
       }
@@ -549,7 +549,7 @@
             <li>
               <h3>下载并打开</h3>
               <p>第一次打开要多一步：macOS 在「系统设置 › 隐私与安全性」里点「仍要打开」；Windows 在 SmartScreen 警告里点「更多信息」，再点「仍要运行」。</p>
-              <p class="or">也可以在终端里安装，脚本会下载最新版本，校验无误后装好。Mac 上这样装，不用再点「仍要打开」。</p>
+              <p class="or">也可以在终端里安装，脚本会下载最新版本，校验无误后装好。这样装，Mac 不用再点「仍要打开」，Windows 也不会弹 SmartScreen。</p>
               <div class="cmd">
                 <span class="cmd-os">macOS</span>
                 <code>curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh</code>
@@ -634,7 +634,7 @@
           <details><summary>支持哪些系统？</summary><p>macOS 26 或更新（Apple 芯片），以及 Windows 11（x64）。</p></details>
           <details><summary>支持哪些语言？</summary><p>语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。界面有简体中文、繁体中文、英文、日文和韩文。</p></details>
           <details><summary>要装虚拟声卡或者开麦克风吗？</summary><p>都不用。Tomoru 直接听电脑播放的声音，从不使用麦克风。</p></details>
-          <details><summary>为什么第一次打开会被系统拦下？</summary><p>Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开「系统设置 › 隐私与安全性」，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。用终端命令安装的话，macOS 不会拦。</p></details>
+          <details><summary>为什么第一次打开会被系统拦下？</summary><p>Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开「系统设置 › 隐私与安全性」，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。用终端命令安装的话，macOS 和 Windows 都不会拦。</p></details>
           <details><summary>录屏或直播推流时，字幕会被录进去吗？</summary><p>可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。</p></details>
         </div>
       </div>

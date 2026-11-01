@@ -62,7 +62,8 @@ Tomoru isn't notarized by Apple or signed for Windows yet, so the first launch n
 - **Windows**: when SmartScreen warns, click "More info", then "Run anyway".
 
 Or install from a terminal: the script downloads the latest version, checks it, and
-installs it. On a Mac it goes in /Applications and opens without the "Open Anyway" step.
+installs it. On a Mac it goes in /Applications. Either way it opens without the "Open Anyway" or
+SmartScreen step.
 
 ```sh
 # macOS
