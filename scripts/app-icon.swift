@@ -1,15 +1,14 @@
 // Makes the app's icon from the mascot art: app/internal/ui/assets/icon.png, the art on the macOS
 // icon grid (an 824/1024 rounded square, centered, with a soft drop shadow), which the UI draws and
-// MyGo makes the Windows and Linux icons of; app/icon/Tomoru.icns, macos.icon in mygo.json, whose
-// sizes up to 64 pixels are of a closer crop, as the whole picture turns into a dark blur there;
-// and icon-small.png beside icon.png, the closer crop on the grid, for the UI's small icons.
+// MyGo makes the Windows and Linux icons of; and app/icon/Tomoru.icns, macos.icon in mygo.json.
+// Every size is the same picture, so the icon looks the same wherever it shows.
 //
-//	swift scripts/app-icon.swift <art.png> <small-art.png>
+//	swift scripts/app-icon.swift <art.png>
 import AppKit
 
 let args = CommandLine.arguments
-guard args.count == 3, let art = NSImage(contentsOfFile: args[1]), let small = NSImage(contentsOfFile: args[2]) else {
-    FileHandle.standardError.write(Data("usage: swift scripts/app-icon.swift <art.png> <small-art.png>\n".utf8))
+guard args.count == 2, let art = NSImage(contentsOfFile: args[1]) else {
+    FileHandle.standardError.write(Data("usage: swift scripts/app-icon.swift <art.png>\n".utf8))
     exit(1)
 }
 let app = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("../app")
@@ -42,14 +41,13 @@ func render(_ art: NSImage, _ px: Int) -> Data {
 }
 
 try render(art, 1024).write(to: app.appendingPathComponent("internal/ui/assets/icon.png"))
-try render(small, 256).write(to: app.appendingPathComponent("internal/ui/assets/icon-small.png"))
 
 let set = FileManager.default.temporaryDirectory.appendingPathComponent("Tomoru.iconset")
 try? FileManager.default.removeItem(at: set)
 try FileManager.default.createDirectory(at: set, withIntermediateDirectories: true)
 for (name, px) in [("16x16", 16), ("16x16@2x", 32), ("32x32", 32), ("32x32@2x", 64), ("128x128", 128),
                    ("128x128@2x", 256), ("256x256", 256), ("256x256@2x", 512), ("512x512", 512), ("512x512@2x", 1024)] {
-    try render(px <= 64 ? small : art, px).write(to: set.appendingPathComponent("icon_\(name).png"))
+    try render(art, px).write(to: set.appendingPathComponent("icon_\(name).png"))
 }
 let out = app.appendingPathComponent("icon")
 try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
@@ -60,6 +58,6 @@ try iconutil.run()
 iconutil.waitUntilExit()
 try? FileManager.default.removeItem(at: set)
 if iconutil.terminationStatus == 0 {
-    print("wrote internal/ui/assets/icon.png, icon-small.png and icon/Tomoru.icns")
+    print("wrote internal/ui/assets/icon.png and icon/Tomoru.icns")
 }
 exit(iconutil.terminationStatus)

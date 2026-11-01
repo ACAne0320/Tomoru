@@ -120,7 +120,7 @@ func (g *Guide) View(c *ui.Context) {
 // on the paper, clear of the window's controls; it drags the window.
 func titleBar(c *ui.Context, bar ui.TitleBar) {
 	ui.Row(c).Height(bar.Height).Padding(0, bar.Right, 0, kit.Space(4)+bar.Left).Gap(kit.Space(2)).AlignItems(ui.Center).DragWindow().Children(func() {
-		ui.Image(c, assets.AppIconSmall).Size(22, 22).Margin(-2)
+		ui.Image(c, assets.AppIcon).Size(22, 22).Margin(-2)
 		ui.Text(c, locales.GuideTitle()).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).InkMuted)
 	})
 }

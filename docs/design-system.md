@@ -161,10 +161,10 @@ The stage's stars and its glow don't move.
 - Copy SVGs from Lucide into `internal/ui/assets/icons/`, only the ones used (license in that
   directory's `LICENSE`).
 - Icon-only buttons must have screen reader text (`Label`) and a hover tooltip (`Tooltip`).
-- The app icon is Tomoru peeking up from the bottom edge. `swift scripts/app-icon.swift <art>
-  <small-art>` makes `assets/icon.png`, `icon-small.png` and `app/icon/Tomoru.icns`
-  (`macos.icon`) of the mascot art, whose sizes up to 32 points are of a closer crop of the same
-  picture. The menu bar panel's header shows the mascots as a sticker (`assets/sticker.png`):
+- The app icon is Tomoru peeking out from behind a glowing paper lantern at night, the
+  subtitles' two lines lit on its paper, Rubi sitting on top. `swift scripts/app-icon.swift <art>` makes
+  `assets/icon.png` and `app/icon/Tomoru.icns` (`macos.icon`) of the mascot art, the same picture
+  at every size. The menu bar panel's header shows the mascots as a sticker (`assets/sticker.png`):
   Tomoru looks up at Rubi, who holds a lantern on her head, in a cream outline, cut out of its background. While not translating both
   sleep, eyes closed (`sticker-asleep.png`), as the menu bar icon does; the two cross-fade.
 - The menu bar icon is Tomoru peeking up, her head tilted and her ahoge up: eyes closed when not

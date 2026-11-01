@@ -128,7 +128,7 @@ Tomoru 是「点亮字幕」的应用，名字是灯る，看板娘 Tomoru（と
 - 尺寸：侧栏 17、按钮里 13–16、引导权限行里 18。
 - 图标从 Lucide 拷 SVG 到 `internal/ui/assets/icons/`，用到哪个拷哪个（许可见同目录的 `LICENSE`）。
 - 只有图标的按钮必须有读屏文字（`Label`）和悬停提示（`Tooltip`）。
-- app 图标是 Tomoru 从下沿探出头。`swift scripts/app-icon.swift <原画> <小尺寸原画>` 用看板娘原画生成 `assets/icon.png`、`icon-small.png` 和 `app/icon/Tomoru.icns`（`macos.icon`），32pt 及以下（含界面里的小图标）用同一张画的近景裁切。菜单栏面板顶栏是看板娘的贴纸（`assets/sticker.png`）：Tomoru 抬头看着头顶提灯笼的 ルビ，奶油色白边，背景抠成透明。不在翻译时两人都闭眼睡着（`sticker-asleep.png`），和菜单栏图标一样；两张之间淡入淡出。
+- app 图标是夜里 Tomoru 从一盏发光的纸灯笼后探出头，灯笼纸上亮着两行字幕，ルビ 坐在灯笼顶上。`swift scripts/app-icon.swift <原画>` 用看板娘原画生成 `assets/icon.png` 和 `app/icon/Tomoru.icns`（`macos.icon`），所有尺寸都是同一张画。菜单栏面板顶栏是看板娘的贴纸（`assets/sticker.png`）：Tomoru 抬头看着头顶提灯笼的 ルビ，奶油色白边，背景抠成透明。不在翻译时两人都闭眼睡着（`sticker-asleep.png`），和菜单栏图标一样；两张之间淡入淡出。
 - 菜单栏图标是 Tomoru 歪着头探出半张脸，头顶翘着呆毛：不在翻译时闭眼，翻译中睁眼。源文件是 `assets/tray-idle.svg`、`tray-on.svg`，`swift scripts/tray-icons.swift` 生成 PNG。
 - 左键点它打开菜单栏面板（Tomoru 自己画的）；右键（macOS 上也可以按住 Control 点）弹出系统原生菜单，macOS 和 Windows 一样：开始或停止翻译、截图翻译（各自带快捷键），打开 Tomoru、关于 Tomoru，最后是退出 Tomoru。原生菜单只负责不打开面板就做一件事，或者退出；调节类的设置留在面板里，面板也能退出，给从不右键的人用。
 

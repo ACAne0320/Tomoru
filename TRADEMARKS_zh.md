@@ -5,7 +5,7 @@
 Tomoru 的源代码是自由软件，以 GNU 通用公共许可证第 3 版或更新版本授权（见 `LICENSE`）。GPL 覆盖的是代码，不覆盖 Tomoru 的品牌：
 
 - 「Tomoru」作为应用或服务名称的使用；
-- Tomoru 的图标和标志（`app/internal/ui/assets/`：`icon.png`、`icon-small.png`、`sticker.png`、`sticker-asleep.png` 和菜单栏的 `tray-*`；`app/icon/Tomoru.icns`）；
+- Tomoru 的图标和标志（`app/internal/ui/assets/`：`icon.png`、`sticker.png`、`sticker-asleep.png` 和菜单栏的 `tray-*`；`app/icon/Tomoru.icns`）；
 - 吉祥物角色看板娘 Tomoru（ともる）和她的企鹅 ルビ（Rubi），以及它们的美术作品，包括 `.github/assets/banner-*.webp` 和 `.github/assets/mascot.webp`。
 
 以上权利均保留。

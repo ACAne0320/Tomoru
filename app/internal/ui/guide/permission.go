@@ -92,7 +92,7 @@ func (g *Guide) permissionStage(c *ui.Context) {
 				onStage(c, locales.SystemAudioOnly(), kit.TextCaption, .7).FontWeight(kit.WeightBold)
 			})
 			ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
-				ui.Image(c, assets.AppIconSmall).Size(26, 26).Margin(-2)
+				ui.Image(c, assets.AppIcon).Size(26, 26).Margin(-2)
 				onStage(c, "Tomoru", kit.TextBody, .95).Grow(1)
 				toggle(c, k.Access == "granted")
 			})

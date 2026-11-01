@@ -29,11 +29,6 @@ var (
 	// AppIcon is the app's icon, to draw: a rounded square with its shadow, in a margin of about a
 	// tenth, as macOS icons are. It needs no corners or shadow of its own.
 	AppIcon, _ = ui.DecodeBitmap(AppIconPNG)
-	//go:embed icon-small.png
-	appIconSmallPNG []byte
-	// AppIconSmall is AppIcon for 32 points and less, as the .icns has it: the girl closer, her
-	// eyes filling it, where the whole picture turns into a dark blur. Same grid and margin.
-	AppIconSmall, _ = ui.DecodeBitmap(appIconSmallPNG)
 	//go:embed sticker.png
 	stickerPNG []byte
 	// Sticker is the menu bar panel's: the mascot looking up at her penguin, who holds a lantern
