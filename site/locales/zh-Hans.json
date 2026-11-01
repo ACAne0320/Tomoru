@@ -1,0 +1,392 @@
+{
+  "uses": {
+    "live": {
+      "title": "外语直播",
+      "srcLang": "ja",
+      "src": "みんな、ギフトありがとう！",
+      "tgt": "谢谢大家的礼物！"
+    },
+    "anime": {
+      "title": "生肉番剧",
+      "srcLang": "ja",
+      "src": "今夜は、星がよく見えるね。",
+      "tgt": "今晚的星星，看得好清楚。"
+    },
+    "vtuber": {
+      "title": "VTuber 和切片",
+      "srcLang": "ko",
+      "src": "여러분, 안녕하세요.",
+      "tgt": "大家晚上好。"
+    },
+    "games": {
+      "title": "游戏",
+      "srcLang": "en",
+      "src": "This boss's second phase is really tough.",
+      "tgt": "这个 Boss 的第二阶段超强的。"
+    },
+    "meetings": {
+      "title": "会议和网课",
+      "srcLang": "en",
+      "src": "Let's circle back on this next week.",
+      "tgt": "这个我们下周再聊。"
+    },
+    "eyebrow": "适合这些时候",
+    "title": "没有字幕的，都交给它"
+  },
+  "faq": {
+    "price": {
+      "q": "Tomoru 要钱吗？",
+      "a": "不要。Tomoru 免费，代码以 GPL-3.0 开源。自带的云端翻译免费；云端语音识别要用你自己的 API key，按服务商的价格计费。只用本机引擎就完全不花钱。"
+    },
+    "systems": {
+      "q": "支持哪些系统？",
+      "a": "macOS 26 或更新（Apple 芯片），以及 Windows 11（x64）。"
+    },
+    "languages": {
+      "q": "支持哪些语言？",
+      "a": "语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。界面有简体中文、繁体中文、英文、日文和韩文。"
+    },
+    "setup": {
+      "q": "要装虚拟声卡或者开麦克风吗？",
+      "a": "都不用。Tomoru 直接听电脑播放的声音，从不使用麦克风。"
+    },
+    "blocked": {
+      "q": "为什么第一次打开会被系统拦下？",
+      "a": "Tomoru 还没有经过 Apple 公证，Windows 版也没有签名。macOS：打开「系统设置 › 隐私与安全性」，点 Tomoru 旁边的「仍要打开」。Windows：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。用终端命令安装的话，macOS 和 Windows 都不会拦。"
+    },
+    "recording": {
+      "q": "录屏或直播推流时，字幕会被录进去吗？",
+      "a": "可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。"
+    },
+    "eyebrow": "常见问题",
+    "title": "常见问题"
+  },
+  "meta": {
+    "title": "Tomoru：看什么，都有字幕 | 电脑实时双语字幕翻译",
+    "description": "Tomoru 直接抓取电脑声音，实时生成悬浮双语字幕。无论是看直播、啃生肉还是打游戏，只要电脑有声音，字幕就在。识别与翻译支持离线或云端运行，完全开源免费，支持 macOS 和 Windows。",
+    "ogTitle": "Tomoru：看什么，都有字幕",
+    "ogDescription": "直接抓取电脑声音，实时生成悬浮双语字幕。无论是看直播、啃生肉还是打游戏，电脑只要有声音，字幕就在。",
+    "ogImageAlt": "Tomoru 和头顶的企鹅 ルビ 抬头看着一句日文和它亮成琥珀色的中文译文",
+    "ldDescription": "直接抓取电脑声音，实时生成悬浮双语字幕。无论是看直播、啃生肉还是打游戏，只要电脑有声音，字幕就在。识别与翻译支持离线或云端运行。"
+  },
+  "header": {
+    "skip": "跳到正文",
+    "homeLabel": "Tomoru 首页",
+    "navLabel": "页面导航",
+    "githubLabel": "GitHub 上的 Tomoru",
+    "language": "语言"
+  },
+  "nav": {
+    "features": "功能",
+    "how": "工作原理",
+    "privacy": "隐私",
+    "faq": "常见问题",
+    "download": "下载"
+  },
+  "hero": {
+    "claim": "看什么，都有字幕。",
+    "lead": "直接抓取电脑声音，实时生成悬浮双语字幕。外语直播、生肉番剧、游戏与跨国会议即开即用。",
+    "download": "免费下载",
+    "platforms": "macOS 和 Windows",
+    "source": "查看源码",
+    "factsLabel": "要点",
+    "facts": {
+      "languages": "31 种语言互译",
+      "engines": "本机或云端",
+      "systems": "macOS / Windows",
+      "license": "开源 GPL-3.0"
+    },
+    "visualLabel": "一个直播窗口上方浮着双语字幕：日文原文是白色，中文译文是琥珀色，新的一句从下面出现，旧的往上推",
+    "screenTitle": "直播 · 游戏实况",
+    "listening": "正在听 · 浏览器",
+    "line1": {
+      "src": "皆さん、こんばんは。",
+      "tgt": "大家晚上好。"
+    },
+    "line2": {
+      "src": "今日の配信はいつもより少し長くなります。",
+      "tgt": "今天的直播会比平时长一点。"
+    }
+  },
+  "js": {
+    "rollLang": "ja",
+    "forMac": "适用于 macOS · Apple 芯片",
+    "forWindows": "适用于 Windows 11 · x64",
+    "copied": "已复制",
+    "roll": [
+      {
+        "src": [
+          "まずは",
+          "コメントを見てみましょう。"
+        ],
+        "draft": "",
+        "tgt": "先看一下评论吧。"
+      },
+      {
+        "src": [
+          "みんな、",
+          "ギフトありがとう！"
+        ],
+        "draft": "",
+        "tgt": "谢谢大家的礼物！"
+      },
+      {
+        "src": [
+          "よし、",
+          "じゃあ始めましょう。"
+        ],
+        "draft": "",
+        "tgt": "好，那我们开始吧。"
+      },
+      {
+        "src": [
+          "前回は第三章の",
+          "最後で",
+          "詰まっちゃいました。"
+        ],
+        "draft": "上次在第三章……",
+        "tgt": "上次卡在了第三章的最后。"
+      },
+      {
+        "src": [
+          "今回は",
+          "もっといい装備を",
+          "用意してきました。"
+        ],
+        "draft": "这次准备了……",
+        "tgt": "这次准备了更好的装备。"
+      },
+      {
+        "src": [
+          "あ、",
+          "ボスが出てきた！"
+        ],
+        "draft": "",
+        "tgt": "啊，Boss 出来了！"
+      },
+      {
+        "src": [
+          "このボスの",
+          "第二形態が",
+          "めっちゃ強いんだよね。"
+        ],
+        "draft": "这个 Boss 的第二阶段……",
+        "tgt": "这个 Boss 的第二阶段超强的。"
+      },
+      {
+        "src": [
+          "皆さん、",
+          "こんばんは。"
+        ],
+        "draft": "",
+        "tgt": "大家晚上好。"
+      },
+      {
+        "src": [
+          "今日の配信は",
+          "いつもより",
+          "少し長くなります。"
+        ],
+        "draft": "今天的直播……",
+        "tgt": "今天的直播会比平时长一点。"
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "为什么用 Tomoru",
+    "title": "电脑在放什么，就翻译什么",
+    "lead": "无论是看直播、啃生肉还是打游戏，电脑只要有声音，字幕就在。",
+    "overlay": {
+      "artLabel": "同一条字幕先后浮在番剧、游戏和会议窗口上",
+      "animeName": "番剧 · 第 7 话",
+      "gameName": "游戏",
+      "meetingName": "线上会议",
+      "sub1": {
+        "srcLang": "ja",
+        "src": "今夜は、星がよく見えるね。",
+        "tgt": "今晚的星星，看得好清楚。"
+      },
+      "sub2": {
+        "srcLang": "ja",
+        "src": "あ、ボスが出てきた！",
+        "tgt": "啊，Boss 出来了！"
+      },
+      "sub3": {
+        "srcLang": "en",
+        "src": "Let's circle back on this next week.",
+        "tgt": "这个我们下周再聊。"
+      },
+      "title": "置顶悬浮，点击穿透",
+      "body": "字幕窗口始终悬浮在画面最前。可自由拖拽与缩放，锁定后鼠标直接穿透操作，录屏推流时支持自动隐形。"
+    },
+    "capture": {
+      "artLabel": "可以听全部系统声音，也可以只听浏览器一个应用",
+      "browser": "浏览器 · 直播",
+      "game": "游戏",
+      "music": "音乐",
+      "all": "全部系统声音",
+      "oneApp": "只听浏览器",
+      "title": "原生内录，不碰麦克风",
+      "body": "直接抓取系统音频输出，从不调用麦克风。既能全局监听，也可以单独指定一个应用（比如打游戏时，只翻译浏览器里的直播）。"
+    },
+    "engines": {
+      "artLabel": "在本机和云端之间切换：本机时数据留在电脑里，云端时只发给选定的服务",
+      "local": "本机",
+      "cloud": "云端",
+      "localCaption": "声音和文字留在你的电脑上",
+      "cloudCaption": "只发给你选的那个服务",
+      "title": "离线或云端，按需切换",
+      "body": "语音识别与翻译均支持纯本地离线运行，数据全程不离开电脑；也内置了免费云端翻译，或按需接入自己的大模型 API。"
+    }
+  },
+  "how": {
+    "eyebrow": "工作原理",
+    "title": "听、认、译，一句接一句",
+    "lead": "语音识别最多支持 30 种语言（取决于所选识别引擎），翻译支持 31 种语言互译。原文是白色，译文是灯笼的琥珀色。",
+    "hear": {
+      "title": "听",
+      "body": "实时捕获系统音频，或定向监听指定软件。"
+    },
+    "srcLang": "ja",
+    "src": "皆さん、こんばんは。",
+    "tgt": "大家晚上好。",
+    "recognize": {
+      "title": "认",
+      "body": "流式语音识别，说话的同时逐字生成原文。"
+    },
+    "translate": {
+      "title": "译",
+      "body": "译文即刻显现，双语对照悬浮于屏幕上方。"
+    }
+  },
+  "details": {
+    "eyebrow": "细节",
+    "title": "专为看懂生肉打磨的细节",
+    "draft": {
+      "tag": "抢先翻译",
+      "title": "不用干等整句话说完",
+      "body": "说话还没停顿时，先实时显示前半句大意；整句结束再自动校准为完整译文。看快节奏直播不再延时滞后。",
+      "artLabel": "说话进行到一半时先出现译文大意，说完后换成完整译文",
+      "talking": "正在说…",
+      "done": "说完了",
+      "srcLang": "ja",
+      "chunk1": "今日の配信は",
+      "chunk2": "いつもより",
+      "chunk3": "少し長くなります。",
+      "draft": "今天的直播……",
+      "final": "今天的直播会比平时长一点。",
+      "draftNote": "大意",
+      "finalNote": "完整译文",
+      "caption": "先看大意，说完换成完整的一句"
+    },
+    "scenes": {
+      "tag": "翻译场景和专名对照表",
+      "title": "专有名词与人名，不再翻车",
+      "body": "语音识别容易把人名听成近音词，机器翻译也常有望文生义的毛病（比如把「<span lang=\"ja\">クラウド</span>」翻成「云」）。你可以为常看的番剧或游戏建立专属词表，自动纠错同音字并统一译名；接入自己的 API 时，还能从字幕记录中自动学习新词。",
+      "artLabel": "不用场景时，メテオ 被听成 メデオ、クラウド 被译成云；用了最终幻想 VII 场景后，原文和译文都对了",
+      "off": "不用场景",
+      "on": "场景：最终幻想 VII",
+      "srcLang": "ja",
+      "srcBefore": "クラウド、<tspan class=\"bad\">メデオ</tspan>が来る！",
+      "tgtBefore": "<tspan class=\"bad\">云</tspan>，<tspan class=\"bad\">美迪奥</tspan>要来了！",
+      "srcAfter": "クラウド、<tspan class=\"good\">メテオ</tspan>が来る！",
+      "tgtAfter": "<tspan class=\"good\">克劳德</tspan>，<tspan class=\"good\">陨石</tspan>要来了！",
+      "glossary": "专名对照表",
+      "term1": "<tspan lang=\"ja\">クラウド</tspan> → 克劳德",
+      "term2": "<tspan lang=\"ja\">メテオ</tspan> → 陨石",
+      "term3": "<tspan lang=\"ja\">エアリス</tspan> → 爱丽丝"
+    },
+    "picture": {
+      "tag": "翻译屏幕上的文字",
+      "title": "无声画面，框选即翻",
+      "body": "遇到没有配音的游戏台词、视频招牌或直播弹幕，按 <kbd>⌥⇧S</kbd>（Windows 为 <kbd>Alt+Shift+S</kbd>）框选屏幕即可即时翻译。选用本地模型时，截图识别同样完全留在本地。",
+      "artLabel": "按下快捷键，框选游戏里的日文对话框，上方出现中文译文",
+      "srcLang": "ja",
+      "srcName": "エルナ",
+      "src1": "クロード、あの塔のてっぺんで光ってるもの……",
+      "src2": "まさか「星の欠片」じゃないよね？",
+      "tgtName": "艾露娜",
+      "note": "译文",
+      "tgt1": "克劳德，塔顶上那个发光的东西……",
+      "tgt2": "该不会就是「星之碎片」吧？"
+    }
+  },
+  "start": {
+    "eyebrow": "上手",
+    "title": "三步，字幕就出来了",
+    "install": {
+      "title": "下载运行",
+      "body": "双击运行安装包（未签名提示点「仍要打开」即可）；或在终端直接运行一行脚本安装，免去系统拦截弹窗。"
+    },
+    "copyMac": "复制 macOS 的安装命令",
+    "copyWindows": "复制 Windows 的安装命令（PowerShell）",
+    "copy": "复制",
+    "choose": {
+      "title": "选择语言与引擎",
+      "body": "跟随新手引导选择源语言与目标语言，并按需配置离线本地模型或云端接口。"
+    },
+    "try": {
+      "title": "快速试播，随开随用",
+      "body": "播放内置样例确认字幕正常出字即可。平时安静常驻菜单栏，随时快捷启停。"
+    },
+    "shotAlt": "Tomoru 的首次使用引导：选好日语翻成中文，选识别和翻译引擎，播放示例后三项检查依次打勾，试一下快捷键，就准备好了",
+    "shotCaption": "首次使用引导：设置 › 体验一下 › 开始用"
+  },
+  "privacy": {
+    "eyebrow": "隐私",
+    "title": "离线可用，数据不离设备",
+    "mic": {
+      "title": "不碰麦克风",
+      "body": "只采集电脑内录声音，全程不申请麦克风权限，音频流用完即走、不作留存。"
+    },
+    "local": {
+      "title": "离线处理，数据不离设备",
+      "body": "选择本地引擎时，所有运算均在你的电脑上完成；即使使用云端，数据也仅直连你指定的 API 服务。"
+    },
+    "history": {
+      "title": "历史记录默认不存",
+      "body": "字幕记录默认处于关闭状态。即使手动开启，原文与译文也仅存放在本机，随时可一键彻底删除。"
+    },
+    "telemetry": {
+      "title": "零遥测追踪",
+      "body": "完全不包含用户分析与遥测打点。除检查更新访问 GitHub、下载模型访问开源社区外，不会向任何服务器发送数据。"
+    }
+  },
+  "mascot": {
+    "alt": "Tomoru：靛蓝短发、发尾琥珀色的女孩，开心地抬头看着头顶抱着纸灯笼的企鹅 ルビ",
+    "eyebrow": "Tomoru 和 ルビ",
+    "title": "提着灯笼的女孩，和头顶的企鹅",
+    "name": "app 的名字来自看板娘 Tomoru（<span lang=\"ja\">ともる</span>），一个提着纸灯笼的女孩：<span lang=\"ja\">灯る</span> 是「点亮」的意思。她头顶的企鹅叫 <span lang=\"ja\">ルビ</span>（Rubi），名字取自标在难字上方、帮人读懂的那行小字。",
+    "tray": "没在翻译时，她们在菜单栏里打瞌睡；开始翻译，就一起醒过来。",
+    "idle": "没在翻译",
+    "on": "翻译中"
+  },
+  "callback": {
+    "lead": "下载之后，app 会自己更新。",
+    "req": "macOS 26 或更新 · Apple 芯片　|　Windows 11 · x64",
+    "peekAlt": "Tomoru 和头顶的企鹅 ルビ 从屏幕下方探出头"
+  },
+  "footer": {
+    "tagline": "把电脑播放的声音变成双语字幕。",
+    "product": "产品",
+    "changelog": "更新记录",
+    "openSource": "开源",
+    "contributing": "参与贡献",
+    "security": "报告安全问题",
+    "issues": "反馈问题",
+    "thanks": "致谢",
+    "licenses": "第三方许可",
+    "legal": "代码以 <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/LICENSE\">GPL-3.0-or-later</a> 授权。Tomoru 的名字、图标和看板娘保留所有权利，见 <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS_zh.md\">商标说明</a>。"
+  },
+  "links": {
+    "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING_zh.md",
+    "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY_zh.md",
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md"
+  },
+  "notFound": {
+    "title": "找不到这一页 | Tomoru",
+    "claim": "这一页没有字幕。",
+    "lead": "你要找的页面不存在，或者已经搬走了。",
+    "home": "回到首页"
+  }
+}

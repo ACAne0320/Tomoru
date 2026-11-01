@@ -1,0 +1,391 @@
+{
+  "uses": {
+    "live": {
+      "title": "海外配信・ライブ",
+      "srcLang": "en",
+      "src": "Thanks for the gifts, everyone!",
+      "tgt": "みんな、ギフトありがとう！"
+    },
+    "anime": {
+      "title": "海外アニメ・ドラマ",
+      "srcLang": "en",
+      "src": "The stars are so clear tonight.",
+      "tgt": "今夜は、星がよく見えるね。"
+    },
+    "vtuber": {
+      "title": "海外VTuber・切り抜き",
+      "srcLang": "ko",
+      "src": "여러분, 안녕하세요.",
+      "tgt": "皆さん、こんばんは。"
+    },
+    "games": {
+      "title": "洋ゲー・海外ゲーム",
+      "srcLang": "en",
+      "src": "This boss's second phase is really tough.",
+      "tgt": "このボスの第二形態がめっちゃ強いんだよね。"
+    },
+    "meetings": {
+      "title": "英語会議・オンライン講義",
+      "srcLang": "en",
+      "src": "Let's circle back on this next week.",
+      "tgt": "この件は来週また話しましょう。"
+    },
+    "eyebrow": "こんなときに",
+    "title": "字幕がない音声を、すべておまかせ"
+  },
+  "faq": {
+    "price": {
+      "q": "Tomoru は無料ですか？",
+      "a": "はい、無料です。GPL-3.0 で公開されているオープンソースソフトウェアです。標準のクラウド翻訳は無料で利用できます。クラウド音声認識を使う場合はご自身の API キーが必要で、サービス元の料金がかかります。ローカルエンジンのみを使う場合は一切料金はかかりません。"
+    },
+    "systems": {
+      "q": "対応しているシステムは？",
+      "a": "macOS 26 以降（Apple シリコン）、および Windows 11（x64）に対応しています。"
+    },
+    "languages": {
+      "q": "対応している言語は？",
+      "a": "音声認識は最大 30 言語（選択した認識エンジンによる）、翻訳は 31 言語の相互翻訳に対応しています。表示言語は簡体字中国語、繁体字中国語、英語、日本語、韓国語から選べます。"
+    },
+    "setup": {
+      "q": "仮想オーディオドライバの導入やマイクの許可は必要ですか？",
+      "a": "どちらも不要です。Tomoru はパソコンで再生された音声を直接取得するため、マイクを使うことはありません。"
+    },
+    "blocked": {
+      "q": "初回起動時にシステムにブロックされるのはなぜですか？",
+      "a": "Tomoru は現在 Apple の公証や Windows の署名を受けていません。macOS：『システム設定 › プライバシーとセキュリティ』を開き、Tomoru の横にある『このまま開く』をクリックしてください。Windows：SmartScreen の警告が出たら『詳細情報』をクリックし、『実行』を選んでください。ターミナルコマンドでインストールした場合は警告なしで起動できます。"
+    },
+    "recording": {
+      "q": "画面収録や配信に字幕は映り込みますか？",
+      "a": "設定で『画面収録で字幕を隠す』をオンにしておけば、自分だけに字幕が見えるようになります。"
+    },
+    "eyebrow": "よくある質問",
+    "title": "よくある質問"
+  },
+  "meta": {
+    "title": "Tomoru：PCで流れる音をリアルタイム翻訳 | デスクトップ字幕アプリ",
+    "description": "Tomoru はパソコンの音声を直接キャプチャし、最前面に二言語の翻訳字幕をリアルタイム表示します。海外配信、洋ゲー、英語会議など、PCから音が出ればいつでも翻訳。完全無料・オープンソース、macOS と Windows に対応。",
+    "ogTitle": "Tomoru：見ているものに、リアルタイムの翻訳字幕を",
+    "ogDescription": "PCの音声を直接キャプチャし、最前面に二言語の字幕をリアルタイム表示。海外配信も洋ゲーも、PCから音が出れば字幕が灯る。",
+    "ogImageAlt": "Tomoru と頭の上のペンギン・ルビが、英語の原文と琥珀色に輝く日本語の訳文を見上げている",
+    "ldDescription": "パソコンの音声を直接キャプチャし、最前面に二言語の字幕をリアルタイム表示。海外配信、洋ゲー、英語会議に。ローカルとクラウドの両方に対応。"
+  },
+  "header": {
+    "skip": "本文へスキップ",
+    "homeLabel": "Tomoru ホーム",
+    "navLabel": "ページナビゲーション",
+    "githubLabel": "GitHub 上の Tomoru",
+    "language": "言語"
+  },
+  "nav": {
+    "features": "特徴",
+    "how": "仕組み",
+    "privacy": "プライバシー",
+    "faq": "よくある質問",
+    "download": "ダウンロード"
+  },
+  "hero": {
+    "claim": "見ているものに、字幕を。",
+    "lead": "PCの音声を直接キャプチャし、最前面に二言語字幕をリアルタイム生成。海外配信、洋画・海外アニメ、洋ゲー、英語会議もすぐ楽しめます。",
+    "download": "無料ダウンロード",
+    "platforms": "macOS と Windows",
+    "source": "ソースコード",
+    "factsLabel": "主な仕様",
+    "facts": {
+      "languages": "31 言語の相互翻訳",
+      "engines": "ローカルまたはクラウド",
+      "systems": "macOS / Windows",
+      "license": "オープンソース GPL-3.0"
+    },
+    "visualLabel": "配信ウィンドウの上に二言語字幕が浮かんでいる様子：英語の原文は白、日本語の訳文は琥珀色で、新しい文が下から現れて古い文が押し上げられる",
+    "screenTitle": "配信 · ゲーム実況",
+    "listening": "音声取得中 · ブラウザ",
+    "line1": {
+      "src": "Good evening, everyone.",
+      "tgt": "皆さん、こんばんは。"
+    },
+    "line2": {
+      "src": "Today's stream will run a bit longer than usual.",
+      "tgt": "今日の配信はいつもより少し長くなります。"
+    }
+  },
+  "js": {
+    "rollLang": "en",
+    "forMac": "macOS 対応 · Apple シリコン",
+    "forWindows": "Windows 11 対応 · x64",
+    "copied": "コピーしました",
+    "roll": [
+      {
+        "src": [
+          "Let's check ",
+          "the comments first."
+        ],
+        "draft": "",
+        "tgt": "まずはコメントを見てみましょう。"
+      },
+      {
+        "src": [
+          "Thanks for ",
+          "the gifts, everyone!"
+        ],
+        "draft": "",
+        "tgt": "みんな、ギフトありがとう！"
+      },
+      {
+        "src": [
+          "Okay, ",
+          "let's get started."
+        ],
+        "draft": "",
+        "tgt": "よし、じゃあ始めましょう。"
+      },
+      {
+        "src": [
+          "Last time I got stuck ",
+          "at the end of ",
+          "chapter three."
+        ],
+        "draft": "前回は第3章の…",
+        "tgt": "前回は第三章の最後で詰まっちゃいました。"
+      },
+      {
+        "src": [
+          "This time ",
+          "I've got ",
+          "better gear."
+        ],
+        "draft": "今回はもっと…",
+        "tgt": "今回はもっといい装備を用意してきました。"
+      },
+      {
+        "src": [
+          "Oh, ",
+          "here comes the boss!"
+        ],
+        "draft": "",
+        "tgt": "あ、ボスが出てきた！"
+      },
+      {
+        "src": [
+          "This boss's second phase ",
+          "is really tough."
+        ],
+        "draft": "このボスの第2形態は…",
+        "tgt": "このボスの第二形態がめっちゃ強いんだよね。"
+      },
+      {
+        "src": [
+          "Good evening, ",
+          "everyone."
+        ],
+        "draft": "",
+        "tgt": "皆さん、こんばんは。"
+      },
+      {
+        "src": [
+          "Today's stream ",
+          "will run a bit ",
+          "longer than usual."
+        ],
+        "draft": "今日の配信は…",
+        "tgt": "今日の配信はいつもより少し長くなります。"
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Tomoru が選ばれる理由",
+    "title": "PCから流れる音を、そのまま翻訳",
+    "lead": "海外配信も、洋画も、ゲームも。PCから音が出ていれば、いつでもそこに字幕があります。",
+    "overlay": {
+      "artLabel": "海外アニメ、ゲーム、オンライン会議のウィンドウ上に、同じ字幕が浮かぶ様子",
+      "animeName": "海外アニメ · 第7話",
+      "gameName": "ゲーム",
+      "meetingName": "オンライン会議",
+      "sub1": {
+        "srcLang": "en",
+        "src": "The stars are so clear tonight.",
+        "tgt": "今夜は、星がよく見えるね。"
+      },
+      "sub2": {
+        "srcLang": "en",
+        "src": "Oh, here comes the boss!",
+        "tgt": "あ、ボスが出てきた！"
+      },
+      "sub3": {
+        "srcLang": "en",
+        "src": "Let's circle back on this next week.",
+        "tgt": "この件は来週また話しましょう。"
+      },
+      "title": "最前面にフロート、クリック透過",
+      "body": "字幕ウィンドウは常に画面の最前面に表示されます。位置やサイズは自由に変更でき、固定すれば背後のアプリをクリック可能。画面収録や配信時には自動で非表示にできます。"
+    },
+    "capture": {
+      "artLabel": "すべてのシステム音声を取得することも、ブラウザなど1つのアプリに絞ることも可能",
+      "browser": "ブラウザ",
+      "game": "ゲーム",
+      "music": "音楽",
+      "all": "システム全体の音",
+      "oneApp": "ブラウザのみ",
+      "title": "内蔵音声キャプチャ、マイク不使用",
+      "body": "システムの音声出力を直接取り込み、マイクには一切アクセスしません。PC全体の音声を翻訳することも、特定のアプリ（ゲーム中にブラウザの配信だけ）を指定することも可能です。"
+    },
+    "engines": {
+      "artLabel": "ローカルとクラウドを切り替え：ローカルならデータは端末内にとどまり、クラウドなら指定したサービスだけに送信",
+      "local": "ローカル",
+      "cloud": "クラウド",
+      "localCaption": "音声とテキストはパソコン内に残ります",
+      "cloudCaption": "選んだサービスだけに送信されます",
+      "title": "オフラインでもクラウドでも、自在に選択",
+      "body": "音声認識と翻訳はどちらも完全オフラインで動作可能で、データが外に出ることはありません。無料のクラウド翻訳も内蔵されているほか、独自の大規模言語モデル API も接続できます。"
+    }
+  },
+  "how": {
+    "eyebrow": "仕組み",
+    "title": "聴く、認識する、翻訳する。一文ずつ流れるように",
+    "lead": "音声認識は最大 30 言語（選択した認識エンジンによる）、翻訳は 31 言語の相互翻訳に対応。原文は白、訳文は提灯のような温かい琥珀色です。",
+    "hear": {
+      "title": "聴く",
+      "body": "システム音声をリアルタイムにキャプチャ。特定アプリの音声だけを狙って聴くこともできます。"
+    },
+    "srcLang": "en",
+    "src": "Good evening, everyone.",
+    "tgt": "皆さん、こんばんは。",
+    "recognize": {
+      "title": "認識する",
+      "body": "ストリーミング音声認識により、発話と同時に一文字ずつ原文を生成します。"
+    },
+    "translate": {
+      "title": "翻訳する",
+      "body": "訳文が瞬時に現れ、画面上に二言語が並んでフロート表示されます。"
+    }
+  },
+  "details": {
+    "eyebrow": "こだわり",
+    "title": "字幕なし動画を快適に観るための細やかな工夫",
+    "draft": {
+      "tag": "先行翻訳",
+      "title": "文が終わるのを待たずに読める",
+      "body": "話が途切れる前でも、リアルタイムに前半の大意を先に表示。話し終わると自動的に文全体の正確な訳文へと整えます。テンポの速い生配信でも遅れを感じさせません。",
+      "artLabel": "英語で話している途中で訳文の大意が表示され、話し終わると完全な訳文に切り替わる様子",
+      "talking": "発話中…",
+      "done": "完了",
+      "srcLang": "en",
+      "chunk1": "Today's stream ",
+      "chunk2": "will run ",
+      "chunk3": "longer.",
+      "draft": "今日の配信は…",
+      "final": "今日の配信は少し長めです。",
+      "draftNote": "大意",
+      "finalNote": "完全な訳文",
+      "caption": "まずは大意を表示、話し終えると全文に切り替え"
+    },
+    "scenes": {
+      "tag": "翻訳シーンと固有名詞辞書",
+      "title": "固有名詞や人名も、もう迷わない",
+      "body": "音声認識は人名を似た音の単語に聞き間違えやすく、機械翻訳も文字通りの直訳をしがちです（英語音声の「Cloud」を「雲」と訳すなど）。よく見る作品やゲームごとにシーンを作っておけば、同音異義語を修正して正しい表記に統一できます。独自の API を接続すれば、字幕履歴から新しい単語を自動学習させることも可能です。",
+      "artLabel": "シーンを使わないと Tifa が Teefa と聞き間違えられ、Cloud が「雲」と直訳されるが、FF7 のシーンを使うと原文も訳文も正しくなる",
+      "off": "シーンなし",
+      "on": "シーン：FF7",
+      "srcLang": "en",
+      "srcBefore": "Cloud, <tspan class=\"bad\">Teefa</tspan> is here!",
+      "tgtBefore": "<tspan class=\"bad\">雲</tspan>、<tspan class=\"bad\">ティーファ</tspan>が来た！",
+      "srcAfter": "Cloud, <tspan class=\"good\">Tifa</tspan> is here!",
+      "tgtAfter": "<tspan class=\"good\">クラウド</tspan>、<tspan class=\"good\">ティファ</tspan>が来た！",
+      "glossary": "固有名詞",
+      "term1": "<tspan lang=\"en\">Cloud</tspan> → クラウド",
+      "term2": "<tspan lang=\"en\">Tifa</tspan> → ティファ",
+      "term3": "<tspan lang=\"en\">Aerith</tspan> → エアリス"
+    },
+    "picture": {
+      "tag": "画面の文字を翻訳",
+      "title": "声のない画面も、囲むだけで翻訳",
+      "body": "ボイスのないゲームの台詞や動画内の看板、配信のコメント欄などは、<kbd>⌥⇧S</kbd>（Windows では <kbd>Alt+Shift+S</kbd>）を押して画面を囲むだけで即座に翻訳。ローカルモデルを選べば、画像認識もすべて端末内で完結します。",
+      "artLabel": "ショートカットキーを押し、ゲーム内の英語の会話欄を範囲選択すると、上に日本語の訳文が表示される",
+      "srcLang": "en",
+      "srcName": "Erna",
+      "src1": "Claude, that light on top of the tower…",
+      "src2": "it can't be the Star Fragment, can it?",
+      "tgtName": "エルナ",
+      "note": "訳文",
+      "tgt1": "クロード、あの塔のてっぺんで光ってるもの……",
+      "tgt2": "まさか「星の欠片」じゃないよね？"
+    }
+  },
+  "start": {
+    "eyebrow": "はじめかた",
+    "title": "3ステップで、すぐに字幕が出ます",
+    "install": {
+      "title": "ダウンロードして起動",
+      "body": "インストーラーをダブルクリックして起動（未署名の警告が出たら『このまま開く』をクリック）。またはターミナルから1行のコマンドでインストールすれば、システムの警告をスキップできます。"
+    },
+    "copyMac": "macOS のインストールコマンドをコピー",
+    "copyWindows": "Windows のインストールコマンドをコピー（PowerShell）",
+    "copy": "コピー",
+    "choose": {
+      "title": "言語とエンジンを選択",
+      "body": "初回ガイドに沿って音声の言語と翻訳先の言語を選び、必要に応じてローカルモデルやクラウド設定を行います。"
+    },
+    "try": {
+      "title": "サンプルの再生で確認",
+      "body": "テスト音声を再生して字幕が出ることを確認したら準備完了。普段はメニューバーに常駐し、いつでもショートカットで開始・停止できます。"
+    },
+    "shotAlt": "Tomoru の初回ガイド：英語から日本語への翻訳を設定し、認識・翻訳エンジンを選択、サンプルを再生して3つのチェックがつき、ショートカットを試して準備完了",
+    "shotCaption": "初回ガイド：設定 › お試し › 完了"
+  },
+  "privacy": {
+    "eyebrow": "プライバシー",
+    "title": "完全オフライン対応、データは端末の外に出ません",
+    "mic": {
+      "title": "マイクにはアクセスしません",
+      "body": "PCの内部音声のみを取得し、マイクのアクセス許可を求めることはありません。音声データは処理後すぐに破棄されます。"
+    },
+    "local": {
+      "title": "端末内ローカル処理",
+      "body": "ローカルエンジン選択時は、すべての処理がパソコン内で完結します。クラウド利用時も、指定した API サービスとのみ通信します。"
+    },
+    "history": {
+      "title": "履歴は初期状態で保存オフ",
+      "body": "字幕の履歴保存はデフォルトでオフになっています。手動で有効にした場合でもデータは端末内のみに保存され、ワンクリックで完全に消去できます。"
+    },
+    "telemetry": {
+      "title": "テレメトリ・追跡は一切なし",
+      "body": "利用状況の解析やトラッキングは一切含まれていません。GitHub の更新確認やオープンソースモデルの取得を除き、外部サーバーへの通信は行いません。"
+    }
+  },
+  "mascot": {
+    "alt": "Tomoru：藍色のショートヘアで毛先が琥珀色の少女が、頭の上で紙提灯を抱えたペンギンのルビを嬉しそうに見上げている",
+    "eyebrow": "Tomoru と ルビ",
+    "title": "提灯を持つ少女と、頭の上のペンギン",
+    "name": "アプリの名前は看板娘の Tomoru（<span lang=\"ja\">ともる</span>）から名付けられました。紙提灯を手にした少女で、「<span lang=\"ja\">灯る</span>」に由来します。頭の上のペンギンは <span lang=\"ja\">ルビ</span>（Rubi）。難しい言葉の読み方を助ける「ルビ」から名付けられました。",
+    "tray": "翻訳していないときはメニューバーで居眠りしていますが、翻訳が始まると一緒に目を覚まします。",
+    "idle": "待機中",
+    "on": "翻訳中"
+  },
+  "callback": {
+    "lead": "ダウンロード後、アプリは自動で更新されます。",
+    "req": "macOS 26 以降 · Apple シリコン　|　Windows 11 · x64",
+    "peekAlt": "Tomoru と頭の上のペンギン・ルビが画面下から顔をのぞかせている"
+  },
+  "footer": {
+    "tagline": "PCで流れる音を、二言語の字幕に。",
+    "product": "製品",
+    "changelog": "更新履歴",
+    "openSource": "オープンソース",
+    "contributing": "コントリビューション",
+    "security": "セキュリティ報告",
+    "issues": "問題を報告",
+    "thanks": "謝辞",
+    "licenses": "サードパーティライセンス",
+    "legal": "コードは <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/LICENSE\">GPL-3.0-or-later</a> で公開されています。Tomoru の名称、アイコン、マスコットの権利はすべて保持されています（<a href=\"https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md\">商標について</a>）。"
+  },
+  "links": {
+    "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
+    "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md"
+  },
+  "notFound": {
+    "title": "ページが見つかりません | Tomoru",
+    "claim": "このページには字幕がありません。",
+    "lead": "お探しのページは存在しないか、移動した可能性があります。",
+    "home": "ホームに戻る"
+  }
+}

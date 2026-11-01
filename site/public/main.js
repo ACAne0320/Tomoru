@@ -1,20 +1,23 @@
-// Tomoru 官网的一点交互：下载按钮按系统改说明、复制安装命令、滚动进场、动画只在看得见时跑、首屏字幕滚动。
+// Tomoru 官网的一点交互：下载按钮按系统改说明、复制安装命令、语言菜单、滚动进场、动画只在看得见时跑、首屏字幕滚动。
+// 文字来自页面里的 #strings，由 build.mjs 按语言写入。
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const t = JSON.parse(document.getElementById('strings').textContent);
 
   // 下载按钮下的小字：按访客的系统说明适用平台
   const ua = navigator.userAgent;
   const plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
   let label = '';
   if (/iPhone|iPad|Android/i.test(ua)) label = '';
-  else if (/Mac/i.test(plat) || /Macintosh/.test(ua)) label = '适用于 macOS · Apple 芯片';
-  else if (/Win/i.test(plat) || /Windows/.test(ua)) label = '适用于 Windows 11 · x64';
+  else if (/Mac/i.test(plat) || /Macintosh/.test(ua)) label = t.forMac;
+  else if (/Win/i.test(plat) || /Windows/.test(ua)) label = t.forWindows;
   if (label) document.querySelectorAll('[data-platform]').forEach((el) => { el.textContent = label; });
 
   // 安装命令的复制按钮：复制后两秒内显示「已复制」；不能写剪贴板时选中命令，好让人自己复制
   document.querySelectorAll('[data-copy]').forEach((btn) => {
     const code = btn.parentElement.querySelector('code');
     const text = btn.querySelector('span');
+    const idle = text.textContent;
     let timer;
     btn.addEventListener('click', async () => {
       try {
@@ -24,11 +27,18 @@
         return;
       }
       btn.classList.add('done');
-      text.textContent = '已复制';
+      text.textContent = t.copied;
       clearTimeout(timer);
-      timer = setTimeout(() => { btn.classList.remove('done'); text.textContent = '复制'; }, 2000);
+      timer = setTimeout(() => { btn.classList.remove('done'); text.textContent = idle; }, 2000);
     });
   });
+
+  // 语言菜单：点菜单外面或按 Esc 收起
+  const menu = document.querySelector('.lang-menu');
+  if (menu) {
+    document.addEventListener('click', (e) => { if (!menu.contains(e.target)) menu.open = false; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') menu.open = false; });
+  }
 
   // 滚动进场：一次就好
   const reveal = document.querySelectorAll('.section-head, .pillar, .feature-copy, .feature .art, .step, .use, .card, .steps li, .shot, .mascot-grid, .faq');
@@ -51,18 +61,8 @@
   const roll = document.querySelector('[data-roll]');
   if (!roll || reduce) return;
 
-  // 和 app/internal/samples 里的示例直播一样的句子。src 分块出现，draft 是说到一半时的大意。
-  const lines = [
-    { src: ['まずは', 'コメントを見てみましょう。'], tgt: '先看一下评论吧。' },
-    { src: ['みんな、', 'ギフトありがとう！'], tgt: '谢谢大家的礼物！' },
-    { src: ['よし、', 'じゃあ始めましょう。'], tgt: '好，那我们开始吧。' },
-    { src: ['前回は第三章の', '最後で', '詰まっちゃいました。'], draft: '上次在第三章……', tgt: '上次卡在了第三章的最后。' },
-    { src: ['今回は', 'もっといい装備を', '用意してきました。'], draft: '这次准备了……', tgt: '这次准备了更好的装备。' },
-    { src: ['あ、', 'ボスが出てきた！'], tgt: '啊，Boss 出来了！' },
-    { src: ['このボスの', '第二形態が', 'めっちゃ強いんだよね。'], draft: '这个 Boss 的第二阶段……', tgt: '这个 Boss 的第二阶段超强的。' },
-    { src: ['皆さん、', 'こんばんは。'], tgt: '大家晚上好。' },
-    { src: ['今日の配信は', 'いつもより', '少し長くなります。'], draft: '今天的直播……', tgt: '今天的直播会比平时长一点。' },
-  ];
+  // 句子在各语言的 js.roll 里（中文页和 app/internal/samples 的示例直播一样）。src 分块出现，draft 是说到一半时的大意。
+  const lines = t.roll;
   const keep = 2;
   const spring = 'cubic-bezier(.3, 1.25, .5, 1)';
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -94,7 +94,7 @@
     entry.className = 'line';
     const src = document.createElement('p');
     src.className = 'src';
-    src.lang = 'ja';
+    src.lang = t.rollLang;
     const tgt = document.createElement('p');
     tgt.className = 'tgt';
     tgt.innerHTML = '&nbsp;';

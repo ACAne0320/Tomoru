@@ -1,0 +1,392 @@
+{
+  "uses": {
+    "live": {
+      "title": "Foreign Streams",
+      "srcLang": "ja",
+      "src": "みんな、ギフトありがとう！",
+      "tgt": "Thanks for the gifts, everyone!"
+    },
+    "anime": {
+      "title": "Raw Anime",
+      "srcLang": "ja",
+      "src": "今夜は、星がよく見えるね。",
+      "tgt": "The stars are so clear tonight."
+    },
+    "vtuber": {
+      "title": "VTubers & Clips",
+      "srcLang": "ko",
+      "src": "여러분, 안녕하세요.",
+      "tgt": "Good evening, everyone."
+    },
+    "games": {
+      "title": "Games",
+      "srcLang": "ja",
+      "src": "このボスの第二形態がめっちゃ強いんだよね。",
+      "tgt": "This boss's second phase is really tough."
+    },
+    "meetings": {
+      "title": "Meetings & Lectures",
+      "srcLang": "ja",
+      "src": "この件は、来週また話しましょう。",
+      "tgt": "Let's circle back on this next week."
+    },
+    "eyebrow": "Use Cases",
+    "title": "Subtitles for anything without them"
+  },
+  "faq": {
+    "price": {
+      "q": "Is Tomoru free?",
+      "a": "Yes. Tomoru is free and open-source under GPL-3.0. The built-in cloud translation is free; cloud speech recognition uses your own API key, billed by the provider. Using only local engines is completely free."
+    },
+    "systems": {
+      "q": "Which platforms are supported?",
+      "a": "macOS 26 or later (Apple silicon), and Windows 11 (x64)."
+    },
+    "languages": {
+      "q": "Which languages are supported?",
+      "a": "Speech recognition supports up to 30 languages (depending on the chosen recognition engine), and translation supports 31 languages in any direction. The UI is available in Simplified Chinese, Traditional Chinese, English, Japanese, and Korean."
+    },
+    "setup": {
+      "q": "Do I need a virtual audio driver or microphone access?",
+      "a": "Neither. Tomoru captures your computer's audio directly and never uses the microphone."
+    },
+    "blocked": {
+      "q": "Why does my system warn me on first launch?",
+      "a": "Tomoru isn't notarized by Apple or signed for Windows yet. macOS: open System Settings › Privacy & Security, and click “Open Anyway” next to Tomoru. Windows: when SmartScreen warns, click “More info”, then “Run anyway”. Installing via terminal command skips these warnings on both macOS and Windows."
+    },
+    "recording": {
+      "q": "Will subtitles show up in screen recordings or live streams?",
+      "a": "You can turn on “Hide subtitles from screen recording” in Settings so subtitles stay visible only to you."
+    },
+    "eyebrow": "FAQ",
+    "title": "Frequently Asked Questions"
+  },
+  "meta": {
+    "title": "Tomoru: Live Subtitles & Real-Time Translation for Your PC",
+    "description": "Tomoru captures system audio and generates floating bilingual subtitles in real time. For live streams, anime, and games—if your computer plays sound, Tomoru translates it. Fully open-source and free on macOS and Windows.",
+    "ogTitle": "Tomoru: Live Subtitles for Anything You Watch",
+    "ogDescription": "Captures system audio and generates real-time floating bilingual subtitles. Live streams, anime, games—if there's sound, there are subtitles.",
+    "ogImageAlt": "Tomoru and Rubi the penguin looking up at a Japanese line and its amber English translation",
+    "ldDescription": "Captures system audio directly and generates floating bilingual subtitles in real time. For live streams, anime, and games. Works offline or in the cloud."
+  },
+  "header": {
+    "skip": "Skip to main content",
+    "homeLabel": "Tomoru Home",
+    "navLabel": "Page navigation",
+    "githubLabel": "Tomoru on GitHub",
+    "language": "Language"
+  },
+  "nav": {
+    "features": "Features",
+    "how": "How It Works",
+    "privacy": "Privacy",
+    "faq": "FAQ",
+    "download": "Download"
+  },
+  "hero": {
+    "claim": "Subtitles for anything you watch.",
+    "lead": "Captures your computer's audio and generates floating bilingual subtitles in real time. Ready for foreign streams, raw anime, games, and international meetings.",
+    "download": "Free Download",
+    "platforms": "macOS and Windows",
+    "source": "Source Code",
+    "factsLabel": "Highlights",
+    "facts": {
+      "languages": "31 languages",
+      "engines": "Local or cloud",
+      "systems": "macOS / Windows",
+      "license": "Open-source GPL-3.0"
+    },
+    "visualLabel": "Bilingual subtitles floating over a live stream window: Japanese original in white, English translation in amber, new lines appearing from below as older lines push up",
+    "screenTitle": "Stream · Gameplay",
+    "listening": "Listening · Browser",
+    "line1": {
+      "src": "皆さん、こんばんは。",
+      "tgt": "Good evening, everyone."
+    },
+    "line2": {
+      "src": "今日の配信はいつもより少し長くなります。",
+      "tgt": "Today's stream will run a bit longer than usual."
+    }
+  },
+  "js": {
+    "rollLang": "ja",
+    "forMac": "For macOS · Apple silicon",
+    "forWindows": "For Windows 11 · x64",
+    "copied": "Copied",
+    "roll": [
+      {
+        "src": [
+          "まずは",
+          "コメントを見てみましょう。"
+        ],
+        "draft": "",
+        "tgt": "Let's check the comments first."
+      },
+      {
+        "src": [
+          "みんな、",
+          "ギフトありがとう！"
+        ],
+        "draft": "",
+        "tgt": "Thanks for the gifts, everyone!"
+      },
+      {
+        "src": [
+          "よし、",
+          "じゃあ始めましょう。"
+        ],
+        "draft": "",
+        "tgt": "Okay, let's get started."
+      },
+      {
+        "src": [
+          "前回は第三章の",
+          "最後で",
+          "詰まっちゃいました。"
+        ],
+        "draft": "Last time in chapter three…",
+        "tgt": "Last time I got stuck at the end of chapter three."
+      },
+      {
+        "src": [
+          "今回は",
+          "もっといい装備を",
+          "用意してきました。"
+        ],
+        "draft": "This time I've got…",
+        "tgt": "This time I've got better gear."
+      },
+      {
+        "src": [
+          "あ、",
+          "ボスが出てきた！"
+        ],
+        "draft": "",
+        "tgt": "Oh, here comes the boss!"
+      },
+      {
+        "src": [
+          "このボスの",
+          "第二形態が",
+          "めっちゃ強いんだよね。"
+        ],
+        "draft": "This boss's second phase…",
+        "tgt": "This boss's second phase is really tough."
+      },
+      {
+        "src": [
+          "皆さん、",
+          "こんばんは。"
+        ],
+        "draft": "",
+        "tgt": "Good evening, everyone."
+      },
+      {
+        "src": [
+          "今日の配信は",
+          "いつもより",
+          "少し長くなります。"
+        ],
+        "draft": "Today's stream will…",
+        "tgt": "Today's stream will run a bit longer than usual."
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Why Tomoru",
+    "title": "Translates whatever your PC plays",
+    "lead": "Live streams, raw anime, or gaming—if your computer plays sound, subtitles are right there.",
+    "overlay": {
+      "artLabel": "The same subtitles float over anime, game, and meeting windows",
+      "animeName": "Anime · Ep. 7",
+      "gameName": "Game",
+      "meetingName": "Meeting",
+      "sub1": {
+        "srcLang": "ja",
+        "src": "今夜は、星がよく見えるね。",
+        "tgt": "The stars are so clear tonight."
+      },
+      "sub2": {
+        "srcLang": "ja",
+        "src": "あ、ボスが出てきた！",
+        "tgt": "Oh, here comes the boss!"
+      },
+      "sub3": {
+        "srcLang": "ja",
+        "src": "この件は、来週また話しましょう。",
+        "tgt": "Let's revisit this next week."
+      },
+      "title": "Always on top, click-through",
+      "body": "The subtitle window stays on top of your screen. Drag and resize freely; lock it to pass clicks through to what's behind, and automatically hide it from screen recordings and streams."
+    },
+    "capture": {
+      "artLabel": "Listen to all system audio, or target a single app like a browser",
+      "browser": "Browser",
+      "game": "Game",
+      "music": "Music",
+      "all": "All system sound",
+      "oneApp": "Browser only",
+      "title": "Native loopback, no microphone",
+      "body": "Captures system audio output directly without ever calling the microphone. Listen globally, or isolate a single app (like translating a stream in your browser while gaming)."
+    },
+    "engines": {
+      "artLabel": "Switch between local and cloud: data stays on your machine locally, or goes only to the chosen service",
+      "local": "Local",
+      "cloud": "Cloud",
+      "localCaption": "Audio and text stay on your device",
+      "cloudCaption": "Sent only to the service you choose",
+      "title": "Offline or cloud, switch as needed",
+      "body": "Speech recognition and translation can run entirely offline on your computer, keeping data private; or use built-in free cloud translation, or connect your own LLM API."
+    }
+  },
+  "how": {
+    "eyebrow": "How It Works",
+    "title": "Hear, recognize, translate—sentence by sentence",
+    "lead": "Speech recognition supports up to 30 languages (depending on the chosen recognition engine), and translation supports 31 languages. Original in white, translation in warm amber.",
+    "hear": {
+      "title": "Hear",
+      "body": "Captures system audio in real time, or targets a specific app."
+    },
+    "srcLang": "ja",
+    "src": "皆さん、こんばんは。",
+    "tgt": "Good evening, everyone.",
+    "recognize": {
+      "title": "Recognize",
+      "body": "Streaming speech recognition generates the original text word by word as it's spoken."
+    },
+    "translate": {
+      "title": "Translate",
+      "body": "Translations appear immediately in a floating bilingual overlay."
+    }
+  },
+  "details": {
+    "eyebrow": "Details",
+    "title": "Polished details for effortless watching",
+    "draft": {
+      "tag": "Translate Ahead",
+      "title": "No waiting for full sentences",
+      "body": "Displays an early draft of what's being said before the speaker pauses, then automatically updates to the full translation once the sentence finishes. Fast-paced streams stay in sync.",
+      "artLabel": "An early draft appears mid-sentence, then updates to the full translation when finished",
+      "talking": "Speaking…",
+      "done": "Done",
+      "srcLang": "ja",
+      "chunk1": "今日の配信は",
+      "chunk2": "いつもより",
+      "chunk3": "少し長くなります。",
+      "draft": "Today's stream will…",
+      "final": "Today's stream runs longer.",
+      "draftNote": "Draft",
+      "finalNote": "Full",
+      "caption": "See the draft first, updated to full when done"
+    },
+    "scenes": {
+      "tag": "Scenes & Glossaries",
+      "title": "Proper names without translation blunders",
+      "body": "Speech recognition easily mishears names as similar sounds, and machine translation loves literal guesses (like turning “<span lang=\"ja\">クラウド</span>” into “Crowd”). You can build a glossary for each anime or game you follow to fix homophones and keep names consistent. With your own API, it even learns new names from your subtitle history.",
+      "artLabel": "Without a scene, メテオ is misheard as メデオ and クラウド is translated as Crowd; with the Final Fantasy VII scene, both original and translation are fixed",
+      "off": "No Scene",
+      "on": "Scene: FFVII",
+      "srcLang": "ja",
+      "srcBefore": "クラウド、<tspan class=\"bad\">メデオ</tspan>が来る！",
+      "tgtBefore": "<tspan class=\"bad\">Crowd</tspan>, <tspan class=\"bad\">Medeo</tspan> is coming!",
+      "srcAfter": "クラウド、<tspan class=\"good\">メテオ</tspan>が来る！",
+      "tgtAfter": "<tspan class=\"good\">Cloud</tspan>, <tspan class=\"good\">Meteor</tspan> is coming!",
+      "glossary": "Names",
+      "term1": "<tspan lang=\"ja\">クラウド</tspan> → Cloud",
+      "term2": "<tspan lang=\"ja\">メテオ</tspan> → Meteor",
+      "term3": "<tspan lang=\"ja\">エアリス</tspan> → Aerith"
+    },
+    "picture": {
+      "tag": "Screen OCR Translation",
+      "title": "Select any silent text to translate",
+      "body": "For unvoiced dialogue, signs in videos, or stream chat, press <kbd>⌥⇧S</kbd> (<kbd>Alt+Shift+S</kbd> on Windows) and select a region on screen to translate it instantly. With local models, OCR runs entirely on your device.",
+      "artLabel": "Pressing the shortcut and selecting Japanese game dialogue displays the English translation above",
+      "srcLang": "ja",
+      "srcName": "エルナ",
+      "src1": "クロード、あの塔のてっぺんで光ってるもの……",
+      "src2": "まさか「星の欠片」じゃないよね？",
+      "tgtName": "Erna",
+      "note": "Translation",
+      "tgt1": "Claude, that light on top of the tower…",
+      "tgt2": "it can't be the Star Fragment, can it?"
+    }
+  },
+  "start": {
+    "eyebrow": "Get Started",
+    "title": "Three steps to live subtitles",
+    "install": {
+      "title": "Download & run",
+      "body": "Double-click the installer (if prompted, click “Open Anyway”); or run a single-line script in your terminal to skip security prompts."
+    },
+    "copyMac": "Copy macOS install command",
+    "copyWindows": "Copy Windows install command (PowerShell)",
+    "copy": "Copy",
+    "choose": {
+      "title": "Choose language & engine",
+      "body": "Follow the first-run guide to pick spoken and target languages, and choose between offline local models or cloud APIs."
+    },
+    "try": {
+      "title": "Quick trial, ready anytime",
+      "body": "Play a sample to confirm subtitles appear properly. Tomoru sits quietly in the menu bar, ready to toggle anytime."
+    },
+    "shotAlt": "Tomoru first-run guide: Japanese to English selected, speech and translation engines picked, sample played with three checks passing, and shortcut tested",
+    "shotCaption": "First-run guide: Settings › Try it out › Ready"
+  },
+  "privacy": {
+    "eyebrow": "Privacy",
+    "title": "Works offline, data stays on your device",
+    "mic": {
+      "title": "No microphone access",
+      "body": "Captures only internal system audio without requesting microphone permissions. Audio streams are discarded immediately after use."
+    },
+    "local": {
+      "title": "On-device processing",
+      "body": "With local engines, all processing happens on your computer. Even with cloud engines, data goes directly to the API service you specify."
+    },
+    "history": {
+      "title": "History off by default",
+      "body": "Subtitle history is disabled by default. If enabled, transcripts stay local on your machine and can be cleared with one click."
+    },
+    "telemetry": {
+      "title": "Zero telemetry",
+      "body": "No user tracking or analytics. Aside from checking GitHub for updates and downloading models from open-source hosts, no data is sent anywhere."
+    }
+  },
+  "mascot": {
+    "alt": "Tomoru: a girl with indigo hair and amber-tipped ends, looking up happily at Rubi the penguin perched on her head holding a paper lantern",
+    "eyebrow": "Tomoru & Rubi",
+    "title": "A girl with a lantern, and a penguin on her head",
+    "name": "The app is named after Tomoru (<span lang=\"ja\">ともる</span>), a girl holding a paper lantern: <span lang=\"ja\">灯る</span> means “to light up.” The penguin on her head is <span lang=\"ja\">ルビ</span> (Rubi), named after ruby characters—the small pronunciation guides placed above difficult words to aid understanding.",
+    "tray": "When not translating, they doze in the menu bar; when translation starts, they wake up together.",
+    "idle": "Idle",
+    "on": "Translating"
+  },
+  "callback": {
+    "lead": "After downloading, the app updates itself.",
+    "req": "macOS 26 or later · Apple silicon　|　Windows 11 · x64",
+    "peekAlt": "Tomoru and Rubi the penguin peeking out from the bottom of the screen"
+  },
+  "footer": {
+    "tagline": "Turns computer audio into live bilingual subtitles.",
+    "product": "Product",
+    "changelog": "Changelog",
+    "openSource": "Open Source",
+    "contributing": "Contributing",
+    "security": "Security",
+    "issues": "Issues",
+    "thanks": "Credits",
+    "licenses": "Third-Party Licenses",
+    "legal": "Code licensed under <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/LICENSE\">GPL-3.0-or-later</a>. The Tomoru name, icon, and mascot are reserved rights; see <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md\">Trademarks</a>."
+  },
+  "links": {
+    "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
+    "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md"
+  },
+  "notFound": {
+    "title": "Page Not Found | Tomoru",
+    "claim": "No subtitles on this page.",
+    "lead": "The page you're looking for doesn't exist or has moved.",
+    "home": "Back to Home"
+  }
+}

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="{{$lang}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>找不到这一页 | Tomoru</title>
+  <title>{{notFound.title|plain}}</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
   <link rel="stylesheet" href="/styles.css">
@@ -13,10 +13,10 @@
   <main class="night callback" style="min-height:100vh;display:grid;place-items:center;padding:64px 0 200px">
     <div class="sky" aria-hidden="true"></div>
     <div class="wrap callback-inner">
-      <h1 style="font-size:clamp(56px,8vw,96px)"><span class="wordmark">404</span><span class="claim">这一页没有字幕。</span></h1>
-      <p class="lead" style="margin-inline:auto">你要找的页面不存在，或者已经搬走了。</p>
+      <h1 style="font-size:clamp(56px,8vw,96px)"><span class="wordmark">404</span><span class="claim">{{notFound.claim}}</span></h1>
+      <p class="lead" style="margin-inline:auto">{{notFound.lead}}</p>
       <div class="cta-row center" style="margin-top:32px">
-        <a class="btn btn-primary btn-lg" href="/">回到首页</a>
+        <a class="btn btn-primary btn-lg" href="{{$home}}">{{notFound.home}}</a>
       </div>
     </div>
     <img class="peek" src="/assets/mascot.webp" width="400" height="448" alt="">

@@ -42,6 +42,11 @@ body {
 }
 :lang(ja) { font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", sans-serif; }
 :lang(ko) { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", sans-serif; }
+/* 各语言页面的字体：汉字按各自的字形 */
+:root:lang(zh-Hant) { --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei UI", "Microsoft JhengHei", "Noto Sans CJK TC", "Segoe UI", system-ui, sans-serif; }
+:root:lang(ja) { --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", "Segoe UI", system-ui, sans-serif; }
+:root:lang(ko) { --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif; }
+:root:lang(en) { --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
 img, svg { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; }
@@ -113,6 +118,14 @@ kbd {
 .nav a:hover, .icon-link:hover { color: var(--night-title); }
 .header-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 .icon-link .icon { width: 22px; height: 22px; }
+.lang-menu { position: relative; }
+.lang-menu summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; color: var(--night-text); font-size: 15px; font-weight: 600; transition: color .2s; }
+.lang-menu summary::-webkit-details-marker { display: none; }
+.lang-menu summary:hover, .lang-menu[open] summary { color: var(--night-title); }
+.lang-menu ul { position: absolute; right: 0; top: calc(100% + 14px); min-width: 140px; margin: 0; padding: 6px; list-style: none; background: var(--night); border: 1px solid rgb(255 255 255 / .1); border-radius: 12px; box-shadow: 0 16px 40px rgb(0 0 0 / .35); }
+.lang-menu a { display: block; padding: 8px 12px; border-radius: 8px; color: var(--night-text); font-size: 14px; text-decoration: none; }
+.lang-menu a:hover { background: rgb(255 255 255 / .08); color: var(--night-title); }
+.lang-menu a[aria-current] { color: var(--lantern); }
 
 /* ---------- 夜空 ---------- */
 .night { position: relative; background: var(--night); color: var(--night-text); overflow: hidden; isolation: isolate; }
@@ -515,6 +528,7 @@ html.js [data-anim]:not(.playing) * { animation-play-state: paused !important; }
 }
 @media (max-width: 760px) {
   .nav { display: none; }
+  .lang-menu summary span { display: none; }
   .lead, .section-lead, .feature p { font-size: 16px; }
   .overlay { left: 4%; right: 4%; }
   .roll { height: 150px; }

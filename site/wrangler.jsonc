@@ -1,8 +1,9 @@
 // Tomoru's website: static files served as Cloudflare Workers static assets. Deploy with
-// `npx wrangler deploy` from site/.
+// `npx wrangler deploy` from site/; it builds the pages of each language first (build.mjs).
 {
   "name": "tomoru-site",
   "compatibility_date": "2026-10-29",
+  "build": { "command": "node build.mjs", "watch_dir": ["src", "locales"] },
   "assets": {
     "directory": "./public",
     "not_found_handling": "404-page"
