@@ -14,8 +14,7 @@
 
 <p align="center"><a href="#下载">下载</a> · <a href="README.md">English</a> · <a href="app/CHANGELOG.md">更新记录</a><br>
 </p>
-<p>
-    <sub>基于 <a href="https://github.com/egoist/mygo">MyGo</a> 构建 · 翻译由 <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> 提供 · 语音识别由 <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>、<a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> 和 <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a> 提供</sub></p>
+<p align="center">基于 <a href="https://github.com/egoist/mygo">MyGo</a> 构建 · 翻译由 <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> 提供 · 语音识别由 <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>、<a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> 和 <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a> 提供</p>
 
 看外语直播、生肉番剧、VTuber 切片、打游戏或开会时，Tomoru 会直接听电脑播放的声音，识别语音并把双语字幕实时显示在屏幕上。
 

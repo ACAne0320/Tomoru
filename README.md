@@ -14,8 +14,7 @@
 
 <p align="center"><a href="#download">Download</a> · <a href="README_zh.md">中文</a> · <a href="app/CHANGELOG.md">Changelog</a><br>
 </p>
-<p>
-    <sub>Built with <a href="https://github.com/egoist/mygo">MyGo</a> · translation by <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> · speech recognition by <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>, <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> and <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a></sub></p>
+<p align="center">Built with <a href="https://github.com/egoist/mygo">MyGo</a> · translation by <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> · speech recognition by <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>, <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> and <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a></p>
 
 Watching foreign streams, raw anime or VTuber clips, playing games, or sitting in a meeting? Tomoru
 listens to what your computer plays, recognizes the speech and shows live bilingual subtitles on
