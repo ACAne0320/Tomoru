@@ -207,14 +207,14 @@ func TestAddEndpoint(t *testing.T) {
 		t.Errorf("engine %q, texts %q", k.Prefs.MT, tt.Texts())
 	}
 
-	// Deleting it asks first, then says so, with a button that puts it back.
+	// Deleting it doesn't ask: it says so, with a button that puts it back.
 	if err := tt.Click(locales.Edit()); err != nil {
 		t.Fatal(err)
 	}
 	if err := tt.Click(locales.Delete()); err != nil {
 		t.Fatal(err)
 	}
-	confirm(t, tt, locales.AskDeleteEndpoint())
+	tt.Frame()
 	if len(k.Prefs.Endpoints) != 0 || !tt.HasText(locales.EndpointDeleted("Mine")) {
 		t.Fatalf("endpoints %+v, texts %q", k.Prefs.Endpoints, tt.Texts())
 	}
@@ -256,6 +256,111 @@ func TestLocalModel(t *testing.T) {
 	}
 	if k.Chosen(core.MT) != "cloud" || tt.HasText(locales.EngineWaiting(shared.CloudName)) {
 		t.Errorf("chosen %q, texts %q", k.Chosen(core.MT), tt.Texts())
+	}
+}
+
+// TestDeleteModel asks by a model's button before deleting it, which can't be undone; deleting the
+// one in use asks in a dialog, which says what takes over.
+func TestDeleteModel(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
+	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1400)
+	s.sides[core.MT] = false
+	tt.Frame()
+	e, _ := k.Engine(core.MT, "local-2b")
+	question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
+
+	// By its button: Escape keeps it; Delete, a Tab from Cancel, deletes it.
+	if err := tt.Click(locales.Delete()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(question) || !tt.HasText(locales.AskDeleteModelDetail(size)) {
+		t.Fatalf("not asked: texts %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if tt.HasText(question) || len(m.St) != 1 {
+		t.Fatalf("after Escape: models %v, texts %q", m.St, tt.Texts())
+	}
+	if err := tt.Click(locales.Delete()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	tt.Key(0, ui.KeyTab)
+	tt.Key(0, ui.KeyEnter)
+	tt.Frame()
+	if len(m.St) != 0 || !tt.HasText(locales.ModelDeleted(shared.EngineName(e))) {
+		t.Fatalf("models %v, texts %q", m.St, tt.Texts())
+	}
+
+	// In use, the cloud takes over, as the dialog says.
+	m.St["local-2b"] = models.Status{State: models.Ready}
+	k.SetEngine("local-2b")
+	tt.Frame()
+	if k.Prefs.MT != "local-2b" {
+		t.Fatalf("in use %q", k.Prefs.MT)
+	}
+	if err := tt.Click(locales.Delete()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(question) || !tt.HasText(locales.AskDeleteModelInUse(shared.CloudName, size)) {
+		t.Fatalf("not said: texts %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyTab)
+	tt.Key(0, ui.KeyEnter)
+	tt.Frame()
+	if len(m.St) != 0 || k.Prefs.MT != "cloud" {
+		t.Errorf("models %v, in use %q", m.St, k.Prefs.MT)
+	}
+}
+
+// TestDiscardChanges closes a dialog with Escape at once while nothing changed; with changes, it
+// asks first: Escape again goes back to them, Discard throws them away.
+func TestDiscardChanges(t *testing.T) {
+	k := coretest.New()
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1400)
+	open := func() {
+		t.Helper()
+		if err := tt.Click(locales.AddApi()); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+	}
+	open()
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if tt.HasText(locales.EndpointIntro()) {
+		t.Fatalf("open without changes: texts %q", tt.Texts())
+	}
+	open()
+	if err := tt.Click(locales.EndpointName()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Type("Mine")
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if !tt.HasText(locales.EndpointIntro()) || !tt.HasText(locales.AskDiscard()) {
+		t.Fatalf("not asked: texts %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if !tt.HasText(locales.EndpointIntro()) || tt.HasText(locales.AskDiscard()) || !tt.HasText(locales.Save()) {
+		t.Fatalf("not back to editing: texts %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if err := tt.Click(locales.Discard()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if tt.HasText(locales.EndpointIntro()) || len(k.Prefs.Endpoints) != 0 {
+		t.Errorf("endpoints %+v, texts %q", k.Prefs.Endpoints, tt.Texts())
 	}
 }
 
@@ -438,6 +543,7 @@ func TestScenes(t *testing.T) {
 	if len(k.Scenes[1].Terms) != 0 || !tt.HasText(locales.DeletedItem("クラウド")) {
 		t.Fatalf("terms %+v, texts %q", k.Scenes[1].Terms, tt.Texts())
 	}
+	name := shared.SceneName(k.Scenes[1])
 	if err := tt.Click(locales.MoreActions()); err != nil {
 		t.Fatal(err)
 	}
@@ -445,8 +551,7 @@ func TestScenes(t *testing.T) {
 		t.Fatalf("%v: menu %q", err, tt.Menu())
 	}
 	tt.Frame()
-	confirm(t, tt, locales.AskDeleteScene(shared.SceneName(k.Scenes[1])))
-	if len(k.Scenes) != 1 || k.Prefs.Scene != "" || !tt.HasText(locales.SceneGeneral()) {
+	if len(k.Scenes) != 1 || k.Prefs.Scene != "" || !tt.HasText(locales.SceneGeneral()) || !tt.HasText(locales.DeletedItem(name)) {
 		t.Errorf("%d scenes, in use %q, texts %q", len(k.Scenes), k.Prefs.Scene, tt.Texts())
 	}
 }
@@ -488,24 +593,12 @@ func TestHistory(t *testing.T) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	// Deleting it asks first: Cancel keeps it.
+	// Deleting it doesn't ask: it says so, with a button that puts it back.
 	if err := tt.Click(locales.DeleteRecord()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if err := tt.Click(locales.Cancel()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	if hasTextContaining(tt, locales.DeletedItem("")) || tt.HasText(locales.AskDeleteRecord()) {
-		t.Errorf("deleted on Cancel: texts %q", tt.Texts())
-	}
-	if err := tt.Click(locales.DeleteRecord()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	confirm(t, tt, locales.AskDeleteRecord())
-	if !hasTextContaining(tt, locales.DeletedItem("")) {
+	if !hasTextContaining(tt, locales.DeletedItem("")) || !tt.HasText(locales.Undo()) {
 		t.Errorf("texts %q", tt.Texts())
 	}
 }
@@ -549,18 +642,6 @@ func TestHistoryEmpty(t *testing.T) {
 	if !tt.HasText(locales.NoTermsLearn()) || !tt.HasText(locales.LearnFromRecords()) {
 		t.Errorf("texts %q", tt.Texts())
 	}
-}
-
-// confirm checks that question is asked, and chooses Delete.
-func confirm(t *testing.T, tt *ui.Tester, question string) {
-	t.Helper()
-	if !tt.HasText(question) {
-		t.Fatalf("not asked %q: texts %q", question, tt.Texts())
-	}
-	if err := tt.Click(locales.Delete()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
 }
 
 // TestCorrections marks the names the glossary corrected in a line: as its names tell them, else

@@ -189,13 +189,13 @@ The stage's stars and its glow don't move.
 | `Card` / `SandCard` / `CardHeader` | White card / sand card, with an optional title and an icon button at the top right | |
 | `SettingRow` / `SettingBlock` | A setting: label left, control right; or label above and the control full width (for swatches) | |
 | `PanelFrame` | The menu bar panel: night header, paper, footer; a flyout with the system's shadow, as tall as its content | the flyout `PopoverBase` lives in |
-| `Dialog` / `Confirm` | Dialogs; the confirmation before deleting | `Modal` |
+| `Dialog` / `Confirm` / `Popconfirm` | Dialogs; the confirmations before a deletion that can't be undone: `Popconfirm` by its button, `Confirm` when more changes with it | `Modal`, `Popover` |
 
 **Actions**
 
 | Component | Use | Built on |
 |---|---|---|
-| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo: Stop translating, New, Download), `Plain` (white with outline), `Soft` (light amber: Learn from history), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete) | `ButtonBase` |
+| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo: Stop translating, New, Download), `Plain` (white with outline), `Soft` (light amber: Learn from history), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete or a discard) | `ButtonBase` |
 | `IconButton` | Round, three sizes 30 / 34 / 38: manage, all, delete, reset | `ButtonBase` + `Tooltip` |
 
 **Choosing**
@@ -343,7 +343,12 @@ watches more than its languages. Text size is set in Subtitle style, not here.
 
 ## Deleting
 
-Deleting asks first, and can be undone afterwards. The confirmation is `kit.Confirm`: the
-question, what else goes with it, Cancel (focused by default) and a red Delete. Deleting a single
-glossary row doesn't ask, it only offers undo; deleting a local model can't be undone, so its
-confirmation says how much will have to be downloaded again.
+Deleting what can be undone doesn't ask: it happens at once, and a toast offers Undo (scenes,
+names, sessions, translation APIs). Deleting a local model can't be undone, so it asks first and
+says how much will have to be downloaded again: `kit.Popconfirm` by its button, or `kit.Confirm`
+when the model is in use, which also says what takes over. Both have the question, Cancel (focused
+by default) and a red Delete.
+
+A dialog with changes not saved asks before Escape or a click outside closes it: `kit.Guard` keeps
+it open and `kit.Discard` asks in its buttons' place, Keep Editing (focused) or a red Discard.
+Cancel closes it without asking. While Learn names works, Escape stops it, as its Cancel does.

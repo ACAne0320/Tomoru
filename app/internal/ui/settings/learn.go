@@ -28,6 +28,13 @@ type learnEdit struct {
 	took     int    // how many were taken, once they were
 	tookTo   string // the scene they went to
 	done     bool   // they were taken
+	// asking asks, in place of the dialog's buttons, before the names found are thrown away.
+	asking bool
+}
+
+// unsaved tells whether names were found, as l has them, and not taken yet.
+func (d *learnEdit) unsaved(l core.Learning) bool {
+	return !d.done && l.Finished && l.Err != core.ErrNoChatEndpoint && len(l.Suggestions) > 0
 }
 
 // newTarget is the menu's choice of a new scene for the names learned.
@@ -56,7 +63,7 @@ func (s *Settings) learnDialog(c *ui.Context) {
 	if !d.open || s.edit.open { // adding an API shows its own dialog first
 		return
 	}
-	kit.Dialog(c, &d.open, locales.LearnNames(), "", func() {
+	dialog := kit.Dialog(c, &d.open, locales.LearnNames(), "", func() {
 		l := k.Learning
 		switch {
 		case d.done:
@@ -76,6 +83,19 @@ func (s *Settings) learnDialog(c *ui.Context) {
 			s.learnSetup(c)
 		}
 	})
+	unsaved := d.unsaved(k.Learning) // before stopping, which keeps what was found
+	// Escape or a click outside while it works stops it, as its Cancel does, and the dialog stays.
+	if dialog.Dismissed() {
+		switch {
+		case k.Learning.Running:
+			d.open = true
+			k.CancelLearning()
+		case k.Retranslating.Running:
+			d.open = true
+			k.CancelRetranslating()
+		}
+	}
+	kit.Guard(dialog, &d.open, &d.asking, unsaved)
 	if !d.open {
 		k.ForgetLearning()
 		k.ForgetRetranslating()
@@ -189,6 +209,10 @@ func (s *Settings) learnFound(c *ui.Context) {
 	kit.SettingRow(c, 0, locales.LearnAddTo(), "", func() {
 		kit.Picker(c, name(d.target), kit.Choices(d.target, ids, name, func(id string) { d.target = id })).Label(locales.LearnAddTo())
 	})
+	if d.asking {
+		kit.Discard(c, &d.open, &d.asking)
+		return
+	}
 	some := slices.Contains(d.taken[:len(l.Suggestions)], true)
 	kit.DialogActions(c, func() {
 		ui.Spacer(c)

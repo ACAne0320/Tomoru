@@ -29,6 +29,9 @@ type ASRCloudEdit struct {
 	key   string       // a new API key, or "" to keep the one kept
 	model int          // Qwen's, of its Models
 	test  string       // the key of its tests in Core.Tests
+	was   prefs.ASRAPI // as it was, with the model the dialog shows at first
+	// asking asks, in place of the dialog's buttons, before its changes are thrown away.
+	asking bool
 }
 
 // Open opens the dialog on the service id as k has it. n tells its tests from those of the dialogs
@@ -36,8 +39,14 @@ type ASRCloudEdit struct {
 func (d *ASRCloudEdit) Open(k *core.Core, id string, n int) {
 	spec, _ := asr.ByID(id)
 	a := k.ASRAPI(id)
-	*d = ASRCloudEdit{open: true, spec: spec, a: a, model: max(0, slices.Index(spec.Models, a.Model)), test: fmt.Sprintf("asr-%d", n)}
+	*d = ASRCloudEdit{open: true, spec: spec, a: a, model: max(0, slices.Index(spec.Models, a.Model)), test: fmt.Sprintf("asr-%d", n), was: a}
+	if a.ID == core.QwenCloud {
+		d.was.Model = spec.Models[d.model]
+	}
 }
+
+// changed tells whether the service was edited.
+func (d *ASRCloudEdit) changed() bool { return d.a != d.was || d.key != "" }
 
 // ASRCloudDialog is the dialog, while d is open. Saved, the service is used, if it was chosen.
 func ASRCloudDialog(c *ui.Context, k *core.Core, d *ASRCloudEdit) {
@@ -49,7 +58,7 @@ func ASRCloudDialog(c *ui.Context, k *core.Core, d *ASRCloudEdit) {
 	if qwen {
 		intro, hostNote = locales.AsrCloudIntro(), locales.AsrCloudHostDescription()
 	}
-	kit.Dialog(c, &d.open, locales.AsrCloudTitle(), intro, func() {
+	dialog := kit.Dialog(c, &d.open, locales.AsrCloudTitle(), intro, func() {
 		ui.Form(c, func() {
 			ui.Field(c, locales.EndpointKey(), func() {
 				in := kit.TextField(c, &d.key).Password().Label(locales.EndpointKey())
@@ -87,6 +96,10 @@ func ASRCloudDialog(c *ui.Context, k *core.Core, d *ASRCloudEdit) {
 				kit.Result(c, true, locales.TestSucceeded(ms), "")
 			}
 		}
+		if d.asking {
+			kit.Discard(c, &d.open, &d.asking)
+			return
+		}
 		kit.DialogActions(c, func() {
 			ui.Spacer(c)
 			if kit.Off(kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
@@ -102,6 +115,7 @@ func ASRCloudDialog(c *ui.Context, k *core.Core, d *ASRCloudEdit) {
 			}
 		})
 	})
+	kit.Guard(dialog, &d.open, &d.asking, d.changed())
 	if !d.open {
 		k.ForgetTest(d.test)
 	}

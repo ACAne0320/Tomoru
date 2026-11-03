@@ -1605,38 +1605,6 @@
   "@orderTgtFirst": {
     "description": "The translation above the original."
   },
-  "askDeleteScene": "Delete the scene “{name}”?",
-  "@askDeleteScene": {
-    "description": "Asks before deleting a scene.",
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "Final Fantasy VII"
-      }
-    }
-  },
-  "askDeleteSceneDetail": "Its names go with it. Its sessions are kept.",
-  "@askDeleteSceneDetail": {
-    "description": "Under askDeleteScene: what goes with the scene, and what stays."
-  },
-  "askDeleteRecord": "Delete this session?",
-  "@askDeleteRecord": {
-    "description": "Asks before deleting a session kept."
-  },
-  "askDeleteSessions": "{n, plural, one {Delete # session?} other {Delete these # sessions?}}",
-  "@askDeleteSessions": {
-    "description": "Asks before deleting all the sessions listed.",
-    "placeholders": {
-      "n": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "askDeleteEndpoint": "Delete this API and its key?",
-  "@askDeleteEndpoint": {
-    "description": "Asks, in the endpoint's dialog, before deleting it."
-  },
   "askDeleteModel": "Delete {name}?",
   "@askDeleteModel": {
     "description": "Asks before deleting a local model.",
@@ -1656,6 +1624,42 @@
         "example": "1.6 GB"
       }
     }
+  },
+  "askDeleteModelInUse": "It's in use now, and {name} takes over. To use it again, it downloads again ({size}).",
+  "@askDeleteModelInUse": {
+    "description": "Under askDeleteModel, for a model in use: what takes over from it, and that deleting it can't be undone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate"
+      },
+      "size": {
+        "type": "String",
+        "example": "1.6 GB"
+      }
+    }
+  },
+  "askDeleteModelLast": "It's in use now, and nothing else recognizes speech until you set one up. To use it again, it downloads again ({size}).",
+  "@askDeleteModelLast": {
+    "description": "Under askDeleteModel, for the recognition model in use when nothing else can recognize: that subtitles stop, and that deleting it can't be undone.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "1.6 GB"
+      }
+    }
+  },
+  "askDiscard": "Discard your changes?",
+  "@askDiscard": {
+    "description": "Asks, in a dialog's buttons' place, before closing it with changes not saved."
+  },
+  "keepEditing": "Keep Editing",
+  "@keepEditing": {
+    "description": "Button beside askDiscard: goes back to the dialog."
+  },
+  "discard": "Discard",
+  "@discard": {
+    "description": "Red button beside askDiscard: closes the dialog without saving."
   },
   "imageTitle": "Picture Translation",
   "@imageTitle": {
