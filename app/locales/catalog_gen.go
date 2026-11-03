@@ -2041,6 +2041,40 @@ func (msgs Messages) NeedsVram(gb int) string {
 	return Catalog.Format(msgs.locale, "needsVram", map[string]any{"gb": gb})
 }
 
+// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// in the language the app shows.
+//
+// After a recognition model's size, on a Mac: that it runs on the GPU, and
+// the memory it needs, unlike SenseVoice, which runs on the CPU.
+func AsrNeedsMemory(gb int) string { return In(i18n.Locale()).AsrNeedsMemory(gb) }
+
+// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// in the language of msgs.
+//
+// After a recognition model's size, on a Mac: that it runs on the GPU, and
+// the memory it needs, unlike SenseVoice, which runs on the CPU.
+func (msgs Messages) AsrNeedsMemory(gb int) string {
+	return Catalog.Format(msgs.locale, "asrNeedsMemory", map[string]any{"gb": gb})
+}
+
+// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// in the language the app shows.
+//
+// After a recognition model's size, on Windows: that it runs on the
+// graphics card, and the video memory it wants, unlike SenseVoice, which
+// runs on the CPU.
+func AsrNeedsVram(gb int) string { return In(i18n.Locale()).AsrNeedsVram(gb) }
+
+// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// in the language of msgs.
+//
+// After a recognition model's size, on Windows: that it runs on the
+// graphics card, and the video memory it wants, unlike SenseVoice, which
+// runs on the CPU.
+func (msgs Messages) AsrNeedsVram(gb int) string {
+	return Catalog.Format(msgs.locale, "asrNeedsVram", map[string]any{"gb": gb})
+}
+
 // GuideEnginesLater says "You can change this any time in Settings."
 // in the language the app shows.
 //
@@ -2963,16 +2997,18 @@ func (msgs Messages) ModelReadyInUse(name string) string {
 	return Catalog.Format(msgs.locale, "modelReadyInUse", map[string]any{"name": name})
 }
 
-// EngineSenseVoiceDescription says "Works offline. Good at Chinese."
+// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
 // in the language the app shows.
 //
-// Under SenseVoice, a speech recognition model to download.
+// Under SenseVoice, a speech recognition model to download: that it runs on
+// the CPU, with no GPU needed.
 func EngineSenseVoiceDescription() string { return In(i18n.Locale()).EngineSenseVoiceDescription() }
 
-// EngineSenseVoiceDescription says "Works offline. Good at Chinese."
+// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
 // in the language of msgs.
 //
-// Under SenseVoice, a speech recognition model to download.
+// Under SenseVoice, a speech recognition model to download: that it runs on
+// the CPU, with no GPU needed.
 func (msgs Messages) EngineSenseVoiceDescription() string {
 	return Catalog.Format(msgs.locale, "engineSenseVoiceDescription", nil)
 }

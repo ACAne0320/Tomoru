@@ -3,13 +3,34 @@ package shared
 import (
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/i18n"
 
 	"tomoru/internal/engine"
+	"tomoru/internal/models"
 	"tomoru/locales"
 )
+
+// TestModelNote says SenseVoice runs on the CPU, Qwen3-ASR on the GPU with what it needs, and a
+// translation model what it needs.
+func TestModelNote(t *testing.T) {
+	note := func(id string) string {
+		m, _ := models.ByID(id)
+		return ModelNote(m, models.Status{}, locales.EngineSenseVoiceDescription())
+	}
+	sv, _ := models.ByID("sensevoice-small")
+	for id, want := range map[string]string{
+		"sensevoice-small": Size(sv.Size) + " · " + locales.EngineSenseVoiceDescription(),
+		"qwen3-asr-1.7b":   OnWindows(locales.AsrNeedsMemory(4), locales.AsrNeedsVram(3)),
+		"local-2b":         OnWindows(locales.NeedsMemory(8), locales.NeedsVram(4)),
+	} {
+		if got := note(id); !strings.HasSuffix(got, want) {
+			t.Errorf("%s: %q, want it to end with %q", id, got, want)
+		}
+	}
+}
 
 func TestErrorText(t *testing.T) {
 	for err, want := range map[error]string{

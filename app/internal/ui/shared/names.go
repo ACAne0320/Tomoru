@@ -70,11 +70,14 @@ func FontName(key string) string {
 const CloudName = "Index-Translate 35B"
 
 // ModelNote is what a model's row says of it: its size, or how much of it is in when st is a
-// download stopped before, then, for a translation model, what it needs to run (memory on a Mac,
-// the GPU's on Windows), else desc.
+// download stopped before, then, for a model that runs on the GPU, what it needs to run (memory on
+// a Mac, the GPU's on Windows), else desc.
 func ModelNote(m models.Model, st models.Status, desc string) string {
-	if m.Needs.Memory != 0 {
-		desc = OnWindows(locales.NeedsMemory(int(m.Needs.Memory>>30)), locales.NeedsVram(int(m.Needs.VRAM>>30)))
+	switch mem, vram := int(m.Needs.Memory>>30), int(m.Needs.VRAM>>30); {
+	case m.Needs.Memory != 0 && m.ASR: // said apart from SenseVoice, which runs on the CPU
+		desc = OnWindows(locales.AsrNeedsMemory(mem), locales.AsrNeedsVram(vram))
+	case m.Needs.Memory != 0:
+		desc = OnWindows(locales.NeedsMemory(mem), locales.NeedsVram(vram))
 	}
 	size := Size(m.Size)
 	if st.State == models.Missing && st.Done > 0 {

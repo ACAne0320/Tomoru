@@ -667,6 +667,26 @@
       }
     }
   },
+  "asrNeedsMemory": "Runs on the GPU, needs {gb} GB of memory",
+  "@asrNeedsMemory": {
+    "description": "After a recognition model's size, on a Mac: that it runs on the GPU, and the memory it needs, unlike SenseVoice, which runs on the CPU.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "asrNeedsVram": "Runs on the graphics card, best with {gb} GB of video memory or more",
+  "@asrNeedsVram": {
+    "description": "After a recognition model's size, on Windows: that it runs on the graphics card, and the video memory it wants, unlike SenseVoice, which runs on the CPU.",
+    "placeholders": {
+      "gb": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "guideEnginesLater": "You can change this any time in Settings.",
   "@guideEnginesLater": {
     "description": "Under the title of the guide's recognition and translation steps."
@@ -1057,9 +1077,9 @@
       }
     }
   },
-  "engineSenseVoiceDescription": "Works offline. Good at Chinese.",
+  "engineSenseVoiceDescription": "Runs on the CPU, no GPU needed.",
   "@engineSenseVoiceDescription": {
-    "description": "Under SenseVoice, a speech recognition model to download."
+    "description": "Under SenseVoice, a speech recognition model to download: that it runs on the CPU, with no GPU needed."
   },
   "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Recognition & Translation.",
   "@errAsrModelMissing": {
