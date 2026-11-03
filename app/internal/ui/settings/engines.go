@@ -249,13 +249,38 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status) {
 	case models.Verifying:
 		kit.Caption(c, locales.Verifying())
 	case models.Ready:
-		if kit.IconButton(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete()).Clicked() {
-			s.ask(locales.AskDeleteModel(shared.EngineName(e)), locales.AskDeleteModelDetail(shared.Size(e.Model.Size)), func(c *ui.Context) {
-				k.DeleteModel(e.ID)
-				c.Toast(locales.ModelDeleted(shared.EngineName(e)))
-			})
+		// It can't be undone: by its button, or in a dialog if it is in use, as another takes over.
+		del := kit.IconButton(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete())
+		question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
+		remove := func(c *ui.Context) {
+			k.DeleteModel(e.ID)
+			c.Toast(locales.ModelDeleted(shared.EngineName(e)))
+		}
+		if del.Clicked() {
+			if k.InUse(e.Kind) == e.ID {
+				s.ask(question, s.takingOver(e.Kind, size), remove)
+			} else {
+				s.deleting = e.ID
+			}
+		}
+		open := s.deleting == e.ID
+		if kit.Popconfirm(c, del, &open, question, locales.AskDeleteModelDetail(size), locales.Delete()) {
+			remove(c)
+		}
+		if !open && s.deleting == e.ID {
+			s.deleting = ""
 		}
 	}
+}
+
+// takingOver says, under the question before deleting a local model of kind k in use, what takes
+// over from it, and how much using it again downloads.
+func (s *Settings) takingOver(k core.Kind, size string) string {
+	next, ok := s.core.Engine(k, core.Successor(k))
+	if !ok || next.ID == "" {
+		return locales.AskDeleteModelLast(size)
+	}
+	return locales.AskDeleteModelInUse(shared.EngineName(next), size)
 }
 
 // describe says what an engine is, in a sentence.

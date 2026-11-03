@@ -38,6 +38,7 @@ type Settings struct {
 	historyEdit
 	learn     learnEdit
 	confirm   confirmEdit
+	deleting  string // the local model asked about by its button before it is deleted
 	statsEdit statsEdit
 }
 

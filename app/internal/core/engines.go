@@ -60,17 +60,26 @@ func (c *Core) translator(id string) (ready func(context.Context) (translate.Tra
 
 func keyName(id string) string { return "endpoint-key:" + id }
 
-// DeleteModel deletes a local model. Translating with it goes on with the cloud, recognizing with
-// it with the system's recognition, or none, for the user to choose.
+// Successor is the engine of kind k that takes over from a local model in use as it is deleted:
+// the cloud's translation, or the system's recognition, "" where there is none.
+func Successor(k Kind) string {
+	if k == ASR {
+		return prefs.DefaultASR()
+	}
+	return "cloud"
+}
+
+// DeleteModel deletes a local model. Its Successor takes over from it if it was in use; with
+// none, the user chooses.
 func (c *Core) DeleteModel(id string) {
 	if c.EngineService.models == nil {
 		return
 	}
 	if c.Prefs.MT == id {
-		c.SetEngine("cloud")
+		c.SetEngine(Successor(MT))
 	}
 	if c.Prefs.ASR == id {
-		c.Prefs.ASR = prefs.DefaultASR()
+		c.Prefs.ASR = Successor(ASR)
 		c.fitLangs()
 		c.RestartIfRunning()
 	}

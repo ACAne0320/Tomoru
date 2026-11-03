@@ -125,10 +125,10 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 			kit.IconButton(c, kit.Plain, kit.Small, assets.More, locales.MoreActions()).Menu(func(m *ui.Menu) {
 				if m.Item(locales.DeleteScene()).Chosen() {
 					name := shared.SceneName(*sc)
-					s.ask(locales.AskDeleteScene(name), locales.AskDeleteSceneDetail(), func(c *ui.Context) {
+					then = func() {
 						c.ToastAction(locales.DeletedItem(name), locales.Undo(), k.DeleteScene(id))
 						e.scene, e.adding = k.Preferences().Scene, false
-					})
+					}
 				}
 			})
 		}

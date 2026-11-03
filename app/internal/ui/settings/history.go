@@ -67,9 +67,7 @@ func (s *Settings) history(c *ui.Context) {
 			for i, r := range shown {
 				paths[i] = r.Path
 			}
-			s.ask(locales.AskDeleteSessions(len(paths)), "", func(c *ui.Context) {
-				c.ToastAction(locales.DeletedSessions(len(paths)), locales.Undo(), k.DeleteHistory(paths))
-			})
+			c.ToastAction(locales.DeletedSessions(len(paths)), locales.Undo(), k.DeleteHistory(paths))
 		}
 	})
 	ui.Row(c).Gap(kit.Space(2)).Wrap().Role(ui.RoleGroup).Label(locales.Scene()).Children(func() {
@@ -169,10 +167,8 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 			mygo.Shell.ShowItemInFolder(r.Path)
 		}
 		if kit.IconButton(c, kit.Destructive(kit.Plain), kit.Small, assets.Trash, locales.DeleteRecord()).Clicked() {
-			s.ask(locales.AskDeleteRecord(), "", func(c *ui.Context) {
-				c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
-				e.record = ""
-			})
+			c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
+			e.record = ""
 		}
 	})
 	ui.Column(c).Children(func() {

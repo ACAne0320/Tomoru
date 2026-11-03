@@ -21,16 +21,20 @@ import (
 type endpointEdit struct {
 	open bool
 	e    prefs.Endpoint // as edited; a new one has no ID
+	was  prefs.Endpoint // as it was
 	key  string         // a new API key, or "" to keep the one kept
 	test string         // the key of its tests in Core.Tests
-	// deleting asks, in place of the dialog's buttons, before deleting it.
-	deleting bool
+	// asking asks, in place of the dialog's buttons, before its changes are thrown away.
+	asking bool
 }
 
 func (s *Settings) editEndpoint(e prefs.Endpoint) {
 	s.edits++
-	s.edit = endpointEdit{open: true, e: e, test: fmt.Sprintf("edit-%d", s.edits)}
+	s.edit = endpointEdit{open: true, e: e, was: e, test: fmt.Sprintf("edit-%d", s.edits)}
 }
+
+// changed tells whether the endpoint was edited.
+func (d *endpointEdit) changed() bool { return d.e != d.was || d.key != "" }
 
 // endpointDialog is the dialog: the endpoint's form, how its test went, and its buttons.
 func (s *Settings) endpointDialog(c *ui.Context) {
@@ -42,17 +46,18 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 	if d.e.ID == "" {
 		title = locales.AddEndpoint()
 	}
-	kit.Dialog(c, &d.open, title, locales.EndpointIntro(), func() {
+	dialog := kit.Dialog(c, &d.open, title, locales.EndpointIntro(), func() {
 		endpointForm(c, d)
 		if r, ok := k.Tests[d.test]; ok {
 			testResult(c, r)
 		}
-		if d.deleting {
-			s.endpointDeleting(c)
+		if d.asking {
+			kit.Discard(c, &d.open, &d.asking)
 		} else {
 			s.endpointActions(c)
 		}
 	})
+	kit.Guard(dialog, &d.open, &d.asking, d.changed())
 	if !d.open {
 		k.ForgetTest(d.test)
 	}
@@ -115,13 +120,15 @@ func testResult(c *ui.Context, r core.TestResult) {
 	}
 }
 
-// endpointActions is the dialog's buttons: Delete for an endpoint kept, Test, Cancel and Save.
+// endpointActions is the dialog's buttons: Delete for an endpoint kept, which can be undone, Test,
+// Cancel and Save.
 func (s *Settings) endpointActions(c *ui.Context) {
 	k, d := s.core, &s.edit
 	valid := d.valid()
 	kit.DialogActions(c, func() {
 		if d.e.ID != "" && kit.Button(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete()).Clicked() {
-			d.deleting = true
+			c.ToastAction(locales.EndpointDeleted(d.was.Name), locales.Undo(), k.DeleteEndpoint(d.e.ID))
+			d.open = false
 		}
 		ui.Spacer(c)
 		if kit.Off(kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
@@ -134,22 +141,6 @@ func (s *Settings) endpointActions(c *ui.Context) {
 			d.e.Name, d.e.URL, d.e.Model = strings.TrimSpace(d.e.Name), strings.TrimSpace(d.e.URL), strings.TrimSpace(d.e.Model)
 			k.SaveEndpoint(d.e, d.key)
 			c.Toast(locales.EndpointSaved(d.e.Name))
-			d.open = false
-		}
-	})
-}
-
-// endpointDeleting asks, in the buttons' place, before deleting the endpoint: a dialog over the
-// dialog would hide what is deleted.
-func (s *Settings) endpointDeleting(c *ui.Context) {
-	k, d := s.core, &s.edit
-	kit.DialogActions(c, func() {
-		ui.Text(c, locales.AskDeleteEndpoint()).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).Ink).Grow(1).MaxLines(2)
-		if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).AutoFocus().Clicked() {
-			d.deleting = false
-		}
-		if kit.Button(c, kit.Danger, kit.Small, nil, locales.Delete()).Clicked() {
-			c.ToastAction(locales.EndpointDeleted(d.e.Name), locales.Undo(), k.DeleteEndpoint(d.e.ID))
 			d.open = false
 		}
 	})

@@ -189,13 +189,13 @@ The stage's stars and its glow don't move.
 | `Card` / `SandCard` / `CardHeader` | White card / sand card, with an optional title and an icon button at the top right | |
 | `SettingRow` / `SettingBlock` | A setting: label left, control right; or label above and the control full width (for swatches) | |
 | `PanelFrame` | The menu bar panel: night header, paper, footer; a flyout with the system's shadow, as tall as its content | the flyout `PopoverBase` lives in |
-| `Dialog` / `Confirm` | Dialogs; the confirmation before deleting | `Modal` |
+| `Dialog` / `Confirm` / `Popconfirm` | Dialogs; the confirmations before a deletion that can't be undone: `Popconfirm` by its button, `Confirm` when more changes with it | `Modal`, `Popover` |
 
 **Actions**
 
 | Component | Use | Built on |
 |---|---|---|
-| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo: Stop translating, New, Download), `Plain` (white with outline), `Soft` (light amber: Learn from history), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete) | `ButtonBase` |
+| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo: Stop translating, New, Download), `Plain` (white with outline), `Soft` (light amber: Learn from history), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete or a discard) | `ButtonBase` |
 | `IconButton` | Round, three sizes 30 / 34 / 38: manage, all, delete, reset | `ButtonBase` + `Tooltip` |
 
 **Choosing**
@@ -290,7 +290,7 @@ Statistics; at the bottom, Preferences and About. The settings window opens at 1
 
 **First-run guide**: 800×580, paper on the left, the night sky stage on the right. Three phases,
 "Set up › Try it › Start", with the phase's name at the top and an amber progress bar beneath.
-Eight steps: welcome and languages, permission, speech recognition, translation (each one choice, in the settings' rows: recognition only on this device, the system's, SenseVoice Small and Qwen3-ASR 1.7B, the cloud's being set up in Settings; translation "On device" then "Cloud" as the settings' sides, the 2B, the 9B, Recommended, and Index-Translate 35B, Recommended too and chosen to begin with; a translation model's row says its size and the memory it needs, the GPU's on Windows; under the cloud's, what it receives; the stage lights the engine the step chooses); try subtitles, the
+Eight steps: welcome and languages, permission, speech recognition, translation (each one choice, in the settings' rows: recognition only on this device, the system's, SenseVoice Small and Qwen3-ASR 1.7B, the cloud's being set up in Settings; translation "On device" then "Cloud" as the settings' sides, the 2B, the 9B, Recommended, and Index-Translate 35B, Recommended too and chosen to begin with; a model's row says its size, then for SenseVoice that it runs on the CPU, with no GPU needed, and for Qwen3-ASR and the translation models the memory they need, the GPU's on Windows (Qwen3-ASR's also that it runs on the GPU); under the cloud's, what it receives; the stage lights the engine the step chooses); try subtitles, the
 start/stop shortcut, select-to-translate (can be skipped; once on, two checks one after the other: press the shortcut, then press it again and select the sample dialogue on the stage, which is translated for real, its translation under the check; until then the stage says to select it); ready.
 
 - The permission page has one row per permission, checked once granted; on the right, "Your
@@ -343,7 +343,12 @@ watches more than its languages. Text size is set in Subtitle style, not here.
 
 ## Deleting
 
-Deleting asks first, and can be undone afterwards. The confirmation is `kit.Confirm`: the
-question, what else goes with it, Cancel (focused by default) and a red Delete. Deleting a single
-glossary row doesn't ask, it only offers undo; deleting a local model can't be undone, so its
-confirmation says how much will have to be downloaded again.
+Deleting what can be undone doesn't ask: it happens at once, and a toast offers Undo (scenes,
+names, sessions, translation APIs). Deleting a local model can't be undone, so it asks first and
+says how much will have to be downloaded again: `kit.Popconfirm` by its button, or `kit.Confirm`
+when the model is in use, which also says what takes over. Both have the question, Cancel (focused
+by default) and a red Delete.
+
+A dialog with changes not saved asks before Escape or a click outside closes it: `kit.Guard` keeps
+it open and `kit.Discard` asks in its buttons' place, Keep Editing (focused) or a red Discard.
+Cancel closes it without asking. While Learn names works, Escape stops it, as its Cancel does.

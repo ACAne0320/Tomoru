@@ -2041,6 +2041,40 @@ func (msgs Messages) NeedsVram(gb int) string {
 	return Catalog.Format(msgs.locale, "needsVram", map[string]any{"gb": gb})
 }
 
+// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// in the language the app shows.
+//
+// After a recognition model's size, on a Mac: that it runs on the GPU, and
+// the memory it needs, unlike SenseVoice, which runs on the CPU.
+func AsrNeedsMemory(gb int) string { return In(i18n.Locale()).AsrNeedsMemory(gb) }
+
+// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// in the language of msgs.
+//
+// After a recognition model's size, on a Mac: that it runs on the GPU, and
+// the memory it needs, unlike SenseVoice, which runs on the CPU.
+func (msgs Messages) AsrNeedsMemory(gb int) string {
+	return Catalog.Format(msgs.locale, "asrNeedsMemory", map[string]any{"gb": gb})
+}
+
+// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// in the language the app shows.
+//
+// After a recognition model's size, on Windows: that it runs on the
+// graphics card, and the video memory it wants, unlike SenseVoice, which
+// runs on the CPU.
+func AsrNeedsVram(gb int) string { return In(i18n.Locale()).AsrNeedsVram(gb) }
+
+// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// in the language of msgs.
+//
+// After a recognition model's size, on Windows: that it runs on the
+// graphics card, and the video memory it wants, unlike SenseVoice, which
+// runs on the CPU.
+func (msgs Messages) AsrNeedsVram(gb int) string {
+	return Catalog.Format(msgs.locale, "asrNeedsVram", map[string]any{"gb": gb})
+}
+
 // GuideEnginesLater says "You can change this any time in Settings."
 // in the language the app shows.
 //
@@ -2963,16 +2997,18 @@ func (msgs Messages) ModelReadyInUse(name string) string {
 	return Catalog.Format(msgs.locale, "modelReadyInUse", map[string]any{"name": name})
 }
 
-// EngineSenseVoiceDescription says "Works offline. Good at Chinese."
+// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
 // in the language the app shows.
 //
-// Under SenseVoice, a speech recognition model to download.
+// Under SenseVoice, a speech recognition model to download: that it runs on
+// the CPU, with no GPU needed.
 func EngineSenseVoiceDescription() string { return In(i18n.Locale()).EngineSenseVoiceDescription() }
 
-// EngineSenseVoiceDescription says "Works offline. Good at Chinese."
+// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
 // in the language of msgs.
 //
-// Under SenseVoice, a speech recognition model to download.
+// Under SenseVoice, a speech recognition model to download: that it runs on
+// the CPU, with no GPU needed.
 func (msgs Messages) EngineSenseVoiceDescription() string {
 	return Catalog.Format(msgs.locale, "engineSenseVoiceDescription", nil)
 }
@@ -4605,76 +4641,6 @@ func (msgs Messages) OrderTgtFirst() string {
 	return Catalog.Format(msgs.locale, "orderTgtFirst", nil)
 }
 
-// AskDeleteScene says "Delete the scene “{name}”?"
-// in the language the app shows.
-//
-// Asks before deleting a scene.
-func AskDeleteScene(name string) string { return In(i18n.Locale()).AskDeleteScene(name) }
-
-// AskDeleteScene says "Delete the scene “{name}”?"
-// in the language of msgs.
-//
-// Asks before deleting a scene.
-func (msgs Messages) AskDeleteScene(name string) string {
-	return Catalog.Format(msgs.locale, "askDeleteScene", map[string]any{"name": name})
-}
-
-// AskDeleteSceneDetail says "Its names go with it. Its sessions are kept."
-// in the language the app shows.
-//
-// Under askDeleteScene: what goes with the scene, and what stays.
-func AskDeleteSceneDetail() string { return In(i18n.Locale()).AskDeleteSceneDetail() }
-
-// AskDeleteSceneDetail says "Its names go with it. Its sessions are kept."
-// in the language of msgs.
-//
-// Under askDeleteScene: what goes with the scene, and what stays.
-func (msgs Messages) AskDeleteSceneDetail() string {
-	return Catalog.Format(msgs.locale, "askDeleteSceneDetail", nil)
-}
-
-// AskDeleteRecord says "Delete this session?"
-// in the language the app shows.
-//
-// Asks before deleting a session kept.
-func AskDeleteRecord() string { return In(i18n.Locale()).AskDeleteRecord() }
-
-// AskDeleteRecord says "Delete this session?"
-// in the language of msgs.
-//
-// Asks before deleting a session kept.
-func (msgs Messages) AskDeleteRecord() string {
-	return Catalog.Format(msgs.locale, "askDeleteRecord", nil)
-}
-
-// AskDeleteSessions says "{n, plural, one {Delete # session?} other {Delete these # sessions?}}"
-// in the language the app shows.
-//
-// Asks before deleting all the sessions listed.
-func AskDeleteSessions(n int) string { return In(i18n.Locale()).AskDeleteSessions(n) }
-
-// AskDeleteSessions says "{n, plural, one {Delete # session?} other {Delete these # sessions?}}"
-// in the language of msgs.
-//
-// Asks before deleting all the sessions listed.
-func (msgs Messages) AskDeleteSessions(n int) string {
-	return Catalog.Format(msgs.locale, "askDeleteSessions", map[string]any{"n": n})
-}
-
-// AskDeleteEndpoint says "Delete this API and its key?"
-// in the language the app shows.
-//
-// Asks, in the endpoint's dialog, before deleting it.
-func AskDeleteEndpoint() string { return In(i18n.Locale()).AskDeleteEndpoint() }
-
-// AskDeleteEndpoint says "Delete this API and its key?"
-// in the language of msgs.
-//
-// Asks, in the endpoint's dialog, before deleting it.
-func (msgs Messages) AskDeleteEndpoint() string {
-	return Catalog.Format(msgs.locale, "askDeleteEndpoint", nil)
-}
-
 // AskDeleteModel says "Delete {name}?"
 // in the language the app shows.
 //
@@ -4701,6 +4667,84 @@ func AskDeleteModelDetail(size string) string { return In(i18n.Locale()).AskDele
 // Under askDeleteModel: deleting a model can't be undone.
 func (msgs Messages) AskDeleteModelDetail(size string) string {
 	return Catalog.Format(msgs.locale, "askDeleteModelDetail", map[string]any{"size": size})
+}
+
+// AskDeleteModelInUse says "It's in use now, and {name} takes over. To use it again, it downloads again ({size})."
+// in the language the app shows.
+//
+// Under askDeleteModel, for a model in use: what takes over from it, and
+// that deleting it can't be undone.
+func AskDeleteModelInUse(name string, size string) string {
+	return In(i18n.Locale()).AskDeleteModelInUse(name, size)
+}
+
+// AskDeleteModelInUse says "It's in use now, and {name} takes over. To use it again, it downloads again ({size})."
+// in the language of msgs.
+//
+// Under askDeleteModel, for a model in use: what takes over from it, and
+// that deleting it can't be undone.
+func (msgs Messages) AskDeleteModelInUse(name string, size string) string {
+	return Catalog.Format(msgs.locale, "askDeleteModelInUse", map[string]any{"name": name, "size": size})
+}
+
+// AskDeleteModelLast says "It's in use now, and nothing else recognizes speech until you set one up. To use it again, it downloads again ({size})."
+// in the language the app shows.
+//
+// Under askDeleteModel, for the recognition model in use when nothing else
+// can recognize: that subtitles stop, and that deleting it can't be undone.
+func AskDeleteModelLast(size string) string { return In(i18n.Locale()).AskDeleteModelLast(size) }
+
+// AskDeleteModelLast says "It's in use now, and nothing else recognizes speech until you set one up. To use it again, it downloads again ({size})."
+// in the language of msgs.
+//
+// Under askDeleteModel, for the recognition model in use when nothing else
+// can recognize: that subtitles stop, and that deleting it can't be undone.
+func (msgs Messages) AskDeleteModelLast(size string) string {
+	return Catalog.Format(msgs.locale, "askDeleteModelLast", map[string]any{"size": size})
+}
+
+// AskDiscard says "Discard your changes?"
+// in the language the app shows.
+//
+// Asks, in a dialog's buttons' place, before closing it with changes not
+// saved.
+func AskDiscard() string { return In(i18n.Locale()).AskDiscard() }
+
+// AskDiscard says "Discard your changes?"
+// in the language of msgs.
+//
+// Asks, in a dialog's buttons' place, before closing it with changes not
+// saved.
+func (msgs Messages) AskDiscard() string {
+	return Catalog.Format(msgs.locale, "askDiscard", nil)
+}
+
+// KeepEditing says "Keep Editing"
+// in the language the app shows.
+//
+// Button beside askDiscard: goes back to the dialog.
+func KeepEditing() string { return In(i18n.Locale()).KeepEditing() }
+
+// KeepEditing says "Keep Editing"
+// in the language of msgs.
+//
+// Button beside askDiscard: goes back to the dialog.
+func (msgs Messages) KeepEditing() string {
+	return Catalog.Format(msgs.locale, "keepEditing", nil)
+}
+
+// Discard says "Discard"
+// in the language the app shows.
+//
+// Red button beside askDiscard: closes the dialog without saving.
+func Discard() string { return In(i18n.Locale()).Discard() }
+
+// Discard says "Discard"
+// in the language of msgs.
+//
+// Red button beside askDiscard: closes the dialog without saving.
+func (msgs Messages) Discard() string {
+	return Catalog.Format(msgs.locale, "discard", nil)
 }
 
 // ImageTitle says "Picture Translation"

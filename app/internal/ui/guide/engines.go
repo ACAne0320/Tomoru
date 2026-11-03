@@ -184,7 +184,7 @@ func (g *Guide) modelCard(c *ui.Context, kind core.Kind, m models.Model, tag, bo
 			case st.State == models.Verifying:
 				kit.Caption(c, locales.Verifying()).MaxLines(1)
 			default:
-				kit.Caption(c, shared.ModelNote(m, st, body)).MaxLines(1).Tooltip(shared.ModelNote(m, st, body))
+				kit.Caption(c, shared.ModelNote(m, st, body)).MaxLines(2).Tooltip(shared.ModelNote(m, st, body)) // where it runs shows, as the system's description does
 			}
 		})
 		// At its end, as the settings have it: its download, or cancelling it.
