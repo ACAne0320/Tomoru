@@ -114,6 +114,8 @@ go tool mygo build                            # 打包到 app/build/windows-amd6
 
 各项目的版本、许可证和声明见[第三方许可证清单](docs/third-party-licenses_zh.md)。
 
+感谢 [LINUX DO](https://linux.do) 与 [小众软件](https://www.appinn.com) 社区对开源项目的支持。
+
 ## Tomoru 和 ルビ
 
 <p align="center"><img src=".github/assets/mascot.webp" width="200" alt="Tomoru：靛蓝短发、发尾琥珀色的女孩，开心地抬头看着头顶抱着纸灯笼的企鹅 ルビ"></p>

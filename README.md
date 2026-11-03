@@ -147,6 +147,8 @@ The free cloud translation model is Index-Translate's. If you like it, give it a
 The [third-party license inventory](docs/third-party-licenses.md) has each project's version,
 license and notices.
 
+Special thanks to [LINUX DO](https://linux.do) and [Appinn](https://www.appinn.com) for supporting open-source software.
+
 ## Tomoru and Rubi
 
 <p align="center"><img src=".github/assets/mascot.webp" width="200" alt="Tomoru, a girl with an indigo bob and amber tips, looks up happily at Rubi, a penguin holding a paper lantern on her head"></p>
