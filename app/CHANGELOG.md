@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3
+
+- Deleting a scene, a session or a translation API no longer asks first: Undo in the message that
+  follows brings it back. Deleting a downloaded model asks by its button, and, when the model is in
+  use, says what takes over. ([#2](https://github.com/ACAne0320/Tomoru/pull/2))
+- A dialog closed with Esc or a click outside asks before throwing away what you typed.
+  ([#2](https://github.com/ACAne0320/Tomoru/pull/2))
+- The on-device speech recognition models say where they run: SenseVoice on the CPU, no GPU
+  needed; Qwen3-ASR on the GPU, with the memory it needs. ([#2](https://github.com/ACAne0320/Tomoru/pull/2))
+
 ## 0.1.2
 
 - The app's icon is redrawn as Tomoru behind a glowing paper lantern. ([3485da8](https://github.com/ACAne0320/Tomoru/commit/3485da8))
