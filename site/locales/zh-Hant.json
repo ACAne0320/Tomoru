@@ -88,6 +88,7 @@
     "lead": "直接擷取電腦聲音，即時產生懸浮雙語字幕。外語直播、生肉動畫、遊戲與跨國會議隨開即用。",
     "download": "免費下載",
     "platforms": "macOS 和 Windows",
+    "altSource": "下載慢？換個線路：",
     "source": "檢視原始碼",
     "factsLabel": "特色亮點",
     "facts": {

@@ -1,4 +1,4 @@
-// Tomoru 官网的一点交互：下载按钮按系统改说明、复制安装命令、语言菜单、滚动进场、动画只在看得见时跑、首屏字幕滚动。
+// Tomoru 官网的一点交互：下载按钮按系统改说明和链接、复制安装命令、语言菜单、滚动进场、动画只在看得见时跑、首屏字幕滚动。
 // 文字来自页面里的 #strings，由 build.mjs 按语言写入。
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7,11 +7,20 @@
   // 下载按钮下的小字：按访客的系统说明适用平台
   const ua = navigator.userAgent;
   const plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
-  let label = '';
+  let label = '', os = '';
   if (/iPhone|iPad|Android/i.test(ua)) label = '';
-  else if (/Mac/i.test(plat) || /Macintosh/.test(ua)) label = t.forMac;
-  else if (/Win/i.test(plat) || /Windows/.test(ua)) label = t.forWindows;
+  else if (/Mac/i.test(plat) || /Macintosh/.test(ua)) label = t.forMac, os = 'mac';
+  else if (/Win/i.test(plat) || /Windows/.test(ua)) label = t.forWindows, os = 'windows';
   if (label) document.querySelectorAll('[data-platform]').forEach((el) => { el.textContent = label; });
+
+  // 下载按钮直接给这个系统的安装包，由 worker.js 按访客所在地选来源；下面一行可以换来源
+  if (os) {
+    document.querySelectorAll('[data-download]').forEach((a) => { a.href = `/download/${os}`; });
+    document.querySelectorAll('[data-alt]').forEach((p) => {
+      p.querySelectorAll('[data-from]').forEach((a) => { a.href = `/download/${os}?from=${a.dataset.from}`; });
+      p.hidden = false;
+    });
+  }
 
   // 安装命令的复制按钮：复制后两秒内显示「已复制」；不能写剪贴板时选中命令，好让人自己复制
   document.querySelectorAll('[data-copy]').forEach((btn) => {

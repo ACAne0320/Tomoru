@@ -55,7 +55,8 @@ The certificate and update key below are for official releases.
    engines and libraries and carry their [license texts and notices](third-party-licenses.md) in
    `licenses/`: the license check looks at the resources before packaging, not at the package.
 5. Publish the draft on GitHub. Installed apps check soon after they launch, then once a day, and
-   find it then.
+   find it then. Within half an hour the website copies its installers to R2 and its download
+   buttons give them ([site/README.md](../site/README.md)).
 
 ## Building by hand
 

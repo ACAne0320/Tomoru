@@ -88,6 +88,7 @@
     "lead": "컴퓨터 소리를 직접 캡처해 실시간 플로팅 이중 언어 자막을 만듭니다. 외국어 방송, 자막 없는 애니, 해외 게임, 다국어 회의까지 바로 즐겨보세요.",
     "download": "무료 다운로드",
     "platforms": "macOS 및 Windows",
+    "altSource": "느리면 다른 경로로:",
     "source": "소스 코드 보기",
     "factsLabel": "핵심 요약",
     "facts": {

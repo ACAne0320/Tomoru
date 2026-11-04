@@ -31,7 +31,7 @@
 
    Release workflow 检查 tag 和版本号一致、changelog 里有这一节，用这一节作说明创建草稿 release，然后同时在 macOS 和 Windows（MSYS2）上构建：`scripts/setup.sh`、许可证发布检查，再 `go tool mygo build -upload`，签名 app 和更新包并上传到草稿。带连字符的 tag（`v0.2.0-beta.1`）发成预发布版。某个平台失败时，点「Re-run failed jobs」重新构建它，上传到同一个草稿。
 4. 发布前先试用草稿里的文件。在 Mac 上用 `tomoru-<version>-arm64.dmg`：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。在 Windows 11 x64 上用 `tomoru-setup-<version>-amd64.exe`：从头走一遍引导、收听全部声音和单个应用、托盘的面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。确认两边都能找到随包的引擎和库，且 `licenses/` 里有它们的 [许可证正文和声明](third-party-licenses_zh.md)：许可证检查只看打包前的资源，不看安装包。
-5. 在 GitHub 上发布草稿。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。
+5. 在 GitHub 上发布草稿。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。半小时内官网会把它的安装包复制到 R2，下载按钮随之给出新版（[site/README_zh.md](../site/README_zh.md)）。
 
 ## 手动构建
 

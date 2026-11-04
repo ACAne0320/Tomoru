@@ -118,7 +118,7 @@
           <ul>{{$menu}}</ul>
         </details>
         <a class="icon-link" href="https://github.com/ACAne0320/Tomoru" aria-label="{{header.githubLabel|plain}}"><svg class="icon"><use href="#i-github"/></svg></a>
-        <a class="btn btn-primary btn-sm" href="https://github.com/ACAne0320/Tomoru/releases/latest">{{nav.download}}</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/ACAne0320/Tomoru/releases/latest" data-download>{{nav.download}}</a>
       </div>
     </div>
   </header>
@@ -136,7 +136,7 @@
           </h1>
           <p class="lead">{{hero.lead}}</p>
           <div class="cta-row">
-            <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest">
+            <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest" data-download>
               <svg class="icon"><use href="#i-download"/></svg>
               <span>{{hero.download}}<small data-platform>{{hero.platforms}}</small></span>
             </a>
@@ -144,6 +144,7 @@
               <svg class="icon"><use href="#i-github"/></svg><span>{{hero.source}}</span>
             </a>
           </div>
+          <p class="alt-source" data-alt hidden>{{hero.altSource}} <a data-from="github">GitHub</a> · <a data-from="cloudflare">Cloudflare</a></p>
           <ul class="facts" aria-label="{{hero.factsLabel|plain}}">
             <li>{{hero.facts.languages}}</li>
             <li>{{hero.facts.engines}}</li>
@@ -648,7 +649,7 @@
         <h2 id="callback-title"><span class="wordmark">Tomoru</span><span class="claim">{{hero.claim}}</span></h2>
         <p class="lead">{{callback.lead}}</p>
         <div class="cta-row center">
-          <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest">
+          <a class="btn btn-primary btn-lg" href="https://github.com/ACAne0320/Tomoru/releases/latest" data-download>
             <svg class="icon"><use href="#i-download"/></svg>
             <span>{{hero.download}}<small data-platform>{{hero.platforms}}</small></span>
           </a>
@@ -656,6 +657,7 @@
             <svg class="icon"><use href="#i-github"/></svg><span>{{hero.source}}</span>
           </a>
         </div>
+        <p class="alt-source" data-alt hidden>{{hero.altSource}} <a data-from="github">GitHub</a> · <a data-from="cloudflare">Cloudflare</a></p>
         <p class="req">{{callback.req}}</p>
       </div>
       <img class="peek" src="/assets/peeking-penguin.webp" width="1254" height="1254" loading="lazy" decoding="async" alt="{{callback.peekAlt|plain}}">

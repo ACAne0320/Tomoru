@@ -88,6 +88,7 @@
     "lead": "PCの音声を直接キャプチャし、最前面に二言語字幕をリアルタイム生成。海外配信、洋画・海外アニメ、洋ゲー、英語会議もすぐ楽しめます。",
     "download": "無料ダウンロード",
     "platforms": "macOS と Windows",
+    "altSource": "遅いときは別の経路で：",
     "source": "ソースコード",
     "factsLabel": "主な仕様",
     "facts": {

@@ -103,6 +103,9 @@ kbd {
 .btn small { display: block; font-size: 12px; font-weight: 600; opacity: .72; margin-top: 2px; }
 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; }
 .cta-row.center { justify-content: center; }
+.alt-source { margin-top: 12px; font-size: 13px; color: var(--night-text); opacity: .8; }
+.alt-source a { text-decoration: underline; text-underline-offset: 3px; }
+.alt-source a:hover { color: var(--night-title); }
 
 /* ---------- 顶栏 ---------- */
 .site-header {

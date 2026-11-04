@@ -88,6 +88,7 @@
     "lead": "Captures your computer's audio and generates floating bilingual subtitles in real time. Ready for foreign streams, raw anime, games, and international meetings.",
     "download": "Free Download",
     "platforms": "macOS and Windows",
+    "altSource": "Slow download? Try",
     "source": "Source Code",
     "factsLabel": "Highlights",
     "facts": {

@@ -1,13 +1,21 @@
-// Tomoru's website: static files served as Cloudflare Workers static assets. Deploy with
-// `npx wrangler deploy` from site/; it builds the pages of each language first (build.mjs).
+// Tomoru's website: static files served as Cloudflare Workers static assets, and worker.js for
+// /download/* (see README.md). Deploy with `npx wrangler deploy` from site/; it builds the pages of
+// each language first (build.mjs).
 {
   "name": "tomoru-site",
   "compatibility_date": "2026-10-29",
+  "main": "worker.js",
   "build": { "command": "node build.mjs", "watch_dir": ["src", "locales"] },
   "assets": {
     "directory": "./public",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/download/*"]
   },
+  // The installers, copied from the latest GitHub release by the cron trigger
+  "r2_buckets": [{ "binding": "RELEASES", "bucket_name": "tomoru-releases" }],
+  "triggers": { "crons": ["*/30 * * * *"] },
+  "observability": { "enabled": true },
   // Deploying creates the DNS record and certificate
   "routes": [{ "pattern": "tomoru.acane.dev", "custom_domain": true }],
   // No *.workers.dev address, so the page has a single URL

@@ -2,7 +2,8 @@
 
 [中文](README_zh.md)
 
-The site at <https://tomoru.acane.dev>, served as Cloudflare Workers static assets.
+The site at <https://tomoru.acane.dev>, served as Cloudflare Workers static assets, with
+`worker.js` for the downloads.
 
 - `src/`: the pages, as templates.
 - `locales/`: their text, one file per language. `zh-Hans.json` is the source.
@@ -20,6 +21,19 @@ Pushing to `main` deploys it (`.github/workflows/site.yml`).
 the value as text, for attributes and titles; `{{key|json}}` is it as JSON, for scripts.
 `{{$name}}` is made by `build.mjs` for each language: `$lang`, `$url`, `$home`, the hreflang links,
 the language menu. `main.js` reads its text from the page's `#strings` (the `js` group).
+
+## Downloads
+
+`/download/mac` and `/download/windows` give the latest installer for the system. Visitors in
+mainland China, where GitHub is often slow, get it from the R2 bucket `tomoru-releases`; others
+are sent to the GitHub release. `?from=github` or `?from=cloudflare` picks the source, for the
+line under the download buttons. `main.js` points the buttons at the visitor's system; without
+it they open the latest release page.
+
+Every half hour the cron trigger copies the installers of the latest published release (not a
+draft or a pre-release) to the bucket, checked against its `SHA256SUMS`, then switches
+`latest.json` to it and keeps the version before, for downloads under way. Run the copy locally
+with `npx wrangler dev` and `curl "localhost:8787/cdn-cgi/handler/scheduled"`.
 
 ## Languages
 
