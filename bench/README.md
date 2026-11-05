@@ -185,7 +185,7 @@ of 2.5 minutes each:
 | The same, Korean only (2026-10-20, 6 cases, old and new run side by side: `vad_ko_off` / `vad_ko_on`) | Translation seen p50 1.07 → 0.69 s, p90 3.22 → 2.38 s; final −1.2 s | Error rate 11.1% → 12.5%, a fast podcast 11.3% → 14.8%: words around the cuts garbled (「집으로 가신 겁니다」 → 「으로 가 겁니다」, 「60번째 주주총회」 → 「60 번째 14. / 총회.」); fragments 5% → 8% |
 | Commit after 0.7 / 1.0 s of silence by voice detection, instead of waiting 1.3 s for text to stop | None | At 0.7 s, fragments 8% → 26%: the last few words arrive after the commit |
 
-Cutting long sentences (changed 2026-10-19, `internal/segment/joint.go`): long lines used to be
+Cutting long sentences (changed 2026-10-19, since replaced; see below): long lines used to be
 cut only at commas, with an English limit of 90 letters. Japanese and Korean have almost no commas
 midway, so a line grew past a hundred characters; in English, a third of the lines in subtitles
 users saved ran over two lines. Now the English limit is 60; past 1.2 times the limit (1.5 for
@@ -207,6 +207,10 @@ cut by pauses.
   times hardly did anything.
 - Letting an LLM (`typesafe/jev-1.14` on OpenRouter) choose the cuts matched the human breaks no
   better than the rule (precision 61.3 vs 62.4), and took 1.3–2.1 s each time, so it wasn't used.
+- The joint rule (`internal/segment/joint.go`) was removed with the recognition redesign
+  ([recognition](../docs/recognition.md), Sentences, step 5): a line wider than two lines is now
+  cut at its last clause mark within them, else between the last two words that fit. Chinese or
+  Japanese with no comma is not cut.
 
 Translation only (14 cases, translating the human subtitles by sentence):
 

@@ -184,8 +184,9 @@ streaming (local-asr.md), moved into the app and made general:
   at the next pause, so that later decodes don't have to find it in their text.
 - **Load**: one decode in flight. When decoding can't keep up, volatile decodes are skipped, never
   queued; finals always run.
-- **Noise**: a final with no letters of the language, or that the model labels with no language
-  (Qwen3-ASR's `language None`), is dropped.
+- **Noise**: a final the model labels with no language (Qwen3-ASR's `language None`) is dropped,
+  as is text of punctuation alone. Words in another script stay: Japanese and Korean dialogue has
+  real English words ("OK", "Yes"), and dropping them needs a benchmark first.
 
 `tomoru-asr` becomes a decoder: `tomoru-asr serve --model <dir>` reads
 `{"type":"decode","id":7,"lang":"ja","final":true,"pcm":"…"}` and answers
@@ -431,7 +432,8 @@ models together leave little of 8 GB of VRAM to a game; the page says so.
   says to choose a lighter model or check the network.
 - llama-server crashes or fails to start: the session stops with the error, like `tomoru-asr` now.
 - Music and sound effects recognized as words (the cloud's 「Do」, 「多河」 in the Sekiro case):
-  dropped when they have no letters of the language; the rest the benchmark's Noise chars/min shows.
+  shown as subtitles; only Qwen3-ASR's `language None` and punctuation alone are dropped. The
+  benchmark's Noise chars/min shows how much comes through.
 - A stretch with nothing recognized: no result.
 - The cloud: no key or a refused key stops the session with an error the engines page explains;
   a slow network shows a notice (above). A lost connection ends Qwen's session with its error;
