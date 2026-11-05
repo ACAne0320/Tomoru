@@ -415,7 +415,7 @@
   "factOutTokens": "출력 토큰",
   "factFailed": "실패",
   "shortcutNeedsModifierWin": "Ctrl, Alt, Win 중 하나와 함께 눌러 주세요",
-  "lockedToastWin": "잠갔어요. 다시 옮기려면 작업 표시줄의 Tomoru 아이콘을 오른쪽 클릭하거나 설정에서 잠금을 해제하세요.",
+  "lockedToastWin": "잠갔어요. 다시 옮기려면 작업 표시줄의 Tomoru 아이콘을 클릭하거나 설정에서 잠금을 해제하세요.",
   "memoryWarningWin": "이 컴퓨터의 메모리는 {gb}GB예요. 9B 모델이 느리거나 다른 앱을 느리게 할 수 있어요.",
   "sampleNoVoiceWin": "Windows에 {language} 음성이 없어요. {language} 영상을 재생하거나 설정 › 시간 및 언어 › 음성에서 음성을 추가하세요.",
   "guideReadyTray": "작업 표시줄 오른쪽 아래의 Tomoru 아이콘을 클릭해 언어와 들을 앱을 바꿀 수 있어요. 오른쪽 클릭하면 번역을 시작하거나 설정을 열 수 있어요. 보이지 않으면 ^ 안에 있어요.",

@@ -415,7 +415,7 @@
   "factOutTokens": "输出 tokens",
   "factFailed": "失败",
   "shortcutNeedsModifierWin": "要带上 Ctrl、Alt 或 Win 中的一个",
-  "lockedToastWin": "已锁定。想再移动，右键点任务栏的 Tomoru 图标，或在设置里解锁",
+  "lockedToastWin": "已锁定。想再移动，点任务栏的 Tomoru 图标，或在设置里解锁",
   "memoryWarningWin": "这台电脑只有 {gb} GB 内存：9B 模型可能会慢，也会拖慢其他应用。",
   "sampleNoVoiceWin": "Windows 上没有{language}语音，改为播放一段{language}视频吧，也可以在 设置 › 时间和语言 › 语音 里添加。",
   "guideReadyTray": "点一下任务栏右下角的 Tomoru 图标，可以换语言、选要听的应用；右键可以快速开始或打开设置。没看到的话，在 ^ 里。",

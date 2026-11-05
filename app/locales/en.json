@@ -635,7 +635,7 @@
   "@statusLoadingModel": {
     "description": "While the on-device translation model loads, before listening."
   },
-  "errModelMissing": "The on-device model isn't downloaded. Download it in Settings › Recognition & Translation.",
+  "errModelMissing": "The on-device model isn't downloaded. Download it in Settings › Speech & Translation.",
   "@errModelMissing": {
     "description": "Why translating could not start."
   },
@@ -1081,7 +1081,7 @@
   "@engineSenseVoiceDescription": {
     "description": "Under SenseVoice, a speech recognition model to download: that it runs on the CPU, with no GPU needed."
   },
-  "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Recognition & Translation.",
+  "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation.",
   "@errAsrModelMissing": {
     "description": "Where the subtitles show, when translating can't start: the recognition model chosen isn't downloaded."
   },
@@ -1139,15 +1139,15 @@
   "@asrOpenAiModelDescription": {
     "description": "Under the model field of the dialog setting up OpenAI's speech recognition: what leaving it empty does, and what a model of the transcription API does."
   },
-  "errAsrCloudKey": "Cloud recognition has no API key. Set it up in Settings › Recognition & Translation.",
+  "errAsrCloudKey": "Cloud recognition has no API key. Set it up in Settings › Speech & Translation.",
   "@errAsrCloudKey": {
     "description": "Where the subtitles show, when translating can't start: the cloud recognition chosen has no API key."
   },
-  "errAsrCloudAuth": "Model Studio refused the API key. Check it in Settings › Recognition & Translation.",
+  "errAsrCloudAuth": "Model Studio refused the API key. Check it in Settings › Speech & Translation.",
   "@errAsrCloudAuth": {
     "description": "Where the subtitles show, and in the cloud recognition dialog's test: the service refused the API key."
   },
-  "errAsrApiAuth": "The recognition service refused the API key. Check it in Settings › Recognition & Translation.",
+  "errAsrApiAuth": "The recognition service refused the API key. Check it in Settings › Speech & Translation.",
   "@errAsrApiAuth": {
     "description": "Where the subtitles show, and in the cloud recognition dialog's test: OpenAI's service, or a compatible one, refused the API key."
   },
@@ -2149,7 +2149,7 @@
   "@shortcutNeedsModifierWin": {
     "description": "Shortcut field, on Windows: a key alone cannot be a global shortcut."
   },
-  "lockedToastWin": "Locked. To move them again, right-click Tomoru's icon in the taskbar to unlock them, or unlock them in settings.",
+  "lockedToastWin": "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings.",
   "@lockedToastWin": {
     "description": "Over the subtitles, on Windows, once they are locked in place."
   },

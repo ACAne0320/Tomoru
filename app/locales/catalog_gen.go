@@ -1969,13 +1969,13 @@ func (msgs Messages) StatusLoadingModel() string {
 	return Catalog.Format(msgs.locale, "statusLoadingModel", nil)
 }
 
-// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Recognition & Translation."
+// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & Translation."
 // in the language the app shows.
 //
 // Why translating could not start.
 func ErrModelMissing() string { return In(i18n.Locale()).ErrModelMissing() }
 
-// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Recognition & Translation."
+// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & Translation."
 // in the language of msgs.
 //
 // Why translating could not start.
@@ -3013,14 +3013,14 @@ func (msgs Messages) EngineSenseVoiceDescription() string {
 	return Catalog.Format(msgs.locale, "engineSenseVoiceDescription", nil)
 }
 
-// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Recognition & Translation."
+// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation."
 // in the language the app shows.
 //
 // Where the subtitles show, when translating can't start: the recognition
 // model chosen isn't downloaded.
 func ErrAsrModelMissing() string { return In(i18n.Locale()).ErrAsrModelMissing() }
 
-// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Recognition & Translation."
+// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation."
 // in the language of msgs.
 //
 // Where the subtitles show, when translating can't start: the recognition
@@ -3211,14 +3211,14 @@ func (msgs Messages) AsrOpenAiModelDescription() string {
 	return Catalog.Format(msgs.locale, "asrOpenAiModelDescription", nil)
 }
 
-// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Recognition & Translation."
+// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & Translation."
 // in the language the app shows.
 //
 // Where the subtitles show, when translating can't start: the cloud
 // recognition chosen has no API key.
 func ErrAsrCloudKey() string { return In(i18n.Locale()).ErrAsrCloudKey() }
 
-// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Recognition & Translation."
+// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & Translation."
 // in the language of msgs.
 //
 // Where the subtitles show, when translating can't start: the cloud
@@ -3227,14 +3227,14 @@ func (msgs Messages) ErrAsrCloudKey() string {
 	return Catalog.Format(msgs.locale, "errAsrCloudKey", nil)
 }
 
-// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Recognition & Translation."
+// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & Translation."
 // in the language the app shows.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test: the
 // service refused the API key.
 func ErrAsrCloudAuth() string { return In(i18n.Locale()).ErrAsrCloudAuth() }
 
-// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Recognition & Translation."
+// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & Translation."
 // in the language of msgs.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test: the
@@ -3243,14 +3243,14 @@ func (msgs Messages) ErrAsrCloudAuth() string {
 	return Catalog.Format(msgs.locale, "errAsrCloudAuth", nil)
 }
 
-// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Recognition & Translation."
+// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & Translation."
 // in the language the app shows.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test:
 // OpenAI's service, or a compatible one, refused the API key.
 func ErrAsrApiAuth() string { return In(i18n.Locale()).ErrAsrApiAuth() }
 
-// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Recognition & Translation."
+// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & Translation."
 // in the language of msgs.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test:
@@ -6055,13 +6055,13 @@ func (msgs Messages) ShortcutNeedsModifierWin() string {
 	return Catalog.Format(msgs.locale, "shortcutNeedsModifierWin", nil)
 }
 
-// LockedToastWin says "Locked. To move them again, right-click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
+// LockedToastWin says "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
 // in the language the app shows.
 //
 // Over the subtitles, on Windows, once they are locked in place.
 func LockedToastWin() string { return In(i18n.Locale()).LockedToastWin() }
 
-// LockedToastWin says "Locked. To move them again, right-click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
+// LockedToastWin says "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
 // in the language of msgs.
 //
 // Over the subtitles, on Windows, once they are locked in place.
