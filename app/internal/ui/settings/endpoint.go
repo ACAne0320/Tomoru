@@ -127,7 +127,11 @@ func (s *Settings) endpointActions(c *ui.Context) {
 	valid := d.valid()
 	kit.DialogActions(c, func() {
 		if d.e.ID != "" && kit.Button(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete()).Clicked() {
-			c.ToastAction(locales.EndpointDeleted(d.was.Name), locales.Undo(), k.DeleteEndpoint(d.e.ID))
+			deleted := locales.EndpointDeleted(d.was.Name)
+			if k.Preferences().MT == prefs.CustomPrefix+d.e.ID {
+				deleted = locales.EndpointDeletedInUse(d.was.Name)
+			}
+			c.ToastAction(deleted, locales.Undo(), k.DeleteEndpoint(d.e.ID))
 			d.open = false
 		}
 		ui.Spacer(c)

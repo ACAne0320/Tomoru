@@ -177,6 +177,7 @@
   "showLogs": "로그 보기",
   "checkForUpdates": "업데이트 확인…",
   "endpointDeleted": "{name}을(를) 삭제했어요",
+  "endpointDeletedInUse": "{name}을(를) 삭제했어요. 번역에 쓸 것을 고르세요.",
   "endpointSaved": "{name}을(를) 저장했어요",
   "undo": "실행 취소",
   "modelReady": "{name}을(를) 쓸 수 있어요",

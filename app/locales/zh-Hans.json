@@ -177,6 +177,7 @@
   "showLogs": "显示日志",
   "checkForUpdates": "检查更新…",
   "endpointDeleted": "已删除 {name}",
+  "endpointDeletedInUse": "已删除 {name}。请另选一个翻译方式。",
   "endpointSaved": "已保存 {name}",
   "undo": "撤销",
   "modelReady": "{name} 已可使用",

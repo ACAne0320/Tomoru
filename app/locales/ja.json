@@ -177,6 +177,7 @@
   "showLogs": "ログを表示",
   "checkForUpdates": "アップデートを確認…",
   "endpointDeleted": "{name} を削除しました",
+  "endpointDeletedInUse": "{name} を削除しました。翻訳に使うものを選んでください。",
   "endpointSaved": "{name} を保存しました",
   "undo": "取り消す",
   "modelReady": "{name} を使えるようになりました",

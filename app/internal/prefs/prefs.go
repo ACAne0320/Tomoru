@@ -210,11 +210,6 @@ func (p *Prefs) fix(d Prefs) {
 	if p.Source != "" && p.SourceName == "" {
 		p.SourceName = p.Source
 	}
-	if id, ok := strings.CutPrefix(p.MT, CustomPrefix); ok {
-		if _, ok := p.Endpoint(id); !ok {
-			p.MT = d.MT
-		}
-	}
 	if p.MT == "" {
 		p.MT = d.MT
 	}

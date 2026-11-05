@@ -2575,6 +2575,22 @@ func (msgs Messages) EndpointDeleted(name string) string {
 	return Catalog.Format(msgs.locale, "endpointDeleted", map[string]any{"name": name})
 }
 
+// EndpointDeletedInUse says "Deleted {name}. Choose how to translate."
+// in the language the app shows.
+//
+// A toast after deleting the translation API in use, beside an Undo button:
+// translating stops until another is chosen.
+func EndpointDeletedInUse(name string) string { return In(i18n.Locale()).EndpointDeletedInUse(name) }
+
+// EndpointDeletedInUse says "Deleted {name}. Choose how to translate."
+// in the language of msgs.
+//
+// A toast after deleting the translation API in use, beside an Undo button:
+// translating stops until another is chosen.
+func (msgs Messages) EndpointDeletedInUse(name string) string {
+	return Catalog.Format(msgs.locale, "endpointDeletedInUse", map[string]any{"name": name})
+}
+
 // EndpointSaved says "Saved {name}"
 // in the language the app shows.
 //

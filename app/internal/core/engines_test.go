@@ -146,11 +146,13 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("translator %+v", ep)
 	}
 
-	// Deleting it goes back to the cloud and forgets the key.
+	// Deleting it stops translating, rather than going on with the cloud, and forgets the key.
 	undo := c.DeleteEndpoint(id)
-	f.flush(t, 1)
-	if c.Prefs.MT != "cloud" || len(c.Prefs.Endpoints) != 0 || sec[keyName(id)] != nil {
+	if c.Prefs.MT != prefs.CustomPrefix+id || len(c.Prefs.Endpoints) != 0 || sec[keyName(id)] != nil {
 		t.Errorf("after delete: engine %q, endpoints %v, key %q", c.Prefs.MT, c.Prefs.Endpoints, sec[keyName(id)])
+	}
+	if c.Running || !errors.Is(c.Err, ErrNoEndpoint) || len(f.sessions) != 1 {
+		t.Errorf("after delete: running %v, err %v, %d sessions", c.Running, c.Err, len(f.sessions))
 	}
 
 	// Undoing it puts it back, its key, and translating with it.
@@ -158,6 +160,12 @@ func TestEndpoints(t *testing.T) {
 	f.flush(t, 1)
 	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.MT != prefs.CustomPrefix+id || string(sec[keyName(id)]) != "sk-1" {
 		t.Errorf("after undo: engine %q, endpoints %v, key %q", c.Prefs.MT, c.Prefs.Endpoints, sec[keyName(id)])
+	}
+	if !c.Running || len(f.sessions) != 2 {
+		t.Fatalf("after undo: running %v, err %v, %d sessions", c.Running, c.Err, len(f.sessions))
+	}
+	if ep, ok := f.sessions[1].cfg.Translator.(*translate.Endpoint); !ok || ep.APIKey != "sk-1" {
+		t.Errorf("after undo: translator %+v", f.sessions[1].cfg.Translator)
 	}
 }
 

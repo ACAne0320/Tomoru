@@ -36,10 +36,11 @@ func TestLoad(t *testing.T) {
 		t.Errorf("%+v, %v", got, err)
 	}
 
-	// Edited out of range: set right.
+	// Edited out of range: set right. An API deleted stays chosen: translating says it is gone
+	// rather than sending the subtitles elsewhere.
 	os.WriteFile(path, []byte(`{"Src": "ja", "Tgt": "ja", "Shown": 99, "Font": "Comic", "MT": "custom:gone"}`), 0o644)
 	got, _ = Load(path, "zh-Hans")
-	if got.Src != "en" || got.Tgt != "zh" || got.Shown != MaxShown || got.Font != "system" || got.MT != "cloud" {
+	if got.Src != "en" || got.Tgt != "zh" || got.Shown != MaxShown || got.Font != "system" || got.MT != "custom:gone" {
 		t.Errorf("%+v", got)
 	}
 }

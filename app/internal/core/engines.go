@@ -114,21 +114,22 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	return e.ID
 }
 
-// DeleteEndpoint deletes an endpoint and its key. Translating with it goes on with the cloud. undo
-// puts them back, and translating with it if it did.
+// DeleteEndpoint deletes an endpoint and its key. Translating with it stops with ErrNoEndpoint
+// rather than going on with another engine: the subtitles go only where the user chose. undo puts
+// both back, and translating with it where deleting stopped it.
 func (c *Core) DeleteEndpoint(id string) (undo func()) {
 	i := slices.IndexFunc(c.Prefs.Endpoints, func(e prefs.Endpoint) bool { return e.ID == id })
 	if i < 0 {
 		return func() {}
 	}
-	e, inUse := c.Prefs.Endpoints[i], c.Prefs.MT == prefs.CustomPrefix+id
+	e, mt := c.Prefs.Endpoints[i], prefs.CustomPrefix+id
 	key := c.EngineService.readKey(keyName(id))
-	if inUse {
-		c.SetEngine("cloud")
-	}
 	c.Prefs.Endpoints = slices.Delete(c.Prefs.Endpoints, i, i+1)
 	c.EngineService.deleteKey(keyName(id))
 	c.EngineService.forgetTest(id)
+	if c.Prefs.MT == mt {
+		c.RestartIfRunning()
+	}
 	c.settingsChanged()
 	return func() {
 		if _, ok := c.Prefs.Endpoint(id); ok {
@@ -138,8 +139,8 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 		if key != nil {
 			c.EngineService.saveKey(keyName(id), key)
 		}
-		if inUse {
-			c.SetEngine(prefs.CustomPrefix + id)
+		if c.Prefs.MT == mt && !c.Running && errors.Is(c.Err, ErrNoEndpoint) {
+			c.Start()
 		}
 		c.settingsChanged()
 	}
