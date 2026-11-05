@@ -69,7 +69,7 @@ func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta f
 	defer cancel(nil)
 	wait := time.AfterFunc(cmp.Or(e.ImageWait, time.Minute), func() { cancel(ErrStalled) })
 	defer wait.Stop()
-	s, err := e.complete(ctx, body, time.Minute, func(s string) {
+	s, _, err := e.complete(ctx, body, time.Minute, func(s string) {
 		wait.Stop()
 		if looping(s) {
 			cancel(errLooping)

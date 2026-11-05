@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"tomoru/internal/lang"
 )
@@ -175,11 +176,14 @@ type message struct {
 	Content any    `json:"content"`
 }
 
+// body is the request for r's translation. Its tokens are enough for a long line's, and bounded by
+// the line, so that a model repeating itself stops.
 func (e *Endpoint) body(r Request) map[string]any {
+	limit := 128 + utf8.RuneCountInString(r.Text)
 	if e.Style == Index {
-		return e.request([]message{{"user", indexPrompt(r)}}, 0, 128)
+		return e.request([]message{{"user", indexPrompt(r)}}, 0, limit)
 	}
-	return e.request([]message{{"system", chatSystem(r)}, {"user", r.Text}}, 0.2, 128)
+	return e.request([]message{{"system", chatSystem(r)}, {"user", r.Text}}, 0.2, limit)
 }
 
 // request is the body of a streamed completion of msgs.
@@ -211,7 +215,8 @@ var optional = []string{"stream_options", "thinking", "reasoning_effort", "enabl
 // Chat asks a chat model, prompted with system, to answer user, in maxTokens at most, without
 // thinking where it can: for the model that learns names (internal/learn), behind the same API.
 func (e *Endpoint) Chat(ctx context.Context, system, user string, maxTokens int) (string, error) {
-	return e.complete(ctx, e.request([]message{{"system", system}, {"user", user}}, 0, maxTokens), 2*time.Minute, nil)
+	out, _, err := e.complete(ctx, e.request([]message{{"system", system}, {"user", user}}, 0, maxTokens), 2*time.Minute, nil)
+	return out, err
 }
 
 // Translate implements Translator.
@@ -285,13 +290,13 @@ func (e *Endpoint) hedged(ctx context.Context, r Request, onDelta func(string)) 
 func (e *Endpoint) attempt(ctx context.Context, r Request, onDelta func(string)) (string, error) {
 	timeout := cmp.Or(e.Timeout, 30*time.Second)
 	if e.Gap <= 0 {
-		return e.complete(ctx, e.body(r), timeout, onDelta)
+		return unfinished(e.complete(ctx, e.body(r), timeout, onDelta))
 	}
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 	gap := time.AfterFunc(e.Gap, func() { cancel(ErrStalled) })
 	gap.Stop() // until the first words
-	out, err := e.complete(ctx, e.body(r), timeout, func(s string) {
+	out, cut, err := e.complete(ctx, e.body(r), timeout, func(s string) {
 		gap.Reset(e.Gap)
 		if onDelta != nil {
 			onDelta(s)
@@ -300,6 +305,15 @@ func (e *Endpoint) attempt(ctx context.Context, r Request, onDelta func(string))
 	gap.Stop()
 	if err != nil && errors.Is(context.Cause(ctx), ErrStalled) {
 		err = ErrStalled
+	}
+	return unfinished(out, cut, err)
+}
+
+// unfinished ends a translation the token limit cut with an ellipsis, so that it does not read as
+// finished: its start is still worth showing.
+func unfinished(out string, cut bool, err error) (string, error) {
+	if cut && err == nil {
+		out += "…"
 	}
 	return out, err
 }
@@ -322,8 +336,9 @@ func (e *Endpoint) Warm(ctx context.Context) {
 	}
 }
 
-// complete sends a completion and reads it as it streams in, within timeout unless e.Client says.
-func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout time.Duration, onDelta func(string)) (string, error) {
+// complete sends a completion and reads it as it streams in, within timeout unless e.Client says;
+// cut tells the token limit ended it.
+func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout time.Duration, onDelta func(string)) (out string, cut bool, err error) {
 	quiet := e.quiet()
 	_, asked := body["stream_options"]
 	resp, err := e.post(ctx, body, timeout)
@@ -340,18 +355,18 @@ func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout ti
 		resp, err = e.post(ctx, body, timeout)
 	}
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return "", fmt.Errorf("translate: %s: %s", resp.Status, bytes.TrimSpace(b))
+		return "", false, fmt.Errorf("translate: %s: %s", resp.Status, bytes.TrimSpace(b))
 	}
-	out, used, err := readStream(resp.Body, onDelta)
+	out, used, cut, err := readStream(resp.Body, onDelta)
 	if f, ok := ctx.Value(usageKey{}).(func(Usage)); ok && used != (Usage{}) {
 		f(used)
 	}
-	return out, err
+	return out, cut, err
 }
 
 // post sends a completion's body to the chat completions of e.
@@ -393,12 +408,12 @@ var ErrEmpty = errors.New("translate: the reply was empty")
 // thought until it ran out of tokens.
 var ErrOnlyThinking = errors.New("translate: the model only sent its thinking")
 
-// readStream reads the server-sent events of a streamed completion, and the tokens it took, when
-// the server says. One that ends with no translation says why, when it can: the model only
-// thought, or the server sent an error.
-func readStream(r io.Reader, onDelta func(string)) (string, Usage, error) {
+// readStream reads the server-sent events of a streamed completion, the tokens it took, when the
+// server says, and whether the token limit cut it. One that ends with no translation says why,
+// when it can: the model only thought, or the server sent an error.
+func readStream(r io.Reader, onDelta func(string)) (string, Usage, bool, error) {
 	var out strings.Builder
-	var thought bool
+	var thought, cut bool
 	var failed error
 	var other string // the first line that is not an event: an error a server sent as it is
 	var used Usage
@@ -418,6 +433,7 @@ func readStream(r io.Reader, onDelta func(string)) (string, Usage, error) {
 					Content          string `json:"content"`
 					ReasoningContent string `json:"reasoning_content"`
 				} `json:"delta"`
+				FinishReason string `json:"finish_reason"`
 			} `json:"choices"`
 			Error *struct {
 				Message string `json:"message"`
@@ -447,6 +463,7 @@ func readStream(r io.Reader, onDelta func(string)) (string, Usage, error) {
 		if len(chunk.Choices) == 0 {
 			continue
 		}
+		cut = cut || chunk.Choices[0].FinishReason == "length"
 		d := chunk.Choices[0].Delta
 		thought = thought || d.ReasoningContent != ""
 		if d.Content == "" {
@@ -460,15 +477,15 @@ func readStream(r io.Reader, onDelta func(string)) (string, Usage, error) {
 	s := strings.TrimSpace(out.String())
 	switch {
 	case sc.Err() != nil:
-		return s, used, sc.Err()
+		return s, used, false, sc.Err()
 	case failed != nil:
-		return s, used, failed
+		return s, used, false, failed
 	case s != "":
-		return s, used, nil
+		return s, used, cut, nil
 	case thought:
-		return "", used, ErrOnlyThinking
+		return "", used, false, ErrOnlyThinking
 	case other != "":
-		return "", used, fmt.Errorf("%w: %.200s", ErrEmpty, other)
+		return "", used, false, fmt.Errorf("%w: %.200s", ErrEmpty, other)
 	}
-	return "", used, ErrEmpty
+	return "", used, false, ErrEmpty
 }

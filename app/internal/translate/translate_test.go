@@ -190,7 +190,7 @@ func TestNoTranslation(t *testing.T) {
 		{"data: [DONE]\n\n", ErrEmpty, ""},
 		{"Internal Server Error", ErrEmpty, "Internal Server Error"},
 	} {
-		out, _, err := readStream(strings.NewReader(c.stream), nil)
+		out, _, _, err := readStream(strings.NewReader(c.stream), nil)
 		switch {
 		case c.want != nil && !errors.Is(err, c.want), c.says != "" && (err == nil || !strings.Contains(err.Error(), c.says)):
 			t.Errorf("%q: %q, %v", c.stream, out, err)
@@ -207,7 +207,7 @@ func TestStreamErrorAfterPartial(t *testing.T) {
 		"data: {\"error\":{\"message\":\"upstream failure\"},\"usage\":{\"prompt_tokens\":8,\"completion_tokens\":3}}\n\n" +
 		"data: [DONE]\n\n"
 	var partial string
-	out, used, err := readStream(strings.NewReader(stream), func(text string) { partial = text })
+	out, used, _, err := readStream(strings.NewReader(stream), func(text string) { partial = text })
 	if out != "部分译文" || partial != out || used != (Usage{8, 3}) {
 		t.Fatalf("partial output or usage lost: out=%q, partial=%q, usage=%+v", out, partial, used)
 	}
@@ -241,6 +241,31 @@ func TestChat(t *testing.T) {
 	msgs := body["messages"].([]any)
 	if err != nil || out != `{"terms":[]}` || len(msgs) != 2 || msgs[0].(map[string]any)["content"] != "sys" || body["max_tokens"] != 1024.0 || body["reasoning_effort"] != "none" {
 		t.Errorf("%q %v, body %v", out, err, body)
+	}
+}
+
+// TestTokenLimit gives a line's translation tokens for its length, and ends one the limit cut with
+// an ellipsis: its start is shown, as unfinished. Chat's answer is left as it came.
+func TestTokenLimit(t *testing.T) {
+	var body map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&body)
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"So the plan was\"}}]}\n\n")
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"length\"}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer srv.Close()
+	e := &Endpoint{URL: srv.URL, Model: "m", Style: Chat}
+	line := strings.Repeat("长", 100)
+	out, err := e.Translate(context.Background(), Request{Src: "zh", Tgt: "en", Text: line}, nil)
+	if err != nil || out != "So the plan was…" || body["max_tokens"] != 228.0 {
+		t.Errorf("%q %v, max_tokens %v", out, err, body["max_tokens"])
+	}
+	e.Style, e.Gap = Index, time.Second
+	if out, err := e.Translate(context.Background(), Request{Src: "zh", Tgt: "en", Text: "好"}, nil); err != nil || out != "So the plan was…" || body["max_tokens"] != 129.0 {
+		t.Errorf("Index, with a gap: %q %v, max_tokens %v", out, err, body["max_tokens"])
+	}
+	if out, err := e.Chat(context.Background(), "sys", "user", 1024); err != nil || out != "So the plan was" {
+		t.Errorf("chat: %q %v", out, err)
 	}
 }
 
