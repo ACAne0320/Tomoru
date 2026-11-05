@@ -228,6 +228,7 @@
   "errAsrCloudKey": "클라우드 음성 인식에 API 키가 없어요. 설정 › 인식 및 번역에서 설정하세요.",
   "errAsrCloudAuth": "Model Studio가 API 키를 거부했어요. 설정 › 인식 및 번역에서 확인하세요.",
   "errAsrApiAuth": "인식 서비스가 API 키를 거부했어요. 설정 › 인식 및 번역에서 확인하세요.",
+  "errAsrBehind": "음성 인식이 재생 중인 소리를 따라가지 못했어요. 설정 › 인식 및 번역에서 더 가벼운 모델을 고르거나 네트워크를 확인하세요.",
   "errAsrCloud": "클라우드 음성 인식이 멈췄어요: {reason}",
   "tabScenes": "번역 장면",
   "scene": "장면",

@@ -476,9 +476,44 @@ func TestStopStuck(t *testing.T) {
 		r.Audio(engine.Event{Type: "audio", PCM: chunk})
 	}
 	r.Stop()
+	// Stopped, its inputs filling up are no decoding behind.
+	for range 300 {
+		if err := r.Audio(engine.Event{Type: "audio", PCM: chunk}); !errors.Is(err, ErrStopped) {
+			t.Fatalf("audio after stopping: %v", err)
+		}
+	}
 	wait(t, r)
 	if r.Err() != nil {
 		t.Fatal(r.Err())
+	}
+}
+
+// TestBehind ends the runner with ErrBehind, and the decoder with it, when a decode does not return
+// while its inputs fill up.
+func TestBehind(t *testing.T) {
+	dec := &stuckDec{done: make(chan struct{})}
+	r := Start(dec, caps, func(engine.Event) {})
+	chunk := base64.StdEncoding.EncodeToString(make([]byte, 2*rate/10))
+	r.Voice(engine.Event{Type: "voice", On: true, T: 0})
+	var err error
+	for i := 0; err == nil && i < 1000; i++ {
+		err = r.Audio(engine.Event{Type: "audio", PCM: chunk})
+	}
+	if !errors.Is(err, ErrBehind) {
+		t.Fatalf("audio as the decode hangs: %v", err)
+	}
+	wait(t, r)
+	if !errors.Is(r.Err(), ErrBehind) {
+		t.Fatalf("error %v", r.Err())
+	}
+	select {
+	case <-dec.Done():
+	default:
+		t.Fatal("the decoder still runs")
+	}
+	r.Stop() // as the session does, ending
+	if !errors.Is(r.Err(), ErrBehind) {
+		t.Fatalf("error after Stop %v", r.Err())
 	}
 }
 

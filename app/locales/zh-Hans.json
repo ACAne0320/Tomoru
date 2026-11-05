@@ -228,6 +228,7 @@
   "errAsrCloudKey": "云端识别还没有 API key。请在 设置 › 识别与翻译 里设置。",
   "errAsrCloudAuth": "百炼拒绝了这个 API key。请在 设置 › 识别与翻译 里检查。",
   "errAsrApiAuth": "识别服务拒绝了这个 API key。请在 设置 › 识别与翻译 里检查。",
+  "errAsrBehind": "语音识别跟不上正在播放的内容。请在 设置 › 识别与翻译 里换一个更轻的模型，或检查网络。",
   "errAsrCloud": "云端识别已停止：{reason}",
   "tabScenes": "翻译场景",
   "scene": "场景",

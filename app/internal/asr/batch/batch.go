@@ -87,6 +87,10 @@ type Caps struct {
 // ErrStopped is audio or voice given a runner that stopped.
 var ErrStopped = errors.New("batch: stopped")
 
+// ErrBehind is decoding that fell behind what is heard: the runner's inputs, about 25 s of audio,
+// waited on a decode that had not returned.
+var ErrBehind = errors.New("batch: decoding fell behind")
+
 // Runner is a recognizer of the engine's audio and voice events, with a decoder. It reports what
 // it recognizes as the engine protocol's result, voice and clock events.
 type Runner struct {
@@ -98,6 +102,7 @@ type Runner struct {
 	quit     chan struct{}
 	stopOnce sync.Once
 	forcing  atomic.Bool // Stop stopped the decoder, as the runner had not ended
+	behind   atomic.Bool // put stopped the decoder, its inputs full
 	done     chan struct{}
 	err      error // why it ended, set before done closes
 
@@ -157,11 +162,18 @@ func (r *Runner) put(x input) error {
 	select {
 	case r.in <- x:
 		return nil
-	case <-r.quit:
-		return ErrStopped
-	case <-r.done:
+	default:
+	}
+	// Waiting would hold the engine's events, and the subtitles, as long as the decode: one that
+	// hangs, forever. Stopping the decoder ends it, and the runner says why.
+	r.stopOnce.Do(func() {
+		r.behind.Store(true)
+		r.dec.Stop()
+	})
+	if !r.behind.Load() {
 		return ErrStopped
 	}
+	return ErrBehind
 }
 
 // Stop ends the runner: the stretch going on is made final, and the decoder stops. It returns at
@@ -191,7 +203,10 @@ func (r *Runner) loop() {
 	err := r.run()
 	r.dec.Stop()
 	<-r.dec.Done()
-	if r.forcing.Load() {
+	switch {
+	case r.behind.Load():
+		err = ErrBehind // the decode put ended, not the decoder's failure
+	case r.forcing.Load():
 		err = nil // the decode Stop ended, not the decoder's failure
 	}
 	r.err = err

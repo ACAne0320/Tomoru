@@ -425,8 +425,10 @@ models together leave little of 8 GB of VRAM to a game; the page says so.
 
 ## Edge cases
 
-- Decoding slower than speech: volatile decodes are skipped; if finals fall behind too, the session
-  says so (as a recognizer error), and the engines page recommends a lighter model.
+- Decoding slower than speech: volatile decodes are skipped. When a decode holds the runner while
+  about 25 s of audio piles up behind it (finals too slow, or a llama-server or network that
+  hangs), the runner stops the decoder and the session stops with `batch.ErrBehind`, whose message
+  says to choose a lighter model or check the network.
 - llama-server crashes or fails to start: the session stops with the error, like `tomoru-asr` now.
 - Music and sound effects recognized as words (the cloud's 「Do」, 「多河」 in the Sekiro case):
   dropped when they have no letters of the language; the rest the benchmark's Noise chars/min shows.

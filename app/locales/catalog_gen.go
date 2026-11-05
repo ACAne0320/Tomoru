@@ -3341,6 +3341,26 @@ func (msgs Messages) ErrAsrApiAuth() string {
 	return Catalog.Format(msgs.locale, "errAsrApiAuth", nil)
 }
 
+// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation,…"
+// in the language the app shows.
+//
+// Why translating stopped: on-device recognition, or a transcription API,
+// decoded slower than the audio played until about 25 seconds piled up (a
+// model too heavy for the computer, a hung model server, or a slow
+// network).
+func ErrAsrBehind() string { return In(i18n.Locale()).ErrAsrBehind() }
+
+// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation,…"
+// in the language of msgs.
+//
+// Why translating stopped: on-device recognition, or a transcription API,
+// decoded slower than the audio played until about 25 seconds piled up (a
+// model too heavy for the computer, a hung model server, or a slow
+// network).
+func (msgs Messages) ErrAsrBehind() string {
+	return Catalog.Format(msgs.locale, "errAsrBehind", nil)
+}
+
 // ErrAsrCloud says "Cloud recognition stopped: {reason}"
 // in the language the app shows.
 //

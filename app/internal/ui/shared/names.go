@@ -10,6 +10,7 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
+	"tomoru/internal/asr/batch"
 	"tomoru/internal/core"
 	"tomoru/internal/engine"
 	"tomoru/internal/lang"
@@ -137,6 +138,8 @@ func ErrorText(err error) string {
 		return locales.ErrNoAsr()
 	case errors.Is(err, core.ErrASRMissing):
 		return locales.ErrAsrModelMissing()
+	case errors.Is(err, batch.ErrBehind):
+		return locales.ErrAsrBehind()
 	}
 	if why := asrCloudError(err); why != "" {
 		return why

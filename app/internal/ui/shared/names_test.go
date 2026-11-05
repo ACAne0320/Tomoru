@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/i18n"
 
+	"tomoru/internal/asr/batch"
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
 	"tomoru/locales"
@@ -39,6 +40,7 @@ func TestErrorText(t *testing.T) {
 		&engine.Error{Code: "assets-failed"}:     locales.ErrAssets(),
 		&engine.Error{Code: "new", Message: "m"}: locales.StatusStopped("m"),
 		errors.New("x"):                          locales.StatusStopped("x"),
+		batch.ErrBehind:                          locales.ErrAsrBehind(),
 	} {
 		if got := ErrorText(err); got != want {
 			t.Errorf("%v: %q, want %q", err, got, want)

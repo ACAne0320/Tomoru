@@ -228,6 +228,7 @@
   "errAsrCloudKey": "雲端辨識還沒有 API key。請在 設定 › 辨識與翻譯 裡設定。",
   "errAsrCloudAuth": "百煉拒絕了這個 API key。請在 設定 › 辨識與翻譯 裡檢查。",
   "errAsrApiAuth": "辨識服務拒絕了這個 API key。請在 設定 › 辨識與翻譯 裡檢查。",
+  "errAsrBehind": "語音辨識跟不上正在播放的內容。請在 設定 › 辨識與翻譯 裡換一個更輕的模型，或檢查網路。",
   "errAsrCloud": "雲端辨識已停止：{reason}",
   "tabScenes": "翻譯場景",
   "scene": "場景",

@@ -1177,6 +1177,10 @@
   "@errAsrApiAuth": {
     "description": "Where the subtitles show, and in the cloud recognition dialog's test: OpenAI's service, or a compatible one, refused the API key."
   },
+  "errAsrBehind": "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation, or check the network.",
+  "@errAsrBehind": {
+    "description": "Why translating stopped: on-device recognition, or a transcription API, decoded slower than the audio played until about 25 seconds piled up (a model too heavy for the computer, a hung model server, or a slow network)."
+  },
   "errAsrCloud": "Cloud recognition stopped: {reason}",
   "@errAsrCloud": {
     "description": "Where the subtitles show, when the cloud recognition failed.",
