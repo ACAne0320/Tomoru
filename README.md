@@ -154,7 +154,7 @@ The free cloud translation model is Index-Translate's. If you like it, give it a
 The [third-party license inventory](docs/third-party-licenses.md) has each project's version,
 license and notices.
 
-Special thanks to [LINUX DO](https://linux.do) and [Appinn](https://www.appinn.com) for supporting open-source software.
+Special thanks to [LINUX DO](https://linux.do) and [Appinn](https://www.appinn.com) for supporting open-source software, and to [Awesome MyGo](https://awesomemygo.dev/apps/tomoru) for listing Tomoru in its showcase.
 
 ## Tomoru and Rubi
 

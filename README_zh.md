@@ -121,7 +121,7 @@ go tool mygo build                            # 打包到 app/build/windows-amd6
 
 各项目的版本、许可证和声明见[第三方许可证清单](docs/third-party-licenses_zh.md)。
 
-感谢 [LINUX DO](https://linux.do) 与 [小众软件](https://www.appinn.com) 社区对开源项目的支持。
+感谢 [LINUX DO](https://linux.do) 与 [小众软件](https://www.appinn.com) 社区对开源项目的支持，感谢 [Awesome MyGo](https://awesomemygo.dev/apps/tomoru) 收录 Tomoru。
 
 ## Tomoru 和 ルビ
 
