@@ -89,7 +89,7 @@ func TestHistorySceneAttributionAndConsentEpoch(t *testing.T) {
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 3, Src: "discarded pending"}})
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = false })
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = true })
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 3, Src: "discarded pending", Done: true, Err: context.Canceled.Error()}})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 3, Src: "discarded pending", Done: true, Err: context.Canceled}})
 	c.Stop()
 	rs, err := history.List(c.deps.HistoryDir)
 	if err != nil {

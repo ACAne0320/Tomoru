@@ -221,7 +221,7 @@ func TestTryCloudFailed(t *testing.T) {
 	tt := ui.NewTester(g.View, Width, Height)
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: "listening", Voice: true,
-		Lines: []live.Line{{ID: 1, Src: "Hello there.", Done: true, Err: "stream error: INTERNAL_ERROR"}}}
+		Lines: []live.Line{{ID: 1, Src: "Hello there.", Done: true, Err: errors.New("stream error: INTERNAL_ERROR")}}}
 	tt.Frame()
 	if g.try.translated || !tt.HasText(locales.TranslationFailedCloud()) {
 		t.Errorf("translated %v; %q", g.try.translated, tt.Texts())

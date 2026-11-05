@@ -35,6 +35,22 @@
   "@translationFailedCloud": {
     "description": "In the first-run guide, under the translation check, when lines failed to translate with Index-Translate's cloud: it may be down."
   },
+  "translationSkipped": "Skipped: translating fell behind.",
+  "@translationSkipped": {
+    "description": "Under a subtitle line, and in the history, when its translation was skipped because translating fell behind."
+  },
+  "translationKeyRefused": "The translation API refused the key. Check it in Settings › Speech & Translation.",
+  "@translationKeyRefused": {
+    "description": "Under a subtitle line whose translation failed because the translation API refused the API key (HTTP 401 or 403)."
+  },
+  "translationLimited": "The translation API is limiting requests, or the quota is used up.",
+  "@translationLimited": {
+    "description": "Under a subtitle line whose translation failed because the translation API is rate limiting, or the account's quota or balance ran out (HTTP 429 or 402)."
+  },
+  "translationNotAnswering": "The translation service isn't answering.",
+  "@translationNotAnswering": {
+    "description": "Under a subtitle line whose translation failed because the translation service could not be reached or did not answer in time."
+  },
   "spokenLanguage": "Spoken language",
   "@spokenLanguage": {
     "description": "Label of the menu of the language spoken in the video."

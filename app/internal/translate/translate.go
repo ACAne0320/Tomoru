@@ -336,6 +336,16 @@ func (e *Endpoint) Warm(ctx context.Context) {
 	}
 }
 
+// StatusError is a reply other than 200 OK: its HTTP status, and the start of its body.
+type StatusError struct {
+	Status int
+	Body   string
+}
+
+func (e *StatusError) Error() string {
+	return fmt.Sprintf("translate: %d %s: %s", e.Status, http.StatusText(e.Status), e.Body)
+}
+
 // complete sends a completion and reads it as it streams in, within timeout unless e.Client says;
 // cut tells the token limit ended it.
 func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout time.Duration, onDelta func(string)) (out string, cut bool, err error) {
@@ -360,7 +370,7 @@ func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout ti
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return "", false, fmt.Errorf("translate: %s: %s", resp.Status, bytes.TrimSpace(b))
+		return "", false, &StatusError{resp.StatusCode, string(bytes.TrimSpace(b))}
 	}
 	out, used, cut, err := readStream(resp.Body, onDelta)
 	if f, ok := ctx.Value(usageKey{}).(func(Usage)); ok && used != (Usage{}) {

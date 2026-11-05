@@ -147,8 +147,11 @@ func recordLine(r *Result, lines map[int]live.Line, t float64, l live.Line) {
 		r.Events = append(r.Events, Event{T: t, Line: l.ID, Src: l.Src, LDraft: l.Draft})
 	}
 	if old.Tgt != l.Tgt || old.Done != l.Done || old.Err != l.Err {
-		tgt := l.Tgt
-		r.Events = append(r.Events, Event{T: t, Line: l.ID, Tgt: &tgt, Done: l.Done, Err: l.Err})
+		tgt, why := l.Tgt, ""
+		if l.Err != nil {
+			why = l.Err.Error()
+		}
+		r.Events = append(r.Events, Event{T: t, Line: l.ID, Tgt: &tgt, Done: l.Done, Err: why})
 	}
 	lines[l.ID] = l
 }

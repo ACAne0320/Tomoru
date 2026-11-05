@@ -586,12 +586,18 @@ func TestHistory(t *testing.T) {
 	if hasTextContaining(tt, "Old") || k.History.Shown != "/h/ff7.jsonl" {
 		t.Errorf("shown %q, texts %q", k.History.Shown, tt.Texts())
 	}
-	k.History.Lines = []history.Entry{{At: start, Src: "まずはクラウドの武器", Heard: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"}}
+	// A line skipped says so, as old files and new ones keep it; another failure as it came.
+	k.History.Lines = []history.Entry{{At: start, Src: "まずはクラウドの武器", Heard: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"},
+		{At: start, Src: "スキップ", Err: "behind"}, {At: start, Src: "失敗", Err: "translate: 500 Internal Server Error: down"}}
 	tt.Frame()
-	for _, want := range []string{"先看克劳德的武器", locales.TermFixed("黒ウド"), shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer())} {
+	for _, want := range []string{"先看克劳德的武器", locales.TermFixed("黒ウド"), shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer()),
+		locales.TranslationSkipped(), "translate: 500 Internal Server Error: down"} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
+	}
+	if slices.Contains(tt.Texts(), "behind") {
+		t.Errorf("a skipped line shows its stored reason: %q", tt.Texts())
 	}
 	// Deleting it doesn't ask: it says so, with a button that puts it back.
 	if err := tt.Click(locales.DeleteRecord()); err != nil {

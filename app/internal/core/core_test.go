@@ -36,7 +36,7 @@ func (s *fakeSession) Stop() {
 	for id, l := range s.lines {
 		if !l.Done {
 			l.Done = true
-			l.Err = context.Canceled.Error()
+			l.Err = context.Canceled
 			s.lines[id] = l
 			if s.cfg.OnLine != nil {
 				s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: l})

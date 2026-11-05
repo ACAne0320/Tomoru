@@ -97,7 +97,7 @@ func TestLineEventsBacklogAndOverflow(t *testing.T) {
 			}
 			if count == 66 {
 				last := got.events[len(got.events)-1]
-				if got.completed() != 1 || last.Kind != LineCompleted || last.Line.ID != 66 || last.Line.Err != "behind" {
+				if got.completed() != 1 || last.Kind != LineCompleted || last.Line.ID != 66 || last.Line.Err != ErrBehind {
 					t.Errorf("overflow final event missing: %+v", got.events)
 				}
 			}
@@ -108,7 +108,7 @@ func TestLineEventsBacklogAndOverflow(t *testing.T) {
 			s.Wait()
 			checkLifecycle(t, got.events, count)
 			for _, e := range got.events {
-				if e.Kind == LineCompleted && e.Line.Err == "" && e.Line.Tgt != "translated "+e.Line.Src {
+				if e.Kind == LineCompleted && e.Line.Err == nil && e.Line.Tgt != "translated "+e.Line.Src {
 					t.Errorf("lost translation for evicted sentence: %+v", e)
 				}
 			}
@@ -185,7 +185,7 @@ func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 		if e.Kind != LineCompleted {
 			continue
 		}
-		if e.Line.Err != context.Canceled.Error() {
+		if e.Line.Err != context.Canceled {
 			t.Errorf("completion: %+v", e)
 		}
 		if e.Line.ID == 1 && e.Line.Tgt != "partial" {
@@ -268,7 +268,7 @@ func TestCanceledLineRetainsDraft(t *testing.T) {
 	s.Wait()
 	checkLifecycle(t, got.events, 1)
 	last := got.events[len(got.events)-1]
-	if last.Line.Draft != "available draft" || last.Line.Tgt != "" || last.Line.Err != context.Canceled.Error() {
+	if last.Line.Draft != "available draft" || last.Line.Tgt != "" || last.Line.Err != context.Canceled {
 		t.Errorf("canceled draft not retained: %+v", last)
 	}
 }

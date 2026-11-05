@@ -141,6 +141,72 @@ func (msgs Messages) TranslationFailedCloud() string {
 	return Catalog.Format(msgs.locale, "translationFailedCloud", nil)
 }
 
+// TranslationSkipped says "Skipped: translating fell behind."
+// in the language the app shows.
+//
+// Under a subtitle line, and in the history, when its translation was
+// skipped because translating fell behind.
+func TranslationSkipped() string { return In(i18n.Locale()).TranslationSkipped() }
+
+// TranslationSkipped says "Skipped: translating fell behind."
+// in the language of msgs.
+//
+// Under a subtitle line, and in the history, when its translation was
+// skipped because translating fell behind.
+func (msgs Messages) TranslationSkipped() string {
+	return Catalog.Format(msgs.locale, "translationSkipped", nil)
+}
+
+// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & Translation."
+// in the language the app shows.
+//
+// Under a subtitle line whose translation failed because the translation
+// API refused the API key (HTTP 401 or 403).
+func TranslationKeyRefused() string { return In(i18n.Locale()).TranslationKeyRefused() }
+
+// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & Translation."
+// in the language of msgs.
+//
+// Under a subtitle line whose translation failed because the translation
+// API refused the API key (HTTP 401 or 403).
+func (msgs Messages) TranslationKeyRefused() string {
+	return Catalog.Format(msgs.locale, "translationKeyRefused", nil)
+}
+
+// TranslationLimited says "The translation API is limiting requests, or the quota is used up."
+// in the language the app shows.
+//
+// Under a subtitle line whose translation failed because the translation
+// API is rate limiting, or the account's quota or balance ran out (HTTP 429
+// or 402).
+func TranslationLimited() string { return In(i18n.Locale()).TranslationLimited() }
+
+// TranslationLimited says "The translation API is limiting requests, or the quota is used up."
+// in the language of msgs.
+//
+// Under a subtitle line whose translation failed because the translation
+// API is rate limiting, or the account's quota or balance ran out (HTTP 429
+// or 402).
+func (msgs Messages) TranslationLimited() string {
+	return Catalog.Format(msgs.locale, "translationLimited", nil)
+}
+
+// TranslationNotAnswering says "The translation service isn't answering."
+// in the language the app shows.
+//
+// Under a subtitle line whose translation failed because the translation
+// service could not be reached or did not answer in time.
+func TranslationNotAnswering() string { return In(i18n.Locale()).TranslationNotAnswering() }
+
+// TranslationNotAnswering says "The translation service isn't answering."
+// in the language of msgs.
+//
+// Under a subtitle line whose translation failed because the translation
+// service could not be reached or did not answer in time.
+func (msgs Messages) TranslationNotAnswering() string {
+	return Catalog.Format(msgs.locale, "translationNotAnswering", nil)
+}
+
 // SpokenLanguage says "Spoken language"
 // in the language the app shows.
 //

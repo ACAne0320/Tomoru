@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -136,12 +137,14 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 				s.hist = history.NewWriter(s.dir, head)
 				s.writing, s.writingRun = p, r
 			}
-			tgt, errText := l.Tgt, l.Err
-			if errText == context.Canceled.Error() {
+			tgt, errText := l.Tgt, ""
+			switch {
+			case errors.Is(l.Err, context.Canceled):
 				if tgt == "" {
 					tgt = l.Draft
 				}
-				errText = ""
+			case l.Err != nil:
+				errText = l.Err.Error()
 			}
 			if err := s.hist.Add(history.Entry{At: time.Now(), Src: l.Src, Heard: l.Heard, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err

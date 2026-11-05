@@ -1,12 +1,21 @@
 package subtitle
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/live"
 	"tomoru/internal/prefs"
+	"tomoru/internal/translate"
 	"tomoru/locales"
 )
 
@@ -15,7 +24,7 @@ func TestVisible(t *testing.T) {
 	st := live.State{Pending: "コメントも", Draft: "评论也", Lines: []live.Line{
 		{ID: 1, Src: "a", Tgt: "A", Done: true},
 		{ID: 2, Src: "b", Tgt: "B", Draft: "B draft", Done: false},
-		{ID: 3, Src: "c", Err: "x", Done: true},
+		{ID: 3, Src: "c", Err: errors.New("x"), Done: true},
 	}}
 	p.Shown = 3
 	got := Visible(st, 0, p)
@@ -48,6 +57,49 @@ func TestVisible(t *testing.T) {
 	p.Shown, p.Display = 3, 1
 	if got := Visible(live.State{Pending: "x", Lines: []live.Line{{ID: 1, Src: "a"}}}, 0, p); len(got) != 0 {
 		t.Errorf("translation only: %+v", got)
+	}
+}
+
+// TestFailure says why a line has no translation, from what the translator's requests did.
+func TestFailure(t *testing.T) {
+	replies := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		code, _ := strconv.Atoi(strings.Split(r.URL.Path, "/")[1])
+		http.Error(w, "no", code)
+	}))
+	defer replies.Close()
+	status := func(code int) string { return fmt.Sprintf("%s/%d", replies.URL, code) }
+	answer := make(chan struct{})
+	hang := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { <-answer }))
+	defer hang.Close()
+	defer close(answer)
+	closed := httptest.NewServer(http.NotFoundHandler())
+	closed.Close()
+	translated := func(url string) error {
+		_, err := (&translate.Endpoint{URL: url, Timeout: 50 * time.Millisecond}).Translate(context.Background(), translate.Request{Src: "ja", Tgt: "zh", Text: "はい"}, nil)
+		return err
+	}
+	for _, c := range []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"behind", live.ErrBehind, locales.TranslationSkipped()},
+		{"401", translated(status(http.StatusUnauthorized)), locales.TranslationKeyRefused()},
+		{"403", translated(status(http.StatusForbidden)), locales.TranslationKeyRefused()},
+		{"402", translated(status(http.StatusPaymentRequired)), locales.TranslationLimited()},
+		{"429", translated(status(http.StatusTooManyRequests)), locales.TranslationLimited()},
+		{"refused", translated(closed.URL), locales.TranslationNotAnswering()},
+		{"timeout", translated(hang.URL), locales.TranslationNotAnswering()},
+		{"stalled", translate.ErrStalled, locales.TranslationNotAnswering()},
+		{"deadline", fmt.Errorf("decode: %w", context.DeadlineExceeded), locales.TranslationNotAnswering()},
+		{"500", translated(status(http.StatusInternalServerError)), locales.TranslationFailed()},
+		{"bad URL", translated("ftp://example.com"), locales.TranslationFailed()},
+		{"empty", translate.ErrEmpty, locales.TranslationFailed()},
+		{"canceled", context.Canceled, locales.TranslationFailed()},
+	} {
+		if got := Failure(c.err); got != c.want {
+			t.Errorf("%s (%v): %q, want %q", c.name, c.err, got, c.want)
+		}
 	}
 }
 

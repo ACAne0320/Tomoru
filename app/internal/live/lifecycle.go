@@ -15,8 +15,8 @@ const (
 )
 
 // LineEvent is a complete copy of one sentence at a lifecycle transition. Each committed ID
-// receives exactly one completion, including a skipped translation (Err == "behind") or a
-// cancellation (Err == context.Canceled.Error()). Progress and completion retain Src, Heard and
+// receives exactly one completion, including a skipped translation (Err is ErrBehind) or a
+// cancellation (Err is context.Canceled). Progress and completion retain Src, Heard and
 // Draft even after State.Lines evicts the sentence. Events are serialized in transition order;
 // queue overflow can complete newer IDs before older translations. Consumers that write ordered
 // records should buffer by ID until preceding sentences complete.
@@ -124,7 +124,7 @@ func (s *Session) stop(err error) {
 		slices.Sort(ids)
 		for _, id := range ids {
 			line := s.active[id]
-			line.Done, line.Err = true, context.Canceled.Error()
+			line.Done, line.Err = true, context.Canceled
 			lineOf(&s.state, id, func(display *Line) { *display = line.Line })
 			s.emitLine(LineCompleted, line.Line, line.metadata)
 			delete(s.active, id)

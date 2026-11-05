@@ -4,6 +4,7 @@ package live
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strings"
 	"sync"
@@ -25,12 +26,16 @@ type Line struct {
 	// Heard is Src as recognized, when the glossary wrote a name in it right.
 	Heard string
 	Tgt   string
-	Done  bool   // translation finished, failed, was skipped, or was canceled
-	Err   string // why it has no translation
+	Done  bool  // translation finished, failed, was skipped, or was canceled
+	Err   error // why it has no translation: the translator's error, ErrBehind or context.Canceled
 	// Draft is the translation of the sentence while it was being spoken. A translation streaming
 	// in starts shorter than the draft it replaces, so the draft shows until Done.
 	Draft string
 }
+
+// ErrBehind is a translation skipped because translating fell behind. Its message is what history
+// files keep for it.
+var ErrBehind = errors.New("behind")
 
 // State is what the subtitles show.
 type State struct {
@@ -496,7 +501,7 @@ func (s *Session) handle(ev engine.Event) {
 			case s.queue <- q:
 				s.waitEnd(q.seq)
 			default: // translation is far behind: this line goes without
-				q.Done, q.Err = true, "behind"
+				q.Done, q.Err = true, ErrBehind
 				delete(s.active, q.ID)
 				s.emitLine(LineCompleted, q.Line, metadata)
 			}
@@ -622,7 +627,7 @@ func (s *Session) translateLoop() {
 				}
 				x.Done = true
 				if err != nil {
-					x.Err = err.Error()
+					x.Err = err
 				} else {
 					x.Tgt = out
 				}

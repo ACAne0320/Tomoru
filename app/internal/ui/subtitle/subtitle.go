@@ -3,6 +3,10 @@
 package subtitle
 
 import (
+	"context"
+	"errors"
+	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -13,6 +17,7 @@ import (
 	"tomoru/internal/live"
 	"tomoru/internal/prefs"
 	"tomoru/internal/samples"
+	"tomoru/internal/translate"
 	"tomoru/locales"
 )
 
@@ -74,8 +79,8 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 			// A translation streaming in starts shorter than the draft it replaces: keep the draft
 			// until the translation is done, rather than going back to a few words.
 			e.Tgt, e.Draft = l.Draft, true
-		case l.Err != "":
-			e.Tgt, e.DimTgt = locales.TranslationFailed(), true
+		case l.Err != nil:
+			e.Tgt, e.DimTgt = Failure(l.Err), true
 		}
 		if p.Display == 0 || e.Tgt != "" {
 			all = append(all, e)
@@ -93,6 +98,27 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Draft: prev.Draft, Swaps: true}}
 	}
 	return all[max(0, len(all)-n):]
+}
+
+// Failure is why a line has no translation, as the user can act on it.
+func Failure(err error) string {
+	var status *translate.StatusError
+	var netErr net.Error
+	var opErr *net.OpError
+	switch {
+	case errors.Is(err, live.ErrBehind):
+		return locales.TranslationSkipped()
+	case errors.As(err, &status) && (status.Status == http.StatusUnauthorized || status.Status == http.StatusForbidden):
+		return locales.TranslationKeyRefused()
+	case errors.As(err, &status) && (status.Status == http.StatusPaymentRequired || status.Status == http.StatusTooManyRequests):
+		return locales.TranslationLimited()
+	case errors.Is(err, translate.ErrStalled), errors.Is(err, context.DeadlineExceeded),
+		errors.As(err, &netErr) && netErr.Timeout(), errors.As(err, &opErr):
+		// An error of the client wraps every request's failure as a net.Error, a bad URL's too:
+		// only a timeout, or a connection that failed, is the service not answering.
+		return locales.TranslationNotAnswering()
+	}
+	return locales.TranslationFailed()
 }
 
 // Samples are the last of the sample sentences, as many as show at once, in the chosen

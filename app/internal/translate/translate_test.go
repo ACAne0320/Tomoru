@@ -244,6 +244,19 @@ func TestChat(t *testing.T) {
 	}
 }
 
+// TestStatus fails a reply other than 200 OK with its status, for the subtitles to say why.
+func TestStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "invalid api key", http.StatusUnauthorized)
+	}))
+	defer srv.Close()
+	_, err := (&Endpoint{URL: srv.URL, Model: "m"}).Translate(context.Background(), Request{Src: "ja", Tgt: "zh", Text: "はい"}, nil)
+	var status *StatusError
+	if !errors.As(err, &status) || status.Status != http.StatusUnauthorized || err.Error() != "translate: 401 Unauthorized: invalid api key" {
+		t.Errorf("%v", err)
+	}
+}
+
 // TestTokenLimit gives a line's translation tokens for its length, and ends one the limit cut with
 // an ellipsis: its start is shown, as unfinished. Chat's answer is left as it came.
 func TestTokenLimit(t *testing.T) {

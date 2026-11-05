@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -20,7 +21,7 @@ func TestRecorderRetainsBacklogAndPartialCompletions(t *testing.T) {
 		recordLine(&result, lines, 1, line)
 		line.Done = true
 		if id == 12 {
-			line.Err = "context canceled"
+			line.Err = context.Canceled
 		}
 		recordLine(&result, lines, 2, line)
 		recordLine(&result, lines, 2, line)

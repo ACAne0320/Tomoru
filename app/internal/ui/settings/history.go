@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/history"
+	"tomoru/internal/live"
 	"tomoru/internal/prefs"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/assets"
@@ -203,6 +204,8 @@ func line(c *ui.Context, l history.Entry, terms []scene.Term) {
 	switch {
 	case l.Tgt != "":
 		ui.Text(c, l.Tgt).FontSize(kit.TextBody + 1).FontWeight(kit.WeightMedium).TextColor(p.Ink)
+	case l.Err == live.ErrBehind.Error():
+		kit.Warning(c, locales.TranslationSkipped()).MaxLines(2)
 	case l.Err != "":
 		kit.Warning(c, l.Err).MaxLines(2)
 	default:

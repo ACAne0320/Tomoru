@@ -86,7 +86,7 @@ func (g *Guide) tryStep(c *ui.Context, showing bool) {
 	g.try.recognized = g.try.recognized || st.Pending != "" || len(lines) > 0
 	g.try.heard = g.try.heard || st.Voice || g.try.recognized
 	for _, l := range lines {
-		g.try.translated = g.try.translated || l.Tgt != "" && l.Err == "" || l.Draft != ""
+		g.try.translated = g.try.translated || l.Tgt != "" && l.Err == nil || l.Draft != ""
 	}
 	g.try.translated = g.try.translated || st.Draft != ""
 	g.flowing(now, subtitle.Visible(st, max(k.Since, g.try.after+1), k.Preferences()))
@@ -278,7 +278,7 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 
 		failed := false
 		for _, l := range g.lines(k.State) {
-			failed = failed || l.Err != "" && l.Err != "behind"
+			failed = failed || l.Err != nil && !errors.Is(l.Err, live.ErrBehind)
 		}
 		mt, ok := k.Engine(core.MT, k.Preferences().MT)
 		if !ok {
