@@ -16,8 +16,10 @@ type TileGroup struct {
 }
 
 // PickTiles chooses one of the tiles of groups, *selected its index counted through all of them: a
-// row of the groups, each its name over its tiles, the one chosen on the band. The arrows move the choice while it has the focus; name it with Label, and Changed
-// reports a new choice.
+// row of the groups, each its name over its tiles, the one chosen on the band. A tile's name takes
+// two lines where one is too narrow, the values staying on one line along the tiles' foot. The
+// arrows move the choice while it has the focus; name it with Label, and Changed reports a new
+// choice.
 func PickTiles(c *ui.Context, selected *int, groups []TileGroup) ui.Element {
 	p := Colors(c)
 	n := 0
@@ -46,8 +48,8 @@ func PickTiles(c *ui.Context, selected *int, groups []TileGroup) ui.Element {
 							size = TextStat
 						}
 						s.Background(s.AnimateColor("face", face, Fade)).Children(func() {
-							ui.Column(c).Grow(1).Gap(Space(1)).Justify(ui.SpaceBetween).Children(func() {
-								ui.Text(c, t.Label).FontSize(TextCaption).TextColor(p.InkMuted).SingleLine()
+							ui.Column(c).Grow(1).AlignSelf(ui.Stretch).Gap(Space(1)).Justify(ui.SpaceBetween).Children(func() {
+								ui.Text(c, t.Label).FontSize(TextCaption).TextColor(p.InkMuted).MaxLines(2)
 								ui.Row(c).Gap(Space(1)).AlignItems(ui.End).Children(func() {
 									ui.Text(c, t.Value).FontSize(size).FontWeight(WeightHeavy).FontFeatures(Tabular).TextColor(p.Ink).SingleLine()
 									if t.Unit != "" {

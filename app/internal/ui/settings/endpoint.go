@@ -45,7 +45,7 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 	}
 	title := locales.EndpointEditTitle()
 	if d.e.ID == "" {
-		title = locales.AddEndpoint()
+		title = strings.TrimSuffix(locales.AddEndpoint(), "…") // the button's label: a title has no ellipsis
 	}
 	dialog := kit.Dialog(c, &d.open, title, locales.EndpointIntro(), func() {
 		endpointForm(c, d)

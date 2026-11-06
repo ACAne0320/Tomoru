@@ -157,14 +157,14 @@ func (msgs Messages) TranslationSkipped() string {
 	return Catalog.Format(msgs.locale, "translationSkipped", nil)
 }
 
-// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & Translation."
+// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Under a subtitle line whose translation failed because the translation
 // API refused the API key (HTTP 401 or 403).
 func TranslationKeyRefused() string { return In(i18n.Locale()).TranslationKeyRefused() }
 
-// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & Translation."
+// TranslationKeyRefused says "The translation API refused the key. Check it in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Under a subtitle line whose translation failed because the translation
@@ -607,14 +607,14 @@ func (msgs Messages) TabSubtitles() string {
 	return Catalog.Format(msgs.locale, "tabSubtitles", nil)
 }
 
-// TabEngines says "Speech & Translation"
+// TabEngines says "Speech & translation"
 // in the language the app shows.
 //
 // A page of the settings, and a step of the first-run guide: speech
 // recognition and translation.
 func TabEngines() string { return In(i18n.Locale()).TabEngines() }
 
-// TabEngines says "Speech & Translation"
+// TabEngines says "Speech & translation"
 // in the language of msgs.
 //
 // A page of the settings, and a step of the first-run guide: speech
@@ -1465,18 +1465,50 @@ func (msgs Messages) AboutCredits() string {
 	return Catalog.Format(msgs.locale, "aboutCredits", nil)
 }
 
-// RerunGuide says "Run the first-run guide again"
+// AboutGuide says "First-run guide"
 // in the language the app shows.
 //
-// Button in About.
-func RerunGuide() string { return In(i18n.Locale()).RerunGuide() }
+// About: the row of the first-run guide, beside the button running it
+// again.
+func AboutGuide() string { return In(i18n.Locale()).AboutGuide() }
 
-// RerunGuide says "Run the first-run guide again"
+// AboutGuide says "First-run guide"
 // in the language of msgs.
 //
-// Button in About.
-func (msgs Messages) RerunGuide() string {
-	return Catalog.Format(msgs.locale, "rerunGuide", nil)
+// About: the row of the first-run guide, beside the button running it
+// again.
+func (msgs Messages) AboutGuide() string {
+	return Catalog.Format(msgs.locale, "aboutGuide", nil)
+}
+
+// AboutRerun says "Run again"
+// in the language the app shows.
+//
+// About: the button running the first-run guide again.
+func AboutRerun() string { return In(i18n.Locale()).AboutRerun() }
+
+// AboutRerun says "Run again"
+// in the language of msgs.
+//
+// About: the button running the first-run guide again.
+func (msgs Messages) AboutRerun() string {
+	return Catalog.Format(msgs.locale, "aboutRerun", nil)
+}
+
+// AboutLogs says "Logs"
+// in the language the app shows.
+//
+// About: the row of the log files, beside the button showing them in
+// Finder, to attach to a report.
+func AboutLogs() string { return In(i18n.Locale()).AboutLogs() }
+
+// AboutLogs says "Logs"
+// in the language of msgs.
+//
+// About: the row of the log files, beside the button showing them in
+// Finder, to attach to a report.
+func (msgs Messages) AboutLogs() string {
+	return Catalog.Format(msgs.locale, "aboutLogs", nil)
 }
 
 // Start says "Start"
@@ -2065,13 +2097,13 @@ func (msgs Messages) StatusLoadingModel() string {
 	return Catalog.Format(msgs.locale, "statusLoadingModel", nil)
 }
 
-// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & Translation."
+// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Why translating could not start.
 func ErrModelMissing() string { return In(i18n.Locale()).ErrModelMissing() }
 
-// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & Translation."
+// ErrModelMissing says "The on-device model isn't downloaded. Download it in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Why translating could not start.
@@ -2679,27 +2711,13 @@ func (msgs Messages) TestOnlyThinking() string {
 	return Catalog.Format(msgs.locale, "testOnlyThinking", nil)
 }
 
-// ShowLogs says "Show logs"
-// in the language the app shows.
-//
-// Button in About: shows the log files in Finder, to attach to a report.
-func ShowLogs() string { return In(i18n.Locale()).ShowLogs() }
-
-// ShowLogs says "Show logs"
-// in the language of msgs.
-//
-// Button in About: shows the log files in Finder, to attach to a report.
-func (msgs Messages) ShowLogs() string {
-	return Catalog.Format(msgs.locale, "showLogs", nil)
-}
-
-// CheckForUpdates says "Check for Updates…"
+// CheckForUpdates says "Check for updates…"
 // in the language the app shows.
 //
 // Button in About.
 func CheckForUpdates() string { return In(i18n.Locale()).CheckForUpdates() }
 
-// CheckForUpdates says "Check for Updates…"
+// CheckForUpdates says "Check for updates…"
 // in the language of msgs.
 //
 // Button in About.
@@ -3277,14 +3295,14 @@ func (msgs Messages) EngineSenseVoiceDescription() string {
 	return Catalog.Format(msgs.locale, "engineSenseVoiceDescription", nil)
 }
 
-// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation."
+// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Where the subtitles show, when translating can't start: the recognition
 // model chosen isn't downloaded.
 func ErrAsrModelMissing() string { return In(i18n.Locale()).ErrAsrModelMissing() }
 
-// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation."
+// ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Where the subtitles show, when translating can't start: the recognition
@@ -3357,13 +3375,13 @@ func (msgs Messages) EngineWaitingSetup(current string) string {
 	return Catalog.Format(msgs.locale, "engineWaitingSetup", map[string]any{"current": current})
 }
 
-// SetUp says "Set Up…"
+// SetUp says "Set up…"
 // in the language the app shows.
 //
 // Button that opens the dialog setting up a cloud service.
 func SetUp() string { return In(i18n.Locale()).SetUp() }
 
-// SetUp says "Set Up…"
+// SetUp says "Set up…"
 // in the language of msgs.
 //
 // Button that opens the dialog setting up a cloud service.
@@ -3371,13 +3389,13 @@ func (msgs Messages) SetUp() string {
 	return Catalog.Format(msgs.locale, "setUp", nil)
 }
 
-// AsrCloudTitle says "Cloud Recognition"
+// AsrCloudTitle says "Cloud recognition"
 // in the language the app shows.
 //
 // Title of the dialog setting up the cloud speech recognition.
 func AsrCloudTitle() string { return In(i18n.Locale()).AsrCloudTitle() }
 
-// AsrCloudTitle says "Cloud Recognition"
+// AsrCloudTitle says "Cloud recognition"
 // in the language of msgs.
 //
 // Title of the dialog setting up the cloud speech recognition.
@@ -3475,14 +3493,14 @@ func (msgs Messages) AsrOpenAiModelDescription() string {
 	return Catalog.Format(msgs.locale, "asrOpenAiModelDescription", nil)
 }
 
-// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & Translation."
+// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Where the subtitles show, when translating can't start: the cloud
 // recognition chosen has no API key.
 func ErrAsrCloudKey() string { return In(i18n.Locale()).ErrAsrCloudKey() }
 
-// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & Translation."
+// ErrAsrCloudKey says "Cloud recognition has no API key. Set it up in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Where the subtitles show, when translating can't start: the cloud
@@ -3491,14 +3509,14 @@ func (msgs Messages) ErrAsrCloudKey() string {
 	return Catalog.Format(msgs.locale, "errAsrCloudKey", nil)
 }
 
-// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & Translation."
+// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test: the
 // service refused the API key.
 func ErrAsrCloudAuth() string { return In(i18n.Locale()).ErrAsrCloudAuth() }
 
-// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & Translation."
+// ErrAsrCloudAuth says "Model Studio refused the API key. Check it in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test: the
@@ -3507,14 +3525,14 @@ func (msgs Messages) ErrAsrCloudAuth() string {
 	return Catalog.Format(msgs.locale, "errAsrCloudAuth", nil)
 }
 
-// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & Translation."
+// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test:
 // OpenAI's service, or a compatible one, refused the API key.
 func ErrAsrApiAuth() string { return In(i18n.Locale()).ErrAsrApiAuth() }
 
-// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & Translation."
+// ErrAsrApiAuth says "The recognition service refused the API key. Check it in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Where the subtitles show, and in the cloud recognition dialog's test:
@@ -3523,7 +3541,7 @@ func (msgs Messages) ErrAsrApiAuth() string {
 	return Catalog.Format(msgs.locale, "errAsrApiAuth", nil)
 }
 
-// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation,…"
+// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & translation,…"
 // in the language the app shows.
 //
 // Why translating stopped: on-device recognition, or a transcription API,
@@ -3532,7 +3550,7 @@ func (msgs Messages) ErrAsrApiAuth() string {
 // network).
 func ErrAsrBehind() string { return In(i18n.Locale()).ErrAsrBehind() }
 
-// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation,…"
+// ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & translation,…"
 // in the language of msgs.
 //
 // Why translating stopped: on-device recognition, or a transcription API,
@@ -3601,14 +3619,14 @@ func (msgs Messages) SceneGeneral() string {
 	return Catalog.Format(msgs.locale, "sceneGeneral", nil)
 }
 
-// NewScene says "New Scene"
+// NewScene says "New scene"
 // in the language the app shows.
 //
 // Button that adds a translation scene; also the new scene's name until the
 // user names it.
 func NewScene() string { return In(i18n.Locale()).NewScene() }
 
-// NewScene says "New Scene"
+// NewScene says "New scene"
 // in the language of msgs.
 //
 // Button that adds a translation scene; also the new scene's name until the
@@ -3675,13 +3693,13 @@ func (msgs Messages) SceneAboutPlaceholder() string {
 	return Catalog.Format(msgs.locale, "sceneAboutPlaceholder", nil)
 }
 
-// UseScene says "Use This Scene"
+// UseScene says "Use this scene"
 // in the language the app shows.
 //
 // Button that makes the translation scene being edited the one in use.
 func UseScene() string { return In(i18n.Locale()).UseScene() }
 
-// UseScene says "Use This Scene"
+// UseScene says "Use this scene"
 // in the language of msgs.
 //
 // Button that makes the translation scene being edited the one in use.
@@ -3903,13 +3921,13 @@ func (msgs Messages) HistorySceneEmpty() string {
 	return Catalog.Format(msgs.locale, "historySceneEmpty", nil)
 }
 
-// AllScenes says "All Scenes"
+// AllScenes says "All scenes"
 // in the language the app shows.
 //
 // The history's filter that shows the sessions of every scene.
 func AllScenes() string { return In(i18n.Locale()).AllScenes() }
 
-// AllScenes says "All Scenes"
+// AllScenes says "All scenes"
 // in the language of msgs.
 //
 // The history's filter that shows the sessions of every scene.
@@ -3931,13 +3949,13 @@ func (msgs Messages) HistoryLines(n int) string {
 	return Catalog.Format(msgs.locale, "historyLines", map[string]any{"n": n})
 }
 
-// DeleteAll says "Delete All"
+// DeleteAll says "Delete all"
 // in the language the app shows.
 //
 // Button that deletes all the sessions listed.
 func DeleteAll() string { return In(i18n.Locale()).DeleteAll() }
 
-// DeleteAll says "Delete All"
+// DeleteAll says "Delete all"
 // in the language of msgs.
 //
 // Button that deletes all the sessions listed.
@@ -3973,14 +3991,14 @@ func (msgs Messages) DeletedScene() string {
 	return Catalog.Format(msgs.locale, "deletedScene", nil)
 }
 
-// LearnNames says "Learn Names"
+// LearnNames says "Learn names"
 // in the language the app shows.
 //
 // Button, and the title of its dialog, that has a chat model find the names
 // subtitles kept got wrong, to add to a scene.
 func LearnNames() string { return In(i18n.Locale()).LearnNames() }
 
-// LearnNames says "Learn Names"
+// LearnNames says "Learn names"
 // in the language of msgs.
 //
 // Button, and the title of its dialog, that has a chat model find the names
@@ -4119,13 +4137,13 @@ func (msgs Messages) LearnTook(n int, scene string) string {
 	return Catalog.Format(msgs.locale, "learnTook", map[string]any{"n": n, "scene": scene})
 }
 
-// Retranslate says "Retranslate with These Names"
+// Retranslate says "Retranslate with these names"
 // in the language the app shows.
 //
 // Button that translates the subtitles kept again, with the scene's names.
 func Retranslate() string { return In(i18n.Locale()).Retranslate() }
 
-// Retranslate says "Retranslate with These Names"
+// Retranslate says "Retranslate with these names"
 // in the language of msgs.
 //
 // Button that translates the subtitles kept again, with the scene's names.
@@ -4713,13 +4731,13 @@ func (msgs Messages) LearnFromRecords() string {
 	return Catalog.Format(msgs.locale, "learnFromRecords", nil)
 }
 
-// DeleteScene says "Delete Scene"
+// DeleteScene says "Delete scene"
 // in the language the app shows.
 //
 // Menu item of a scene.
 func DeleteScene() string { return In(i18n.Locale()).DeleteScene() }
 
-// DeleteScene says "Delete Scene"
+// DeleteScene says "Delete scene"
 // in the language of msgs.
 //
 // Menu item of a scene.
@@ -4741,13 +4759,13 @@ func (msgs Messages) MoreActions() string {
 	return Catalog.Format(msgs.locale, "moreActions", nil)
 }
 
-// NewTerm says "Add a Name"
+// NewTerm says "Add a name"
 // in the language the app shows.
 //
 // Button adding a row to a scene's glossary.
 func NewTerm() string { return In(i18n.Locale()).NewTerm() }
 
-// NewTerm says "Add a Name"
+// NewTerm says "Add a name"
 // in the language of msgs.
 //
 // Button adding a row to a scene's glossary.
@@ -4825,13 +4843,13 @@ func (msgs Messages) DayYesterday() string {
 	return Catalog.Format(msgs.locale, "dayYesterday", nil)
 }
 
-// DeleteRecord says "Delete This Session"
+// DeleteRecord says "Delete this session"
 // in the language the app shows.
 //
 // Button of a session kept.
 func DeleteRecord() string { return In(i18n.Locale()).DeleteRecord() }
 
-// DeleteRecord says "Delete This Session"
+// DeleteRecord says "Delete this session"
 // in the language of msgs.
 //
 // Button of a session kept.
@@ -4989,13 +5007,13 @@ func (msgs Messages) AskDiscard() string {
 	return Catalog.Format(msgs.locale, "askDiscard", nil)
 }
 
-// KeepEditing says "Keep Editing"
+// KeepEditing says "Keep editing"
 // in the language the app shows.
 //
 // Button beside askDiscard: goes back to the dialog.
 func KeepEditing() string { return In(i18n.Locale()).KeepEditing() }
 
-// KeepEditing says "Keep Editing"
+// KeepEditing says "Keep editing"
 // in the language of msgs.
 //
 // Button beside askDiscard: goes back to the dialog.
@@ -5017,14 +5035,14 @@ func (msgs Messages) Discard() string {
 	return Catalog.Format(msgs.locale, "discard", nil)
 }
 
-// ImageTitle says "Picture Translation"
+// ImageTitle says "Picture translation"
 // in the language the app shows.
 //
 // The title of the card that shows a picture's translation, and of the
 // group in Speech & Translation that sets up translating pictures.
 func ImageTitle() string { return In(i18n.Locale()).ImageTitle() }
 
-// ImageTitle says "Picture Translation"
+// ImageTitle says "Picture translation"
 // in the language of msgs.
 //
 // The title of the card that shows a picture's translation, and of the
@@ -5257,13 +5275,13 @@ func (msgs Messages) ScreenSelectWhy() string {
 	return Catalog.Format(msgs.locale, "screenSelectWhy", nil)
 }
 
-// ScreenSelectTurnOn says "Turn On Selecting"
+// ScreenSelectTurnOn says "Turn on selecting"
 // in the language the app shows.
 //
 // Button that asks for Screen Recording, to select a part of the screen.
 func ScreenSelectTurnOn() string { return In(i18n.Locale()).ScreenSelectTurnOn() }
 
-// ScreenSelectTurnOn says "Turn On Selecting"
+// ScreenSelectTurnOn says "Turn on selecting"
 // in the language of msgs.
 //
 // Button that asks for Screen Recording, to select a part of the screen.
@@ -5288,14 +5306,14 @@ func (msgs Messages) ScreenSelectAsking() string {
 // ImageEngine says "Engine"
 // in the language the app shows.
 //
-// Speech & Translation, the Picture Translation group: the row choosing the
+// Speech & translation, the Picture Translation group: the row choosing the
 // engine that translates pictures, from a menu of those that read them.
 func ImageEngine() string { return In(i18n.Locale()).ImageEngine() }
 
 // ImageEngine says "Engine"
 // in the language of msgs.
 //
-// Speech & Translation, the Picture Translation group: the row choosing the
+// Speech & translation, the Picture Translation group: the row choosing the
 // engine that translates pictures, from a menu of those that read them.
 func (msgs Messages) ImageEngine() string {
 	return Catalog.Format(msgs.locale, "imageEngine", nil)
@@ -5304,26 +5322,26 @@ func (msgs Messages) ImageEngine() string {
 // ImageShortcutRow says "Shortcut"
 // in the language the app shows.
 //
-// Speech & Translation, the Picture Translation group: the row of the
+// Speech & translation, the Picture Translation group: the row of the
 // shortcut that translates a picture (imageShortcut in Preferences).
 func ImageShortcutRow() string { return In(i18n.Locale()).ImageShortcutRow() }
 
 // ImageShortcutRow says "Shortcut"
 // in the language of msgs.
 //
-// Speech & Translation, the Picture Translation group: the row of the
+// Speech & translation, the Picture Translation group: the row of the
 // shortcut that translates a picture (imageShortcut in Preferences).
 func (msgs Messages) ImageShortcutRow() string {
 	return Catalog.Format(msgs.locale, "imageShortcutRow", nil)
 }
 
-// GuidePhaseSetup says "Set Up"
+// GuidePhaseSetup says "Set up"
 // in the language the app shows.
 //
 // Guide: the first phase, choosing languages, permissions and engines.
 func GuidePhaseSetup() string { return In(i18n.Locale()).GuidePhaseSetup() }
 
-// GuidePhaseSetup says "Set Up"
+// GuidePhaseSetup says "Set up"
 // in the language of msgs.
 //
 // Guide: the first phase, choosing languages, permissions and engines.
@@ -5331,13 +5349,13 @@ func (msgs Messages) GuidePhaseSetup() string {
 	return Catalog.Format(msgs.locale, "guidePhaseSetup", nil)
 }
 
-// GuidePhaseTry says "Try It"
+// GuidePhaseTry says "Try it"
 // in the language the app shows.
 //
 // Guide: the second phase, trying subtitles, pictures and the shortcuts.
 func GuidePhaseTry() string { return In(i18n.Locale()).GuidePhaseTry() }
 
-// GuidePhaseTry says "Try It"
+// GuidePhaseTry says "Try it"
 // in the language of msgs.
 //
 // Guide: the second phase, trying subtitles, pictures and the shortcuts.
@@ -5345,13 +5363,13 @@ func (msgs Messages) GuidePhaseTry() string {
 	return Catalog.Format(msgs.locale, "guidePhaseTry", nil)
 }
 
-// GuidePhaseStart says "Get Started"
+// GuidePhaseStart says "Get started"
 // in the language the app shows.
 //
 // Guide: the last phase, where the app is then.
 func GuidePhaseStart() string { return In(i18n.Locale()).GuidePhaseStart() }
 
-// GuidePhaseStart says "Get Started"
+// GuidePhaseStart says "Get started"
 // in the language of msgs.
 //
 // Guide: the last phase, where the app is then.
@@ -5843,6 +5861,22 @@ func StatsChartShows() string { return In(i18n.Locale()).StatsChartShows() }
 // Statistics page: names the choice of what the chart shows.
 func (msgs Messages) StatsChartShows() string {
 	return Catalog.Format(msgs.locale, "statsChartShows", nil)
+}
+
+// StatsUsage says "Usage"
+// in the language the app shows.
+//
+// Statistics page: the card of how much speech recognition or translation
+// did, by engine.
+func StatsUsage() string { return In(i18n.Locale()).StatsUsage() }
+
+// StatsUsage says "Usage"
+// in the language of msgs.
+//
+// Statistics page: the card of how much speech recognition or translation
+// did, by engine.
+func (msgs Messages) StatsUsage() string {
+	return Catalog.Format(msgs.locale, "statsUsage", nil)
 }
 
 // StatsLatency says "Latency"
@@ -6419,13 +6453,13 @@ func (msgs Messages) EngineNone() string {
 	return Catalog.Format(msgs.locale, "engineNone", nil)
 }
 
-// ErrNoAsr says "Choose speech recognition first, a model or the cloud, in Settings › Speech & Translation."
+// ErrNoAsr says "Choose speech recognition first, a model or the cloud, in Settings › Speech & translation."
 // in the language the app shows.
 //
 // Translating could not start: no speech recognition is chosen yet.
 func ErrNoAsr() string { return In(i18n.Locale()).ErrNoAsr() }
 
-// ErrNoAsr says "Choose speech recognition first, a model or the cloud, in Settings › Speech & Translation."
+// ErrNoAsr says "Choose speech recognition first, a model or the cloud, in Settings › Speech & translation."
 // in the language of msgs.
 //
 // Translating could not start: no speech recognition is chosen yet.

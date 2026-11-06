@@ -80,7 +80,7 @@ func ShortcutField(c *ui.Context, acc, other, label string, register func(string
 			b.Focus()
 		}
 		if r.err != "" {
-			ui.Text(c, r.err).FontSize(12).TextColor(ui.Hex("#c77700"))
+			Warning(c, r.err)
 		}
 	})
 }

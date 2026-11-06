@@ -122,7 +122,7 @@ func Guard(dialog ui.Element, open, asking *bool, changed bool) {
 	}
 }
 
-// Discard asks, in a dialog's buttons' place, before its changes are thrown away: Keep Editing,
+// Discard asks, in a dialog's buttons' place, before its changes are thrown away: Keep editing,
 // focused, which unsets *asking, and Discard in red, which closes the dialog.
 func Discard(c *ui.Context, open, asking *bool) {
 	DialogActions(c, func() {

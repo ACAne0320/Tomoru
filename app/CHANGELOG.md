@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Picture translation has its own engine, in Speech & Translation › Picture Translation, chosen
+- Picture translation has its own engine, in Speech & translation › Picture translation, chosen
   from the engines that read pictures: Index-Translate 35B in the cloud by default, a downloaded
   on-device model, or an API of yours. Testing an API now says whether it reads pictures, and one
   that can't isn't offered. A picture still goes only to the engine you chose. Settings from
@@ -10,7 +10,7 @@
   ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
 
 - The on-device models can live in a folder you choose, on another drive if the system one is
-  full: Speech & Translation › Model folder › Change… moves the models into a "Tomoru Models"
+  full: Speech & translation › Model folder › Change… moves the models into a "Tomoru Models"
   folder there, with its progress, and keeps them there. ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
 - The settings, the menu bar panel and the first-run guide share one tightened design: rows of
   one height whose dividers line up across cards, group titles above their cards, the chosen
@@ -25,6 +25,11 @@
   opens it in History. Lists never wrap a line: what doesn't fit is dropped from the end and shows
   in a tooltip. Keep subtitles is a setting row at the top of History, and the scene filter shows
   once there is something to filter.
+- Statistics titles its two cards, Usage and Latency, each with its switch beside the title;
+  latency names too long for a tile take two lines instead of being cut. About lists the version,
+  the first-run guide and the logs as rows, each with its button. English labels use sentence
+  case throughout ("New scene", "Learn names"), and Preferences no longer cuts "Screenshot
+  translation" short.
 
 ## 0.1.3
 

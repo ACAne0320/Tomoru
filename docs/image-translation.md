@@ -15,7 +15,7 @@ separate OCR is needed: the image goes with the prompt, and the translation come
 |---|---|
 | What to capture | A selected area, not the whole screen. In the experiment, selecting just the dialogue box was fastest and most accurate; the whole screen mixes in status bars and menus, and repeats lines |
 | Permission | None by default: translate the screenshot on the clipboard. Select-to-translate is optional, and needs the user to turn on Screen Recording in System Settings |
-| Translation | An engine of its own, chosen in Speech & Translation › Picture Translation, among those that read pictures, with the current scene's whole glossary ([scenes](scenes.md)), which got the names right in the experiment. See [Which engine](#which-engine) |
+| Translation | An engine of its own, chosen in Speech & translation › Picture translation, among those that read pictures, with the current scene's whole glossary ([scenes](scenes.md)), which got the names right in the experiment. See [Which engine](#which-engine) |
 | Result | A floating card: the thumbnail above, the translation below, streamed with MyGo's `markdown.Stream` (an even pace, a character at a time, fading in), as GitHub Flavored Markdown, which a model may write of a page it reads, its single line breaks kept, as a game's dialogue has one a speaker; can be copied; closed with Esc or the close button |
 | Keeping | Neither the image nor its translation is kept. The statistics count how many were translated, a translation got for each, by day, under the engine that translated them; never what they said |
 | Shortcut | ⌥⇧S by default (`prefs.ImageShortcut`), customizable; it can't be the same as the start/stop shortcut. The menu bar panel's Screenshot button does the same |
@@ -62,7 +62,7 @@ doesn't appear in the capture.
 
 Pictures have an engine of their own (`Preferences.ImageMT`), apart from the subtitles'
 (`Preferences.MT`): some engines read no pictures, as most text-only APIs a user adds. It is
-always an explicit choice, in Speech & Translation › Picture Translation, from a menu of the
+always an explicit choice, in Speech & translation › Picture translation, from a menu of the
 engines that read pictures now (`Core.ImageEngines`): Index-Translate 35B in the cloud (the
 default), the local 2B and 9B once downloaded, and the user's APIs but those whose test found
 they read none. Under it, with an engine in the cloud, a line says the service receives the

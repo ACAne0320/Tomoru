@@ -110,17 +110,16 @@ func (s *Settings) stats(c *ui.Context) {
 	for j, u := range engines {
 		index[kind.id(u)] = j
 	}
-	kit.Card(c).Gap(0).Children(func() {
-		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Margin(0, 0, kit.Space(4), 0).Children(func() {
-			var was *usage.Counts
-			if compared {
-				was = &before
-			}
-			statsTotal(c, e.kind, total, statsDays(ledger, statsSpans[e.span], now), was, statsSpans[e.span])
-			if kit.Segmented(c, &e.kind, locales.EnginesAsr(), locales.EnginesMt()).Label(locales.StatsChartShows()).Changed() {
-				e.bar, e.picked = -1, false
-			}
-		})
+	kit.Group(c, locales.StatsUsage(), func() {
+		if kit.Segmented(c, &e.kind, locales.EnginesAsr(), locales.EnginesMt()).Label(locales.StatsChartShows()).Changed() {
+			e.bar, e.picked = -1, false
+		}
+	}, func(c *ui.Context) ui.Element { return kit.Card(c).Gap(0) }, func() {
+		var was *usage.Counts
+		if compared {
+			was = &before
+		}
+		statsTotal(c, e.kind, total, statsDays(ledger, statsSpans[e.span], now), was, statsSpans[e.span]).Margin(0, 0, kit.Space(4), 0)
 		ens := make([]engineUse, len(engines))
 		for j, u := range engines {
 			ens[j] = kind.describe(u)
@@ -219,7 +218,7 @@ func (s *Settings) statsDay(day, now time.Time) {
 
 // statsTotal is what the kind of engine shown did in all, big, with a day's of it and more beside
 // it, and how much more or less it is than in the span days before, was, if any.
-func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usage.Counts, span int) {
+func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usage.Counts, span int) ui.Element {
 	p := kit.Colors(c)
 	label, value, unit := locales.StatRun(), hours(total.Run), locales.UnitHours()
 	now, then := total.Run, 0.0
@@ -240,7 +239,7 @@ func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usag
 			note += " · " + locales.ImageTitle() + " " + locales.UseImages(total.Images)
 		}
 	}
-	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
+	return ui.Column(c).MinWidth(0).Gap(kit.Space(1)).Children(func() {
 		kit.Caption(c, label).SingleLine()
 		ui.Row(c).Gap(kit.Space(1)).AlignItems(ui.End).Children(func() {
 			ui.Text(c, value).FontSize(kit.TextStat).FontWeight(kit.WeightHeavy).FontFeatures(kit.Tabular).TextColor(p.Ink).SingleLine()

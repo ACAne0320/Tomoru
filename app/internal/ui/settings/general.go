@@ -27,6 +27,7 @@ func (s *Settings) general(c *ui.Context) {
 	defer func() { k.ApplyPreferences(before, draft) }()
 	p := kit.Colors(c)
 	ui.Text(c, locales.TabGeneral()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink)
+	basis := kit.ControlCardWidth(c, locales.Appearance(), locales.UiLanguage(), locales.Shortcut(), locales.ImageShortcut())
 	kit.Groups(c, func() {
 		kit.Group(c, locales.PrefsLook(), nil, kit.RowsCard, func() {
 			kit.SettingRow(c, 0, locales.Appearance(), "", func() {
@@ -42,7 +43,7 @@ func (s *Settings) general(c *ui.Context) {
 				}
 			})
 			kit.SettingRow(c, 1, locales.UiLanguage(), "", func() { s.uiLanguage(c) })
-		}).Grow(1).Basis(360)
+		}).Grow(1).Basis(basis)
 		kit.Group(c, locales.PrefsStart(), nil, kit.RowsCard, func() {
 			kit.SettingRow(c, 0, locales.AutoStart(), "", func() { kit.Switch(c, &draft.AutoStart, locales.AutoStart()) })
 			kit.SettingRow(c, 1, locales.OpenAtLogin(), k.LoginErr, func() {
@@ -57,7 +58,7 @@ func (s *Settings) general(c *ui.Context) {
 			kit.SettingRow(c, 3, locales.ImageShortcut(), "", func() {
 				kit.Control(c, func() { shared.ShortcutField(c, k, s.nav, core.PictureShortcut, locales.ImageShortcut(), &s.imageKeys) })
 			})
-		}).Grow(1).Basis(360)
+		}).Grow(1).Basis(basis)
 		s.network(c, &draft)
 	})
 }

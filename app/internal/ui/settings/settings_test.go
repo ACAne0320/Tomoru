@@ -870,7 +870,7 @@ func TestRerunGuide(t *testing.T) {
 	s := New(k, nav)
 	s.Tab = "about"
 	tt := ui.NewTester(s.View, Width, Height)
-	if err := tt.Click(locales.RerunGuide()); err != nil {
+	if err := tt.Click(locales.AboutRerun()); err != nil {
 		t.Fatal(err)
 	}
 	if k.Prefs.Onboarded || k.Prefs.GuideStep != 0 || !slices.Contains(nav.Went, "guide") {

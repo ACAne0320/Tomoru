@@ -31,7 +31,7 @@
   "@translationFailed": {
     "description": "Under a subtitle line whose translation failed."
   },
-  "translationFailedCloud": "Index-Translate's cloud isn't answering. Try again later, or choose a local model or your own API in Settings › Speech & Translation.",
+  "translationFailedCloud": "Index-Translate's cloud isn't answering. Try again later, or choose a local model or your own API in Settings › Speech & translation.",
   "@translationFailedCloud": {
     "description": "In the first-run guide, under the translation check, when lines failed to translate with Index-Translate's cloud: it may be down."
   },
@@ -39,7 +39,7 @@
   "@translationSkipped": {
     "description": "Under a subtitle line, and in the history, when its translation was skipped because translating fell behind."
   },
-  "translationKeyRefused": "The translation API refused the key. Check it in Settings › Speech & Translation.",
+  "translationKeyRefused": "The translation API refused the key. Check it in Settings › Speech & translation.",
   "@translationKeyRefused": {
     "description": "Under a subtitle line whose translation failed because the translation API refused the API key (HTTP 401 or 403)."
   },
@@ -181,7 +181,7 @@
   "@tabSubtitles": {
     "description": "A page of the settings."
   },
-  "tabEngines": "Speech & Translation",
+  "tabEngines": "Speech & translation",
   "@tabEngines": {
     "description": "A page of the settings, and a step of the first-run guide: speech recognition and translation."
   },
@@ -423,9 +423,17 @@
   "@aboutCredits": {
     "description": "In About: the works the app is built on, with their licenses."
   },
-  "rerunGuide": "Run the first-run guide again",
-  "@rerunGuide": {
-    "description": "Button in About."
+  "aboutGuide": "First-run guide",
+  "@aboutGuide": {
+    "description": "About: the row of the first-run guide, beside the button running it again."
+  },
+  "aboutRerun": "Run again",
+  "@aboutRerun": {
+    "description": "About: the button running the first-run guide again."
+  },
+  "aboutLogs": "Logs",
+  "@aboutLogs": {
+    "description": "About: the row of the log files, beside the button showing them in Finder, to attach to a report."
   },
   "start": "Start",
   "@start": {
@@ -659,7 +667,7 @@
   "@statusLoadingModel": {
     "description": "While the on-device translation model loads, before listening."
   },
-  "errModelMissing": "The on-device model isn't downloaded. Download it in Settings › Speech & Translation.",
+  "errModelMissing": "The on-device model isn't downloaded. Download it in Settings › Speech & translation.",
   "@errModelMissing": {
     "description": "Why translating could not start."
   },
@@ -913,11 +921,7 @@
   "@testOnlyThinking": {
     "description": "Why a test failed: a reasoning model spent its answer thinking."
   },
-  "showLogs": "Show logs",
-  "@showLogs": {
-    "description": "Button in About: shows the log files in Finder, to attach to a report."
-  },
-  "checkForUpdates": "Check for Updates…",
+  "checkForUpdates": "Check for updates…",
   "@checkForUpdates": {
     "description": "Button in About."
   },
@@ -1177,7 +1181,7 @@
   "@engineSenseVoiceDescription": {
     "description": "Under SenseVoice, a speech recognition model to download: that it runs on the CPU, with no GPU needed."
   },
-  "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Speech & Translation.",
+  "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation.",
   "@errAsrModelMissing": {
     "description": "Where the subtitles show, when translating can't start: the recognition model chosen isn't downloaded."
   },
@@ -1203,11 +1207,11 @@
       }
     }
   },
-  "setUp": "Set Up…",
+  "setUp": "Set up…",
   "@setUp": {
     "description": "Button that opens the dialog setting up a cloud service."
   },
-  "asrCloudTitle": "Cloud Recognition",
+  "asrCloudTitle": "Cloud recognition",
   "@asrCloudTitle": {
     "description": "Title of the dialog setting up the cloud speech recognition."
   },
@@ -1235,19 +1239,19 @@
   "@asrOpenAiModelDescription": {
     "description": "Under the model field of the dialog setting up OpenAI's speech recognition: what leaving it empty does, and what a model of the transcription API does."
   },
-  "errAsrCloudKey": "Cloud recognition has no API key. Set it up in Settings › Speech & Translation.",
+  "errAsrCloudKey": "Cloud recognition has no API key. Set it up in Settings › Speech & translation.",
   "@errAsrCloudKey": {
     "description": "Where the subtitles show, when translating can't start: the cloud recognition chosen has no API key."
   },
-  "errAsrCloudAuth": "Model Studio refused the API key. Check it in Settings › Speech & Translation.",
+  "errAsrCloudAuth": "Model Studio refused the API key. Check it in Settings › Speech & translation.",
   "@errAsrCloudAuth": {
     "description": "Where the subtitles show, and in the cloud recognition dialog's test: the service refused the API key."
   },
-  "errAsrApiAuth": "The recognition service refused the API key. Check it in Settings › Speech & Translation.",
+  "errAsrApiAuth": "The recognition service refused the API key. Check it in Settings › Speech & translation.",
   "@errAsrApiAuth": {
     "description": "Where the subtitles show, and in the cloud recognition dialog's test: OpenAI's service, or a compatible one, refused the API key."
   },
-  "errAsrBehind": "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & Translation, or check the network.",
+  "errAsrBehind": "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & translation, or check the network.",
   "@errAsrBehind": {
     "description": "Why translating stopped: on-device recognition, or a transcription API, decoded slower than the audio played until about 25 seconds piled up (a model too heavy for the computer, a hung model server, or a slow network)."
   },
@@ -1273,7 +1277,7 @@
   "@sceneGeneral": {
     "description": "The translation scene used when the user chose none."
   },
-  "newScene": "New Scene",
+  "newScene": "New scene",
   "@newScene": {
     "description": "Button that adds a translation scene; also the new scene's name until the user names it."
   },
@@ -1293,7 +1297,7 @@
   "@sceneAboutPlaceholder": {
     "description": "Placeholder of a translation scene's description."
   },
-  "useScene": "Use This Scene",
+  "useScene": "Use this scene",
   "@useScene": {
     "description": "Button that makes the translation scene being edited the one in use."
   },
@@ -1359,7 +1363,7 @@
   "@historySceneEmpty": {
     "description": "The history's list, filtered to a scene that has no sessions kept while others have."
   },
-  "allScenes": "All Scenes",
+  "allScenes": "All scenes",
   "@allScenes": {
     "description": "The history's filter that shows the sessions of every scene."
   },
@@ -1373,7 +1377,7 @@
       }
     }
   },
-  "deleteAll": "Delete All",
+  "deleteAll": "Delete all",
   "@deleteAll": {
     "description": "Button that deletes all the sessions listed."
   },
@@ -1391,7 +1395,7 @@
   "@deletedScene": {
     "description": "Where a session kept names its scene, when the scene was deleted since."
   },
-  "learnNames": "Learn Names",
+  "learnNames": "Learn names",
   "@learnNames": {
     "description": "Button, and the title of its dialog, that has a chat model find the names subtitles kept got wrong, to add to a scene."
   },
@@ -1467,7 +1471,7 @@
       }
     }
   },
-  "retranslate": "Retranslate with These Names",
+  "retranslate": "Retranslate with these names",
   "@retranslate": {
     "description": "Button that translates the subtitles kept again, with the scene's names."
   },
@@ -1653,7 +1657,7 @@
   "@learnFromRecords": {
     "description": "Button of a scene: learns names from its sessions kept."
   },
-  "deleteScene": "Delete Scene",
+  "deleteScene": "Delete scene",
   "@deleteScene": {
     "description": "Menu item of a scene."
   },
@@ -1661,7 +1665,7 @@
   "@moreActions": {
     "description": "Button opening a menu of more actions."
   },
-  "newTerm": "Add a Name",
+  "newTerm": "Add a name",
   "@newTerm": {
     "description": "Button adding a row to a scene's glossary."
   },
@@ -1685,7 +1689,7 @@
   "@dayYesterday": {
     "description": "A day of the history's list."
   },
-  "deleteRecord": "Delete This Session",
+  "deleteRecord": "Delete this session",
   "@deleteRecord": {
     "description": "Button of a session kept."
   },
@@ -1769,7 +1773,7 @@
   "@askDiscard": {
     "description": "Asks, in a dialog's buttons' place, before closing it with changes not saved."
   },
-  "keepEditing": "Keep Editing",
+  "keepEditing": "Keep editing",
   "@keepEditing": {
     "description": "Button beside askDiscard: goes back to the dialog."
   },
@@ -1777,7 +1781,7 @@
   "@discard": {
     "description": "Red button beside askDiscard: closes the dialog without saving."
   },
-  "imageTitle": "Picture Translation",
+  "imageTitle": "Picture translation",
   "@imageTitle": {
     "description": "The title of the card that shows a picture's translation, and of the group in Speech & Translation that sets up translating pictures."
   },
@@ -1859,7 +1863,7 @@
   "@screenSelectWhy": {
     "description": "Under screenSelect, and in the guide: what the permission is for."
   },
-  "screenSelectTurnOn": "Turn On Selecting",
+  "screenSelectTurnOn": "Turn on selecting",
   "@screenSelectTurnOn": {
     "description": "Button that asks for Screen Recording, to select a part of the screen."
   },
@@ -1869,21 +1873,21 @@
   },
   "imageEngine": "Engine",
   "@imageEngine": {
-    "description": "Speech & Translation, the Picture Translation group: the row choosing the engine that translates pictures, from a menu of those that read them."
+    "description": "Speech & translation, the Picture Translation group: the row choosing the engine that translates pictures, from a menu of those that read them."
   },
   "imageShortcutRow": "Shortcut",
   "@imageShortcutRow": {
-    "description": "Speech & Translation, the Picture Translation group: the row of the shortcut that translates a picture (imageShortcut in Preferences)."
+    "description": "Speech & translation, the Picture Translation group: the row of the shortcut that translates a picture (imageShortcut in Preferences)."
   },
-  "guidePhaseSetup": "Set Up",
+  "guidePhaseSetup": "Set up",
   "@guidePhaseSetup": {
     "description": "Guide: the first phase, choosing languages, permissions and engines."
   },
-  "guidePhaseTry": "Try It",
+  "guidePhaseTry": "Try it",
   "@guidePhaseTry": {
     "description": "Guide: the second phase, trying subtitles, pictures and the shortcuts."
   },
-  "guidePhaseStart": "Get Started",
+  "guidePhaseStart": "Get started",
   "@guidePhaseStart": {
     "description": "Guide: the last phase, where the app is then."
   },
@@ -2028,6 +2032,10 @@
   "statsChartShows": "Shows",
   "@statsChartShows": {
     "description": "Statistics page: names the choice of what the chart shows."
+  },
+  "statsUsage": "Usage",
+  "@statsUsage": {
+    "description": "Statistics page: the card of how much speech recognition or translation did, by engine."
   },
   "statsLatency": "Latency",
   "@statsLatency": {
@@ -2275,7 +2283,7 @@
   "@engineNone": {
     "description": "In use, where no speech recognition is chosen yet (Windows has none of its own)."
   },
-  "errNoAsr": "Choose speech recognition first, a model or the cloud, in Settings › Speech & Translation.",
+  "errNoAsr": "Choose speech recognition first, a model or the cloud, in Settings › Speech & translation.",
   "@errNoAsr": {
     "description": "Translating could not start: no speech recognition is chosen yet."
   },
