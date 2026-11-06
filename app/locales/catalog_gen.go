@@ -3871,20 +3871,6 @@ func (msgs Messages) HistoryOff() string {
 	return Catalog.Format(msgs.locale, "historyOff", nil)
 }
 
-// TurnOnHistory says "Keep Subtitles"
-// in the language the app shows.
-//
-// Button under historyOff: turns on the switch that keeps the subtitles.
-func TurnOnHistory() string { return In(i18n.Locale()).TurnOnHistory() }
-
-// TurnOnHistory says "Keep Subtitles"
-// in the language of msgs.
-//
-// Button under historyOff: turns on the switch that keeps the subtitles.
-func (msgs Messages) TurnOnHistory() string {
-	return Catalog.Format(msgs.locale, "turnOnHistory", nil)
-}
-
 // NoHistory says "Play a video or some audio, and the subtitles translated will show here."
 // in the language the app shows.
 //

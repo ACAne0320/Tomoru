@@ -159,9 +159,12 @@ func (g *gallery) view(c *ui.Context) {
 			AddRow(c, "添加接口")
 		})
 		ui.Row(c).Gap(CardGap).AlignItems(ui.Start).Children(func() {
-			ui.Column(c).Width(300).Gap(Space(2)).Children(func() {
-				ListTile(c, true, "最终幻想7 重制版", "日语 → 中文 · 12 个专名", nil, func() { InUse(c) })
-				ListTile(c, false, "雷军演讲", "中文 → 英语 · 4 个专名", nil, nil)
+			OptionsCard(c).Width(300).Children(func() {
+				List(c, []ListItem{
+					{Key: 1, On: true, Title: "最终幻想7 重制版", Meta: []string{"日语 → 中文", "12 个专名"}, Trail: func() { InUse(c) }},
+					{Key: 2, Title: "雷军演讲", Meta: []string{"中文 → 英语", "4 个专名"}},
+					{Key: 3, Title: "Final Fantasy VII Remake, the stream", Meta: []string{"Japanese → Chinese", "412 lines", "Safari"}},
+				})
 			})
 			Card(c).Width(300).Children(func() {
 				InUseLabel(c, "正在使用")
@@ -171,7 +174,7 @@ func (g *gallery) view(c *ui.Context) {
 	})
 }
 
-const galleryW, galleryH = 760, 2100
+const galleryW, galleryH = 760, 2300
 
 func TestGallery(t *testing.T) {
 	g := &gallery{on: true, seg2: 1, bar: 5, bin: 6, day: -1}

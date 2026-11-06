@@ -53,11 +53,23 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 	cell := func(e ui.Element) ui.Element { return e.Grow(1).Basis(0).MinWidth(0).MaxWidth(heatMax) }
 	side := func(e ui.Element) ui.Element { return e.Width(Space(8)).Shrink(0) }
 	return ui.Column(c).Gap(Space(1)).Role(ui.RoleGroup).Label(label).Children(func() {
-		ui.Row(c).Gap(heatGap).Children(func() {
+		ui.Row(c).Gap(heatGap).AlignItems(ui.Start).Children(func() {
 			side(ui.Box(c))
+			// A name with no room from its week to the last ends at the last instead, over the
+			// squares rather than past them.
+			last := ""
 			for w, name := range weeks {
+				n := float32(len(weeks) - w)
+				if lw, _ := c.MeasureText(0, ui.Span{Text: name, Size: TextMicro}); name != "" && lw > n*heatSize+(n-1)*heatGap {
+					last, name = name, ""
+				}
 				cell(ui.Box(c.Key(w))).Children(func() {
-					ui.Text(c, name).NoWrap().FontSize(TextMicro).TextColor(p.InkMuted)
+					switch {
+					case w == len(weeks)-1 && last != "":
+						ui.Text(c, last).NoWrap().FontSize(TextMicro).TextColor(p.InkMuted).Absolute().Top(0).Right(0)
+					case name != "":
+						ui.Text(c, name).NoWrap().FontSize(TextMicro).TextColor(p.InkMuted)
+					}
 				})
 			}
 		})

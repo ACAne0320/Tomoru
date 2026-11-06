@@ -621,7 +621,7 @@ func TestHistory(t *testing.T) {
 	}}
 	s.Tab = "history"
 	tt := ui.NewTester(s.View, Width, 1000)
-	for _, want := range []string{locales.KeepHistory(), "FF7 · Safari", "Old (" + locales.DeletedScene() + ")", shared.LangName("en") + " → " + shared.LangName("zh") + " · " + locales.HistoryLines(5)} {
+	for _, want := range []string{locales.KeepHistory(), "FF7", shared.LangName("ja") + " → " + shared.LangName("zh") + " · " + locales.HistoryLines(2) + " · Safari", "Old (" + locales.DeletedScene() + ")", shared.LangName("en") + " → " + shared.LangName("zh") + " · " + locales.HistoryLines(5)} {
 		if !hasTextContaining(tt, want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
@@ -672,11 +672,11 @@ func TestHistoryEmpty(t *testing.T) {
 	if !tt.HasText(locales.HistoryOff()) {
 		t.Fatalf("texts %q", tt.Texts())
 	}
-	if err := tt.Click(locales.TurnOnHistory()); err != nil {
-		t.Fatal(err)
-	}
+	// The switch at the end of its row: the paper's margin, the page's, the card's side, half the switch.
+	r, _ := tt.Find(locales.KeepHistory())
+	tt.ClickAt(Width-kit.Space(2)-kit.Space(8)-kit.Space(5)-22, r.Y+r.H/2)
 	tt.Frame()
-	if !k.Prefs.History || !tt.HasText(locales.NoHistory()) || tt.HasText(locales.TurnOnHistory()) {
+	if !k.Prefs.History || !tt.HasText(locales.NoHistory()) {
 		t.Fatalf("kept %v, texts %q", k.Prefs.History, tt.Texts())
 	}
 	id := k.AddScene("FF7")

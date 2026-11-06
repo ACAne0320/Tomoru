@@ -184,35 +184,37 @@ func homeLine(c *ui.Context, s *Settings) {
 	})
 }
 
-// homeRecent is the records kept last, while they are kept.
+// homeRecent is the records kept last, while they are kept, as the history lists them: one
+// clicked shows in the history.
 func homeRecent(c *ui.Context, s *Settings) {
 	k := s.core
 	if !k.HistoryOn() {
 		return
 	}
 	k.LoadHistory()
+	recs := k.History.Records[:min(len(k.History.Records), 2)]
 	kit.Group(c, locales.HomeRecent(), func() {
 		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.AllRecords()).Clicked() {
 			s.Tab = "history"
 		}
-	}, kit.Card, func() {
-		recs := k.History.Records
-		for _, r := range recs[:min(len(recs), 2)] {
-			ui.Row(c.Key(r.Path)).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
-				when := r.Head.Start.Format("15:04")
-				if r.Head.Start.YearDay() != time.Now().YearDay() {
-					when = r.Head.Start.Format("1/2")
-				}
-				ui.Text(c, when).FontSize(kit.TextBody).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(kit.Colors(c).InkWarm).Width(44)
-				name := locales.SceneGeneral()
-				if sc, ok := k.SceneByID(r.Head.Scene); ok {
-					name = shared.SceneName(*sc)
-				}
-				ui.Text(c, name).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(kit.Colors(c).Ink).Grow(1).MaxLines(1)
-				if kit.IconButton(c, kit.Quiet, kit.Small, assets.Sparkles, locales.LearnNames()).Clicked() {
+	}, kit.OptionsCard, func() {
+		items := make([]kit.ListItem, len(recs))
+		for i, r := range recs {
+			at := r.Head.Start.Format("15:04")
+			if !sameDay(r.Head.Start, time.Now()) {
+				at = i18n.FormatDate(i18n.Locale(), r.Head.Start, i18n.DateOptions{Skeleton: "Md"})
+			}
+			items[i] = s.recordItem(c, r, false, at)
+			items[i].Trail = func() {
+				if kit.Button(c, kit.Quiet, kit.Small, assets.Sparkles, locales.LearnNames()).Clicked() {
 					s.learnFrom([]string{r.Path}, r.Head.Scene)
 				}
-			})
+			}
+		}
+		if i := kit.List(c, items); i >= 0 {
+			e := &s.historyEdit
+			e.scene, e.chosen, e.record = allScenes, true, recs[i].Path
+			s.Tab = "history"
 		}
 	})
 }

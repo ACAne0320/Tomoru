@@ -45,37 +45,6 @@ func CellInput(c *ui.Context, v *string) ui.Element {
 	return in.Background(in.AnimateColor("face", face, hover)).Border(1.5, edge)
 }
 
-// ListTile is an item of a list beside what it shows, as the scenes and the records: what lead
-// builds at its start, its title and meta under it on a line each, and what trailing builds at its
-// end, lead and trailing centred on the two lines. The item shown is on the band, the others on
-// sand. Clicked reports a click.
-func ListTile(c *ui.Context, on bool, title, meta string, lead, trailing func()) ui.Element {
-	p := Colors(c)
-	b := ui.ButtonBase(c).Padding(Space(3), Space(4)).Gap(Space(3)).Radius(RadiusTile).Justify(ui.Start).AlignItems(ui.Center).
-		Role(ui.RoleTab).Selected(on).Label(title).Cursor(ui.CursorPointer)
-	face := p.Sand
-	switch {
-	case on:
-		face = p.Band
-	case b.Hovered() || b.Pressed():
-		face = p.Sand.Mix(p.Band, .5)
-	}
-	return b.Background(b.AnimateColor("face", face, hover)).Children(func() {
-		if lead != nil {
-			lead()
-		}
-		ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
-			ui.Text(c, title).FontSize(TextBody).FontWeight(WeightBold).TextColor(p.Ink).MaxLines(1)
-			if meta != "" {
-				ui.Text(c, meta).FontSize(TextCaption).TextColor(p.InkMuted).MaxLines(1)
-			}
-		})
-		if trailing != nil {
-			trailing()
-		}
-	})
-}
-
 // InUse is the mark of what is in use, a scene, a service: a green disc with a check.
 func InUse(c *ui.Context) ui.Element {
 	p := Colors(c)

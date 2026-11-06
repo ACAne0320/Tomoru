@@ -27,7 +27,7 @@ func StatStrip(c *ui.Context, label string, stats []Stat) ui.Element {
 			}
 			col.Children(func() {
 				ui.Text(c, s.Label).FontSize(TextCaption).TextColor(p.InkMuted).SingleLine()
-				ui.Row(c).Gap(Space(1)).AlignItems(ui.End).Children(func() {
+				ui.Row(c).Gap(Space(1)).AlignItems(ui.Baseline).Children(func() {
 					ui.Text(c, s.Value).FontSize(TextStat).FontWeight(WeightHeavy).FontFeatures(Tabular).TextColor(p.Ink).SingleLine()
 					if s.Unit != "" {
 						ui.Text(c, s.Unit).FontSize(TextBody).FontWeight(WeightBold).TextColor(p.InkMuted).SingleLine()

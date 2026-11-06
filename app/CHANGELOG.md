@@ -20,6 +20,11 @@
   Translation only, the original's size and the order stay in place, greyed, instead of
   disappearing; Custom colors open in their own card under them, each with the system color
   picker as before.
+- Home, Scenes and History use the same design. A session looks the same on Home as in History,
+  with its scene as the title and its languages, lines and app under it. Clicking one on Home
+  opens it in History. Lists never wrap a line: what doesn't fit is dropped from the end and shows
+  in a tooltip. Keep subtitles is a setting row at the top of History, and the scene filter shows
+  once there is something to filter.
 
 ## 0.1.3
 

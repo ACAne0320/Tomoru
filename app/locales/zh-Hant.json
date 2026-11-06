@@ -263,7 +263,6 @@
   "tabHistory": "字幕紀錄",
   "keepHistory": "保存紀錄",
   "historyOff": "字幕紀錄沒有開啟。開啟後，翻譯過的字幕會儲存在這台電腦上。",
-  "turnOnHistory": "開啟保存紀錄",
   "noHistory": "去播放一段影片或音訊，翻譯過的字幕會出現在這裡。",
   "historySceneEmpty": "這個場景還沒有字幕紀錄",
   "allScenes": "全部場景",

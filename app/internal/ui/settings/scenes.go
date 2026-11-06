@@ -46,32 +46,42 @@ func (s *Settings) scenes(c *ui.Context) {
 	p := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, locales.TabScenes()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
-		if kit.Button(c, kit.Strong, kit.Medium, assets.Plus, locales.NewScene()).Clicked() {
+		if kit.Button(c, kit.Plain, kit.Medium, assets.Plus, locales.NewScene()).Clicked() {
 			then = func() { e.scene, e.adding = k.AddScene(""), false }
 		}
 	})
-	ui.Row(c).Gap(kit.Space(4)).AlignItems(ui.Start).Wrap().Children(func() {
-		ui.Column(c).Grow(1).Basis(220).MaxWidth(280).Gap(kit.Space(2)).Role(ui.RoleTabList).FocusGroup(ui.Vertical).Children(func() {
-			for _, sc := range k.SceneList() {
-				meta := shared.LangName(sc.Src) + " → " + shared.LangName(sc.Tgt) + " · " + locales.TermCount(len(sc.Terms))
-				if sc.ID == k.Preferences().Scene {
-					meta = shared.LangName(k.Preferences().Src) + " → " + shared.LangName(k.Preferences().Tgt) + " · " + locales.TermCount(len(sc.Terms))
+	ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Wrap().Children(func() {
+		ui.Column(c).Grow(1).Basis(260).MaxWidth(280).Gap(kit.CardGap).Children(func() {
+			list := k.SceneList()
+			items := make([]kit.ListItem, len(list))
+			for i, sc := range list {
+				src, tgt := sc.Src, sc.Tgt
+				inUse := sc.ID == k.Preferences().Scene
+				if inUse {
+					src, tgt = k.Preferences().Src, k.Preferences().Tgt
 				}
-				name := shared.SceneName(sc)
-				if kit.ListTile(c.Key(sc.ID), sc.ID == e.scene, name, meta, nil, func() {
-					if sc.ID == k.Preferences().Scene {
-						kit.InUse(c).Label(locales.SceneInUse())
-					}
-				}).Clicked() && sc.ID != e.scene {
-					e.scene, e.adding, e.heardAt = sc.ID, false, ""
+				items[i] = kit.ListItem{Key: sc.ID, On: sc.ID == e.scene, Title: shared.SceneName(sc),
+					Meta: []string{shared.LangName(src) + " → " + shared.LangName(tgt), locales.TermCount(len(sc.Terms))}}
+				if inUse {
+					items[i].Trail = func() { kit.InUse(c).Label(locales.SceneInUse()) }
 				}
 			}
-			if len(k.SceneList()) == 1 {
+			// As tall as the scene's card beside it, unless the empty state under it takes the room.
+			grow := float32(1)
+			if len(list) == 1 {
+				grow = 0
+			}
+			kit.OptionsCard(c).Grow(grow).Children(func() {
+				if i := kit.List(c, items); i >= 0 && list[i].ID != e.scene {
+					e.scene, e.adding, e.heardAt = list[i].ID, false, ""
+				}
+			})
+			if len(list) == 1 {
 				kit.Empty(c, kit.ArtScenes, locales.NoScenes(), nil)
 			}
 		})
 		sc, _ := k.SceneByID(e.scene)
-		kit.Card(c).Grow(999).Basis(440).MinWidth(0).Gap(kit.Space(4)).Padding(kit.Space(5), kit.Space(6)).Children(func() {
+		kit.Card(c).Grow(999).Basis(440).MinWidth(0).Gap(kit.Space(4)).Children(func() {
 			if f := s.sceneDetail(c, sc); f != nil {
 				then = f
 			}
@@ -131,7 +141,7 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 		}
 	})
 	// The scene in use's languages are translating's; another's are kept for when it is used.
-	kit.SettingRow(c, 0, locales.SceneLangs(), "", func() {
+	section(c, locales.SceneLangs(), nil, func() {
 		src, tgt := sc.Src, sc.Tgt
 		setSrc := func(l string) {
 			k.UpdateScene(id, func(current *scene.Scene) { setLang(&current.Src, &current.Tgt, l) })
@@ -146,20 +156,33 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SourceLangs()), shared.LangName, setSrc)).Label(locales.SpokenLanguage())
 		ui.Icon(c, assets.Arrow).FontSize(kit.TextBody).TextColor(p.InkWarm)
 		kit.Picker(c, shared.LangName(tgt), kit.Choices(tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, setTgt)).Label(locales.TranslateInto())
-	}).Padding(0)
+	})
 	if id != "" {
 		ui.Column(c).Gap(kit.Space(2)).Children(func() {
-			ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
-				ui.Text(c, locales.SceneAbout()).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(p.Ink)
-				kit.Caption(c, locales.SceneAboutHint())
-			})
+			section(c, locales.SceneAbout(), nil, nil)
 			kit.TextBox(c.Key("about-"+id), &sc.About).Placeholder(locales.SceneAboutPlaceholder()).Label(locales.SceneAbout()).Height(68)
+			kit.Caption(c, locales.SceneAboutHint())
 		})
 	}
 	if f := s.glossary(c, sc); f != nil {
 		then = f
 	}
 	return then
+}
+
+// section starts a part of a scene's card: its name, what after builds beside it, and what end
+// builds at the row's end, its controls, the row as tall as they are.
+func section(c *ui.Context, label string, after, end func()) {
+	ui.Row(c).Height(kit.Space(9)).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
+		ui.Text(c, label).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).Ink).MaxLines(1).Shrink(0)
+		if after != nil {
+			after()
+		}
+		ui.Spacer(c)
+		if end != nil {
+			end()
+		}
+	})
 }
 
 // setLang sets a language of a scene not in use, swapping them when it is the other's.
@@ -178,16 +201,15 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 	p := kit.Colors(c)
 	id := sc.ID
 	records := s.sceneRecords(id)
-	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
-		ui.Text(c, locales.Glossary()).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(p.Ink)
+	section(c, locales.Glossary(), func() {
 		if len(sc.Terms) > 0 {
 			kit.CountBadge(c, len(sc.Terms))
 		}
-		ui.Spacer(c)
-		if len(records) > 0 && kit.Button(c, kit.Soft, kit.Small, assets.Sparkles, locales.LearnFromRecords()).Clicked() {
+	}, func() {
+		if len(records) > 0 && kit.Button(c, kit.Plain, kit.Small, assets.Sparkles, locales.LearnFromRecords()).Clicked() {
 			s.learnFrom(records, id)
 		}
-		if kit.IconButton(c, kit.Strong, kit.Small, assets.Plus, locales.NewTerm()).Clicked() {
+		if kit.IconButton(c, kit.Plain, kit.Small, assets.Plus, locales.NewTerm()).Clicked() {
 			e.adding = true
 		}
 	})
@@ -215,7 +237,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 		})
 	}
 	ui.Column(c).Radius(kit.RadiusField).Border(1, p.Line).Clip().Children(func() {
-		ui.Box(c).Background(p.Paper).Padding(kit.Space(2), kit.Space(4)).Children(func() {
+		ui.Box(c).Background(p.Paper).Padding(kit.Space(2), kit.Space(1)).Children(func() {
 			head := func(s string) func() {
 				return func() {
 					ui.Text(c, s).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.InkMuted).Padding(0, kit.Space(2)).MaxLines(1)
@@ -224,7 +246,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 			cells(head(locales.TermSrc()), head(locales.TermTgt()), head(locales.TermHeard()), func() { ui.Box(c) })
 		})
 		row := func(key string, fn func()) {
-			ui.Box(c.Key(key)).Padding(kit.Space(1), kit.Space(4)).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(fn)
+			ui.Box(c.Key(key)).Padding(kit.Space(1)).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(fn)
 		}
 		if e.adding {
 			row("new", func() {
@@ -238,7 +260,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 					add(kit.CellInput(c.Key("new-heard"), &e.heard).Placeholder(locales.TermHeardHint()).Label(locales.TermHeard()).FontSize(kit.TextControl))
 				}, func() {
 					ok := strings.TrimSpace(e.src) != "" && strings.TrimSpace(e.tgt) != ""
-					if (kit.Off(c, kit.IconButton(c, kit.Strong, kit.Small, assets.Check, locales.AddTerm()), !ok).Clicked() || submitted) && ok {
+					if (kit.Off(c, kit.IconButton(c, kit.Plain, kit.Small, assets.Check, locales.AddTerm()), !ok).Clicked() || submitted) && ok {
 						t := scene.Term{Src: e.src, Tgt: e.tgt, Heard: splitHeard(e.heard)}
 						then = func() {
 							k.AddTerm(id, t)

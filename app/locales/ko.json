@@ -263,7 +263,6 @@
   "tabHistory": "자막 기록",
   "keepHistory": "자막 저장",
   "historyOff": "자막 저장이 꺼져 있어요. 켜면 번역한 자막이 이 컴퓨터에 저장돼요.",
-  "turnOnHistory": "자막 저장 켜기",
   "noHistory": "영상이나 오디오를 재생하면 번역한 자막이 여기에 표시돼요.",
   "historySceneEmpty": "이 장면에는 아직 저장된 자막이 없어요",
   "allScenes": "모든 장면",

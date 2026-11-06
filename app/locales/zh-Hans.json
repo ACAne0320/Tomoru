@@ -263,7 +263,6 @@
   "tabHistory": "字幕记录",
   "keepHistory": "保存记录",
   "historyOff": "字幕记录没有开启。开启后，翻译过的字幕会保存在这台电脑上。",
-  "turnOnHistory": "开启保存记录",
   "noHistory": "去放一段视频或音频，翻译过的字幕会出现在这里。",
   "historySceneEmpty": "这个场景还没有字幕记录",
   "allScenes": "全部场景",

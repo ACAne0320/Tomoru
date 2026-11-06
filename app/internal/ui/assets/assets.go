@@ -127,11 +127,6 @@ var (
 	Home, Languages, Book = ui.MustParseSVG(homeSVG), ui.MustParseSVG(languagesSVG), ui.MustParseSVG(bookSVG)
 	History, Info, Chart  = ui.MustParseSVG(historySVG), ui.MustParseSVG(infoSVG), ui.MustParseSVG(chartSVG)
 
-	// A session kept's file, shown in Finder.
-	//go:embed icons/folder-open.svg
-	folderSVG []byte
-	Folder    = ui.MustParseSVG(folderSVG)
-
 	//go:embed icons/chevron-down.svg
 	chevronSVG []byte
 	Chevron    = ui.MustParseSVG(chevronSVG)

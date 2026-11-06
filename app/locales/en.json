@@ -1351,10 +1351,6 @@
   "@historyOff": {
     "description": "The history's list while it has none and the subtitles aren't kept."
   },
-  "turnOnHistory": "Keep Subtitles",
-  "@turnOnHistory": {
-    "description": "Button under historyOff: turns on the switch that keeps the subtitles."
-  },
   "noHistory": "Play a video or some audio, and the subtitles translated will show here.",
   "@noHistory": {
     "description": "The history's list while it has none and the subtitles are kept: what to do for some to be."

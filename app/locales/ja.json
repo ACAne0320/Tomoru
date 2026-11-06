@@ -263,7 +263,6 @@
   "tabHistory": "字幕の履歴",
   "keepHistory": "字幕を保存",
   "historyOff": "字幕の保存はオフです。オンにすると、翻訳した字幕がこのコンピュータに保存されます。",
-  "turnOnHistory": "字幕の保存をオンにする",
   "noHistory": "動画や音声を再生すると、翻訳した字幕がここに表示されます。",
   "historySceneEmpty": "このシーンの字幕はまだ保存されていません",
   "allScenes": "すべてのシーン",

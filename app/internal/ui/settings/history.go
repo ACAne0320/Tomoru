@@ -53,41 +53,44 @@ func (s *Settings) history(c *ui.Context) {
 			shown = append(shown, r)
 		}
 	}
-	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Wrap().Children(func() {
-		ui.Text(c, locales.TabHistory()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
-		on := k.Preferences().History
-		if kit.SwitchPill(c, &on, locales.KeepHistory()).Changed() {
-			k.UpdatePrefs(func(p *prefs.Prefs) { p.History = on })
-		}
-		if kit.Off(c, kit.DeleteButton(c, kit.Medium, locales.DeleteAll()), len(shown) == 0).Clicked() {
-			paths := make([]string, len(shown))
-			for i, r := range shown {
-				paths[i] = r.Path
+	ui.Text(c, locales.TabHistory()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(1)
+	kit.RowsCard(c).Children(func() {
+		kit.SettingRow(c, 0, locales.KeepHistory(), "", func() {
+			on := k.Preferences().History
+			if kit.Switch(c, &on, locales.KeepHistory()).Changed() {
+				k.UpdatePrefs(func(p *prefs.Prefs) { p.History = on })
 			}
-			c.ToastAction(locales.DeletedSessions(len(paths)), locales.Undo(), k.DeleteHistory(paths))
-		}
+		})
 	})
-	ui.Row(c).Gap(kit.Space(2)).Wrap().Role(ui.RoleGroup).Label(locales.Scene()).Children(func() {
-		if kit.Chip(c.Key(allScenes), locales.AllScenes(), e.scene == allScenes, 0).Clicked() {
-			e.scene = allScenes
-		}
-		for _, sc := range k.SceneList() {
-			if kit.Chip(c.Key(sc.ID), shared.SceneName(sc), e.scene == sc.ID, 0).Clicked() {
-				e.scene = sc.ID
+	if len(k.History.Records) > 0 {
+		// The scene whose sessions show, and deleting those that show.
+		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
+			ui.Row(c).Grow(1).MinWidth(0).Gap(kit.Space(2)).Wrap().Role(ui.RoleGroup).Label(locales.Scene()).Children(func() {
+				if kit.Chip(c.Key(allScenes), locales.AllScenes(), e.scene == allScenes, 0).Clicked() {
+					e.scene = allScenes
+				}
+				for _, sc := range k.SceneList() {
+					if kit.Chip(c.Key(sc.ID), shared.SceneName(sc), e.scene == sc.ID, 0).Clicked() {
+						e.scene = sc.ID
+					}
+				}
+			})
+			if kit.Off(c, kit.DeleteButton(c, kit.Small, locales.DeleteAll()), len(shown) == 0).Clicked() {
+				paths := make([]string, len(shown))
+				for i, r := range shown {
+					paths[i] = r.Path
+				}
+				c.ToastAction(locales.DeletedSessions(len(paths)), locales.Undo(), k.DeleteHistory(paths))
 			}
-		}
-	})
+		})
+	}
 	if len(shown) == 0 {
 		switch {
 		case !k.History.Loaded:
 		case len(k.History.Records) > 0:
 			kit.SandCard(c).Children(func() { kit.Caption(c, locales.HistorySceneEmpty()) })
 		case !k.Preferences().History:
-			kit.Empty(c, kit.ArtHistoryOff, locales.HistoryOff(), func() {
-				if kit.Button(c, kit.Primary, kit.Small, nil, locales.TurnOnHistory()).Clicked() {
-					k.UpdatePrefs(func(p *prefs.Prefs) { p.History = true })
-				}
-			})
+			kit.Empty(c, kit.ArtHistoryOff, locales.HistoryOff(), nil) // the switch above turns it on
 		default:
 			kit.Empty(c, kit.ArtHistory, locales.NoHistory(), nil)
 		}
@@ -103,9 +106,9 @@ func (s *Settings) history(c *ui.Context) {
 		if k.History.Shown != e.record {
 			k.ShowHistory(e.record)
 		}
-		ui.Row(c).Gap(kit.Space(4)).AlignItems(ui.Start).Wrap().Children(func() {
+		ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Wrap().Children(func() {
 			s.records(c, shown)
-			kit.Card(c).Grow(999).Basis(420).MinWidth(0).Gap(kit.Space(4)).Padding(kit.Space(5), kit.Space(6)).Children(func() {
+			kit.Card(c).Grow(999).Basis(420).MinWidth(0).Children(func() {
 				s.record(c, shown[at])
 			})
 		})
@@ -117,22 +120,33 @@ func (s *Settings) history(c *ui.Context) {
 // records lists the sessions shown by day, the latest first, as History.Records has them.
 func (s *Settings) records(c *ui.Context, shown []history.Record) {
 	e := &s.historyEdit
-	p := kit.Colors(c)
-	ui.Column(c).Grow(1).Basis(240).MaxWidth(300).Gap(kit.Space(2)).Role(ui.RoleTabList).FocusGroup(ui.Vertical).Children(func() {
-		last := ""
-		for _, r := range shown {
-			if d := day(r.Head.Start); d != last {
-				ui.Text(c, d).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.InkMuted).Padding(kit.Space(2), kit.Space(2), 0)
-				last = d
-			}
-			meta := shared.LangName(r.Head.Src) + " → " + shared.LangName(r.Head.Tgt) + " · " + locales.HistoryLines(r.Lines)
-			if kit.ListTile(c.Key(r.Path), r.Path == e.record, s.recordTitle(r), meta, func() {
-				ui.Text(c, r.Head.Start.Format("15:04")).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(44)
-			}, nil).Clicked() {
-				e.record = r.Path
-			}
+	items := make([]kit.ListItem, len(shown))
+	last := ""
+	for i, r := range shown {
+		items[i] = s.recordItem(c, r, r.Path == e.record, r.Head.Start.Format("15:04"))
+		if d := day(r.Head.Start); d != last {
+			items[i].Head, last = d, d
+		}
+	}
+	kit.OptionsCard(c).Grow(1).Basis(300).MaxWidth(320).Children(func() {
+		if i := kit.List(c, items); i >= 0 {
+			e.record = shown[i].Path
 		}
 	})
+}
+
+// recordItem is a session as lists show it: when it started, at, its scene, and its languages, its
+// lines and the app it heard, which the session's card says too, the first to go where the room
+// runs out.
+func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at string) kit.ListItem {
+	p := kit.Colors(c)
+	meta := []string{shared.LangName(r.Head.Src) + " → " + shared.LangName(r.Head.Tgt), locales.HistoryLines(r.Lines)}
+	if r.Head.App != "" {
+		meta = append(meta, r.Head.App)
+	}
+	return kit.ListItem{Key: r.Path, On: on, Title: s.recordScene(r), Meta: meta, Lead: func() {
+		ui.Text(c, at).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(44).Shrink(0)
+	}}
 }
 
 // record is a session's card: what it was and when, learning names from it, showing its file in
@@ -145,24 +159,27 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	if sc, ok := k.SceneByID(r.Head.Scene); ok {
 		terms = sc.Terms
 	}
-	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
-		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
-			ui.Text(c, s.recordScene(r)).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2)
-			span := day(r.Head.Start) + " " + r.Head.Start.Format("15:04")
-			if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
-				span += " – " + lines[n-1].At.Format("15:04")
-			}
-			if r.Head.App != "" {
-				span += " · " + locales.RecordSource(r.Head.App)
-			}
-			kit.Caption(c, span)
-		})
-		if kit.Off(c, kit.Button(c, kit.Soft, kit.Small, assets.Sparkles, locales.LearnNames()), r.Lines == 0).Clicked() {
+	// Its name and when it was, across the card, and under them what is done with it, the deletion
+	// apart at the end.
+	ui.Column(c).Gap(kit.Space(1)).Children(func() {
+		ui.Text(c, s.recordScene(r)).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2)
+		span := day(r.Head.Start) + " " + r.Head.Start.Format("15:04")
+		if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
+			span += " – " + lines[n-1].At.Format("15:04")
+		}
+		if r.Head.App != "" {
+			span += " · " + locales.RecordSource(r.Head.App)
+		}
+		kit.Caption(c, span)
+	})
+	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
+		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, assets.Sparkles, locales.LearnNames()), r.Lines == 0).Clicked() {
 			s.learnFrom([]string{r.Path}, r.Head.Scene)
 		}
-		if kit.IconButton(c, kit.Plain, kit.Small, assets.Folder, shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer())).Clicked() {
+		if kit.Button(c, kit.Plain, kit.Small, nil, shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer())).Clicked() {
 			mygo.Shell.ShowItemInFolder(r.Path)
 		}
+		ui.Spacer(c)
 		if kit.DeleteButton(c, kit.Small, locales.DeleteRecord()).Clicked() {
 			c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
 			e.record = ""
@@ -286,31 +303,25 @@ func corrected(src, heard string) (before, fixed, after, was string) {
 
 // day is the day of t as the list heads it: today, yesterday, or its date.
 func day(t time.Time) string {
-	same := func(a, b time.Time) bool {
-		ay, am, ad := a.Date()
-		by, bm, bd := b.Date()
-		return ay == by && am == bm && ad == bd
-	}
 	switch now := time.Now(); {
-	case same(t, now):
+	case sameDay(t, now):
 		return locales.DayToday()
-	case same(t, now.AddDate(0, 0, -1)):
+	case sameDay(t, now.AddDate(0, 0, -1)):
 		return locales.DayYesterday()
 	}
 	return i18n.FormatDate(i18n.Locale(), t, i18n.DateOptions{Date: i18n.MediumStyle})
 }
 
+// sameDay tells whether a and b are on the same day.
+func sameDay(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	return ay == by && am == bm && ad == bd
+}
+
 // when is when a session started, as the reader's locale writes it.
 func when(r history.Record) string {
 	return i18n.FormatDate(i18n.Locale(), r.Head.Start, i18n.DateOptions{Date: i18n.MediumStyle, Time: i18n.ShortStyle})
-}
-
-// recordTitle names a session in the list: its scene, and the app it heard.
-func (s *Settings) recordTitle(r history.Record) string {
-	if r.Head.App != "" {
-		return s.recordScene(r) + " · " + r.Head.App
-	}
-	return s.recordScene(r)
 }
 
 // recordScene names a session's scene: as it is named now, or was, if it was deleted since.

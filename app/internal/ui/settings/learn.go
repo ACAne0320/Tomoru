@@ -253,7 +253,7 @@ func (s *Settings) learnTaken(c *ui.Context) {
 	}
 	kit.DialogActions(c, func() {
 		ui.Spacer(c)
-		if !r.Running && !r.Finished && d.took > 0 && kit.Button(c, kit.Soft, kit.Small, assets.Reset, locales.Retranslate()).Clicked() {
+		if !r.Running && !r.Finished && d.took > 0 && kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.Retranslate()).Clicked() {
 			k.Retranslate(d.paths, d.tookTo)
 		}
 		if r.Running && kit.Button(c, kit.Destructive(kit.Plain), kit.Small, nil, locales.Cancel()).Clicked() {
