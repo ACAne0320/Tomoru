@@ -181,13 +181,15 @@ func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
 	if tgt == "en" {
 		tgt = "zh"
 	}
-	c.EngineService.testEndpoint(test, e, key, tgt, func(v prefs.Vision) {
+	c.EngineService.testEndpoint(test, e, key, tgt, func(v prefs.Vision) bool {
 		saved, ok := c.Prefs.Endpoint(e.ID)
 		if !ok || apiOf(*saved) != apiOf(e) || saved.Vision == v {
-			return
+			return false
 		}
 		saved.Vision = v
+		was := c.Prefs.ImageMT
 		c.fitImageEngine()
 		c.settingsChanged()
+		return was != c.Prefs.ImageMT
 	})
 }

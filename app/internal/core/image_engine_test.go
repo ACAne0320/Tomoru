@@ -214,7 +214,7 @@ func TestEndpointReadsPictures(t *testing.T) {
 	c.SetImageEngine(prefs.CustomPrefix + id)
 	saved, _ := c.Prefs.Endpoint(id)
 	e := *saved
-	if r := test(e); r.Err != nil || r.Vision != prefs.VisionNo {
+	if r := test(e); r.Err != nil || r.Vision != prefs.VisionNo || !r.ToCloud {
 		t.Fatalf("text only: %+v", r)
 	}
 	if body, _ := sent.Load().(string); !strings.Contains(body, "data:image/png;base64,") {
@@ -224,8 +224,12 @@ func TestEndpointReadsPictures(t *testing.T) {
 		t.Errorf("found text only: kept %v, pictures with %q", e.Vision, c.Prefs.ImageMT)
 	}
 
+	if r := test(e); r.ToCloud {
+		t.Error("tested again: says the cloud took over again")
+	}
+
 	e.Model = "sees"
-	if r := test(e); r.Vision != prefs.VisionYes {
+	if r := test(e); r.Vision != prefs.VisionYes || r.ToCloud {
 		t.Fatalf("reads pictures: %+v", r)
 	}
 	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo {

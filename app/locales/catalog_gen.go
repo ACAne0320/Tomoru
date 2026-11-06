@@ -2619,6 +2619,24 @@ func (msgs Messages) ReadsNoPictures() string {
 	return Catalog.Format(msgs.locale, "readsNoPictures", nil)
 }
 
+// PicturesToCloud says "Pictures now go to {name}"
+// in the language the app shows.
+//
+// Under a translation API's test result, when the test found that the API
+// chosen for pictures can't read them: pictures are now translated by the
+// cloud engine, name.
+func PicturesToCloud(name string) string { return In(i18n.Locale()).PicturesToCloud(name) }
+
+// PicturesToCloud says "Pictures now go to {name}"
+// in the language of msgs.
+//
+// Under a translation API's test result, when the test found that the API
+// chosen for pictures can't read them: pictures are now translated by the
+// cloud engine, name.
+func (msgs Messages) PicturesToCloud(name string) string {
+	return Catalog.Format(msgs.locale, "picturesToCloud", map[string]any{"name": name})
+}
+
 // TestFailed says "Failed · {ms} ms"
 // in the language the app shows.
 //

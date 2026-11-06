@@ -179,6 +179,7 @@
   "testSucceeded": "成功 · {ms} ms",
   "readsPictures": "画像を読めます",
   "readsNoPictures": "画像は読めません",
+  "picturesToCloud": "画像の翻訳は {name} に切り替えました",
   "testFailed": "失敗 · {ms} ms",
   "testNoTranslation": "翻訳が返されませんでした。",
   "testOnlyThinking": "モデルが思考過程だけを返し、訳文を出力しませんでした。推論なしモデル（通常の Chat / Flash モデルなど）を使ってください。",

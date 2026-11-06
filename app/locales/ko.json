@@ -179,6 +179,7 @@
   "testSucceeded": "성공 · {ms}ms",
   "readsPictures": "이미지를 읽을 수 있어요",
   "readsNoPictures": "이미지는 읽지 못해요",
+  "picturesToCloud": "이미지 번역은 {name}(으)로 바꿨어요",
   "testFailed": "실패 · {ms}ms",
   "testNoTranslation": "번역이 반환되지 않았어요.",
   "testOnlyThinking": "모델이 추론 과정만 반환하고 번역문을 출력하지 않았어요. 일반 채팅 모델(비추론 모델)을 사용하세요.",

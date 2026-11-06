@@ -885,6 +885,16 @@
   "@readsNoPictures": {
     "description": "Under a translation API's test result: the API refused a picture sent with the sample, so it is not offered for pictures."
   },
+  "picturesToCloud": "Pictures now go to {name}",
+  "@picturesToCloud": {
+    "description": "Under a translation API's test result, when the test found that the API chosen for pictures can't read them: pictures are now translated by the cloud engine, name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 35B"
+      }
+    }
+  },
   "testFailed": "Failed · {ms} ms",
   "@testFailed": {
     "description": "The test failed, after so many milliseconds. Why shows under it.",

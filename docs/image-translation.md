@@ -81,7 +81,7 @@ pictures. The picture's shortcut is in that group too, as in Preferences.
   until a test finds they read none.
 - **Gone**: a model deleted, an API deleted or found to read none, while chosen for pictures, gives
   way to the cloud, as live translation does with `Successor`; undoing the API's deletion chooses it
-  again.
+  again. A test that finds so says it under its result (`TestResult.ToCloud`).
 - **Only the one chosen** (`EngineService.imageEndpoint`): a picture never goes to another engine.
   When the chosen one can't translate it (its model missing, the models moving, the API failing),
   the card says why.

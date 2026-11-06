@@ -32,6 +32,8 @@ type TestResult struct {
 	// Vision is whether it read a picture sent with the sample: unknown when the sample failed, or
 	// the picture failed but for a reason of its own.
 	Vision prefs.Vision
+	// ToCloud tells that, found to read none, it no longer translates the pictures: the cloud does.
+	ToCloud bool
 }
 
 // TestSample is what a test translates, from English, into the language translated into, or into
@@ -134,8 +136,9 @@ func (s *EngineService) stopTests() {
 }
 
 // testEndpoint translates the sample with e, and alongside a picture of it, to find whether e reads
-// pictures; found gets what was found, when it was.
-func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision)) {
+// pictures; found gets what was found, when it was, and tells whether the cloud took over the
+// pictures from it.
+func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision) bool) {
 	e.URL = apiOf(e).url
 	s.startTest(test, 30*time.Second, func(ctx context.Context) TestResult {
 		ep := s.endpoint(e, key)
@@ -159,7 +162,10 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 	}, func(r TestResult) {
 		if r.Err == nil && r.Vision != prefs.VisionUnknown {
 			s.visions[apiOf(e)] = r.Vision
-			found(r.Vision)
+			if found(r.Vision) {
+				r.ToCloud = true
+				s.Tests[test] = r
+			}
 		}
 	})
 }

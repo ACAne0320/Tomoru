@@ -179,6 +179,7 @@
   "testSucceeded": "成功 · {ms} ms",
   "readsPictures": "能读图片",
   "readsNoPictures": "不能读图片",
+  "picturesToCloud": "图片翻译已改用 {name}",
   "testFailed": "失败 · {ms} ms",
   "testNoTranslation": "接口未返回译文。",
   "testOnlyThinking": "模型只返回了思考过程，没有输出译文。请换用非推理模型（如普通 Chat / Flash 模型）。",
