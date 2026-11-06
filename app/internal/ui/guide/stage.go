@@ -95,7 +95,7 @@ func (g *Guide) stage(c *ui.Context) {
 // glass is a pane on the stage: lighter than the night, with a hairline.
 func glass(c *ui.Context, e ui.Element) ui.Element {
 	p := kit.Colors(c)
-	return e.Background(p.Glass).Border(1, p.GlassLine).Radius(kit.RadiusInner + 2)
+	return e.Background(p.Glass).Border(1, p.GlassLine).Radius(kit.RadiusField)
 }
 
 // onStage is text on the stage, of size, in starlight as bright as alpha.
@@ -105,5 +105,5 @@ func onStage(c *ui.Context, s string, size float32, alpha float32) ui.Element {
 
 // tint is the ground of a step's icon, an amber square of d with icon in it.
 func tint(c *ui.Context, d float32, icon func()) ui.Element {
-	return ui.Box(c).Size(d, d).Radius(kit.RadiusInner - 1).Background(kit.Colors(c).Lantern.Alpha(.16)).Center().Shrink(0).Children(icon)
+	return ui.Box(c).Size(d, d).Radius(kit.RadiusInner).Background(kit.Colors(c).Lantern.Alpha(.16)).Center().Shrink(0).Children(icon)
 }

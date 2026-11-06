@@ -116,6 +116,9 @@ func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 	}
 	var env asr.Env
 	if s.Model != nil {
+		if c.deps.Models != nil && c.deps.Models.Moving().Active {
+			return nil, ErrModelsMoving
+		}
 		if c.deps.Models == nil || c.deps.Models.Status(id).State != models.Ready {
 			return nil, ErrASRMissing
 		}
@@ -132,6 +135,38 @@ func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 		env.ASR, env.ModelDir = bin, filepath.Dir(c.deps.Models.Path(id))
 	}
 	return s.New(env)
+}
+
+// MoveModels moves the local models into a folder of their own in dir (models.Destination), and
+// keeps them there. Translating stops while they
+// move, and the models' servers, which hold their files open, then goes on if it was on.
+func (c *Core) MoveModels(dir string) {
+	if c.closed || c.deps.Models == nil || c.deps.Models.Moving().Active {
+		return
+	}
+	dir = models.Destination(dir, c.deps.Models.Dir())
+	running := c.Running
+	c.stop()
+	for _, s := range []Server{c.deps.Server, c.deps.ASRServer} {
+		if s != nil {
+			s.Stop()
+		}
+	}
+	c.deps.Models.Move(dir, func(err error) {
+		c.work.Post(func() {
+			if err == nil {
+				c.Prefs.ModelsDir = c.deps.Models.Dir()
+				c.settingsChanged()
+			} else {
+				log.Println("models: moving:", err)
+				c.changed()
+			}
+			if running {
+				c.Start()
+			}
+		})
+	})
+	c.changed()
 }
 
 // Shutdown cancels every feature before waiting for application workers.

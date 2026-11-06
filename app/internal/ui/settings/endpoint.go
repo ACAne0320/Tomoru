@@ -100,7 +100,8 @@ func (d *endpointEdit) valid() bool {
 }
 
 // testResult is whether the test worked and how long it took, and under it the translation, or
-// why not: an answer without a translation did not work either.
+// why not: an answer without a translation did not work either. Under the translation, whether it
+// read the picture sent with it, when that is known.
 func testResult(c *ui.Context, r core.TestResult) {
 	ms := fmt.Sprint(r.Took.Milliseconds())
 	switch {
@@ -117,6 +118,12 @@ func testResult(c *ui.Context, r core.TestResult) {
 		kit.Result(c, false, locales.TestFailed(ms), why)
 	default:
 		kit.Result(c, true, locales.TestSucceeded(ms), r.Text)
+		switch r.Vision {
+		case prefs.VisionYes:
+			kit.ResultMark(c, assets.Picture, locales.ReadsPictures(), true)
+		case prefs.VisionNo:
+			kit.ResultMark(c, assets.NoPicture, locales.ReadsNoPictures(), false)
+		}
 	}
 }
 
@@ -135,13 +142,13 @@ func (s *Settings) endpointActions(c *ui.Context) {
 			d.open = false
 		}
 		ui.Spacer(c)
-		if kit.Off(kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
 			k.TestEndpoint(d.test, d.e, d.key)
 		}
 		if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
 			d.open = false
 		}
-		if kit.Off(kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
 			d.e.Name, d.e.URL, d.e.Model = strings.TrimSpace(d.e.Name), strings.TrimSpace(d.e.URL), strings.TrimSpace(d.e.Model)
 			k.SaveEndpoint(d.e, d.key)
 			c.Toast(locales.EndpointSaved(d.e.Name))

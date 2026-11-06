@@ -95,10 +95,15 @@ func main() {
 			ASRPath:    func() (string, error) { return engine.ASRPath(roots...) }, PrefsPath: path, ScenesPath: scenesPath, HistoryDir: historyDir, StatsPath: statsPath, LogPath: logPath, Login: mygo.App, Secrets: mygo.Secrets,
 			Network: func() (bool, bool) { s := mygo.Network.Status(); return s.Online, s.Metered },
 			Select:  capture.Selector(func() (string, error) { return engine.Path(roots...) })}
-		// The local models: downloaded into the user's data, run by the llama-server the app ships,
-		// with a model's vision projector once a picture had it downloaded.
+		// The local models: downloaded into the user's data, or the folder they were moved to, run by
+		// the llama-server the app ships, with a model's vision projector once a picture had it
+		// downloaded.
 		var manager *models.Manager
-		if dir, err := models.Dir(); err == nil {
+		dir, err := models.Dir()
+		if p.ModelsDir != "" {
+			dir, err = p.ModelsDir, nil
+		}
+		if err == nil {
 			china := strings.HasPrefix(mygo.App.Locale(), "zh")
 			manager = models.NewManagerContext(ctx, dir, china, func() { post(func() { k.Changed() }) })
 			deps.Models = manager

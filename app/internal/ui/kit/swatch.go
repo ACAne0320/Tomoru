@@ -12,7 +12,7 @@ import (
 func CustomSwatch(c *ui.Context, label string, on bool) ui.Element {
 	p := Colors(c)
 	const h = 40
-	b := ui.ButtonBase(c).Selected(on).Height(h).Padding(0, Space(3.5), 0, Space(2.5)).Gap(Space(2)).Radius(Pill(h)).
+	b := ui.ButtonBase(c).Selected(on).Height(h).Padding(0, Space(4), 0, Space(3)).Gap(Space(2)).Radius(Pill(h)).
 		Label(label).Cursor(ui.CursorPointer)
 	face := p.Card
 	if b.Hovered() || b.Pressed() {
@@ -26,7 +26,7 @@ func CustomSwatch(c *ui.Context, label string, on bool) ui.Element {
 	}
 	return b.Children(func() {
 		hueRing(c, 22)
-		ui.Text(c, label).FontSize(TextSmall).FontWeight(WeightBold).TextColor(p.Ink).SingleLine()
+		ui.Text(c, label).FontSize(TextControl).FontWeight(WeightBold).TextColor(p.Ink).SingleLine()
 	})
 }
 

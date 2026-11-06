@@ -27,14 +27,17 @@ func (g *Guide) recognition(c *ui.Context) {
 	g.part(c, 1, func() { g.recognitionChoices(c) })
 }
 
-// recognitionChoices are the recognition step's choices: the system's, then the models, Qwen3-ASR
-// recommended where the GPU runs it.
+// recognitionChoices are the recognition step's choices, as the settings list them: the system's,
+// then the models, Qwen3-ASR recommended where the GPU runs it.
 func (g *Guide) recognitionChoices(c *ui.Context) {
 	k := g.core
 	ui.Column(c).Gap(kit.Space(2)).Role(ui.RoleRadioGroup).Label(locales.GuideAsrChoose()).Children(func() {
 		section(c, locales.TagLocal())
+		var rows []kit.Option
+		var takes []func()
 		if prefs.SystemASR() != "" {
-			g.systemCard(c)
+			o, take := g.systemOption(c)
+			rows, takes = append(rows, o), append(takes, take)
 		}
 		for _, e := range k.Engines(core.ASR) {
 			if e.Model == nil {
@@ -47,8 +50,10 @@ func (g *Guide) recognitionChoices(c *ui.Context) {
 			if e.ID == "sensevoice-small" {
 				body = locales.EngineSenseVoiceDescription()
 			}
-			g.modelCard(c, core.ASR, *e.Model, tag, body)
+			o, take := g.modelOption(c, core.ASR, *e.Model, tag, body)
+			rows, takes = append(rows, o), append(takes, take)
 		}
+		choices(c, rows, takes)
 	})
 }
 
@@ -68,23 +73,34 @@ func (g *Guide) translationChoices(c *ui.Context) {
 	k := g.core
 	ui.Column(c).Gap(kit.Space(2)).Role(ui.RoleRadioGroup).Children(func() {
 		section(c, locales.TagLocal())
+		var rows []kit.Option
+		var takes []func()
 		for _, m := range models.All {
 			if !m.ASR {
-				g.modelCard(c, core.MT, m, "", "")
+				o, take := g.modelOption(c, core.MT, m, "", "")
+				rows, takes = append(rows, o), append(takes, take)
 			}
 		}
+		choices(c, rows, takes)
 		section(c, locales.TagCloud())
 		cloud := k.Chosen(core.MT) == "cloud"
-		if card(c, "cloud", cloud, func() {
-			kit.Dot(c, cloud)
-			ui.Column(c).Grow(1).Gap(kit.Space(0.75)).Children(func() {
-				name(c, shared.CloudName, locales.TagRecommended())
-				kit.Caption(c, locales.EngineCloudThanks())
-			})
-		}).Role(ui.RoleRadio).Checked(cloud).Label(shared.CloudName).Clicked() && !cloud {
-			k.Choose(core.MT, "cloud")
+		kit.OptionsCard(c).Children(func() {
+			o := kit.Option{Key: "cloud", On: cloud, Title: shared.CloudName, Tag: locales.TagRecommended(), Accent: true, Meta: locales.EngineCloudThanks()}
+			if kit.Options(c, []kit.Option{o}) == 0 && !cloud {
+				k.Choose(core.MT, "cloud")
+			}
+			kit.Caption(c, shared.CloudSends(core.MT)).Margin(kit.Space(2), kit.Space(3), kit.Space(3))
+		})
+	})
+}
+
+// choices lists rows of a side in their card; choosing one that isn't chosen takes it, as its
+// take of takes does.
+func choices(c *ui.Context, rows []kit.Option, takes []func()) {
+	kit.OptionsCard(c).Children(func() {
+		if i := kit.Options(c, rows); i >= 0 && !rows[i].On {
+			takes[i]()
 		}
-		kit.Caption(c, shared.CloudSends(core.MT)).Margin(0, kit.Space(3), 0, kit.Space(11))
 	})
 }
 
@@ -93,9 +109,9 @@ func section(c *ui.Context, s string) {
 	ui.Text(c, s).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).InkMuted).Margin(kit.Space(1), 0, 0, kit.Space(1))
 }
 
-// systemCard is the system's recognition as a choice, ready with nothing to download: its state
-// for the language spoken at its end while chosen.
-func (g *Guide) systemCard(c *ui.Context) {
+// systemOption is the system's recognition as a choice, ready with nothing to download: its state
+// for the language spoken at its end while chosen; and taking it.
+func (g *Guide) systemOption(c *ui.Context) (kit.Option, func()) {
 	k := g.core
 	on := k.Chosen(core.ASR) == "apple"
 	asr := k.ASR[k.Preferences().Src]
@@ -107,116 +123,70 @@ func (g *Guide) systemCard(c *ui.Context) {
 	default:
 		desc = locales.AsrFirstDownload()
 	}
-	if card(c, "apple", on, func() {
-		kit.Dot(c, on)
-		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.75)).Children(func() {
-			name(c, locales.EngineApple(), locales.TagBuiltIn())
-			kit.Caption(c, desc).ContentTransition(ui.ContentTransition{})
-		})
-		if on {
-			mark(c, 20, asr == "ready", asr == "preparing" || asr == "", asr == "error")
-		}
-	}).Role(ui.RoleRadio).Checked(on).Label(locales.EngineApple()).Clicked() && !on {
-		k.Choose(core.ASR, "apple")
+	o := kit.Option{Key: "apple", On: on, Title: locales.EngineApple(), Tag: locales.TagBuiltIn(), Meta: desc}
+	if on {
+		o.Action = func() { mark(c, 20, asr == "ready", asr == "preparing" || asr == "", asr == "error") }
 	}
+	return o, func() { k.Choose(core.ASR, "apple") }
 }
 
-// name is an engine's name on its card, and a tag after it, if any: Recommended in amber, as the
-// settings have it.
-func name(c *ui.Context, s, tag string) {
-	ui.Row(c).Gap(kit.Space(1.5)).AlignItems(ui.Center).Children(func() {
-		ui.Text(c, s).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).Ink)
-		switch tag {
-		case "":
-		case locales.TagRecommended():
-			kit.AccentTag(c, tag)
-		default:
-			kit.Tag(c, tag)
-		}
-	})
-}
-
-// modelCard is a model to download as a choice of kind, as card draws one and the settings list
-// it: its dot, dimmed until it is downloaded; its name and tag; one line under them, why its
-// download failed, its download's progress, under way or stopped, or else shared.ModelNote of
-// body; and at its end its download's button, or cancelling it. One line, and the progress under
-// the name rather than beside it, so that the card keeps its height in the narrow column, in any
-// language. Chosen, it is downloaded, and used once it is; the step says so once for all.
-func (g *Guide) modelCard(c *ui.Context, kind core.Kind, m models.Model, tag, body string) {
-	title := shared.EngineName(core.Engine{ID: m.ID})
+// modelOption is a model to download as a choice of kind, as the settings list it: its name and
+// tag over shared.ModelNote of body; under them why its download failed, or its download's
+// progress, under way or stopped; and at its end its download's button, or cancelling it. Chosen,
+// it is downloaded, and used once it is; the step says so once for all. It returns the row and
+// taking it.
+func (g *Guide) modelOption(c *ui.Context, kind core.Kind, m models.Model, tag, body string) (kit.Option, func()) {
 	k := g.core
-	pal := kit.Colors(c)
 	st := k.ModelStatus(m.ID)
 	if st.State == models.Downloading {
 		c.After(250 * time.Millisecond)
 	}
-	on := k.Chosen(kind) == m.ID
-	ready := st.State == models.Ready
 	take := func() {
 		k.Choose(kind, m.ID)
 		if st.State == models.Missing {
 			k.Download(m.ID)
 		}
 	}
-	// Download, short in any language, even to go on with one stopped: its progress under its
-	// name says so.
+	o := kit.Option{Key: m.ID, On: k.Chosen(kind) == m.ID, Title: shared.EngineName(core.Engine{ID: m.ID}), Tag: tag, Accent: tag != "",
+		Meta: shared.ModelNote(m, st, body)}
+	switch why := shared.DownloadError(st.Err); {
+	case why != "" && st.State == models.Missing:
+		o.Below = func() { kit.Warning(c, why).MaxLines(1).Tooltip(why) }
+	case st.State == models.Downloading || st.State == models.Missing && st.Done > 0:
+		total := cmp.Or(st.Total, m.Size)
+		end := float32(0) // a Plain download's edge shows; a cancel's glyph is in from its own
+		if st.State == models.Downloading {
+			end = kit.QuietInset
+		}
+		o.Below = func() {
+			kit.OptionProgress(c, float64(st.Done)/float64(max(total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(total))).Padding(0, end, 0, 0)
+		}
+	case st.State == models.Verifying:
+		o.Below = func() { kit.Caption(c, locales.Verifying()).MaxLines(1) }
+	}
+	// Download, even to go on with one stopped: its progress under its name says so. The guide's
+	// column is narrow: the button is its icon, named in its tooltip, so that the name and what the
+	// model needs keep their lines in any language.
 	label := locales.DownloadModel()
 	if st.Err != nil && st.Done == 0 {
 		label = locales.Retry()
 	}
-	if card(c, m.ID, on, func() {
-		dot := kit.Dot(c, on)
-		if !ready {
-			dot.Opacity(.4)
-		}
-		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.75)).Children(func() {
-			name(c, title, tag)
-			switch why := shared.DownloadError(st.Err); {
-			case why != "" && st.State == models.Missing:
-				kit.Warning(c, why).MaxLines(1).Tooltip(why)
-			case st.State == models.Downloading || st.State == models.Missing && st.Done > 0:
-				total := cmp.Or(st.Total, m.Size)
-				ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
-					kit.Progress(c, float64(st.Done)/float64(max(total, 1))).Grow(1).MinWidth(0)
-					ui.Text(c, locales.Downloading(shared.Size(st.Done), shared.Size(total))).NoWrap().FontSize(kit.TextMicro).FontFeatures(kit.Tabular).TextColor(pal.InkMuted).
-						ContentTransition(ui.ContentTransition{Numeric: true})
-				})
-			case st.State == models.Verifying:
-				kit.Caption(c, locales.Verifying()).MaxLines(1)
-			default:
-				kit.Caption(c, shared.ModelNote(m, st, body)).MaxLines(2).Tooltip(shared.ModelNote(m, st, body)) // where it runs shows, as the system's description does
-			}
-		})
-		// At its end, as the settings have it: its download, or cancelling it.
-		switch st.State {
-		case models.Missing:
-			if kit.Button(c, kit.Strong, kit.Small, assets.Download, label).Clicked() {
+	switch st.State {
+	case models.Missing:
+		o.Action = func() {
+			if kit.IconButton(c, kit.Plain, kit.Small, assets.Download, label).Clicked() {
 				take()
 			}
-		case models.Downloading:
-			if kit.IconButton(c, kit.Destructive(kit.Quiet), kit.Small, assets.Close, locales.Cancel()).Clicked() {
+		}
+	case models.Downloading:
+		o.Action = func() {
+			if kit.CancelButton(c, locales.Cancel()).Clicked() {
 				k.CancelDownload(m.ID)
 				k.Choose(kind, k.InUse(kind)) // what is in use again, not the model once resumed
 			}
 		}
-	}).Role(ui.RoleRadio).Checked(on).Label(title).Clicked() && !on {
-		take()
 	}
-}
-
-// card is a choice of the engines step, as kit.OptionRow draws one: white, in the lantern's ring
-// while chosen.
-func card(c *ui.Context, key string, chosen bool, fn func()) ui.Element {
-	p := kit.Colors(c)
-	b := ui.ButtonBase(c.Key(key)).Row().Gap(kit.Space(3)).Padding(kit.Space(3)).Radius(kit.RadiusTile).AlignItems(ui.Center).Cursor(ui.CursorPointer)
-	edge := p.Line
-	switch {
-	case chosen:
-		edge = p.Lantern
-	case b.Hovered():
-		edge = p.LineStrong
-	}
-	return b.Background(p.Card).Border(2, b.AnimateColor("edge", edge, ui.Animation{Duration: 160 * time.Millisecond})).Children(fn)
+	return o, take
 }
 
 // The way of a sentence on the engine steps' stage, in time: a light goes down from what is heard
@@ -282,7 +252,7 @@ func (g *Guide) enginesStage(c *ui.Context, focus core.Kind) {
 		asr.ID = "sensevoice-small" // the stage shows the way of a sentence, chosen or not
 	}
 	pal := kit.Colors(c)
-	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6.5)).Children(func() {
+	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6)).Children(func() {
 		node(c, "heard", focus == core.ASR, 0, assets.Waves, shared.OnWindows(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
 			ink := pal.Starlight.Alpha(.8)
 			if !lit {
@@ -348,8 +318,8 @@ func (g *Guide) flash(c *ui.Context, kind core.Kind) float32 {
 // the way.
 func node(c *ui.Context, key string, lit bool, flash float32, icon *ui.SVG, name, tag string, fn func(lit bool)) {
 	pal := kit.Colors(c)
-	row := ui.Row(c.Key(key)).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(3.5)).AlignItems(ui.Start).
-		Radius(kit.RadiusInner + 2).Clip().Transition(kit.Grow())
+	row := ui.Row(c.Key(key)).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(4)).AlignItems(ui.Start).
+		Radius(kit.RadiusField).Clip().Transition(kit.Grow())
 	bg, edge, label, mark := pal.Glass, pal.GlassLine, pal.Starlight.Alpha(.4), pal.Lantern.Alpha(.5)
 	if lit {
 		bg, edge, label, mark = pal.Starlight.Alpha(.11), pal.Lantern.Alpha(.5), pal.Starlight.Alpha(.66), pal.Lantern
@@ -363,11 +333,11 @@ func node(c *ui.Context, key string, lit bool, flash float32, icon *ui.SVG, name
 	label, mark = row.AnimateColor("label", label, kit.Fade), row.AnimateColor("mark", mark, kit.Fade)
 	row.Children(func() {
 		tint(c, 32, func() { ui.Icon(c, icon).FontSize(kit.IconSizeNav).TextColor(mark) })
-		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.75)).Children(func() {
-			ui.Row(c).Gap(kit.Space(1.5)).AlignItems(ui.Center).Children(func() {
+		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
+			ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
 				ui.Text(c.Key(name), name).NoWrap().FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(label).Transition(kit.Rise(0)) // another rises in its place
 				if tag != "" {
-					ui.Text(c, tag).NoWrap().FontSize(kit.TextMicro-1).TextColor(label).Background(pal.Glass).Radius(kit.Pill(16)).Padding(kit.Space(0.25), kit.Space(1.5))
+					ui.Text(c, tag).NoWrap().FontSize(kit.TextMicro).TextColor(label).Background(pal.Glass).Radius(kit.Pill(16)).Padding(0, kit.Space(2))
 				}
 			})
 			fn(lit)
@@ -424,7 +394,7 @@ func leaving(at time.Time) light {
 func flow(c *ui.Context, key string, at light) {
 	still := c.Preferences().ReduceMotion
 	pal := kit.Colors(c)
-	x := 1 + kit.Space(3.5) + 16 - 1 // the pane's border and padding, half its icon's ground, half the line
+	x := kit.Space(4) + 16 // the pane's border and padding, half its icon's ground, less half the line, as wide as the border
 	ui.Box(c.Key(key)).Height(26).Width(2).Margin(0, 0, 0, x).AlignSelf(ui.Start).Background(pal.Starlight.Alpha(.16)).Transition(kit.Grow()).
 		Draw(func(p *ui.Painter, r ui.Rect) {
 			if still {

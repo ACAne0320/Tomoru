@@ -99,18 +99,23 @@ func (n *Nav) SetImageShortcut(acc string) error {
 // Taken is a shortcut Nav.SetShortcut fails to register.
 const Taken = "Cmd+Space"
 
-// Models is a core.Models whose models are as St says, Missing if it says nothing; it remembers
-// what was asked of it.
+// Models is a core.Models whose models are as St says, Missing if it says nothing, and moving as
+// Move says; it remembers what was asked of it.
 type Models struct {
 	St                 map[string]models.Status
 	Downloads, Cancels []string
+	MoveStatus         models.Move
+	Moves              []string
 }
 
-func (m *Models) Status(id string) models.Status { return m.St[id] }
-func (m *Models) Path(id string) string          { return "/models/" + id }
-func (m *Models) Download(id string)             { m.Downloads = append(m.Downloads, id) }
-func (m *Models) Cancel(id string)               { m.Cancels = append(m.Cancels, id) }
-func (m *Models) Delete(id string) error         { delete(m.St, id); return nil }
+func (m *Models) Status(id string) models.Status   { return m.St[id] }
+func (m *Models) Path(id string) string            { return "/models/" + id }
+func (m *Models) Download(id string)               { m.Downloads = append(m.Downloads, id) }
+func (m *Models) Cancel(id string)                 { m.Cancels = append(m.Cancels, id) }
+func (m *Models) Delete(id string) error           { delete(m.St, id); return nil }
+func (m *Models) Dir() string                      { return "/models" }
+func (m *Models) Moving() models.Move              { return m.MoveStatus }
+func (m *Models) Move(to string, done func(error)) { m.Moves = append(m.Moves, to); done(nil) }
 
 // GalleryDir is the directory TOMORU_GALLERY names, where galleries write their pictures, "" for
 // none. When TOMORU_GALLERY_LOCALE names a language, as zh-Hans, the pictures are in it: the

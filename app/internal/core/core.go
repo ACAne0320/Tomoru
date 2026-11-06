@@ -94,6 +94,9 @@ type Models interface {
 	Download(id string)
 	Cancel(id string)
 	Delete(id string) error
+	Dir() string
+	Moving() models.Move
+	Move(to string, done func(error))
 }
 
 // Server runs a local model: a *models.Server. It is called from the main thread and from the
@@ -215,6 +218,9 @@ func New(p prefs.Prefs, d Deps) *Core {
 	c.loadStats()
 	c.useProxy()
 	c.saved = c.Prefs.Clone()
+	if c.Prefs.ImageMT == "" { // pictures went with the subtitles' engine before they had their own
+		c.Prefs.ImageMT = imageEngineFrom(c.Prefs.MT, c.Prefs.Endpoints)
+	}
 	if d.Login != nil {
 		c.AtLogin = d.Login.OpenAtLogin()
 	}

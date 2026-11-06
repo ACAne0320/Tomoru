@@ -134,6 +134,10 @@ func ErrorText(err error) string {
 	switch {
 	case errors.Is(err, core.ErrModelMissing):
 		return locales.ErrModelMissing()
+	case errors.Is(err, core.ErrModelsMoving):
+		return locales.ErrModelsMoving()
+	case errors.Is(err, core.ErrModelBusy):
+		return locales.ErrModelBusy()
 	case errors.Is(err, core.ErrNoASR):
 		return locales.ErrNoAsr()
 	case errors.Is(err, core.ErrASRMissing):
@@ -167,15 +171,15 @@ func ErrorText(err error) string {
 	return locales.StatusStopped(e.Message)
 }
 
-// Size is a size in bytes, as "1.3 GB".
+// Size is a size in bytes, as "1.3 GB", the number held to its unit by a no-break space.
 func Size(n int64) string {
 	switch {
 	case n >= 1<<30:
-		return fmt.Sprintf("%.1f GB", float64(n)/(1<<30))
+		return fmt.Sprintf("%.1f\u00a0GB", float64(n)/(1<<30))
 	case n >= 1<<20:
-		return fmt.Sprintf("%.0f MB", float64(n)/(1<<20))
+		return fmt.Sprintf("%.0f\u00a0MB", float64(n)/(1<<20))
 	}
-	return fmt.Sprintf("%d KB", n>>10)
+	return fmt.Sprintf("%d\u00a0KB", n>>10)
 }
 
 // SceneName is a scene's name as shown: the general one's, or a new one's until it is named.

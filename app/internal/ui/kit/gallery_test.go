@@ -25,18 +25,20 @@ type gallery struct {
 	bar       int
 	tile      int
 	bin, day  int
+	shown     float64
+	text      string
 }
 
 func (g *gallery) view(c *ui.Context) {
 	Paper(c)
 	p := Colors(c)
 	section := func(name string, fn func()) {
-		ui.Column(c).Gap(Space(2.5)).Children(func() {
+		ui.Column(c).Gap(Space(3)).Children(func() {
 			ui.Text(c, name).FontSize(TextCaption).FontWeight(WeightBold).TextColor(p.InkMuted)
-			ui.Row(c).Gap(Space(2.5)).AlignItems(ui.Center).Wrap().Children(fn)
+			ui.Row(c).Gap(Space(3)).AlignItems(ui.Center).Wrap().Children(fn)
 		})
 	}
-	ui.Column(c).Fill().Background(p.Paper).Padding(Space(6)).Gap(Space(5)).Children(func() {
+	ui.Column(c).Fill().Background(p.Paper).Padding(Space(6)).Gap(SectionGap).Children(func() {
 		section("Button · Large", func() {
 			if Button(c, Primary, Large, assets.Play, "开始翻译").Clicked() {
 				g.clicks++
@@ -52,9 +54,11 @@ func (g *gallery) view(c *ui.Context) {
 		})
 		section("Button · Small", func() {
 			Button(c, Primary, Small, nil, "改用 阿里云百炼")
-			Button(c, Strong, Small, assets.Download, "下载")
+			Button(c, Plain, Small, assets.Download, "下载")
 			Button(c, Plain, Small, nil, "设置")
 			Button(c, Soft, Small, assets.Sparkles, "学习专名")
+			Off(c, Button(c, Plain, Small, nil, "测试"), true)
+			Off(c, Button(c, Primary, Small, nil, "保存"), true)
 		})
 		section("IconButton", func() {
 			IconButton(c, Plain, Medium, assets.Reset, "恢复默认样式")
@@ -62,7 +66,8 @@ func (g *gallery) view(c *ui.Context) {
 			IconButton(c, Plain, Small, assets.Arrow, "查看全部")
 			IconButton(c, Strong, Small, assets.Plus, "添加专名")
 			IconButton(c, Soft, Small, assets.Sparkles, "学习专名")
-			IconButton(c, Quiet, Small, assets.Trash, "删除")
+			DeleteButton(c, Small, "删除")
+			CancelButton(c, "取消下载")
 			IconButton(c, Quiet, Small, assets.More, "更多操作")
 		})
 		section("Chip", func() {
@@ -130,20 +135,43 @@ func (g *gallery) view(c *ui.Context) {
 			})
 			Facts(c, []Fact{{Label: "译文", Value: "6,039 字"}, {Label: "输入 tokens", Value: "130,423"}, {Label: "输出 tokens", Value: "11,424"}, {Label: "失败", Value: "1 句"}}).Width(340)
 		})
-		ui.Row(c).Gap(Space(3.5)).AlignItems(ui.Start).Children(func() {
-			Card(c).Width(300).Children(func() {
-				CardHeader(c, "外观", func() { IconButton(c, Plain, Small, assets.Reset, "恢复默认") })
-				ui.Text(c, "白卡：一组设置").FontSize(TextBody).TextColor(p.Ink)
+		Groups(c, func() {
+			Group(c, "外观", nil, RowsCard, func() {
+				SettingRow(c, 0, "背景", "", func() { Segmented(c, &g.seg, "带底框", "沉浸").Label("背景") })
+				SettingRow(c, 1, "抢先翻译", "话没说完先出大意", func() { Switch(c, &g.on, "抢先翻译 2") })
+			}).Grow(1).Basis(300)
+			Group(c, "文字", func() { IconButton(c, Plain, Small, assets.Reset, "恢复默认") }, RowsCard, func() {
+				SettingRow(c, 0, "字体", "", func() { Picker(c, "系统默认", func(*ui.Menu) {}).Label("字体") })
+				SettingRow(c, 1, "同时显示（条）", "", func() { Stepper(c, &g.shown, 1, 4, "少", "多") })
+			}).Grow(1).Basis(300)
+		})
+		Group(c, "翻译", nil, OptionsCard, func() {
+			Options(c, []Option{
+				{Key: "2b", Title: "Index-Translate 2B", Meta: "1.6\u00a0GB · 需要 8\u00a0GB 内存", Action: func() { DeleteButton(c, Small, "删除 2B") }},
+				{Key: "9b", On: true, Title: "Index-Translate 9B", Tag: "推荐", Accent: true, Meta: "6.0\u00a0GB · 需要 16\u00a0GB 内存",
+					Action: func() { CancelButton(c, "取消 9B") },
+					Below: func() {
+						OptionProgress(c, .33, "2.0\u00a0GB / 6.0\u00a0GB")
+						Caption(c, "下载完成后自动切换，在那之前继续用 Index-Translate 35B。")
+					}},
+				{Key: "q", Title: "Qwen3-ASR 1.7B", Tag: "系统自带", Meta: "2.3\u00a0GB · 用 GPU 运行", Action: func() { Button(c, Plain, Small, assets.Download, "下载 Q") }},
 			})
-			SandCard(c).Width(300).Children(func() {
-				CardHeader(c, "在看什么", func() { IconButton(c, Plain, Small, assets.Sliders, "管理场景") })
-				ui.Text(c, "沙色卡：首页的次要内容").FontSize(TextBody).TextColor(p.Ink)
+			AddRow(c, "添加接口")
+		})
+		ui.Row(c).Gap(CardGap).AlignItems(ui.Start).Children(func() {
+			ui.Column(c).Width(300).Gap(Space(2)).Children(func() {
+				ListTile(c, true, "最终幻想7 重制版", "日语 → 中文 · 12 个专名", nil, func() { InUse(c) })
+				ListTile(c, false, "雷军演讲", "中文 → 英语 · 4 个专名", nil, nil)
+			})
+			Card(c).Width(300).Children(func() {
+				InUseLabel(c, "正在使用")
+				TextField(c, &g.text).Placeholder("deepseek-flash").Label("模型")
 			})
 		})
 	})
 }
 
-const galleryW, galleryH = 760, 1000
+const galleryW, galleryH = 760, 2100
 
 func TestGallery(t *testing.T) {
 	g := &gallery{on: true, seg2: 1, bar: 5, bin: 6, day: -1}
@@ -237,7 +265,7 @@ func TestGallery(t *testing.T) {
 func TestEmptyGallery(t *testing.T) {
 	view := func(c *ui.Context) {
 		Paper(c)
-		ui.Box(c).Fill().Background(Colors(c).Paper).Padding(Space(6)).Grid().ColumnTracks(ui.Fr(1), ui.Fr(1), ui.Fr(1)).Gap(Space(3.5)).Children(func() {
+		ui.Box(c).Fill().Background(Colors(c).Paper).Padding(Space(6)).Grid().ColumnTracks(ui.Fr(1), ui.Fr(1), ui.Fr(1)).Gap(CardGap).Children(func() {
 			Empty(c, ArtScenes, "还没有自己的场景。给常看的节目、游戏或会议建一个，分别设置语言和专名。", nil)
 			Empty(c, ArtHistoryOff, "字幕记录没有开启。开启后，翻译过的字幕会保存在这台电脑上。", func() {
 				Button(c, Primary, Small, nil, "开启保存记录")

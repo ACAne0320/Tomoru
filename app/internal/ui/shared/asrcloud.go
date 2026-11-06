@@ -102,13 +102,13 @@ func ASRCloudDialog(c *ui.Context, k *core.Core, d *ASRCloudEdit) {
 		}
 		kit.DialogActions(c, func() {
 			ui.Spacer(c)
-			if kit.Off(kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
+			if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
 				k.TestASRAPI(d.test, d.a, strings.TrimSpace(d.key))
 			}
 			if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
 				d.open = false
 			}
-			if kit.Off(kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
+			if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
 				k.SaveASRAPI(d.a, strings.TrimSpace(d.key))
 				c.Toast(locales.EndpointSaved(EngineName(core.Engine{ID: d.a.ID, Kind: core.ASR})))
 				d.open = false

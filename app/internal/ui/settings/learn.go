@@ -172,13 +172,13 @@ func (s *Settings) learnFound(c *ui.Context) {
 	ui.Scroll(c).MaxHeight(320).Children(func() {
 		ui.Column(c).Radius(kit.RadiusField).Border(1, p.Line).Clip().Children(func() {
 			for i, sg := range l.Suggestions {
-				col := ui.Column(c.Key(sg.Src)).Gap(kit.Space(1)).Padding(kit.Space(3), kit.Space(3.5))
+				col := ui.Column(c.Key(sg.Src)).Gap(kit.Space(1)).Padding(kit.Space(3), kit.Space(4))
 				if i > 0 {
 					col = col.BorderWidth(1, 0, 0).BorderColor(p.LineSoft)
 				}
 				col.Children(func() {
 					ui.Checkbox(c, &d.taken[i], sg.Src+" → "+sg.Tgt).FontWeight(kit.WeightBold)
-					ui.Column(c).Padding(0, 0, 0, kit.Space(6)).Gap(kit.Space(0.5)).Children(func() {
+					ui.Column(c).Padding(0, 0, 0, kit.Space(6)).Gap(kit.Space(1)).Children(func() {
 						var more []string
 						if len(sg.Heard) > 0 {
 							more = append(more, locales.TermHeard()+": "+strings.Join(sg.Heard, ", "))
@@ -219,7 +219,7 @@ func (s *Settings) learnFound(c *ui.Context) {
 		if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
 			d.open = false
 		}
-		if kit.Off(kit.Button(c, kit.Primary, kit.Small, nil, locales.AddTerm()), !some).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.AddTerm()), !some).Clicked() {
 			id := d.target
 			if id == newTarget {
 				id = k.AddScene("")

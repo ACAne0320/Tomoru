@@ -13,10 +13,22 @@ import (
 	"tomoru/internal/asr/llama"
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
+	"tomoru/internal/prefs"
 	"tomoru/internal/provider"
 	"tomoru/internal/resource"
 	"tomoru/internal/translate"
 )
+
+// modelsDir is where the app keeps the local models: the folder its settings say they were moved
+// to, else where they are at first.
+func modelsDir() (string, error) {
+	if dir, err := os.UserConfigDir(); err == nil {
+		if p, err := prefs.Load(filepath.Join(dir, "Tomoru", "settings.json"), ""); err == nil && p.ModelsDir != "" {
+			return p.ModelsDir, nil
+		}
+	}
+	return models.Dir()
+}
 
 // translator makes the translator of -mt, and what stops it at the end.
 func translator(mt, url, model string, roots ...string) (translate.Translator, func(), error) {
@@ -32,7 +44,7 @@ func translator(mt, url, model string, roots ...string) (translate.Translator, f
 	if _, ok := models.ByID(mt); !ok {
 		return nil, nil, fmt.Errorf("-mt %s: not a translation", mt)
 	}
-	dir, err := models.Dir()
+	dir, err := modelsDir()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -69,7 +81,7 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 	}
 	env, stop := asr.Env{Context: context.Background()}, func() {}
 	if spec.Model != nil {
-		dir, err := models.Dir()
+		dir, err := modelsDir()
 		if err != nil {
 			return spec, env, nil, err
 		}

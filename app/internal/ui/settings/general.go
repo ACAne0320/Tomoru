@@ -27,9 +27,8 @@ func (s *Settings) general(c *ui.Context) {
 	defer func() { k.ApplyPreferences(before, draft) }()
 	p := kit.Colors(c)
 	ui.Text(c, locales.TabGeneral()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink)
-	ui.Row(c).Gap(kit.Space(3.5)).AlignItems(ui.Start).Wrap().Children(func() {
-		kit.Card(c).Grow(1).Basis(360).Gap(kit.Space(1)).Children(func() {
-			kit.CardHeader(c, locales.PrefsLook(), nil).Margin(0, 0, kit.Space(1))
+	kit.Groups(c, func() {
+		kit.Group(c, locales.PrefsLook(), nil, kit.RowsCard, func() {
 			kit.SettingRow(c, 0, locales.Appearance(), "", func() {
 				at := 0
 				for i, a := range appearances {
@@ -43,9 +42,8 @@ func (s *Settings) general(c *ui.Context) {
 				}
 			})
 			kit.SettingRow(c, 1, locales.UiLanguage(), "", func() { s.uiLanguage(c) })
-		})
-		kit.Card(c).Grow(1).Basis(360).Gap(kit.Space(1)).Children(func() {
-			kit.CardHeader(c, locales.PrefsStart(), nil).Margin(0, 0, kit.Space(1))
+		}).Grow(1).Basis(360)
+		kit.Group(c, locales.PrefsStart(), nil, kit.RowsCard, func() {
 			kit.SettingRow(c, 0, locales.AutoStart(), "", func() { kit.Switch(c, &draft.AutoStart, locales.AutoStart()) })
 			kit.SettingRow(c, 1, locales.OpenAtLogin(), k.LoginErr, func() {
 				login := k.AtLogin
@@ -53,17 +51,24 @@ func (s *Settings) general(c *ui.Context) {
 					k.SetOpenAtLogin(login)
 				}
 			})
-			kit.SettingRow(c, 2, locales.Shortcut(), "", func() { shared.ShortcutField(c, k, s.nav, core.StartStop, locales.Shortcut(), &s.keys) })
-			desc := locales.ImageShortcutDesc(kit.ShortcutText(shared.SnapShortcut))
-			if k.CanSelect() {
-				desc = locales.ImageShortcutSelectDesc()
-			}
-			kit.SettingRow(c, 3, locales.ImageShortcut(), desc, func() {
-				shared.ShortcutField(c, k, s.nav, core.PictureShortcut, locales.ImageShortcut(), &s.imageKeys)
+			kit.SettingRow(c, 2, locales.Shortcut(), "", func() {
+				kit.Control(c, func() { shared.ShortcutField(c, k, s.nav, core.StartStop, locales.Shortcut(), &s.keys) })
 			})
-		})
+			kit.SettingRow(c, 3, locales.ImageShortcut(), pictureShortcutDesc(k), func() {
+				kit.Control(c, func() { shared.ShortcutField(c, k, s.nav, core.PictureShortcut, locales.ImageShortcut(), &s.imageKeys) })
+			})
+		}).Grow(1).Basis(360)
 		s.network(c, &draft)
 	})
+}
+
+// pictureShortcutDesc says what the picture's shortcut does: select a part of the screen, where the
+// app may capture it, else translate the screenshot copied.
+func pictureShortcutDesc(k *core.Core) string {
+	if k.CanSelect() {
+		return locales.ImageShortcutSelectDesc()
+	}
+	return locales.ImageShortcutDesc(kit.ShortcutText(shared.SnapShortcut))
 }
 
 // network is how the app reaches the cloud: through a proxy, the user's or else the system's, or
@@ -72,8 +77,7 @@ func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 	k := s.core
 	k.RefreshSystemProxy()
 	c.After(3 * time.Second) // the system's settings change
-	kit.Card(c).Grow(1).Basis(360).Gap(kit.Space(1)).Children(func() {
-		kit.CardHeader(c, locales.PrefsNetwork(), nil).Margin(0, 0, kit.Space(1))
+	kit.Group(c, locales.PrefsNetwork(), nil, kit.RowsCard, func() {
 		kit.SettingRow(c, 0, locales.UseProxy(), locales.UseProxyDesc(), func() {
 			on := !draft.NoProxy
 			if kit.Switch(c, &on, locales.UseProxy()).Changed() {
@@ -93,7 +97,7 @@ func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 		kit.SettingRow(c, 1, locales.ProxyAddress(), desc, func() {
 			kit.TextField(c, &draft.ProxyURL).Placeholder(placeholder).Width(kit.Space(52)).Label(locales.ProxyAddress())
 		})
-	})
+	}).Grow(1).Basis(360)
 }
 
 // uiLanguage chooses the language the app shows: the system's, or one it is written in, each

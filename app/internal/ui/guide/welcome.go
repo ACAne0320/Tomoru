@@ -31,8 +31,8 @@ type language string
 // languages are the two languages, and swapping them, its button turning half a turn each time.
 func (g *Guide) languages(c *ui.Context) {
 	k := g.core
-	ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Margin(6, 0, 0, 0).Children(func() {
-		ui.Column(c).Grow(1).Gap(kit.Space(2.5)).Children(func() {
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Margin(6, 0, 0, 0).Children(func() {
+		ui.Column(c).Grow(1).Gap(kit.Space(3)).Children(func() {
 			lang := func(label, value string, options []string, choose func(string)) {
 				ui.Column(c).Gap(kit.Space(1)).Children(func() {
 					kit.Caption(c, label)
@@ -45,7 +45,7 @@ func (g *Guide) languages(c *ui.Context) {
 		})
 		b := kit.IconButton(c, kit.Plain, kit.Small, assets.Swap, locales.SwapLanguages()).Margin(18, 0, 0, 0)
 		b.Rotate(b.AnimateTo("turn", 90+180*float32(g.swaps), kit.Spring))
-		if kit.Off(b, !k.CanSwap()).Clicked() {
+		if kit.Off(c, b, !k.CanSwap()).Clicked() {
 			g.swaps++
 			k.Swap()
 		}
@@ -57,9 +57,9 @@ func (g *Guide) welcomeStage(c *ui.Context) {
 	p := g.core.Preferences()
 	entries, next := subtitle.Rolling(p, c.Now())
 	c.After(next)
-	ui.Column(c).Fill().Justify(ui.End).Padding(kit.Space(5), kit.Space(5.5), kit.Space(4.5)).Gap(kit.Space(3.5)).Children(func() {
+	ui.Column(c).Fill().Justify(ui.End).Padding(kit.Space(5), kit.Space(6), kit.Space(4)).Gap(kit.Space(4)).Children(func() {
 		// In other languages, the subtitles come in anew.
-		ui.Column(c.Key(p.Src + ">" + p.Tgt)).Gap(kit.Space(1.5)).Transition(kit.Rise(0)).Children(func() {
+		ui.Column(c.Key(p.Src + ">" + p.Tgt)).Gap(kit.Space(2)).Transition(kit.Rise(0)).Children(func() {
 			subtitle.Draw(c, entries, p, .62, 340, subtitle.NoBlock)
 		})
 		scrubber(c)

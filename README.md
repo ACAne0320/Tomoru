@@ -89,7 +89,8 @@ irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | i
 - The subtitle history is off by default. Turn it on to keep what was heard and translated; the
   originals and translations stay on your computer, and you can delete them any time.
 - Translating text on screen translates only the part you select, and keeps neither the picture
-  nor its translation.
+  nor its translation. The picture goes to the engine you pick for pictures: Index-Translate in
+  the cloud unless you choose a local model or your own API.
 
 ## Making bilingual videos
 

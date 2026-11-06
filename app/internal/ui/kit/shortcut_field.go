@@ -18,15 +18,16 @@ type ShortcutRecorder struct {
 // field gets keys no app has. The other shortcut's keys are not taken.
 func ShortcutField(c *ui.Context, acc, other, label string, register func(string) error, changed func(string), r *ShortcutRecorder) {
 	t := c.Theme()
-	ui.Column(c).Gap(4).AlignSelf(ui.Start).Children(func() {
+	// It fills the column it is in, as a Control's: a row's other controls end where it ends.
+	ui.Column(c).Grow(1).Gap(Space(1)).Children(func() {
 		border := t.Border
 		if r.on {
 			border = t.Accent
 		}
-		b := ui.ButtonBase(c).Label(label).Tooltip(locales.ShortcutChange()).Row().AlignItems(ui.Center).MinHeight(32).Padding(4, 6).
-			Radius(8).Border(1, border).Background(t.Surface).AlignSelf(ui.Start).Children(func() {
+		b := ui.ButtonBase(c).Label(label).Tooltip(locales.ShortcutChange()).Row().AlignItems(ui.Center).Justify(ui.Start).MinHeight(36).Padding(0, Space(3)).
+			Radius(RadiusField).Border(1, border).Background(t.Surface).AlignSelf(ui.Stretch).Children(func() {
 			if r.on {
-				ui.Text(c, locales.ShortcutRecording()).FontSize(12).TextColor(t.TextMuted).Padding(0, 4)
+				ui.Text(c, locales.ShortcutRecording()).FontSize(TextCaption).TextColor(Colors(c).InkMuted).Padding(0, 4)
 			} else {
 				KeyCaps(c, acc)
 			}

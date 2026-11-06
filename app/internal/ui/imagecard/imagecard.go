@@ -44,9 +44,11 @@ const (
 	headHeight  = 44
 	footHeight  = 28
 	frameHeight = 16 + 3*12
-	// lineHeight is a line of the translation's; the card makes room for fitLines of them at least.
-	lineHeight = kit.TextBody * 1.4
-	fitLines   = 4
+	// lineHeight is a line of the translation's, lineSpacing times its size; the card makes room
+	// for fitLines of them at least.
+	lineSpacing = 1.4
+	lineHeight  = kit.TextBody * lineSpacing
+	fitLines    = 4
 )
 
 // FitHeight is the height a card w wide needs for a picture pw by ph: its thumbnail, and fitLines
@@ -140,16 +142,16 @@ func (d *Card) allow(c *ui.Context) {
 	k.CheckScreen() // turned on in System Settings meanwhile
 	c.After(core.ListEvery)
 	// In the middle of the card, which keeps its size for the picture to come.
-	ui.Column(c).Grow(1).Justify(ui.Center).AlignItems(ui.Center).Gap(kit.Space(1.5)).Padding(0, kit.Space(4), kit.Space(8)).Children(func() {
+	ui.Column(c).Grow(1).Justify(ui.Center).AlignItems(ui.Center).Gap(kit.Space(2)).Padding(0, kit.Space(4), kit.Space(8)).Children(func() {
 		ui.Text(c, locales.GuideSelectTitle()).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(p.Ink)
 		switch {
 		case k.CanSelect():
-			if kit.Button(c, kit.Primary, kit.Small, assets.Picture, locales.TranslateScreen()).Margin(kit.Space(1.5), 0, 0).Clicked() {
+			if kit.Button(c, kit.Primary, kit.Small, assets.Picture, locales.TranslateScreen()).Margin(kit.Space(2), 0, 0).Clicked() {
 				d.pick()
 			}
 		case k.Screen == "denied":
 			kit.Caption(c, locales.GuideSelectSettings()).TextAlign(ui.Center)
-			if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).Margin(kit.Space(1.5), 0, 0).Clicked() {
+			if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).Margin(kit.Space(2), 0, 0).Clicked() {
 				kit.OpenScreenSettings()
 			}
 		default:
@@ -158,7 +160,7 @@ func (d *Card) allow(c *ui.Context) {
 			if k.ScreenAsking {
 				label = locales.ScreenSelectAsking()
 			}
-			if kit.Off(kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").Margin(kit.Space(1.5), 0, 0).Clicked() {
+			if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").Margin(kit.Space(2), 0, 0).Clicked() {
 				k.RequestScreen()
 			}
 		}
@@ -236,8 +238,8 @@ func (d *Card) translation(c *ui.Context) {
 	if im.Err == nil {
 		return
 	}
-	ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
-		ui.Column(c).Grow(1).Gap(kit.Space(0.5)).Children(func() {
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
+		ui.Column(c).Grow(1).Gap(kit.Space(1)).Children(func() {
 			if errors.Is(im.Err, translate.ErrEmpty) {
 				kit.Warning(c, locales.ImageNoText())
 				return
@@ -246,7 +248,7 @@ func (d *Card) translation(c *ui.Context) {
 			why := im.Err.Error()
 			var ne net.Error
 			switch {
-			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)):
+			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrModelsMoving) || errors.Is(im.Err, core.ErrModelBusy) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)):
 				why = shared.ErrorText(im.Err) // as the subtitles say it
 			case via.Cloud && (errors.As(im.Err, &ne) && ne.Timeout() || errors.Is(im.Err, translate.ErrStalled)):
 				why = locales.TranslationFailedCloud() // the free service is down at times
@@ -269,9 +271,9 @@ func (d *Card) translation(c *ui.Context) {
 // will be.
 func waiting(c *ui.Context) {
 	kit.Waiting(c, locales.ImageTranslating())
-	ui.Column(c).Gap(kit.Space(2.5)).Padding(kit.Space(1), 0, 0).Children(func() {
+	ui.Column(c).Gap(kit.Space(3)).Padding(kit.Space(1), 0, 0).Children(func() {
 		for i, w := range []float32{100, 86, 58} {
-			bar := ui.Box(c.Key(i)).WidthPercent(w).Height(kit.TextBody * .8).Radius(kit.Pill(kit.TextBody * .8)).Background(kit.Colors(c).Sand)
+			bar := ui.Box(c.Key(i)).WidthPercent(w).Height(kit.TextCaption).Radius(kit.Pill(kit.TextCaption)).Background(kit.Colors(c).Sand)
 			bar.Opacity(bar.Keyframes("breathe", []ui.Keyframe{
 				{Value: .55},
 				{At: 900 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
@@ -300,10 +302,14 @@ func lines(text string) string {
 	return b.String()
 }
 
-// note says what translates the picture: the engine chosen. Index-Translate in it links to its
-// page.
+// note says what translates the picture: the engine chosen for pictures. Index-Translate in it
+// links to its page.
 func note(k *core.Core) string {
-	via, _ := k.Engine(core.MT, k.Image.Via)
+	id := k.Image.Via
+	if id == "" { // no picture yet
+		id = k.Preferences().ImageMT
+	}
+	via, _ := k.Engine(core.MT, id)
 	switch {
 	case via.Model != nil:
 		return locales.ImageNoteLocal()
@@ -316,14 +322,14 @@ func note(k *core.Core) string {
 // foot says where the picture goes, and copies the translation.
 func (d *Card) foot(c *ui.Context) {
 	k := d.core
-	ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		kit.CaptionLink(c, note(k), "Index-Translate", core.CloudRepo).Grow(1).MaxLines(2).Tooltip(locales.ImageKept())
 		label, icon := locales.Copy(), assets.Copy
 		if left := d.copied.Add(1500 * time.Millisecond).Sub(c.Now()); left > 0 {
 			label, icon = locales.Copied(), assets.Check
 			c.After(left)
 		}
-		if kit.Off(kit.Button(c, kit.Plain, kit.Small, icon, label), k.Image.Text == "").Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, icon, label), k.Image.Text == "").Clicked() {
 			c.Services().WriteClipboard(k.Image.Text)
 			d.copied = c.Now()
 		}

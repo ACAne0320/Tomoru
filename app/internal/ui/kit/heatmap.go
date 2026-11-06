@@ -12,8 +12,8 @@ type HeatDay struct {
 	Tip   string
 }
 
-// heatLevels are the depths of the lantern's amber a day can take, past none.
-const heatLevels = 4
+// heatLevels are the depths of the lantern's amber a day can take, past none: its ramp's.
+const heatLevels = len(Palette{}.Amber) - 1
 
 // A square of a Heatmap is about heatSize, and grows to fill a row to heatMax, heatGap from the
 // next: small, as a year of days reads at a glance, without the card taking the page.
@@ -46,10 +46,9 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 		case math.IsNaN(v):
 			return ui.Transparent
 		case v <= 0 || top <= 0:
-			return p.LineSoft
+			return p.Amber[0]
 		}
-		n := min(heatLevels, max(1, int(math.Ceil(heatLevels*v/top))))
-		return p.Lantern.Alpha(float32(n) / heatLevels)
+		return p.Amber[min(heatLevels, max(1, int(math.Ceil(float64(heatLevels)*v/top))))]
 	}
 	cell := func(e ui.Element) ui.Element { return e.Grow(1).Basis(0).MinWidth(0).MaxWidth(heatMax) }
 	side := func(e ui.Element) ui.Element { return e.Width(Space(8)).Shrink(0) }
@@ -100,11 +99,7 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 			ui.Box(c).Grow(1)
 			ui.Text(c, less).FontSize(TextMicro).TextColor(p.InkMuted).Margin(0, Space(1), 0, 0)
 			for n := range heatLevels + 1 {
-				col := p.LineSoft
-				if n > 0 {
-					col = p.Lantern.Alpha(float32(n) / heatLevels)
-				}
-				ui.Box(c.Key(n)).Size(10, 10).Radius(3).Background(col)
+				ui.Box(c.Key(n)).Size(10, 10).Radius(3).Background(p.Amber[n])
 			}
 			ui.Text(c, more).FontSize(TextMicro).TextColor(p.InkMuted).Margin(0, 0, 0, Space(1))
 		})

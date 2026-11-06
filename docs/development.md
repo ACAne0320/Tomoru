@@ -66,7 +66,8 @@ Windows platform is Windows 11 x64. The process-loopback API requires
 so Windows 10 is not supported.
 
 The build scripts put programs in `app/resources/<os>-<arch>/bin/`. Models users download go in
-the user data directory; unit tests don't need them. The directories and the protocol are in the
+the user data directory, or a "Tomoru Models" folder in a folder they choose in Settings, which moves them there; unit tests
+don't need them. The directories and the protocol are in the
 [architecture](architecture.md) and the [engine protocol](engine-protocol.md).
 
 ## Checks and tests

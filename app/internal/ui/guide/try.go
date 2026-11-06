@@ -217,24 +217,24 @@ func (g *Guide) tryChecks(c *ui.Context, saying bool) {
 	m, st, wait := g.pending()
 	switch {
 	case wait && st.Err != nil:
-		ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
+		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			kit.Warning(c, shared.DownloadError(st.Err)).Grow(1)
 			if kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.Retry()).Clicked() {
 				k.Download(m.ID)
 			}
 		})
 	case !wait && k.Err != nil:
-		ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
+		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			kit.Warning(c, shared.ErrorText(k.Err)).Grow(1)
 			if kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.Retry()).Clicked() {
 				k.Start()
 			}
 		})
 	case g.try.heard && g.try.recognized && g.try.translated && arrived(g.try.translatedAt, c.Now()):
-		ui.Row(c.Key("works")).Gap(kit.Space(2.5)).Padding(kit.Space(2.5), kit.Space(3)).Radius(kit.RadiusInner).Background(pal.OkTint).AlignItems(ui.Center).
+		ui.Row(c.Key("works")).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(3)).Radius(kit.RadiusInner).Background(pal.OkTint).AlignItems(ui.Center).
 			Transition(ui.ElementTransition{Animation: &kit.Spring, Enter: &ui.Motion{Y: kit.RiseBy, Scale: .96}}).Children(func() {
 			ui.Icon(c, assets.Check).FontSize(kit.TextBody).TextColor(pal.OkText)
-			ui.Text(c, locales.TrySuccess()).FontSize(kit.TextSmall).TextColor(pal.OkText).Grow(1)
+			ui.Text(c, locales.TrySuccess()).FontSize(kit.TextControl).TextColor(pal.OkText).Grow(1)
 		})
 	}
 }
@@ -299,9 +299,9 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 // anything.
 func check(c *ui.Context, done, busy, failed bool, name, detail string) {
 	pal := kit.Colors(c)
-	ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Start).Children(func() {
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Children(func() {
 		mark(c, 18, done, busy, failed).Margin(1, 0, 0, 0)
-		ui.Column(c).Grow(1).Gap(kit.Space(0.25)).Children(func() {
+		ui.Column(c).Grow(1).Children(func() {
 			ui.Text(c, name).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(pal.Ink)
 			if detail != "" {
 				kit.Caption(c, detail).ContentTransition(ui.ContentTransition{})
@@ -344,11 +344,11 @@ func (g *Guide) tryStage(c *ui.Context) {
 		icon = assets.Captions
 	}
 	pal := kit.Colors(c)
-	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6.5)).Children(func() {
+	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6)).Children(func() {
 		node(c, "heard", g.try.heard, 0, assets.Waves, shared.OnWindows(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
 			kit.Levels(c, k.State.Voice, 14, pal.Starlight.Alpha(.8)).Size(120, 18)
 			if status != "" {
-				ui.Text(c, status).FontSize(kit.TextSmall).TextColor(pal.Starlight.Alpha(.6)).MaxLines(2).ContentTransition(ui.ContentTransition{})
+				ui.Text(c, status).FontSize(kit.TextControl).TextColor(pal.Starlight.Alpha(.6)).MaxLines(2).ContentTransition(ui.ContentTransition{})
 			}
 		})
 		flow(c, "to-asr", leaving(g.try.srcAt))

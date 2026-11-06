@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"slices"
-	"strings"
 
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
@@ -18,6 +17,9 @@ import (
 // ErrModelMissing is a local model chosen and not downloaded.
 var ErrModelMissing = errors.New("the on-device model is not downloaded")
 
+// ErrModelsMoving is a local model chosen while the models move to another folder.
+var ErrModelsMoving = errors.New("the on-device models are being moved")
+
 // ErrNoASR is no recognition chosen, where the system has none.
 var ErrNoASR = errors.New("no speech recognition is chosen")
 
@@ -26,6 +28,10 @@ var ErrASRMissing = errors.New("the recognition model is not downloaded")
 
 // ErrNoEndpoint is an endpoint chosen that is gone.
 var ErrNoEndpoint = errors.New("the translation API is gone")
+
+// ErrModelBusy is a local model chosen for pictures while another translates the subtitles: one
+// runs at a time.
+var ErrModelBusy = errors.New("another on-device model is translating the subtitles")
 
 // LocalError is a local model that could not be run.
 type LocalError struct{ Err error }
@@ -41,6 +47,9 @@ func (c *Core) SetEngine(id string) {
 		return
 	}
 	c.Prefs.MT = id
+	if !c.Prefs.Onboarded { // the guide's one choice of a translation engine, for pictures too
+		c.Prefs.ImageMT = imageEngineFrom(id, c.Prefs.Endpoints)
+	}
 	c.RestartIfRunning()
 	c.settingsChanged()
 }
@@ -69,14 +78,17 @@ func Successor(k Kind) string {
 	return "cloud"
 }
 
-// DeleteModel deletes a local model. Its Successor takes over from it if it was in use; with
-// none, the user chooses.
+// DeleteModel deletes a local model. Its Successor takes over from it if it was in use, and the
+// cloud for pictures; with none, the user chooses.
 func (c *Core) DeleteModel(id string) {
 	if c.EngineService.models == nil {
 		return
 	}
 	if c.Prefs.MT == id {
 		c.SetEngine(Successor(MT))
+	}
+	if c.Prefs.ImageMT == id {
+		c.Prefs.ImageMT = "cloud"
 	}
 	if c.Prefs.ASR == id {
 		c.Prefs.ASR = Successor(ASR)
@@ -90,16 +102,24 @@ func (c *Core) DeleteModel(id string) {
 // Endpoints.
 
 // SaveEndpoint adds e, or changes the endpoint of its ID, keeping key as its API key unless "".
-// A new endpoint gets an ID; SaveEndpoint returns it.
+// A new endpoint gets an ID; SaveEndpoint returns it. Whether it reads pictures is what a test of
+// its API found last, not e.Vision: kept while the API stays the same, else not known.
 func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if e.ID == "" {
 		b := make([]byte, 4)
 		rand.Read(b)
 		e.ID = hex.EncodeToString(b)
 	}
-	e.URL = strings.TrimRight(strings.TrimSpace(e.URL), "/")
-	e.URL = strings.TrimSuffix(e.URL, "/v1")
-	if old, ok := c.Prefs.Endpoint(e.ID); ok {
+	e.URL = apiOf(e).url
+	e.Vision = prefs.VisionUnknown
+	old, ok := c.Prefs.Endpoint(e.ID)
+	if ok && apiOf(*old) == apiOf(e) {
+		e.Vision = old.Vision
+	}
+	if v, found := c.EngineService.visions[apiOf(e)]; found {
+		e.Vision = v
+	}
+	if ok {
 		*old = e
 	} else {
 		c.Prefs.Endpoints = append(c.Prefs.Endpoints, e)
@@ -110,13 +130,15 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if c.Prefs.MT == prefs.CustomPrefix+e.ID {
 		c.RestartIfRunning()
 	}
+	c.fitImageEngine()
 	c.settingsChanged()
 	return e.ID
 }
 
 // DeleteEndpoint deletes an endpoint and its key. Translating with it stops with ErrNoEndpoint
-// rather than going on with another engine: the subtitles go only where the user chose. undo puts
-// both back, and translating with it where deleting stopped it.
+// rather than going on with another engine: the subtitles go only where the user chose. Pictures
+// go to the cloud, chosen for them at first. undo puts all back, and translating with it where
+// deleting stopped it.
 func (c *Core) DeleteEndpoint(id string) (undo func()) {
 	i := slices.IndexFunc(c.Prefs.Endpoints, func(e prefs.Endpoint) bool { return e.ID == id })
 	if i < 0 {
@@ -125,6 +147,8 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 	e, mt := c.Prefs.Endpoints[i], prefs.CustomPrefix+id
 	key := c.EngineService.readKey(keyName(id))
 	c.Prefs.Endpoints = slices.Delete(c.Prefs.Endpoints, i, i+1)
+	pictures := c.Prefs.ImageMT == mt
+	c.fitImageEngine()
 	c.EngineService.deleteKey(keyName(id))
 	c.EngineService.forgetTest(id)
 	if c.Prefs.MT == mt {
@@ -139,6 +163,9 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 		if key != nil {
 			c.EngineService.saveKey(keyName(id), key)
 		}
+		if pictures && c.Prefs.ImageMT == "cloud" {
+			c.Prefs.ImageMT = mt
+		}
 		if c.Prefs.MT == mt && !c.Running && errors.Is(c.Err, ErrNoEndpoint) {
 			c.Start()
 		}
@@ -148,10 +175,19 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 
 // TestEndpoint translates the sample with e as it is being edited, with key, or the one kept for it
 // when "". Its result goes to Tests under key test.
+// It finds too whether e reads pictures, which e as saved keeps if it is the same API.
 func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
 	tgt := c.Prefs.Tgt
 	if tgt == "en" {
 		tgt = "zh"
 	}
-	c.EngineService.testEndpoint(test, e, key, tgt)
+	c.EngineService.testEndpoint(test, e, key, tgt, func(v prefs.Vision) {
+		saved, ok := c.Prefs.Endpoint(e.ID)
+		if !ok || apiOf(*saved) != apiOf(e) || saved.Vision == v {
+			return
+		}
+		saved.Vision = v
+		c.fitImageEngine()
+		c.settingsChanged()
+	})
 }

@@ -72,7 +72,14 @@ type Prefs struct {
 	// the ID of one of Endpoints.
 	MT        string
 	Endpoints []Endpoint // the translation APIs the user added
-	UILang    string     // the language the app shows, as chosen in it; "" for the system's
+	// ImageMT is the engine that translates pictures, named as MT is, one that reads them: the
+	// cloud, a local model with its vision projector, or an endpoint not found to read none. ""
+	// until core sets it, from MT where that reads pictures.
+	ImageMT string
+	// ModelsDir is the folder the local models were moved to; "" for where they are at first
+	// (models.Dir).
+	ModelsDir string
+	UILang    string // the language the app shows, as chosen in it; "" for the system's
 	// Appearance is light or dark as chosen in the app: "light", "dark", or "" for the system's.
 	Appearance string
 	Scene      string // the translation scene in use, by ID; "" for the general one
@@ -92,7 +99,18 @@ type Endpoint struct {
 	URL   string // the base, as https://api.openai.com, without /v1
 	Model string
 	Index bool // prompted as Index-Translate is, rather than as a chat model
+	// Vision is whether it reads pictures, as its last test found.
+	Vision Vision `json:",omitempty"`
 }
+
+// Vision is whether an endpoint reads pictures: not known until a test sends it one.
+type Vision int
+
+const (
+	VisionUnknown Vision = iota
+	VisionYes
+	VisionNo
+)
 
 // ASRAPI is a cloud recognition service the user set up. Its API key is in the system's credential
 // store, not here.

@@ -44,7 +44,7 @@ func Empty(c *ui.Context, art Art, text string, action func()) ui.Element {
 	}
 	return SandCard(c).AlignItems(ui.Center).Padding(Space(6), Space(5)).Children(func() {
 		ui.Image(c, arts[art][dark]).Size(160, 120)
-		Caption(c, text).TextAlign(ui.Center).MaxWidth(320)
+		Caption(c, text).TextAlign(ui.Center)
 		if action != nil {
 			action()
 		}

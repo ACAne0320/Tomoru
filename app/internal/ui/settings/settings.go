@@ -20,17 +20,19 @@ const MinWidth, MinHeight = 860, 600
 
 // Settings is the window's content. The shell shows it in a window.
 type Settings struct {
-	core      *core.Core
-	nav       shared.Nav
-	Tab       string // the page: "home", "general", "scenes", "history", "stats", "subtitles", "engines" or "about"
-	source    shared.SourceMenu
-	edit      endpointEdit
-	cloud     shared.ASRCloudEdit
-	edits     int                     // the endpoint dialogs opened, to tell their tests apart
-	models    map[string]models.State // the local models' states, as last shown: one coming in says so
-	sides     map[core.Kind]bool      // the side of the engines page looked at, the cloud's if true; else the chosen engine's
-	keys      shared.ShortcutRecorder // start and stop's
-	imageKeys shared.ShortcutRecorder // the picture's
+	core   *core.Core
+	nav    shared.Nav
+	Tab    string // the page: "home", "general", "scenes", "history", "stats", "subtitles", "engines" or "about"
+	source shared.SourceMenu
+	edit   endpointEdit
+	cloud  shared.ASRCloudEdit
+	edits  int                     // the endpoint dialogs opened, to tell their tests apart
+	models map[string]models.State // the local models' states, as last shown: one coming in says so
+	// modelsMoving is the models moving to another folder, as last shown: once there, it says so.
+	modelsMoving bool
+	sides        map[core.Kind]bool      // the side of the engines page looked at, the cloud's if true; else the chosen engine's
+	keys         shared.ShortcutRecorder // start and stop's
+	imageKeys    shared.ShortcutRecorder // the picture's
 	// customColors shows the subtitles' colors of one's own, chosen as a scheme's swatch is.
 	customColors bool
 	navWidth     float32 // the sidebar's, as the language shown has it

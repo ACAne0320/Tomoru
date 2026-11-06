@@ -117,6 +117,13 @@ translation, learning, retranslating and system queries all derive from it; repl
 cancels the one before, and callbacks check the task's identity. On quitting, work is cancelled
 first, then child processes and workers are waited for, with a time limit.
 
+Moving the models to another folder (`Core.MoveModels`) first stops the session and both
+llama-servers, which hold model files open, and the manager waits for its downloads to stop:
+Windows moves and removes no file that is open. Until the move ends, nothing downloads, deletes
+or starts with a local model (`core.ErrModelsMoving`). The files are switched over only once all
+are in the new folder, and a failure or quitting puts them back; the session goes on afterwards
+if it was on.
+
 Scheduling onto the UI's main thread uses a cancellable FIFO; producers never wait for the main
 thread, so the main thread stopping a session and a worker can't wait on each other. The
 overlay's pointer watching uses a ticker that can be stopped. The model server's health and

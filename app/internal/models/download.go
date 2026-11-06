@@ -47,7 +47,7 @@ func (e ErrNoSpace) Error() string {
 // there only once its checksum is right, and a model is Ready once all of its files are. A Manager
 // is safe for concurrent use.
 type Manager struct {
-	dir      string
+	dir      string // guarded by mu: a move changes it
 	china    bool
 	slow     int64         // bytes a second below which a source that is not the last gives way
 	window   time.Duration // speed sample and no-progress check interval
@@ -61,10 +61,14 @@ type Manager struct {
 	mu     sync.Mutex
 	jobs   map[string]*job
 	errs   map[string]error
+	move   Move
+	held   map[string]Status           // the statuses as a move found them, until it ends
+	rename func(from, to string) error // os.Rename; tests make it fail, as across disks
 }
 
 type job struct {
 	cancel      context.CancelFunc
+	exited      chan struct{} // closed once its goroutine is done with the files
 	state       State
 	done, total int64
 }
@@ -80,7 +84,7 @@ func NewManager(dir string, china bool, onChange func()) *Manager {
 func NewManagerContext(parent context.Context, dir string, china bool, onChange func()) *Manager {
 	ctx, cancel := context.WithCancel(parent)
 	return &Manager{dir: dir, china: china, slow: 1 << 20, window: 10 * time.Second, onChange: onChange, client: &http.Client{},
-		ctx: ctx, cancel: cancel, jobs: map[string]*job{}, errs: map[string]error{}}
+		ctx: ctx, cancel: cancel, jobs: map[string]*job{}, errs: map[string]error{}, rename: os.Rename}
 }
 
 // Close rejects new downloads, cancels active requests/checksums, and waits for them
@@ -115,24 +119,33 @@ func (m *Manager) Path(id string) string {
 func (m *Manager) VisionOf(path string) string {
 	for _, mod := range All {
 		if mod.Vision != "" && m.Path(mod.ID) == path && m.Status(mod.ID).State == Ready {
-			return filepath.Join(m.dir, mod.Dir, mod.Vision)
+			return filepath.Join(m.Dir(), mod.Dir, mod.Vision)
 		}
 	}
 	return ""
 }
 
-func (m *Manager) file(mod Model, f File) string { return filepath.Join(m.dir, mod.Dir, f.Name) }
+// Dir is the directory the models are kept in.
+func (m *Manager) Dir() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.dir
+}
 
-// have is how much of a model is here: its files downloaded, and the parts of the others.
-func (m *Manager) have(mod Model) (done int64, all bool) {
+func (m *Manager) file(mod Model, f File) string { return filePath(m.Dir(), mod, f) }
+
+func filePath(dir string, mod Model, f File) string { return filepath.Join(dir, mod.Dir, f.Name) }
+
+// have is how much of a model is in dir: its files downloaded, and the parts of the others.
+func have(dir string, mod Model) (done int64, all bool) {
 	all = true
 	for _, f := range mod.Files {
-		if fi, err := os.Stat(m.file(mod, f)); err == nil && fi.Size() == f.Size {
+		if fi, err := os.Stat(filePath(dir, mod, f)); err == nil && fi.Size() == f.Size {
 			done += f.Size
 			continue
 		}
 		all = false
-		if fi, err := os.Stat(m.file(mod, f) + ".part"); err == nil && fi.Size() <= f.Size {
+		if fi, err := os.Stat(filePath(dir, mod, f) + ".part"); err == nil && fi.Size() <= f.Size {
 			done += fi.Size()
 		}
 	}
@@ -150,14 +163,27 @@ func (m *Manager) Status(id string) Status {
 	if j := m.jobs[id]; j != nil {
 		return Status{State: j.state, Done: j.done, Total: j.total}
 	}
-	done, all := m.have(mod)
+	if st, ok := m.held[id]; ok {
+		return st
+	}
+	st := onDisk(m.dir, mod)
+	if st.State == Missing {
+		st.Err = m.errs[id]
+	}
+	return st
+}
+
+// onDisk is a model's status as dir has it.
+func onDisk(dir string, mod Model) Status {
+	done, all := have(dir, mod)
 	if all {
 		return Status{State: Ready, Done: mod.Size, Total: mod.Size}
 	}
-	return Status{State: Missing, Done: done, Total: mod.Size, Err: m.errs[id]} // Done: to go on from
+	return Status{State: Missing, Done: done, Total: mod.Size} // Done: to go on from
 }
 
-// Download starts downloading a model, or goes on with it, unless it is under way or ready.
+// Download starts downloading a model, or goes on with it, unless it is under way or ready, or
+// the models are moving.
 func (m *Manager) Download(id string) {
 	mod, ok := ByID(id)
 	if !ok {
@@ -168,12 +194,12 @@ func (m *Manager) Download(id string) {
 	}
 	ctx, cancel := context.WithCancel(m.ctx)
 	m.mu.Lock()
-	if m.closed || m.ctx.Err() != nil || m.jobs[id] != nil {
+	if m.closed || m.ctx.Err() != nil || m.jobs[id] != nil || m.move.Active {
 		m.mu.Unlock()
 		cancel()
 		return
 	}
-	j := &job{cancel: cancel, state: Downloading, total: mod.Size}
+	j := &job{cancel: cancel, exited: make(chan struct{}), state: Downloading, total: mod.Size}
 	m.jobs[id] = j
 	delete(m.errs, id)
 	m.wg.Add(1)
@@ -188,6 +214,7 @@ func (m *Manager) Download(id string) {
 		if err != nil && !errors.Is(err, context.Canceled) {
 			m.errs[id] = err
 		}
+		close(j.exited)
 		m.mu.Unlock()
 		m.changed()
 	}()
@@ -202,8 +229,14 @@ func (m *Manager) Cancel(id string) {
 	}
 }
 
-// Delete removes a model, and what came in of it.
+// Delete removes a model, and what came in of it; while the models are moving, nothing.
 func (m *Manager) Delete(id string) error {
+	m.mu.Lock()
+	dir, moving := m.dir, m.move.Active
+	m.mu.Unlock()
+	if moving {
+		return nil
+	}
 	m.Cancel(id)
 	m.mu.Lock()
 	delete(m.errs, id)
@@ -211,13 +244,13 @@ func (m *Manager) Delete(id string) error {
 	mod, _ := ByID(id)
 	var err error
 	for _, f := range mod.Files {
-		if e := os.Remove(m.file(mod, f)); e != nil && !os.IsNotExist(e) && err == nil {
+		if e := os.Remove(filePath(dir, mod, f)); e != nil && !os.IsNotExist(e) && err == nil {
 			err = e
 		}
-		os.Remove(m.file(mod, f) + ".part")
+		os.Remove(filePath(dir, mod, f) + ".part")
 	}
 	if mod.Dir != "" {
-		os.Remove(filepath.Join(m.dir, mod.Dir)) // once empty
+		os.Remove(filepath.Join(dir, mod.Dir)) // once empty
 	}
 	m.changed()
 	return err
@@ -233,12 +266,13 @@ func (m *Manager) changed() {
 }
 
 func (m *Manager) download(ctx context.Context, mod Model, j *job) error {
-	if err := os.MkdirAll(filepath.Join(m.dir, mod.Dir), 0o755); err != nil {
+	dir := m.Dir()
+	if err := os.MkdirAll(filepath.Join(dir, mod.Dir), 0o755); err != nil {
 		return err
 	}
-	done, _ := m.have(mod)
+	done, _ := have(dir, mod)
 	m.set(j, func() { j.done = done })
-	if err := enoughSpace(m.dir, mod.Size-done); err != nil {
+	if err := enoughSpace(dir, mod.Size-done); err != nil {
 		return err
 	}
 	var before int64 // the bytes of the files before this one

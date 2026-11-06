@@ -80,7 +80,7 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 			}
 			dim := func(col ui.Color) ui.Color {
 				if *chosen >= 0 && *chosen != i {
-					return col.Alpha(.45)
+					return p.Dim(col)
 				}
 				return col
 			}
@@ -93,7 +93,7 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 				if part.Value <= 0 {
 					continue
 				}
-				r := chart.Rect(c.Key([2]int{i, j}), x.Band(i), y.Span(lo, lo+part.Value)).Radius(RadiusInner / 2).Background(dim(part.Color)).
+				r := chart.Rect(c.Key([2]int{i, j}), x.Band(i), y.Span(lo, lo+part.Value)).Radius(RadiusMark).Background(dim(part.Color)).
 					Transition(ui.ElementTransition{Duration: 300 * time.Millisecond}).Label(b.Tip)
 				if lo > 0 {
 					r.BorderWidth(1, 0, 0).BorderColor(p.Card) // apart from the part under it
@@ -104,14 +104,14 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 		if i := *chosen; i >= 0 && i < len(bars) {
 			// At the top of the plot, beside the bar, toward the middle: a tip of a few lines keeps
 			// inside the plot and off the bar.
-			at, h, margin := x.Band(i).Hi, ui.Start, [4]float32{0, 0, 0, Space(1.5)}
+			at, h, margin := x.Band(i).Hi, ui.Start, [4]float32{0, 0, 0, Space(2)}
 			if x.At(i) > .5 {
-				at, h, margin = x.Band(i).Lo, ui.End, [4]float32{0, Space(1.5), 0, 0}
+				at, h, margin = x.Band(i).Lo, ui.End, [4]float32{0, Space(2), 0, 0}
 			}
 			chart.Anchor(c, at, 1, h, ui.Start, func() {
 				ui.Text(c, bars[i].Tip).NoWrap().FontSize(TextCaption).FontWeight(WeightBold).FontFeatures(Tabular).
-					TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusInner / 2).Margin(margin[:]...)
+					TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusMark).Margin(margin[:]...)
 			})
 		}
-	}).Label(label).Height(chartHeight).GapX(Space(2)).GapY(Space(1.5))
+	}).Label(label).Height(chartHeight).GapX(Space(2)).GapY(Space(2))
 }

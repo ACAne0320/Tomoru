@@ -41,7 +41,7 @@ func TestForgetEndpointTestCancelsAndRejectsLateResult(t *testing.T) {
 		started <- ctx
 		<-release // A misbehaving provider still returns a successful result after cancellation.
 		return TestResult{Text: "late"}
-	})
+	}, nil)
 	ctx := <-started
 	s.ForgetTest("dialog")
 	select {
@@ -56,7 +56,7 @@ func TestForgetEndpointTestCancelsAndRejectsLateResult(t *testing.T) {
 	}
 
 	// Forgetting after the worker already posted is equally final.
-	s.startTest("dialog", time.Minute, func(context.Context) TestResult { return TestResult{Text: "queued"} })
+	s.startTest("dialog", time.Minute, func(context.Context) TestResult { return TestResult{Text: "queued"} }, nil)
 	queued := takeEngineResult(t, posted)
 	s.ForgetTest("dialog")
 	queued()
@@ -69,9 +69,9 @@ func TestEndpointTestReplacementKeepsNewestResult(t *testing.T) {
 	s, posted := engineServiceHarness(t)
 	started := make(chan context.Context, 1)
 	release := make(chan struct{})
-	s.startTest("same", time.Minute, func(ctx context.Context) TestResult { started <- ctx; <-release; return TestResult{Text: "old"} })
+	s.startTest("same", time.Minute, func(ctx context.Context) TestResult { started <- ctx; <-release; return TestResult{Text: "old"} }, nil)
 	oldCtx := <-started
-	s.startTest("same", time.Minute, func(context.Context) TestResult { return TestResult{Text: "new"} })
+	s.startTest("same", time.Minute, func(context.Context) TestResult { return TestResult{Text: "new"} }, nil)
 	select {
 	case <-oldCtx.Done():
 	default:
@@ -90,7 +90,7 @@ func TestEndpointTestReplacementKeepsNewestResult(t *testing.T) {
 
 func TestEngineShutdownInvalidatesQueuedTests(t *testing.T) {
 	s, posted := engineServiceHarness(t)
-	s.startTest("closing", time.Minute, func(context.Context) TestResult { return TestResult{Text: "late"} })
+	s.startTest("closing", time.Minute, func(context.Context) TestResult { return TestResult{Text: "late"} }, nil)
 	queued := takeEngineResult(t, posted)
 	s.stopTests()
 	if !s.work.close(time.Second) {
@@ -100,7 +100,7 @@ func TestEngineShutdownInvalidatesQueuedTests(t *testing.T) {
 	if got := s.Tests["closing"]; got.Running || got.Text != "" || got.Err != context.Canceled {
 		t.Fatalf("shutdown result changed: %+v", got)
 	}
-	s.startTest("after", time.Minute, func(context.Context) TestResult { t.Error("started after shutdown"); return TestResult{} })
+	s.startTest("after", time.Minute, func(context.Context) TestResult { t.Error("started after shutdown"); return TestResult{} }, nil)
 	if _, ok := s.Tests["after"]; ok {
 		t.Fatal("test created after shutdown")
 	}

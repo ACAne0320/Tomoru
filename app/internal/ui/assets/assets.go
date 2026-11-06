@@ -158,15 +158,18 @@ var (
 	closeSVG []byte
 	Close    = ui.MustParseSVG(closeSVG)
 
-	// The picture's translation card's.
+	// The picture's translation card's; a picture crossed out, a translation API reading none.
 	//go:embed icons/image.svg
 	imageSVG []byte
+	//go:embed icons/image-off.svg
+	imageOffSVG []byte
 	//go:embed icons/copy.svg
 	copySVG []byte
 	//go:embed icons/zoom-in.svg
 	zoomInSVG []byte
 
 	Picture, Copy = ui.MustParseSVG(imageSVG), ui.MustParseSVG(copySVG)
+	NoPicture     = ui.MustParseSVG(imageOffSVG)
 	ZoomIn        = ui.MustParseSVG(zoomInSVG)
 
 	// Starring Index-Translate, which serves the cloud's translation free.

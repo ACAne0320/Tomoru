@@ -75,7 +75,7 @@ func (g *Guide) pictureAsk(c *ui.Context) {
 		if k.ScreenAsking {
 			label = locales.ScreenSelectAsking()
 		}
-		if kit.Off(kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").AlignSelf(ui.Start).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").AlignSelf(ui.Start).Clicked() {
 			k.RequestScreen()
 		}
 		note(c, locales.ScreenSelectWhy())
@@ -136,7 +136,7 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 		if !done {
 			return
 		}
-		ui.Column(c).Gap(kit.Space(1.5)).Padding(kit.Space(3), kit.Space(3.5)).Margin(0, 0, 0, kit.Space(7)).Radius(kit.RadiusTile).Background(pal.Card).Border(1, pal.Line).Children(func() {
+		ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Margin(0, 0, 0, kit.Space(7)).Radius(kit.RadiusTile).Background(pal.Card).Border(1, pal.Line).Children(func() {
 			ui.Text(c, g.selected).FontSize(kit.TextBody).TextColor(pal.Ink).LineHeight(1.4).MaxLines(5)
 		})
 	})
@@ -198,8 +198,8 @@ func (g *Guide) pictureStage(c *ui.Context) {
 		pal := kit.Colors(c)
 		translated := cmp.Or(g.core.Image.Text, g.selected)
 		if translated == "" {
-			onStage(c, locales.GuideSelectHere(), kit.TextSmall, .9).FontWeight(kit.WeightBold).
-				Background(pal.Glass).Radius(kit.Pill(28)).Padding(kit.Space(1.5), kit.Space(3.5)).Margin(0, 0, kit.Space(3), 0)
+			onStage(c, locales.GuideSelectHere(), kit.TextControl, .9).FontWeight(kit.WeightBold).
+				Background(pal.Glass).Radius(kit.Pill(28)).Padding(kit.Space(2), kit.Space(4)).Margin(0, 0, kit.Space(3), 0)
 		}
 		// Room around the dialogue for the corners showing what to select.
 		ui.Box(c).Padding(kit.Space(2)).Draw(func(p *ui.Painter, r ui.Rect) {
@@ -215,7 +215,7 @@ func (g *Guide) pictureStage(c *ui.Context) {
 			return
 		}
 		// Its translation unfolds under it, as it comes.
-		glass(c, ui.Column(c.Key("translated")).Width(w+2*kit.Space(2)).Padding(kit.Space(3), kit.Space(3.5)).Clip()).
+		glass(c, ui.Column(c.Key("translated")).Width(w+2*kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Clip()).
 			Transition(ui.ElementTransition{Animation: &kit.Resize, Size: true, Enter: &ui.Motion{Collapse: true}}).Children(func() {
 			kit.ArriveAfter(ui.Text(c, translated).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(pal.SubTgt).LineHeight(1.4).MaxLines(4), kit.Settle)
 		})

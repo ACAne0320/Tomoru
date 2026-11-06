@@ -225,7 +225,7 @@ func TestImageEngines(t *testing.T) {
 	}
 	translated("云端")
 	m.ready["local-2b"] = true
-	c.SetEngine("local-2b")
+	c.SetImageEngine("local-2b")
 	c.TranslateImage(b.Bytes())
 	if c.Image.Via != "local-2b" {
 		t.Fatalf("local: via %q", c.Image.Via)
@@ -241,7 +241,7 @@ func TestImageEngines(t *testing.T) {
 	}
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "key")
-	c.SetEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.CustomPrefix + id)
 	c.TranslateImage(b.Bytes())
 	translated("接口")
 	if c.Image.Via != prefs.CustomPrefix+id || string(sec[keyName(id)]) != "key" {

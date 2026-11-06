@@ -55,15 +55,11 @@ func (s *Settings) history(c *ui.Context) {
 	}
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Wrap().Children(func() {
 		ui.Text(c, locales.TabHistory()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
-		ui.Row(c).Height(38).Gap(kit.Space(2.5)).Padding(0, kit.Space(2), 0, kit.Space(3.5)).AlignItems(ui.Center).
-			Radius(kit.Pill(38)).Background(p.Card).Border(1, p.LineStrong).Children(func() {
-			ui.Text(c, locales.KeepHistory()).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).TextColor(p.Ink).SingleLine()
-			on := k.Preferences().History
-			if kit.Switch(c, &on, locales.KeepHistory()).Changed() {
-				k.UpdatePrefs(func(p *prefs.Prefs) { p.History = on })
-			}
-		})
-		if kit.IconButton(c, kit.Destructive(kit.Plain), kit.Medium, assets.Trash, locales.DeleteAll()).Disabled(len(shown) == 0).Clicked() {
+		on := k.Preferences().History
+		if kit.SwitchPill(c, &on, locales.KeepHistory()).Changed() {
+			k.UpdatePrefs(func(p *prefs.Prefs) { p.History = on })
+		}
+		if kit.Off(c, kit.DeleteButton(c, kit.Medium, locales.DeleteAll()), len(shown) == 0).Clicked() {
 			paths := make([]string, len(shown))
 			for i, r := range shown {
 				paths[i] = r.Path
@@ -109,7 +105,7 @@ func (s *Settings) history(c *ui.Context) {
 		}
 		ui.Row(c).Gap(kit.Space(4)).AlignItems(ui.Start).Wrap().Children(func() {
 			s.records(c, shown)
-			kit.Card(c).Grow(999).Basis(420).MinWidth(0).Gap(kit.Space(3.5)).Padding(kit.Space(5), kit.Space(5.5)).Children(func() {
+			kit.Card(c).Grow(999).Basis(420).MinWidth(0).Gap(kit.Space(4)).Padding(kit.Space(5), kit.Space(6)).Children(func() {
 				s.record(c, shown[at])
 			})
 		})
@@ -126,12 +122,12 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 		last := ""
 		for _, r := range shown {
 			if d := day(r.Head.Start); d != last {
-				ui.Text(c, d).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.InkMuted).Padding(kit.Space(1.5), kit.Space(1.5), 0)
+				ui.Text(c, d).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.InkMuted).Padding(kit.Space(2), kit.Space(2), 0)
 				last = d
 			}
 			meta := shared.LangName(r.Head.Src) + " → " + shared.LangName(r.Head.Tgt) + " · " + locales.HistoryLines(r.Lines)
 			if kit.ListTile(c.Key(r.Path), r.Path == e.record, s.recordTitle(r), meta, func() {
-				ui.Text(c, r.Head.Start.Format("15:04")).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(44)
+				ui.Text(c, r.Head.Start.Format("15:04")).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(44)
 			}, nil).Clicked() {
 				e.record = r.Path
 			}
@@ -151,7 +147,7 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	}
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
-			ui.Text(c, s.recordScene(r)).FontSize(kit.TextTitle - 2).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2)
+			ui.Text(c, s.recordScene(r)).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2)
 			span := day(r.Head.Start) + " " + r.Head.Start.Format("15:04")
 			if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
 				span += " – " + lines[n-1].At.Format("15:04")
@@ -161,22 +157,22 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 			}
 			kit.Caption(c, span)
 		})
-		if kit.Button(c, kit.Soft, kit.Small, assets.Sparkles, locales.LearnNames()).Disabled(r.Lines == 0).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Soft, kit.Small, assets.Sparkles, locales.LearnNames()), r.Lines == 0).Clicked() {
 			s.learnFrom([]string{r.Path}, r.Head.Scene)
 		}
 		if kit.IconButton(c, kit.Plain, kit.Small, assets.Folder, shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer())).Clicked() {
 			mygo.Shell.ShowItemInFolder(r.Path)
 		}
-		if kit.IconButton(c, kit.Destructive(kit.Plain), kit.Small, assets.Trash, locales.DeleteRecord()).Clicked() {
+		if kit.DeleteButton(c, kit.Small, locales.DeleteRecord()).Clicked() {
 			c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
 			e.record = ""
 		}
 	})
 	ui.Column(c).Children(func() {
 		for i, l := range lines {
-			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Padding(kit.Space(2.5), 0).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(func() {
+			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Padding(kit.Space(3), 0).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(func() {
 				ui.Text(c, l.At.Format("15:04:05")).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(56).Shrink(0)
-				ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.75)).Children(func() { line(c, l, terms) })
+				ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() { line(c, l, terms) })
 			})
 		}
 	})
@@ -192,27 +188,27 @@ func line(c *ui.Context, l history.Entry, terms []scene.Term) {
 		marks, was = corrections(l.Src, l.Heard, terms)
 		spans := make([]ui.Span, len(marks))
 		for i, m := range marks {
-			spans[i] = ui.Span{Text: m.text, Size: kit.TextSmall, Color: p.InkMuted}
+			spans[i] = ui.Span{Text: m.text, Size: kit.TextControl, Color: p.InkMuted}
 			if m.fixed {
-				spans[i].Weight, spans[i].Color, spans[i].Background, spans[i].Radius = kit.WeightBold, p.LanternText, p.LanternTint, kit.RadiusInner-5
+				spans[i].Weight, spans[i].Color, spans[i].Background, spans[i].Radius = kit.WeightBold, p.LanternText, p.LanternTint, kit.RadiusMark
 			}
 		}
 		ui.RichText(c, spans...)
 	} else {
-		ui.Text(c, l.Src).FontSize(kit.TextSmall).TextColor(p.InkMuted)
+		ui.Text(c, l.Src).FontSize(kit.TextControl).TextColor(p.InkMuted)
 	}
 	switch {
 	case l.Tgt != "":
-		ui.Text(c, l.Tgt).FontSize(kit.TextBody + 1).FontWeight(kit.WeightMedium).TextColor(p.Ink)
+		ui.Text(c, l.Tgt).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.Ink)
 	case l.Err == live.ErrBehind.Error():
 		kit.Warning(c, locales.TranslationSkipped()).MaxLines(2)
 	case l.Err != "":
 		kit.Warning(c, l.Err).MaxLines(2)
 	default:
-		ui.Text(c, "—").FontSize(kit.TextBody + 1).TextColor(p.InkMuted)
+		ui.Text(c, "—").FontSize(kit.TextBody).TextColor(p.InkMuted)
 	}
 	if len(was) > 0 {
-		ui.Row(c).Gap(kit.Space(1.25)).AlignItems(ui.Center).Children(func() {
+		ui.Row(c).Gap(kit.Space(1)).AlignItems(ui.Center).Children(func() {
 			ui.Icon(c, assets.Sparkles).FontSize(kit.TextMicro).TextColor(p.Lantern)
 			ui.Text(c, locales.TermFixed(strings.Join(was, locales.TermHeardSep()))).FontSize(kit.TextCaption).TextColor(p.LanternText)
 		})

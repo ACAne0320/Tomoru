@@ -24,7 +24,7 @@ func (s *Settings) subtitles(c *ui.Context) {
 	pal := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, locales.TabSubtitles()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(pal.Ink).Grow(1).MaxLines(1)
-		if kit.Button(c, kit.Strong, kit.Medium, assets.Move, locales.AdjustPosition()).Clicked() {
+		if kit.Button(c, kit.Plain, kit.Medium, assets.Move, locales.AdjustPosition()).Clicked() {
 			s.nav.StartAdjust()
 		}
 		if kit.IconButton(c, kit.Plain, kit.Medium, assets.Reset, locales.ResetStyle()).Clicked() {
@@ -36,16 +36,13 @@ func (s *Settings) subtitles(c *ui.Context) {
 	c.After(next)
 	w, _ := c.Size()
 	kit.Stage(c).Height(250).Padding(0, kit.Space(10), kit.Space(7)).Children(func() {
-		ui.Column(c).Gap(kit.Space(1.5)).AlignSelf(ui.Stretch).Children(func() {
+		ui.Column(c).Gap(kit.Space(2)).AlignSelf(ui.Stretch).Children(func() {
 			subtitle.Draw(c, samples, *p, .8, max(320, w-s.navWidth-kit.Space(44)), subtitle.NoBlock)
 		})
 	})
-	ui.Row(c).Gap(kit.Space(3.5)).AlignItems(ui.Start).Wrap().Children(func() {
+	kit.Groups(c, func() {
 		card := func(title string, rows func()) {
-			kit.Card(c).Grow(1).Basis(300).Gap(kit.Space(1)).Children(func() {
-				kit.CardHeader(c, title, nil).Margin(0, 0, kit.Space(1))
-				rows()
-			})
+			kit.Group(c, title, nil, kit.RowsCard, rows).Grow(1).Basis(300)
 		}
 		card(locales.StyleLook(), func() { s.styleLook(c, p) })
 		card(locales.StyleText(), func() { s.styleText(c, p) })
@@ -77,7 +74,7 @@ func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs) {
 	size := func(i int, label string, v *float64, lo, hi float64) {
 		kit.SettingRow(c, i, label, "", func() {
 			ui.Slider(c, v, lo, hi).Step(1).Width(kit.Space(30)).Label(label)
-			ui.Text(c, strconv.Itoa(int(*v))).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).
+			ui.Text(c, strconv.Itoa(int(*v))).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).
 				TextColor(kit.Colors(c).InkMuted).MinWidth(kit.Space(6)).TextAlign(ui.End)
 		})
 	}
@@ -164,8 +161,8 @@ func swatch(c *ui.Context, name string, ground, src, tgt ui.Color, on bool) ui.E
 		b = b.Border(1, pal.LineStrong)
 	}
 	return b.Children(func() {
-		ui.Text(c, "Aa").FontSize(kit.TextMicro - 2).FontWeight(kit.WeightBold).TextColor(src)
-		ui.Text(c, "Aa").FontSize(kit.TextSmall).FontWeight(kit.WeightHeavy).TextColor(tgt)
+		ui.Text(c, "Aa").FontSize(kit.TextMicro).FontWeight(kit.WeightBold).TextColor(src)
+		ui.Text(c, "Aa").FontSize(kit.TextControl).FontWeight(kit.WeightHeavy).TextColor(tgt)
 	})
 }
 

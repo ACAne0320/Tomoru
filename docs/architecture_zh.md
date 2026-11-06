@@ -75,6 +75,8 @@ flowchart TD
 
 桌面入口创建根 context。应用任务、会话、截图选择、图片翻译、学习、重译及系统查询从它派生；替换任务时取消前一个，回调检查任务身份。关闭应用时先取消工作，再有时限地等待子进程和工作者。
 
+把模型移到别的文件夹（`Core.MoveModels`）前，先停下会话和两个 llama-server（它们开着模型文件），管理器也等下载停下：Windows 不能移动或删除开着的文件。移动结束前，不下载、不删除，也不用本地模型启动（`core.ErrModelsMoving`）。所有文件都到了新文件夹才切换过去，失败或退出时放回原处；原来在翻译的，移完接着翻译。
+
 UI 主线程调度使用可取消 FIFO；生产者不等待主线程消费，避免主线程停止会话时与工作者互相等待。overlay 的指针观察使用可停止 ticker。模型服务的健康及身份请求绑定 context，同时设每请求超时；子进程停止需要回收。
 
 平台差异只放在边界：引擎进程（macOS Swift、Windows Go）、`capture`（框选截图都走引擎的 `select`，它报告选区位置：macOS 上它运行系统的 `screencapture`，Windows 上是自己的框选窗口）、`resource.Hide`（Windows 上子进程不弹控制台）、托盘图标（Windows 上按深浅色着色；左键打开面板、右键打开系统快捷菜单，macOS 和 Windows 一致）和少量平台文案（`ui/shared.OnWindows`）。Windows 没有系统识别，起初不选任何识别（`prefs.DefaultASR` 为空，开始翻译时报 `core.ErrNoASR`），由用户在引导或设置里选本地模型（选了才下载）或云端识别；引导跳过授权步骤（`core.AsksAccess`）。

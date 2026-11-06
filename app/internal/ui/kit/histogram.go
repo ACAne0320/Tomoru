@@ -60,7 +60,7 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 		case len(marks) > 1 && b.Lo >= marks[1].At-1e-9:
 			return p.LineStrong
 		}
-		return p.Lantern.Alpha(.55)
+		return p.Amber[3]
 	}
 	mark := func(m HistMark) (ui.Color, float32) {
 		if m.Strong {
@@ -77,7 +77,7 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 				ink, width := mark(m)
 				ui.Row(c.Key(i)).Gap(Space(2)).AlignItems(ui.Center).Children(func() {
 					ui.Box(c).Width(width).Height(14).Background(ink)
-					t := ui.Text(c, m.Label).FontSize(TextSmall).FontFeatures(Tabular).TextColor(ink).SingleLine()
+					t := ui.Text(c, m.Label).FontSize(TextControl).FontFeatures(Tabular).TextColor(ink).SingleLine()
 					if m.Strong {
 						t.FontWeight(WeightBold)
 					}
@@ -92,10 +92,10 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 			for i, b := range bins {
 				col := color(b)
 				if *chosen >= 0 && *chosen != i {
-					col = col.Alpha(.45)
+					col = p.Dim(col)
 				}
 				chart.Rect(c.Key(i), chart.Span{Lo: x.At(b.Lo), Hi: x.At(b.Hi)}, y.Span(0, density(b))).Margin(0, 1).
-					Radius(RadiusInner / 3).Background(col).Transition(ui.ElementTransition{Duration: 300 * time.Millisecond}).Label(b.Tip)
+					Radius(RadiusMark).Background(col).Transition(ui.ElementTransition{Duration: 300 * time.Millisecond}).Label(b.Tip)
 			}
 			for i, m := range marks {
 				ink, width := mark(m)
@@ -104,9 +104,9 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 			if i := *chosen; i >= 0 && i < len(bins) {
 				chart.Anchor(c, xs[i], y.At(density(bins[i])), tipAlign(xs[i]), ui.End, func() {
 					ui.Text(c, bins[i].Tip).NoWrap().FontSize(TextCaption).FontWeight(WeightBold).FontFeatures(Tabular).
-						TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusInner/2).Margin(0, 0, Space(1.5), 0)
+						TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusMark).Margin(0, 0, Space(2), 0)
 				})
 			}
-		}).Label(label).Height(chartHeight).GapY(Space(1.5))
+		}).Label(label).Height(chartHeight).GapY(Space(2))
 	})
 }

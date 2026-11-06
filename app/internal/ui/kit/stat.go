@@ -19,9 +19,9 @@ type Stat struct{ Label, Value, Unit, Note string }
 // StatStrip shows numbers side by side on a white card, a line between each.
 func StatStrip(c *ui.Context, label string, stats []Stat) ui.Element {
 	p := Colors(c)
-	return ui.Row(c).Wrap().AlignItems(ui.Stretch).Radius(RadiusTile+2).Background(p.Card).Border(1, p.Line).Role(ui.RoleGroup).Label(label).Children(func() {
+	return p.CardShadow.Cast(ui.Row(c).Wrap().AlignItems(ui.Stretch).Radius(RadiusCard).Background(p.Card).Border(1, p.Line)).Role(ui.RoleGroup).Label(label).Children(func() {
 		for i, s := range stats {
-			col := ui.Column(c).Grow(1).Basis(150).Gap(Space(1)).Padding(Space(3.5), Space(5))
+			col := ui.Column(c).Grow(1).Basis(150).Gap(Space(1)).Padding(Space(4), Space(5))
 			if i > 0 {
 				col = col.BorderStartWidth(1).BorderColor(p.LineSoft)
 			}
@@ -50,9 +50,9 @@ func Facts(c *ui.Context, facts []Fact) ui.Element {
 	p := Colors(c)
 	return ui.Row(c).Wrap().GapX(Space(6)).GapY(Space(2)).Children(func() {
 		for i, f := range facts {
-			ui.Column(c.Key(i)).Gap(Space(0.5)).Children(func() {
+			ui.Column(c.Key(i)).Gap(Space(1)).Children(func() {
 				ui.Text(c, f.Label).FontSize(TextCaption).TextColor(p.InkMuted).SingleLine()
-				ui.Text(c, f.Value).FontSize(TextSmall).FontWeight(WeightBold).FontFeatures(Tabular).TextColor(p.Ink).SingleLine()
+				ui.Text(c, f.Value).FontSize(TextControl).FontWeight(WeightBold).FontFeatures(Tabular).TextColor(p.Ink).SingleLine()
 			})
 		}
 	})

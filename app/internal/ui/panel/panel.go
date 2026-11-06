@@ -71,7 +71,7 @@ func (p *Panel) head(c *ui.Context) {
 	k := p.core
 	pal := kit.Colors(c)
 	kit.Sticker(c, 56, 36, k.Running) // awake while translating, as the menu bar icon
-	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.5)).Children(func() {
+	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
 		title := locales.HomeIdle()
 		if k.Running {
 			title = locales.HomeTranslating()
@@ -121,9 +121,9 @@ func (p *Panel) body(c *ui.Context) {
 		// The scene, and under it, with no rule between, its languages: the scene keeps them.
 		// What it hears is not the scene's, after a rule.
 		p.scene(c)
-		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Padding(kit.Space(1.5), kit.Space(3), kit.Space(3), kit.MenuRowInset).Children(func() {
+		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Padding(kit.Space(2), kit.Space(3), kit.Space(3)).Children(func() {
 			kit.PickerField(c, shared.LangName(k.Preferences().Src), kit.Choices(k.Preferences().Src, shared.LangChoices(k.SourceLangs()), shared.LangName, k.SetSrc)).Label(locales.SpokenLanguage()).Grow(1).Basis(0)
-			if kit.Off(kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap()).Clicked() {
+			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap()).Clicked() {
 				k.Swap()
 			}
 			kit.PickerField(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto()).Grow(1).Basis(0)

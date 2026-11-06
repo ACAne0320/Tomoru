@@ -441,7 +441,8 @@ func TestRecognitionCloud(t *testing.T) {
 }
 
 // TestEndpointTest shows whether a test worked and in how many milliseconds: an answer without a
-// translation did not work, and a model that only thought says so.
+// translation did not work, and a model that only thought says so; one that worked, whether it
+// read the picture.
 func TestEndpointTest(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -459,6 +460,8 @@ func TestEndpointTest(t *testing.T) {
 		{core.TestResult{Text: "大家晚上好。", Took: 812 * time.Millisecond}, []string{locales.TestSucceeded("812"), "大家晚上好。"}},
 		{core.TestResult{Took: 1300 * time.Millisecond}, []string{locales.TestFailed("1300"), locales.TestNoTranslation()}},
 		{core.TestResult{Err: translate.ErrOnlyThinking, Took: 1300 * time.Millisecond}, []string{locales.TestFailed("1300"), locales.TestOnlyThinking()}},
+		{core.TestResult{Text: "大家晚上好。", Vision: prefs.VisionYes}, []string{"大家晚上好。", locales.ReadsPictures()}},
+		{core.TestResult{Text: "大家晚上好。", Vision: prefs.VisionNo}, []string{"大家晚上好。", locales.ReadsNoPictures()}},
 	} {
 		k.Tests[s.edit.test] = c.r
 		tt.Frame()
@@ -467,6 +470,40 @@ func TestEndpointTest(t *testing.T) {
 				t.Errorf("%+v: no %q in %q", c.r, want, tt.Texts())
 			}
 		}
+	}
+}
+
+// TestImageEngine chooses the engine for pictures from a menu of those that read them, which
+// still commits after its frame has ended; the cloud's says what it receives. The picture's
+// shortcut is here too.
+func TestImageEngine(t *testing.T) {
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
+	})
+	k.SaveEndpoint(prefs.Endpoint{Name: "Text only", URL: "https://api.deepseek.com", Model: "m"}, "")
+	k.Prefs.Endpoints[0].Vision = prefs.VisionNo
+	k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com", Model: "qwen-vl"}, "")
+	s := New(k, &coretest.Nav{})
+	s.Tab, s.sides[core.MT] = "engines", false // the cloud's name only in the picker
+	tt := ui.NewTester(s.View, Width, 1400)
+	for _, want := range []string{locales.ImageTitle(), locales.ImageEngine(), locales.ImageShortcutRow(), locales.CloudSendsPicture()} {
+		if !tt.HasText(want) {
+			t.Errorf("no %q in %q", want, tt.Texts())
+		}
+	}
+	if err := tt.Click(shared.CloudName); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := tt.Menu(), []string{shared.CloudName, "Index-Translate 2B", "-", "Qwen-VL"}; !slices.Equal(got, want) {
+		t.Fatalf("menu %q, want %q", got, want)
+	}
+	tt.Frame() // the menu's frame has ended
+	if err := tt.ChooseMenuItem("Index-Translate 2B"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if k.Prefs.ImageMT != "local-2b" || tt.HasText(locales.CloudSendsPicture()) {
+		t.Errorf("pictures with %q, texts %q", k.Prefs.ImageMT, tt.Texts())
 	}
 }
 
@@ -820,5 +857,41 @@ func TestProxy(t *testing.T) {
 	tt.Frame()
 	if got[len(got)-1] != "true 127.0.0.1:7890" || tt.HasText(locales.ProxyAddress()) {
 		t.Errorf("off: %v, %q", got, tt.Texts())
+	}
+}
+
+// TestModelsFolder shows where the models are, follows their move to another folder with the
+// models' own actions held, and says how it ended.
+func TestModelsFolder(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
+	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	s.sides[core.MT] = false
+	tt := ui.NewTester(s.View, Width, 1400)
+	tt.Frame()
+	if !tt.HasText(locales.ModelsFolder()) || !tt.HasText("/models") {
+		t.Fatalf("no folder: texts %q", tt.Texts())
+	}
+
+	m.MoveStatus = models.Move{Active: true, Done: 1 << 30, Total: 4 << 30}
+	tt.Frame()
+	if !tt.HasText(locales.ModelsMoving(shared.Size(1<<30), shared.Size(4<<30))) || tt.HasText(locales.ModelsFolderChange()) {
+		t.Fatalf("moving: texts %q", tt.Texts())
+	}
+	if err := tt.Click(locales.Delete()); err == nil {
+		t.Error("a model can be deleted while moving")
+	}
+
+	m.MoveStatus = models.Move{Done: 4 << 30, Total: 4 << 30}
+	tt.Frame()
+	if !tt.HasText(locales.ModelsMoved()) || !tt.HasText(locales.ModelsFolderChange()) {
+		t.Fatalf("moved: texts %q", tt.Texts())
+	}
+
+	m.MoveStatus = models.Move{Err: models.ErrNoSpace{Need: 2 << 30}}
+	tt.Frame()
+	if !tt.HasText(locales.NoSpace(shared.Size(2 << 30))) {
+		t.Errorf("failed: texts %q", tt.Texts())
 	}
 }

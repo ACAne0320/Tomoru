@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- Picture translation has its own engine, in Speech & Translation › Picture Translation, chosen
+  from the engines that read pictures: Index-Translate 35B in the cloud by default, a downloaded
+  on-device model, or an API of yours. Testing an API now says whether it reads pictures, and one
+  that can't isn't offered. A picture still goes only to the engine you chose. Settings from
+  before keep using the subtitles' engine for pictures where it reads them.
+  ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
+
+- The on-device models can live in a folder you choose, on another drive if the system one is
+  full: Speech & Translation › Model folder › Change… moves the models into a "Tomoru Models"
+  folder there, with its progress, and keeps them there. ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
+- The settings, the menu bar panel and the first-run guide share one tightened design: rows of
+  one height whose dividers line up across cards, group titles above their cards, the chosen
+  engine on a tinted band with its button and dot on one line, and a dark appearance with clearly
+  separated layers and no cream buttons.
+
 ## 0.1.3
 
 - Deleting a scene, a session or a translation API no longer asks first: Undo in the message that

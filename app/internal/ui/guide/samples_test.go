@@ -23,7 +23,7 @@ func TestSamplePictures(t *testing.T) {
 		view := func(c *ui.Context) {
 			p := kit.Dark
 			c.Root().Background(p.Night)
-			ui.Column(c).Fill().Padding(kit.Space(2.5)).Children(func() {
+			ui.Column(c).Fill().Padding(kit.Space(3)).Children(func() {
 				ui.Column(c).Grow(1).Padding(kit.Space(4), kit.Space(5)).Gap(kit.Space(2)).Radius(kit.RadiusInner).
 					Background(p.Shade.Alpha(.55)).Border(2, p.Starlight.Alpha(.75)).Children(func() {
 					ui.Text(c, d[0]).FontSize(kit.TextBody + 2).FontWeight(kit.WeightBold).TextColor(p.SubTgt)

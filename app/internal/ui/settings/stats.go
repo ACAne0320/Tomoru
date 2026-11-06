@@ -111,7 +111,7 @@ func (s *Settings) stats(c *ui.Context) {
 		index[kind.id(u)] = j
 	}
 	kit.Card(c).Gap(0).Children(func() {
-		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Margin(0, 0, kit.Space(4.5), 0).Children(func() {
+		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Margin(0, 0, kit.Space(4), 0).Children(func() {
 			var was *usage.Counts
 			if compared {
 				was = &before
@@ -240,7 +240,7 @@ func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usag
 			note += " · " + locales.ImageTitle() + " " + locales.UseImages(total.Images)
 		}
 	}
-	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(0.5)).Children(func() {
+	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
 		kit.Caption(c, label).SingleLine()
 		ui.Row(c).Gap(kit.Space(1)).AlignItems(ui.End).Children(func() {
 			ui.Text(c, value).FontSize(kit.TextStat).FontWeight(kit.WeightHeavy).FontFeatures(kit.Tabular).TextColor(p.Ink).SingleLine()
@@ -447,12 +447,11 @@ func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.L
 	if byMonth {
 		daily = locales.StatsMonthly()
 	}
-	kit.Card(c).Children(func() {
-		kit.CardHeader(c, locales.StatsLatency(), func() {
-			if kit.Segmented(c, &e.latView, locales.StatsSpread(), daily).Label(locales.StatsChartShows()).Changed() {
-				e.latBar = -1
-			}
-		})
+	kit.Group(c, locales.StatsLatency(), func() {
+		if kit.Segmented(c, &e.latView, locales.StatsSpread(), daily).Label(locales.StatsChartShows()).Changed() {
+			e.latBar = -1
+		}
+	}, kit.Card, func() {
 		if kit.PickTiles(c, &e.lat, []kit.TileGroup{
 			{Label: locales.LatYouWait(), Tiles: tiles[:1]},
 			{Label: locales.EnginesAsr(), Tiles: tiles[1:3]},
@@ -658,5 +657,5 @@ func faster(c *ui.Context, span int, now, then time.Duration) {
 	default:
 		text, ink = locales.LatSlower(span, kit.Seconds(d)), p.Danger
 	}
-	ui.Text(c, text).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(ink).Shrink(0).SingleLine()
+	ui.Text(c, text).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(ink).Shrink(0).SingleLine()
 }

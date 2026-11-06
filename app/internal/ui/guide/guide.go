@@ -103,7 +103,7 @@ func (g *Guide) View(c *ui.Context) {
 	g.holdKeys()
 	bar := c.TitleBar()
 	ui.Column(c).Fill().Children(func() {
-		top := kit.Space(3.5)
+		top := kit.Space(4)
 		if bar.Height > 0 {
 			titleBar(c, bar)
 			top = 0
@@ -128,15 +128,15 @@ func titleBar(c *ui.Context, bar ui.TitleBar) {
 // steps is the step, its words and controls on the left and its stage on the right, top below the
 // title bar.
 func (g *Guide) steps(c *ui.Context, top float32) {
-	ui.Row(c).Grow(1).Padding(top, kit.Space(3.5), kit.Space(3.5)).Gap(kit.Space(3.5)).AlignItems(ui.Stretch).Children(func() {
-		ui.Column(c).Width(leftWidth).Padding(kit.Space(5.5), leftPadR, kit.Space(1), leftPadL).Gap(kit.Space(4.5)).Children(func() {
+	ui.Row(c).Grow(1).Padding(top, kit.Space(4), kit.Space(4)).Gap(kit.Space(4)).AlignItems(ui.Stretch).Children(func() {
+		ui.Column(c).Width(leftWidth).Padding(kit.Space(6), leftPadR, kit.Space(1), leftPadL).Gap(kit.Space(4)).Children(func() {
 			g.progress(c)
 			// The step in the middle of its room; one taller than it, as in a long language,
 			// scrolls rather than run into the buttons under it.
 			ui.Column(c).Grow(1).MinHeight(0).Justify(ui.Center).Children(func() {
 				ui.Scroll(c).Shrink(1).MinHeight(0).Padding(0, 0, kit.RiseBy).Children(func() { // room for it to rise from
 					// The step's room stays from step to step, for its parts (part) to come into it.
-					ui.Column(c).Gap(kit.Space(3.5)).Children(func() {
+					ui.Column(c).Gap(kit.Space(4)).Children(func() {
 						switch g.Step {
 						case stepWelcome:
 							g.welcome(c)
@@ -218,13 +218,13 @@ func (g *Guide) progress(c *ui.Context) {
 			phase = i
 		}
 	}
-	ui.Column(c).Gap(kit.Space(2.5)).Children(func() {
+	ui.Column(c).Gap(kit.Space(3)).Children(func() {
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
 			for i, ph := range phases {
 				if i > 0 {
 					kit.Caption(c, "›")
 				}
-				t := ui.Text(c, ph.name()).FontSize(kit.TextSmall).SingleLine()
+				t := ui.Text(c, ph.name()).FontSize(kit.TextControl).SingleLine()
 				col := p.InkMuted
 				if i == phase {
 					col = p.Ink
@@ -247,7 +247,7 @@ func (g *Guide) progress(c *ui.Context) {
 const leftWidth = 352
 
 var (
-	leftPadL, leftPadR = kit.Space(4.5), kit.Space(3.5)
+	leftPadL, leftPadR = kit.Space(4), kit.Space(4)
 	progressWidth      = leftWidth - leftPadL - leftPadR
 )
 
@@ -274,13 +274,13 @@ func (g *Guide) stepButton(c *ui.Context) {
 			}
 		default:
 			// The system asks only when the engine first records.
-			if kit.Off(next(c, locales.Allow()), k.Asking || k.Access == "").Clicked() {
+			if kit.Off(c, next(c, locales.Allow()), k.Asking || k.Access == "").Clicked() {
 				k.RequestAccess()
 			}
 		}
 	case stepRecognition:
 		// Without the system's recognition, one is chosen first; a model may still be downloading.
-		if kit.Off(next(c, locales.Continue()), k.Chosen(core.ASR) == "").Clicked() {
+		if kit.Off(c, next(c, locales.Continue()), k.Chosen(core.ASR) == "").Clicked() {
 			g.goTo(c, stepTranslation)
 		}
 	case stepTranslation:
@@ -333,12 +333,12 @@ func next(c *ui.Context, label string) ui.Element {
 // before goes at once, for the two not to show over each other. It rises, not slides: its room
 // scrolls, and would cut it at its side.
 func (g *Guide) part(c *ui.Context, i int, fn func()) ui.Element {
-	return kit.Arrive(ui.Column(c.Key(fmt.Sprintf("%d.%d", g.Step, i))).Gap(kit.Space(3.5)), i).Children(fn)
+	return kit.Arrive(ui.Column(c.Key(fmt.Sprintf("%d.%d", g.Step, i))).Gap(kit.Space(4)), i).Children(fn)
 }
 
 // title and body are a step's heading and what it says under it.
 func title(c *ui.Context, s string) {
-	ui.Text(c, s).FontSize(kit.TextTitle + 2).FontWeight(kit.WeightHeavy).TextColor(kit.Colors(c).Ink)
+	ui.Text(c, s).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(kit.Colors(c).Ink)
 }
 
 func body(c *ui.Context, s string) {

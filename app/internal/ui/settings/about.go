@@ -19,11 +19,11 @@ func (s *Settings) about(c *ui.Context) {
 		ui.Image(c, assets.AppIcon).Size(104, 104).Margin(-8)
 		ui.Column(c).Gap(kit.Space(1)).Children(func() {
 			ui.Text(c, "Tomoru").FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink)
-			ui.Text(c, locales.AboutVersion(mygo.App.Version())).FontSize(kit.TextSmall).FontFeatures(kit.Tabular).TextColor(p.InkMuted)
+			ui.Text(c, locales.AboutVersion(mygo.App.Version())).FontSize(kit.TextControl).FontFeatures(kit.Tabular).TextColor(p.InkMuted)
 			ui.Text(c, locales.Tagline()).FontSize(kit.TextBody).TextColor(p.Ink)
 		})
 	})
-	ui.Row(c).Gap(kit.Space(2.5)).Wrap().Children(func() {
+	ui.Row(c).Gap(kit.Space(2)).Wrap().Children(func() {
 		if kit.Button(c, kit.Plain, kit.Medium, assets.Download, locales.CheckForUpdates()).Clicked() {
 			updater.CheckForUpdates()
 		}
@@ -37,7 +37,7 @@ func (s *Settings) about(c *ui.Context) {
 			mygo.Shell.ShowItemInFolder(path)
 		}
 	})
-	kit.SandCard(c).Gap(kit.Space(1.5)).Children(func() {
+	kit.SandCard(c).Gap(kit.Space(2)).Children(func() {
 		ui.Text(c, locales.AboutLicense()).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.Ink)
 		kit.Caption(c, locales.AboutCredits())
 	})

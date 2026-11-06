@@ -11,9 +11,9 @@ var stars = []struct{ x, y, r float32 }{
 // rising from below. Give it children: the subtitles, at its foot.
 func Stage(c *ui.Context) ui.Element {
 	p := Colors(c)
-	box := ui.Column(c).Radius(RadiusCard + 2).Background(p.Stage).Clip().Justify(ui.End).AlignItems(ui.Center)
+	box := ui.Column(c).Radius(RadiusCard).Background(p.Stage).Clip().Justify(ui.End).AlignItems(ui.Center)
 	return box.Draw(func(pt *ui.Painter, r ui.Rect) {
-		pt.Clip(r, RadiusCard+2, func() {
+		pt.Clip(r, RadiusCard, func() {
 			for _, s := range stars {
 				d := 2 * s.r
 				pt.Fill(ui.Rect{X: r.X + s.x*r.W - s.r, Y: r.Y + s.y*r.H - s.r, W: d, H: d}, ui.RGBA(255, 246, 214, .7), s.r)

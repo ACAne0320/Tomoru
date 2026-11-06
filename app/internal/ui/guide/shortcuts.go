@@ -36,9 +36,9 @@ func worked(c *ui.Context, ok bool) {
 	if !ok {
 		return
 	}
-	ui.Row(c.Key("worked")).Gap(kit.Space(1.5)).AlignItems(ui.Center).Transition(kit.Rise(0)).Children(func() {
+	ui.Row(c.Key("worked")).Gap(kit.Space(2)).AlignItems(ui.Center).Transition(kit.Rise(0)).Children(func() {
 		kit.InUse(c)
-		ui.Text(c, locales.ShortcutWorks()).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).TextColor(pal.OkText)
+		ui.Text(c, locales.ShortcutWorks()).FontSize(kit.TextControl).FontWeight(kit.WeightBold).TextColor(pal.OkText)
 	})
 }
 
@@ -46,8 +46,8 @@ func worked(c *ui.Context, ok bool) {
 func shortcutRow(c *ui.Context, icon *ui.SVG, name string, field func()) {
 	pal := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Children(func() {
-		tint(c, 32, func() { ui.Icon(c, icon).FontSize(kit.IconSizeButton + 1).TextColor(pal.LanternText) })
-		ui.Column(c).Grow(1).Gap(kit.Space(1.5)).Children(func() {
+		tint(c, 32, func() { ui.Icon(c, icon).FontSize(kit.IconSizeMenu).TextColor(pal.LanternText) })
+		ui.Column(c).Grow(1).Gap(kit.Space(2)).Children(func() {
 			ui.Text(c, name).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(pal.Ink)
 			field()
 		})
@@ -72,7 +72,7 @@ func keycaps(c *ui.Context, acc string, done bool) {
 	ms := kit.ShortcutMods(acc)
 	demo := !c.Preferences().ReduceMotion && !done && held == 0
 	glow := ui.Animation{Duration: 160 * time.Millisecond}
-	row := ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center)
+	row := ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center)
 	// Pressed right, a light sweeps across them once.
 	sweep := float32(0)
 	if done {

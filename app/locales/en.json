@@ -389,13 +389,21 @@
   "@cloudSendsText": {
     "description": "Under the cloud's translation services, in the settings and the guide: what leaves the computer. One short line."
   },
+  "cloudSendsPicture": "The cloud service you choose receives the pictures you translate.",
+  "@cloudSendsPicture": {
+    "description": "Under the Picture Translation group, when the engine chosen for pictures is in the cloud, as cloudSendsText is under translation's."
+  },
   "cloudSendsAudio": "The cloud service you choose receives the sound your computer plays.",
   "@cloudSendsAudio": {
     "description": "Under the cloud's recognition services, in the settings and the guide: what leaves the computer. One short line."
   },
-  "draftLabel": "Translate ahead (show an early draft before a sentence ends)",
+  "draftLabel": "Translate ahead",
   "@draftLabel": {
     "description": "A setting's name: translating sentences before they end."
+  },
+  "draftDesc": "Shows an early draft before a sentence ends",
+  "@draftDesc": {
+    "description": "Under Translate ahead, on one line: what it does."
   },
   "aboutVersion": "Version {version}",
   "@aboutVersion": {
@@ -663,7 +671,7 @@
   "@errNoEndpoint": {
     "description": "Why translating could not start."
   },
-  "needsMemory": "Needs {gb} GB of memory",
+  "needsMemory": "Needs {gb} GB of memory",
   "@needsMemory": {
     "description": "After a translation model's size, on a Mac: the memory it needs to run.",
     "placeholders": {
@@ -673,7 +681,7 @@
       }
     }
   },
-  "needsVram": "Needs {gb} GB of video memory",
+  "needsVram": "Needs {gb} GB of video memory",
   "@needsVram": {
     "description": "After a translation model's size, on Windows: the graphics card's memory it needs to run.",
     "placeholders": {
@@ -683,7 +691,7 @@
       }
     }
   },
-  "asrNeedsMemory": "Runs on the GPU, needs {gb} GB of memory",
+  "asrNeedsMemory": "Runs on the GPU, needs {gb} GB of memory",
   "@asrNeedsMemory": {
     "description": "After a recognition model's size, on a Mac: that it runs on the GPU, and the memory it needs, unlike SenseVoice, which runs on the CPU.",
     "placeholders": {
@@ -693,7 +701,7 @@
       }
     }
   },
-  "asrNeedsVram": "Runs on the graphics card, best with {gb} GB of video memory or more",
+  "asrNeedsVram": "Runs on the graphics card, best with {gb} GB of video memory or more",
   "@asrNeedsVram": {
     "description": "After a recognition model's size, on Windows: that it runs on the graphics card, and the video memory it wants, unlike SenseVoice, which runs on the CPU.",
     "placeholders": {
@@ -711,7 +719,7 @@
   "@guideMtLater": {
     "description": "The guide's translation step, under its title: the cloud first; a local model downloads meanwhile without blocking the guide."
   },
-  "memoryWarning": "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
+  "memoryWarning": "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
   "@memoryWarning": {
     "description": "Under the 9B model, on a computer with less memory than it needs.",
     "placeholders": {
@@ -869,6 +877,14 @@
       }
     }
   },
+  "readsPictures": "Reads pictures",
+  "@readsPictures": {
+    "description": "Under a translation API's test result: a picture sent with the sample was translated, so it can translate pictures."
+  },
+  "readsNoPictures": "Can't read pictures",
+  "@readsNoPictures": {
+    "description": "Under a translation API's test result: the API refused a picture sent with the sample, so it is not offered for pictures."
+  },
   "testFailed": "Failed · {ms} ms",
   "@testFailed": {
     "description": "The test failed, after so many milliseconds. Why shows under it.",
@@ -948,6 +964,50 @@
         "example": "Index-Translate 2B"
       }
     }
+  },
+  "modelsFolder": "Model folder",
+  "@modelsFolder": {
+    "description": "On the Speech & Translation page: the title of the row saying where the local models are kept."
+  },
+  "modelsFolderChange": "Change…",
+  "@modelsFolderChange": {
+    "description": "Button: choose another folder for the local models, which move there."
+  },
+  "modelsMoving": "Moving the models… {done} of {size}",
+  "@modelsMoving": {
+    "description": "Under the progress bar while the local models move to another folder.",
+    "placeholders": {
+      "done": {
+        "type": "String",
+        "example": "1.2 GB"
+      },
+      "size": {
+        "type": "String",
+        "example": "6.4 GB"
+      }
+    }
+  },
+  "modelsMoved": "Models moved",
+  "@modelsMoved": {
+    "description": "A toast once the local models are in the folder chosen."
+  },
+  "modelsMoveFailed": "Couldn't move the models: {reason}",
+  "@modelsMoveFailed": {
+    "description": "Why the local models could not be moved; they stay where they were.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "permission denied"
+      }
+    }
+  },
+  "errModelsMoving": "The on-device models are being moved. Try again when it's done.",
+  "@errModelsMoving": {
+    "description": "Why translating could not start."
+  },
+  "errModelBusy": "Another on-device model is translating the subtitles, and one runs at a time.",
+  "@errModelBusy": {
+    "description": "The picture's card, when its on-device model can't run: the subtitles are being translated by another on-device model."
   },
   "reopenApp": "Reopen Tomoru",
   "@reopenApp": {
@@ -1713,7 +1773,7 @@
   },
   "imageTitle": "Picture Translation",
   "@imageTitle": {
-    "description": "The title of the card that shows a picture's translation."
+    "description": "The title of the card that shows a picture's translation, and of the group in Speech & Translation that sets up translating pictures."
   },
   "close": "Close",
   "@close": {
@@ -1814,6 +1874,14 @@
   "imageShortcutSelectDesc": "Press it, then select part of the screen",
   "@imageShortcutSelectDesc": {
     "description": "Under imageShortcut, when selecting a part of the screen is on."
+  },
+  "imageEngine": "Engine",
+  "@imageEngine": {
+    "description": "Speech & Translation, the Picture Translation group: the row choosing the engine that translates pictures, from a menu of those that read them."
+  },
+  "imageShortcutRow": "Shortcut",
+  "@imageShortcutRow": {
+    "description": "Speech & Translation, the Picture Translation group: the row of the shortcut that translates a picture (imageShortcut in Preferences)."
   },
   "guidePhaseSetup": "Set Up",
   "@guidePhaseSetup": {
@@ -2183,7 +2251,7 @@
   "@lockedToastWin": {
     "description": "Over the subtitles, on Windows, once they are locked in place."
   },
-  "memoryWarningWin": "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
+  "memoryWarningWin": "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
   "@memoryWarningWin": {
     "description": "Under the 9B model, on a Windows computer with less memory than it needs.",
     "placeholders": {

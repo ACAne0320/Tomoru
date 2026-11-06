@@ -5,9 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"tomoru/internal/scene"
@@ -17,7 +20,12 @@ import (
 	"tomoru/internal/translate"
 )
 
-type fakeModels struct{ ready map[string]bool }
+type fakeModels struct {
+	ready  map[string]bool
+	dir    string
+	moving models.Move
+	moved  func(error) // ends the move asked for
+}
 
 func (m *fakeModels) Status(id string) models.Status {
 	if m.ready[id] {
@@ -29,6 +37,18 @@ func (m *fakeModels) Path(id string) string  { return "/models/" + id + ".gguf" 
 func (m *fakeModels) Download(id string)     { m.ready[id] = true }
 func (m *fakeModels) Cancel(string)          {}
 func (m *fakeModels) Delete(id string) error { delete(m.ready, id); return nil }
+func (m *fakeModels) Dir() string            { return m.dir }
+func (m *fakeModels) Moving() models.Move    { return m.moving }
+func (m *fakeModels) Move(to string, done func(error)) {
+	m.moving = models.Move{Active: true}
+	m.moved = func(err error) {
+		m.moving = models.Move{Err: err}
+		if err == nil {
+			m.dir = to
+		}
+		done(err)
+	}
+}
 
 type fakeServer struct {
 	mu      sync.Mutex
@@ -116,7 +136,9 @@ func TestLocalModel(t *testing.T) {
 func TestEndpoints(t *testing.T) {
 	var auth, model string
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth, model = r.Header.Get("Authorization"), r.URL.Path
+		if b, _ := io.ReadAll(r.Body); !strings.Contains(string(b), "image_url") { // the test's picture goes alongside
+			auth, model = r.Header.Get("Authorization"), r.URL.Path
+		}
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"大家晚上好。\"}}]}\n\ndata: [DONE]\n\n")
 	}))
 	defer api.Close()
@@ -394,5 +416,48 @@ func TestRecognitionHints(t *testing.T) {
 	f.flush(t, 1)
 	if len(f.sessions) != 2 {
 		t.Fatalf("%d sessions after the scene changed", len(f.sessions))
+	}
+}
+
+// TestMoveModels stops translating and the model's server while the models move, starts nothing
+// with them meanwhile, and goes on after, the folder kept on success only.
+func TestMoveModels(t *testing.T) {
+	for _, fails := range []bool{false, true} {
+		t.Run(map[bool]string{false: "moved", true: "failed"}[fails], func(t *testing.T) {
+			c, f, m, srv, _ := engineCore(t)
+			c.deps.PrefsPath = filepath.Join(t.TempDir(), "settings.json")
+			m.dir, m.ready["local-2b"] = "/models", true
+			c.SetEngine("local-2b")
+			c.Start()
+			f.flush(t, 1)
+			if !c.Running {
+				t.Fatal("not running")
+			}
+			c.MoveModels("/elsewhere")
+			srv.mu.Lock()
+			stops := srv.stops
+			srv.mu.Unlock()
+			if c.Running || stops == 0 {
+				t.Errorf("while moving: running %v, server stopped %d times", c.Running, stops)
+			}
+			c.Start()
+			if !errors.Is(c.Err, ErrModelsMoving) || c.Running {
+				t.Errorf("started while moving: running %v, err %v", c.Running, c.Err)
+			}
+			var err error
+			if fails {
+				err = errors.New("no room")
+			}
+			m.moved(err)
+			f.flush(t, 1)
+			saved, _ := prefs.Load(c.deps.PrefsPath, "en")
+			want := filepath.Join("/elsewhere", models.FolderName)
+			if fails {
+				want = ""
+			}
+			if c.Prefs.ModelsDir != want || saved.ModelsDir != want || !c.Running {
+				t.Errorf("after: folder %q, saved %q, running %v", c.Prefs.ModelsDir, saved.ModelsDir, c.Running)
+			}
+		})
 	}
 }

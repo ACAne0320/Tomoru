@@ -4,10 +4,12 @@ import (
 	"context"
 	"image"
 	"log"
+	"strings"
 	"time"
 
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
+	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
 
@@ -15,9 +17,76 @@ import (
 // the user selects, when the app may capture the screen, else the one on the clipboard. Neither it
 // nor its translation is kept.
 
-// imageCloud is Index-Translate's cloud, which translates pictures but for those of a local model
-// or the user's API. Tests replace it.
+// imageCloud is Index-Translate's cloud, which translates pictures when chosen for them. Tests
+// replace it.
 var imageCloud = translate.Cloud
+
+// readsPictures tells whether translation engine id reads pictures: the cloud, a local model with
+// its vision projector, an endpoint not found to read none.
+func readsPictures(id string, endpoints []prefs.Endpoint) bool {
+	if m, ok := models.ByID(id); ok {
+		return !m.ASR && m.Vision != ""
+	}
+	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
+		for _, e := range endpoints {
+			if e.ID == eid {
+				return e.Vision != prefs.VisionNo
+			}
+		}
+		return false
+	}
+	return id == "cloud"
+}
+
+// imageEngineFrom is the engine for pictures of one who translates the subtitles with engine id:
+// the same where it reads pictures, else the cloud.
+func imageEngineFrom(id string, endpoints []prefs.Endpoint) string {
+	if readsPictures(id, endpoints) {
+		return id
+	}
+	return "cloud"
+}
+
+// ImageEngines are the engines to choose for pictures, those that can read them now: the cloud,
+// the local models downloaded, and the user's APIs but those found to read none.
+func (c *Core) ImageEngines() []Engine {
+	var es []Engine
+	for _, e := range c.Engines(MT) {
+		switch {
+		case !readsPictures(e.ID, c.Prefs.Endpoints) || e.Model != nil && c.ModelStatus(e.ID).State != models.Ready:
+		case e.ID == "cloud":
+			es = append([]Engine{e}, es...)
+		default:
+			es = append(es, e)
+		}
+	}
+	return es
+}
+
+// SetImageEngine translates pictures with engine id from now on, one of ImageEngines.
+func (c *Core) SetImageEngine(id string) {
+	if id == c.Prefs.ImageMT {
+		return
+	}
+	c.Prefs.ImageMT = id
+	c.settingsChanged()
+}
+
+// fitImageEngine has the cloud translate pictures in place of an endpoint gone, or found to read
+// none.
+func (c *Core) fitImageEngine() {
+	if strings.HasPrefix(c.Prefs.ImageMT, prefs.CustomPrefix) && !readsPictures(c.Prefs.ImageMT, c.Prefs.Endpoints) {
+		c.Prefs.ImageMT = "cloud"
+	}
+}
+
+// serving is the local model llama-server runs for the subtitles, "" for none.
+func (c *Core) serving() string {
+	if _, local := models.ByID(c.Prefs.MT); local && c.Running {
+		return c.Prefs.MT
+	}
+	return ""
+}
 
 // ImageView is the picture translated last, as its card shows it.
 type ImageView struct {
@@ -26,7 +95,7 @@ type ImageView struct {
 	Text    string          // the translation so far
 	Running bool
 	Err     error  // why it could not be translated
-	Via     string // the engine translating the picture, as Preferences.MT names it
+	Via     string // the engine translating the picture, as Preferences.ImageMT names it
 	run     int    // the translation's: what an older one sends is dropped
 }
 
@@ -65,16 +134,16 @@ func (c *Core) TranslateImage(pic []byte) {
 	}
 	var r imageRoute
 	if e := c.ImageService.endpoint; e != nil {
-		r.via, r.open = c.Prefs.MT, func(context.Context) (*translate.Endpoint, error) { return e, nil }
+		r.via, r.open = c.Prefs.ImageMT, func(context.Context) (*translate.Endpoint, error) { return e, nil }
 	} else {
-		r.open, r.via = c.EngineService.imageEndpoint(c.Prefs.MT, c.Prefs.Endpoints)
+		r.open, r.via = c.EngineService.imageEndpoint(c.Prefs.ImageMT, c.serving(), c.Prefs.Endpoints)
 	}
 	c.ImageService.translate(pic, tgt, terms, r)
 }
 
-// releaseServer stops llama-server, which a picture had started, unless translating uses it.
+// releaseServer stops llama-server, which a picture had started, unless the subtitles use it.
 func (c *Core) releaseServer() {
-	if !c.Running && c.deps.Server != nil {
+	if c.serving() == "" && c.deps.Server != nil {
 		c.deps.Server.Stop()
 	}
 }

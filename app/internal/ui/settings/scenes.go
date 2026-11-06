@@ -71,7 +71,7 @@ func (s *Settings) scenes(c *ui.Context) {
 			}
 		})
 		sc, _ := k.SceneByID(e.scene)
-		kit.Card(c).Grow(999).Basis(440).MinWidth(0).Gap(kit.Space(4.5)).Padding(kit.Space(5), kit.Space(5.5)).Children(func() {
+		kit.Card(c).Grow(999).Basis(440).MinWidth(0).Gap(kit.Space(4)).Padding(kit.Space(5), kit.Space(6)).Children(func() {
 			if f := s.sceneDetail(c, sc); f != nil {
 				then = f
 			}
@@ -114,10 +114,7 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 				FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).Height(kit.Space(11)).Grow(1).Margin(0, 0, 0, -kit.Space(2))
 		}
 		if inUse {
-			ui.Row(c).Gap(kit.Space(1.5)).AlignItems(ui.Center).Children(func() {
-				ui.Icon(c, assets.Check).FontSize(kit.TextSmall).TextColor(p.OkText)
-				ui.Text(c, locales.SceneInUse()).FontSize(kit.TextSmall).FontWeight(kit.WeightBold).TextColor(p.OkText).SingleLine()
-			})
+			kit.InUseLabel(c, locales.SceneInUse())
 		} else if kit.Button(c, kit.Primary, kit.Small, nil, locales.UseScene()).Clicked() {
 			k.SetScene(id)
 		}
@@ -181,7 +178,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 	p := kit.Colors(c)
 	id := sc.ID
 	records := s.sceneRecords(id)
-	ui.Row(c).Gap(kit.Space(2.5)).AlignItems(ui.Center).Children(func() {
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, locales.Glossary()).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(p.Ink)
 		if len(sc.Terms) > 0 {
 			kit.CountBadge(c, len(sc.Terms))
@@ -218,7 +215,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 		})
 	}
 	ui.Column(c).Radius(kit.RadiusField).Border(1, p.Line).Clip().Children(func() {
-		ui.Box(c).Background(p.Paper).Padding(kit.Space(2.25), kit.Space(3.5)).Children(func() {
+		ui.Box(c).Background(p.Paper).Padding(kit.Space(2), kit.Space(4)).Children(func() {
 			head := func(s string) func() {
 				return func() {
 					ui.Text(c, s).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.InkMuted).Padding(0, kit.Space(2)).MaxLines(1)
@@ -227,7 +224,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 			cells(head(locales.TermSrc()), head(locales.TermTgt()), head(locales.TermHeard()), func() { ui.Box(c) })
 		})
 		row := func(key string, fn func()) {
-			ui.Box(c.Key(key)).Padding(kit.Space(1), kit.Space(3.5)).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(fn)
+			ui.Box(c.Key(key)).Padding(kit.Space(1), kit.Space(4)).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(fn)
 		}
 		if e.adding {
 			row("new", func() {
@@ -238,10 +235,10 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 				}, func() {
 					add(kit.CellInput(c.Key("new-tgt"), &e.tgt).Placeholder(locales.TermTgt()).Label(locales.TermTgt()))
 				}, func() {
-					add(kit.CellInput(c.Key("new-heard"), &e.heard).Placeholder(locales.TermHeardHint()).Label(locales.TermHeard()).FontSize(kit.TextSmall))
+					add(kit.CellInput(c.Key("new-heard"), &e.heard).Placeholder(locales.TermHeardHint()).Label(locales.TermHeard()).FontSize(kit.TextControl))
 				}, func() {
 					ok := strings.TrimSpace(e.src) != "" && strings.TrimSpace(e.tgt) != ""
-					if (kit.IconButton(c, kit.Strong, kit.Small, assets.Check, locales.AddTerm()).Disabled(!ok).Clicked() || submitted) && ok {
+					if (kit.Off(c, kit.IconButton(c, kit.Strong, kit.Small, assets.Check, locales.AddTerm()), !ok).Clicked() || submitted) && ok {
 						t := scene.Term{Src: e.src, Tgt: e.tgt, Heard: splitHeard(e.heard)}
 						then = func() {
 							k.AddTerm(id, t)
@@ -267,7 +264,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 				}, func() {
 					s.heardCell(c, key, term)
 				}, func() {
-					if kit.IconButton(c.Key(key+"del"), kit.Destructive(kit.Quiet), kit.Small, assets.Close, locales.Delete()).Clicked() {
+					if kit.DeleteButton(c.Key(key+"del"), kit.Small, locales.Delete()).Clicked() {
 						name := term.Src
 						then = func() {
 							c.ToastAction(locales.DeletedItem(name), locales.Undo(), k.DeleteTerm(id, i))
@@ -290,7 +287,7 @@ func (s *Settings) heardCell(c *ui.Context, key string, term *scene.Term) {
 	if e.heardAt == key {
 		v = &e.heardText
 	}
-	in := kit.CellInput(c.Key(key+"heard"), v).Label(locales.TermHeard()).FontSize(kit.TextSmall).TextColor(kit.Colors(c).InkMuted)
+	in := kit.CellInput(c.Key(key+"heard"), v).Label(locales.TermHeard()).FontSize(kit.TextControl).TextColor(kit.Colors(c).InkMuted)
 	if in.Changed() {
 		term.Heard = splitHeard(*v)
 	}

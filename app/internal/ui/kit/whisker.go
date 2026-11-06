@@ -62,9 +62,9 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 			if math.IsNaN(w.Mid) {
 				continue
 			}
-			dot, line := p.Lantern, p.Lantern.Alpha(.45)
+			dot, line := p.Lantern, p.Amber[3]
 			if *chosen >= 0 && *chosen != i {
-				dot, line = p.Lantern.Alpha(.45), p.Lantern.Alpha(.2)
+				dot, line = p.Dim(dot), p.Dim(line)
 			}
 			chart.Rect(c.Key([2]int{i, 0}), x.Band(i), y.Span(w.Mid, w.Hi)).Children(func() {
 				ui.Row(c).Fill().Justify(ui.Center).AlignItems(ui.Stretch).Children(func() { ui.Box(c).Width(2).Radius(1).Background(line) })
@@ -78,10 +78,10 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 			}
 			chart.Anchor(c, xs[i], y.At(v), tipAlign(xs[i]), ui.End, func() {
 				ui.Text(c, ws[i].Tip).NoWrap().FontSize(TextCaption).FontWeight(WeightBold).FontFeatures(Tabular).
-					TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusInner/2).Margin(0, 0, Space(1.5), 0)
+					TextColor(p.Paper).Background(p.Ink).Padding(Space(1), Space(2)).Radius(RadiusMark).Margin(0, 0, Space(2), 0)
 			})
 		}
-	}).Label(label).Height(chartHeight).GapX(Space(2)).GapY(Space(1.5))
+	}).Label(label).Height(chartHeight).GapX(Space(2)).GapY(Space(2))
 }
 
 // tipAlign keeps a tip over a point at x along a plot inside it: from the point to the right near

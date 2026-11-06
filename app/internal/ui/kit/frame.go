@@ -26,7 +26,7 @@ func NavWidth(c *ui.Context, entries ...[]NavEntry) float32 {
 }
 
 // The padding of the sidebar and of its items, and the gap after an item's icon.
-var navPad, navItemPad, navItemGap = Space(2.5), Space(3), Space(2.5)
+var navPad, navItemPad, navItemGap = Space(2), Space(3), Space(2)
 
 // NavEntry is a page of the window's sidebar.
 type NavEntry struct {
@@ -44,7 +44,7 @@ func AppFrame(c *ui.Context, selected *string, top, bottom []NavEntry, page func
 	bar := c.TitleBar()
 	c.Root().Background(p.Night)
 	ui.Row(c).Fill().AlignItems(ui.Stretch).Children(func() {
-		ui.Column(c).Width(NavWidth(c, top, bottom)).Shrink(0).Padding(0, navPad, Space(3.5)).Gap(Space(5.5)).Children(func() {
+		ui.Column(c).Width(NavWidth(c, top, bottom)).Shrink(0).Padding(0, navPad, Space(3)).Gap(Space(6)).Children(func() {
 			// The window's controls' band, which drags the window. The window's title and the Dock
 			// name the app already: the pages start under it.
 			ui.Box(c).Height(max(bar.Height, Space(3))).DragWindow()
@@ -62,21 +62,21 @@ func AppFrame(c *ui.Context, selected *string, top, bottom []NavEntry, page func
 			nav(bottom)
 		})
 		ui.Column(c).Grow(1).MinWidth(0).Children(func() {
-			top := Space(2.5)
+			top := Space(2)
 			if bar.Right > 0 {
 				// The window's controls on this side, as on Windows: a band over the paper for them, which
 				// drags the window.
 				ui.Box(c).Height(bar.Height).DragWindow()
 				top = 0
 			}
-			ui.Column(c).Grow(1).MinWidth(0).Margin(top, Space(2.5), Space(2.5), 0).Radius(RadiusPaper).Background(p.Paper).Clip().Children(func() {
+			ui.Column(c).Grow(1).MinWidth(0).Margin(top, Space(2), Space(2), 0).Radius(RadiusPaper).Background(p.Paper).Clip().Children(func() {
 				// The scroll bar keeps clear of the paper's rounded corners: its ends 9 from the paper's
 				// top and bottom (MyGo leaves 2 more at the ends of its track), a little more than the 7
 				// at its side.
 				end := float32(7)
 				ui.Scroll(c).Grow(1).ScrollbarInsets(end, Space(1), end).Children(func() {
 					// Each page is its own: switching shows it at once, rather than as the last page changing.
-					ui.Column(c.Key(*selected)).Padding(Space(7.5), Space(8), Space(8)).Gap(Space(5.5)).Children(page)
+					ui.Column(c.Key(*selected)).Padding(Space(8)).Gap(SectionGap).Children(page)
 				})
 			})
 		})

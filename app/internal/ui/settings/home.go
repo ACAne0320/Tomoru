@@ -27,7 +27,7 @@ func (s *Settings) home(c *ui.Context) {
 	if k.Running {
 		c.After(time.Second) // the numbers count on
 	}
-	ui.Column(c).Gap(kit.Space(3.5)).Children(func() {
+	ui.Column(c).Gap(kit.Space(4)).Children(func() {
 		ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Start).Children(func() {
 			title := locales.HomeIdle()
 			if k.Running {
@@ -47,10 +47,10 @@ func (s *Settings) home(c *ui.Context) {
 		})
 		homeLine(c, s)
 		if why := homeState(s); why != "" {
-			ui.Text(c, why).FontSize(kit.TextSmall).TextColor(p.InkMuted).MaxLines(3)
+			ui.Text(c, why).FontSize(kit.TextControl).TextColor(p.InkMuted).MaxLines(3)
 		}
 		if err := shared.ErrorText(k.Err); err != "" {
-			ui.Text(c, err).FontSize(kit.TextSmall).TextColor(p.Danger).MaxLines(3)
+			ui.Text(c, err).FontSize(kit.TextControl).TextColor(p.Danger).MaxLines(3)
 		}
 	})
 	homeStats(c, s)
@@ -122,13 +122,12 @@ func homeActivity(c *ui.Context, s *Settings) {
 			days[i].Tip = i18n.FormatDate(locale, from.AddDate(0, 0, i), i18n.DateOptions{Skeleton: "yMMMEd"}) + " · " + locales.HistoryLines(int(n))
 		}
 	}
-	kit.Card(c).Children(func() {
-		kit.CardHeader(c, locales.StatsActivity(), func() {
-			kit.Caption(c, locales.HistoryLines(total)).SingleLine()
-			if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.HomeOpenStats()).Clicked() {
-				s.Tab = "stats"
-			}
-		})
+	kit.Group(c, locales.StatsActivity(), func() {
+		kit.Caption(c, locales.HistoryLines(total)).SingleLine()
+		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.HomeOpenStats()).Clicked() {
+			s.Tab = "stats"
+		}
+	}, kit.Card, func() {
 		kit.Heatmap(c, locales.StatsActivity(), days, heads, weekdays, locales.StatsLess(), locales.StatsMore(), func(i int) {
 			s.statsDay(from.AddDate(0, 0, i), now)
 		})
@@ -168,7 +167,7 @@ func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lin
 func homeLine(c *ui.Context, s *Settings) {
 	k, p := s.core, kit.Colors(c)
 	label := func(t string) { ui.Text(c, t).SingleLine().Shrink(0) }
-	ui.Row(c).GapX(kit.Space(6)).GapY(kit.Space(2.5)).AlignItems(ui.Center).Wrap().FontSize(kit.TextBody + 1).TextColor(p.InkMuted).Children(func() {
+	ui.Row(c).GapX(kit.Space(6)).GapY(kit.Space(3)).AlignItems(ui.Center).Wrap().FontSize(kit.TextBody).TextColor(p.InkMuted).Children(func() {
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
 			label(locales.HomeListen())
 			k.ListApps()
@@ -192,12 +191,11 @@ func homeRecent(c *ui.Context, s *Settings) {
 		return
 	}
 	k.LoadHistory()
-	kit.SandCard(c).Children(func() {
-		kit.CardHeader(c, locales.HomeRecent(), func() {
-			if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.AllRecords()).Clicked() {
-				s.Tab = "history"
-			}
-		})
+	kit.Group(c, locales.HomeRecent(), func() {
+		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.AllRecords()).Clicked() {
+			s.Tab = "history"
+		}
+	}, kit.Card, func() {
 		recs := k.History.Records
 		for _, r := range recs[:min(len(recs), 2)] {
 			ui.Row(c.Key(r.Path)).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {

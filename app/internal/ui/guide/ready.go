@@ -32,7 +32,7 @@ func (g *Guide) ready(c *ui.Context) {
 		})
 	}
 	tip(1, func() { template(c, assets.Tray, 16, pal.LanternText) }, shared.OnWindows(locales.GuideReadyMenuBar(), locales.GuideReadyTray()))
-	tip(2, func() { ui.Icon(c, assets.Pointer).FontSize(kit.IconSizeButton + 1).TextColor(pal.LanternText) }, locales.GuideReadySubtitles())
+	tip(2, func() { ui.Icon(c, assets.Pointer).FontSize(kit.IconSizeMenu).TextColor(pal.LanternText) }, locales.GuideReadySubtitles())
 }
 
 // readyStage is the menu bar with the app's icon glowing in it, the app, and subtitles where they
@@ -56,7 +56,7 @@ func (g *Guide) readyStage(c *ui.Context) {
 	}
 	// bar is the menu bar, or on Windows the taskbar, its icons at its end.
 	bar := func() {
-		ui.Row(c).Height(26).Padding(0, kit.Space(3)).Gap(kit.Space(3.5)).AlignItems(ui.Center).Justify(ui.End).Background(pal.Shade.Alpha(.28)).Children(func() {
+		ui.Row(c).Height(26).Padding(0, kit.Space(3)).Gap(kit.Space(4)).AlignItems(ui.Center).Justify(ui.End).Background(pal.Shade.Alpha(.28)).Children(func() {
 			for range 3 {
 				ui.Box(c).Size(14, 10).Radius(kit.Pill(6)).Background(pal.Starlight.Alpha(.28))
 			}
@@ -86,11 +86,11 @@ func (g *Guide) readyStage(c *ui.Context) {
 		ui.Column(c).Grow(1).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
 			ui.Image(c, assets.AppIcon).Size(128, 128)
 		})
-		ui.Column(c).Padding(0, kit.Space(5.5), kit.Space(4.5)).Gap(kit.Space(1.5)).Children(func() {
+		ui.Column(c).Padding(0, kit.Space(6), kit.Space(4)).Gap(kit.Space(2)).Children(func() {
 			if !said {
 				return
 			}
-			ui.Column(c.Key("said")).Gap(kit.Space(1.5)).Transition(kit.Rise(0)).Children(func() {
+			ui.Column(c.Key("said")).Gap(kit.Space(2)).Transition(kit.Rise(0)).Children(func() {
 				subtitle.Draw(c, subtitle.Samples(p)[max(0, len(subtitle.Samples(p))-1):], p, .62, 340, subtitle.NoBlock)
 			})
 		})

@@ -1363,6 +1363,22 @@ func (msgs Messages) CloudSendsText() string {
 	return Catalog.Format(msgs.locale, "cloudSendsText", nil)
 }
 
+// CloudSendsPicture says "The cloud service you choose receives the pictures you translate."
+// in the language the app shows.
+//
+// Under the Picture Translation group, when the engine chosen for pictures
+// is in the cloud, as cloudSendsText is under translation's.
+func CloudSendsPicture() string { return In(i18n.Locale()).CloudSendsPicture() }
+
+// CloudSendsPicture says "The cloud service you choose receives the pictures you translate."
+// in the language of msgs.
+//
+// Under the Picture Translation group, when the engine chosen for pictures
+// is in the cloud, as cloudSendsText is under translation's.
+func (msgs Messages) CloudSendsPicture() string {
+	return Catalog.Format(msgs.locale, "cloudSendsPicture", nil)
+}
+
 // CloudSendsAudio says "The cloud service you choose receives the sound your computer plays."
 // in the language the app shows.
 //
@@ -1379,18 +1395,32 @@ func (msgs Messages) CloudSendsAudio() string {
 	return Catalog.Format(msgs.locale, "cloudSendsAudio", nil)
 }
 
-// DraftLabel says "Translate ahead (show an early draft before a sentence ends)"
+// DraftLabel says "Translate ahead"
 // in the language the app shows.
 //
 // A setting's name: translating sentences before they end.
 func DraftLabel() string { return In(i18n.Locale()).DraftLabel() }
 
-// DraftLabel says "Translate ahead (show an early draft before a sentence ends)"
+// DraftLabel says "Translate ahead"
 // in the language of msgs.
 //
 // A setting's name: translating sentences before they end.
 func (msgs Messages) DraftLabel() string {
 	return Catalog.Format(msgs.locale, "draftLabel", nil)
+}
+
+// DraftDesc says "Shows an early draft before a sentence ends"
+// in the language the app shows.
+//
+// Under Translate ahead, on one line: what it does.
+func DraftDesc() string { return In(i18n.Locale()).DraftDesc() }
+
+// DraftDesc says "Shows an early draft before a sentence ends"
+// in the language of msgs.
+//
+// Under Translate ahead, on one line: what it does.
+func (msgs Messages) DraftDesc() string {
+	return Catalog.Format(msgs.locale, "draftDesc", nil)
 }
 
 // AboutVersion says "Version {version}"
@@ -2077,13 +2107,13 @@ func (msgs Messages) ErrNoEndpoint() string {
 	return Catalog.Format(msgs.locale, "errNoEndpoint", nil)
 }
 
-// NeedsMemory says "Needs {gb} GB of memory"
+// NeedsMemory says "Needs {gb}\u00a0GB of memory"
 // in the language the app shows.
 //
 // After a translation model's size, on a Mac: the memory it needs to run.
 func NeedsMemory(gb int) string { return In(i18n.Locale()).NeedsMemory(gb) }
 
-// NeedsMemory says "Needs {gb} GB of memory"
+// NeedsMemory says "Needs {gb}\u00a0GB of memory"
 // in the language of msgs.
 //
 // After a translation model's size, on a Mac: the memory it needs to run.
@@ -2091,14 +2121,14 @@ func (msgs Messages) NeedsMemory(gb int) string {
 	return Catalog.Format(msgs.locale, "needsMemory", map[string]any{"gb": gb})
 }
 
-// NeedsVram says "Needs {gb} GB of video memory"
+// NeedsVram says "Needs {gb}\u00a0GB of video memory"
 // in the language the app shows.
 //
 // After a translation model's size, on Windows: the graphics card's memory
 // it needs to run.
 func NeedsVram(gb int) string { return In(i18n.Locale()).NeedsVram(gb) }
 
-// NeedsVram says "Needs {gb} GB of video memory"
+// NeedsVram says "Needs {gb}\u00a0GB of video memory"
 // in the language of msgs.
 //
 // After a translation model's size, on Windows: the graphics card's memory
@@ -2107,14 +2137,14 @@ func (msgs Messages) NeedsVram(gb int) string {
 	return Catalog.Format(msgs.locale, "needsVram", map[string]any{"gb": gb})
 }
 
-// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// AsrNeedsMemory says "Runs on the GPU, needs {gb}\u00a0GB of memory"
 // in the language the app shows.
 //
 // After a recognition model's size, on a Mac: that it runs on the GPU, and
 // the memory it needs, unlike SenseVoice, which runs on the CPU.
 func AsrNeedsMemory(gb int) string { return In(i18n.Locale()).AsrNeedsMemory(gb) }
 
-// AsrNeedsMemory says "Runs on the GPU, needs {gb} GB of memory"
+// AsrNeedsMemory says "Runs on the GPU, needs {gb}\u00a0GB of memory"
 // in the language of msgs.
 //
 // After a recognition model's size, on a Mac: that it runs on the GPU, and
@@ -2123,7 +2153,7 @@ func (msgs Messages) AsrNeedsMemory(gb int) string {
 	return Catalog.Format(msgs.locale, "asrNeedsMemory", map[string]any{"gb": gb})
 }
 
-// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// AsrNeedsVram says "Runs on the graphics card, best with {gb}\u00a0GB of video memory or more"
 // in the language the app shows.
 //
 // After a recognition model's size, on Windows: that it runs on the
@@ -2131,7 +2161,7 @@ func (msgs Messages) AsrNeedsMemory(gb int) string {
 // runs on the CPU.
 func AsrNeedsVram(gb int) string { return In(i18n.Locale()).AsrNeedsVram(gb) }
 
-// AsrNeedsVram says "Runs on the graphics card, best with {gb} GB of video memory or more"
+// AsrNeedsVram says "Runs on the graphics card, best with {gb}\u00a0GB of video memory or more"
 // in the language of msgs.
 //
 // After a recognition model's size, on Windows: that it runs on the
@@ -2171,13 +2201,13 @@ func (msgs Messages) GuideMtLater() string {
 	return Catalog.Format(msgs.locale, "guideMtLater", nil)
 }
 
-// MemoryWarning says "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps."
+// MemoryWarning says "This Mac has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
 // in the language the app shows.
 //
 // Under the 9B model, on a computer with less memory than it needs.
 func MemoryWarning(gb int) string { return In(i18n.Locale()).MemoryWarning(gb) }
 
-// MemoryWarning says "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps."
+// MemoryWarning says "This Mac has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
 // in the language of msgs.
 //
 // Under the 9B model, on a computer with less memory than it needs.
@@ -2557,6 +2587,38 @@ func (msgs Messages) TestSucceeded(ms string) string {
 	return Catalog.Format(msgs.locale, "testSucceeded", map[string]any{"ms": ms})
 }
 
+// ReadsPictures says "Reads pictures"
+// in the language the app shows.
+//
+// Under a translation API's test result: a picture sent with the sample was
+// translated, so it can translate pictures.
+func ReadsPictures() string { return In(i18n.Locale()).ReadsPictures() }
+
+// ReadsPictures says "Reads pictures"
+// in the language of msgs.
+//
+// Under a translation API's test result: a picture sent with the sample was
+// translated, so it can translate pictures.
+func (msgs Messages) ReadsPictures() string {
+	return Catalog.Format(msgs.locale, "readsPictures", nil)
+}
+
+// ReadsNoPictures says "Can't read pictures"
+// in the language the app shows.
+//
+// Under a translation API's test result: the API refused a picture sent
+// with the sample, so it is not offered for pictures.
+func ReadsNoPictures() string { return In(i18n.Locale()).ReadsNoPictures() }
+
+// ReadsNoPictures says "Can't read pictures"
+// in the language of msgs.
+//
+// Under a translation API's test result: the API refused a picture sent
+// with the sample, so it is not offered for pictures.
+func (msgs Messages) ReadsNoPictures() string {
+	return Catalog.Format(msgs.locale, "readsNoPictures", nil)
+}
+
 // TestFailed says "Failed · {ms} ms"
 // in the language the app shows.
 //
@@ -2711,6 +2773,108 @@ func ModelDeleted(name string) string { return In(i18n.Locale()).ModelDeleted(na
 // A toast after deleting a local translation model.
 func (msgs Messages) ModelDeleted(name string) string {
 	return Catalog.Format(msgs.locale, "modelDeleted", map[string]any{"name": name})
+}
+
+// ModelsFolder says "Model folder"
+// in the language the app shows.
+//
+// On the Speech & Translation page: the title of the row saying where the
+// local models are kept.
+func ModelsFolder() string { return In(i18n.Locale()).ModelsFolder() }
+
+// ModelsFolder says "Model folder"
+// in the language of msgs.
+//
+// On the Speech & Translation page: the title of the row saying where the
+// local models are kept.
+func (msgs Messages) ModelsFolder() string {
+	return Catalog.Format(msgs.locale, "modelsFolder", nil)
+}
+
+// ModelsFolderChange says "Change…"
+// in the language the app shows.
+//
+// Button: choose another folder for the local models, which move there.
+func ModelsFolderChange() string { return In(i18n.Locale()).ModelsFolderChange() }
+
+// ModelsFolderChange says "Change…"
+// in the language of msgs.
+//
+// Button: choose another folder for the local models, which move there.
+func (msgs Messages) ModelsFolderChange() string {
+	return Catalog.Format(msgs.locale, "modelsFolderChange", nil)
+}
+
+// ModelsMoving says "Moving the models… {done} of {size}"
+// in the language the app shows.
+//
+// Under the progress bar while the local models move to another folder.
+func ModelsMoving(done string, size string) string { return In(i18n.Locale()).ModelsMoving(done, size) }
+
+// ModelsMoving says "Moving the models… {done} of {size}"
+// in the language of msgs.
+//
+// Under the progress bar while the local models move to another folder.
+func (msgs Messages) ModelsMoving(done string, size string) string {
+	return Catalog.Format(msgs.locale, "modelsMoving", map[string]any{"done": done, "size": size})
+}
+
+// ModelsMoved says "Models moved"
+// in the language the app shows.
+//
+// A toast once the local models are in the folder chosen.
+func ModelsMoved() string { return In(i18n.Locale()).ModelsMoved() }
+
+// ModelsMoved says "Models moved"
+// in the language of msgs.
+//
+// A toast once the local models are in the folder chosen.
+func (msgs Messages) ModelsMoved() string {
+	return Catalog.Format(msgs.locale, "modelsMoved", nil)
+}
+
+// ModelsMoveFailed says "Couldn't move the models: {reason}"
+// in the language the app shows.
+//
+// Why the local models could not be moved; they stay where they were.
+func ModelsMoveFailed(reason string) string { return In(i18n.Locale()).ModelsMoveFailed(reason) }
+
+// ModelsMoveFailed says "Couldn't move the models: {reason}"
+// in the language of msgs.
+//
+// Why the local models could not be moved; they stay where they were.
+func (msgs Messages) ModelsMoveFailed(reason string) string {
+	return Catalog.Format(msgs.locale, "modelsMoveFailed", map[string]any{"reason": reason})
+}
+
+// ErrModelsMoving says "The on-device models are being moved. Try again when it's done."
+// in the language the app shows.
+//
+// Why translating could not start.
+func ErrModelsMoving() string { return In(i18n.Locale()).ErrModelsMoving() }
+
+// ErrModelsMoving says "The on-device models are being moved. Try again when it's done."
+// in the language of msgs.
+//
+// Why translating could not start.
+func (msgs Messages) ErrModelsMoving() string {
+	return Catalog.Format(msgs.locale, "errModelsMoving", nil)
+}
+
+// ErrModelBusy says "Another on-device model is translating the subtitles, and one runs at a time."
+// in the language the app shows.
+//
+// The picture's card, when its on-device model can't run: the subtitles are
+// being translated by another on-device model.
+func ErrModelBusy() string { return In(i18n.Locale()).ErrModelBusy() }
+
+// ErrModelBusy says "Another on-device model is translating the subtitles, and one runs at a time."
+// in the language of msgs.
+//
+// The picture's card, when its on-device model can't run: the subtitles are
+// being translated by another on-device model.
+func (msgs Messages) ErrModelBusy() string {
+	return Catalog.Format(msgs.locale, "errModelBusy", nil)
 }
 
 // ReopenApp says "Reopen Tomoru"
@@ -4852,13 +5016,15 @@ func (msgs Messages) Discard() string {
 // ImageTitle says "Picture Translation"
 // in the language the app shows.
 //
-// The title of the card that shows a picture's translation.
+// The title of the card that shows a picture's translation, and of the
+// group in Speech & Translation that sets up translating pictures.
 func ImageTitle() string { return In(i18n.Locale()).ImageTitle() }
 
 // ImageTitle says "Picture Translation"
 // in the language of msgs.
 //
-// The title of the card that shows a picture's translation.
+// The title of the card that shows a picture's translation, and of the
+// group in Speech & Translation that sets up translating pictures.
 func (msgs Messages) ImageTitle() string {
 	return Catalog.Format(msgs.locale, "imageTitle", nil)
 }
@@ -5141,6 +5307,38 @@ func ImageShortcutSelectDesc() string { return In(i18n.Locale()).ImageShortcutSe
 // Under imageShortcut, when selecting a part of the screen is on.
 func (msgs Messages) ImageShortcutSelectDesc() string {
 	return Catalog.Format(msgs.locale, "imageShortcutSelectDesc", nil)
+}
+
+// ImageEngine says "Engine"
+// in the language the app shows.
+//
+// Speech & Translation, the Picture Translation group: the row choosing the
+// engine that translates pictures, from a menu of those that read them.
+func ImageEngine() string { return In(i18n.Locale()).ImageEngine() }
+
+// ImageEngine says "Engine"
+// in the language of msgs.
+//
+// Speech & Translation, the Picture Translation group: the row choosing the
+// engine that translates pictures, from a menu of those that read them.
+func (msgs Messages) ImageEngine() string {
+	return Catalog.Format(msgs.locale, "imageEngine", nil)
+}
+
+// ImageShortcutRow says "Shortcut"
+// in the language the app shows.
+//
+// Speech & Translation, the Picture Translation group: the row of the
+// shortcut that translates a picture (imageShortcut in Preferences).
+func ImageShortcutRow() string { return In(i18n.Locale()).ImageShortcutRow() }
+
+// ImageShortcutRow says "Shortcut"
+// in the language of msgs.
+//
+// Speech & Translation, the Picture Translation group: the row of the
+// shortcut that translates a picture (imageShortcut in Preferences).
+func (msgs Messages) ImageShortcutRow() string {
+	return Catalog.Format(msgs.locale, "imageShortcutRow", nil)
 }
 
 // GuidePhaseSetup says "Set Up"
@@ -6171,13 +6369,13 @@ func (msgs Messages) LockedToastWin() string {
 	return Catalog.Format(msgs.locale, "lockedToastWin", nil)
 }
 
-// MemoryWarningWin says "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps."
+// MemoryWarningWin says "This computer has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
 // in the language the app shows.
 //
 // Under the 9B model, on a Windows computer with less memory than it needs.
 func MemoryWarningWin(gb int) string { return In(i18n.Locale()).MemoryWarningWin(gb) }
 
-// MemoryWarningWin says "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps."
+// MemoryWarningWin says "This computer has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
 // in the language of msgs.
 //
 // Under the 9B model, on a Windows computer with less memory than it needs.

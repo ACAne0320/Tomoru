@@ -15,7 +15,7 @@ type Share struct {
 
 // ShareRow is a Share as a button: its color, its name over its line, a bar of its share, and its
 // value. Clicked, it picks the thing out of the chart over the list; on, it is the one picked, on
-// the lantern's tint.
+// the band.
 func ShareRow(c *ui.Context, s Share, on bool) ui.Element {
 	p := Colors(c)
 	ink := p.Ink
@@ -27,7 +27,7 @@ func ShareRow(c *ui.Context, s Share, on bool) ui.Element {
 	face := ui.Transparent
 	switch {
 	case on:
-		face = p.LanternTint
+		face = p.Band
 	case b.Hovered():
 		face = p.Paper
 	}

@@ -1,9 +1,20 @@
 package core
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"image"
+	"image/color"
+	"image/png"
+	"net/http"
 	"strings"
+	"sync"
 	"time"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
 
 	"tomoru/internal/asr"
 	"tomoru/internal/models"
@@ -18,6 +29,9 @@ type TestResult struct {
 	Text    string
 	Err     error
 	Took    time.Duration
+	// Vision is whether it read a picture sent with the sample: unknown when the sample failed, or
+	// the picture failed but for a reason of its own.
+	Vision prefs.Vision
 }
 
 // TestSample is what a test translates, from English, into the language translated into, or into
@@ -37,12 +51,24 @@ type EngineService struct {
 	asrServer Server
 	secrets   Secrets
 	changed   func()
+	// visions are what tests found of whether an API reads pictures, for saving it to keep.
+	visions map[api]prefs.Vision
+}
+
+// api is a translation API as tested: what decides whether it reads pictures.
+type api struct {
+	url, model string
+	index      bool
+}
+
+func apiOf(e prefs.Endpoint) api {
+	return api{strings.TrimSuffix(strings.TrimRight(strings.TrimSpace(e.URL), "/"), "/v1"), strings.TrimSpace(e.Model), e.Index}
 }
 
 type engineTest struct{ cancel context.CancelFunc }
 
 func newEngineService(work *tasks, models Models, server, asrServer Server, secrets Secrets, changed func()) *EngineService {
-	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
+	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, visions: map[api]prefs.Vision{}, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
 }
 
 func (s *EngineService) notify() {
@@ -52,8 +78,9 @@ func (s *EngineService) notify() {
 }
 
 // startTest replaces a dialog's previous request. The operation identity remains valid after
-// the worker's context cleanup, until accepted, forgotten or replaced on the application thread.
-func (s *EngineService) startTest(test string, timeout time.Duration, run func(context.Context) TestResult) {
+// the worker's context cleanup, until accepted, forgotten or replaced on the application thread,
+// where done, unless nil, gets the result accepted.
+func (s *EngineService) startTest(test string, timeout time.Duration, run func(context.Context) TestResult, done func(TestResult)) {
 	if s.work.ctx.Err() != nil {
 		return
 	}
@@ -76,6 +103,9 @@ func (s *EngineService) startTest(test string, timeout time.Duration, run func(c
 			}
 			delete(s.tests, test)
 			s.Tests[test] = result
+			if done != nil {
+				done(result)
+			}
 			s.notify()
 		})
 	})
@@ -103,14 +133,65 @@ func (s *EngineService) stopTests() {
 	}
 }
 
-func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string) {
-	e.URL = strings.TrimSuffix(strings.TrimRight(strings.TrimSpace(e.URL), "/"), "/v1")
+// testEndpoint translates the sample with e, and alongside a picture of it, to find whether e reads
+// pictures; found gets what was found, when it was.
+func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision)) {
+	e.URL = apiOf(e).url
 	s.startTest(test, 30*time.Second, func(ctx context.Context) TestResult {
+		ep := s.endpoint(e, key)
+		pictureCtx, stop := context.WithCancel(ctx)
+		defer stop()
+		read := make(chan error, 1)
+		go func() {
+			_, err := ep.TranslateImage(pictureCtx, testPicture(), tgt, nil, nil)
+			read <- err
+		}()
 		start := time.Now()
-		out, err := s.endpoint(e, key).Translate(ctx, translate.Request{Src: "en", Tgt: tgt, Text: TestSample}, nil)
-		return TestResult{Text: out, Err: err, Took: time.Since(start)}
+		out, err := ep.Translate(ctx, translate.Request{Src: "en", Tgt: tgt, Text: TestSample}, nil)
+		r := TestResult{Text: out, Err: err, Took: time.Since(start)}
+		if err != nil {
+			stop() // what the picture says is not known then
+		}
+		if pictureErr := <-read; err == nil {
+			r.Vision = visionOf(pictureErr)
+		}
+		return r
+	}, func(r TestResult) {
+		if r.Err == nil && r.Vision != prefs.VisionUnknown {
+			s.visions[apiOf(e)] = r.Vision
+			found(r.Vision)
+		}
 	})
 }
+
+// visionOf is what a picture's translation that ended with err says of the API reading pictures,
+// the sample's text having been translated: one that reads none answers it with an error status,
+// 400 (DeepSeek) or 500 (llama-server without a vision projector), but 429, too many requests.
+func visionOf(err error) prefs.Vision {
+	var status *translate.StatusError
+	switch {
+	case err == nil:
+		return prefs.VisionYes
+	case errors.As(err, &status) && status.Status != http.StatusTooManyRequests:
+		return prefs.VisionNo
+	}
+	return prefs.VisionUnknown
+}
+
+// testPicture is the sample's first words in black on white, a PNG, for a test to have read.
+var testPicture = sync.OnceValue(func() []byte {
+	const text = "Good evening, everyone."
+	face := basicfont.Face7x13
+	m := image.NewGray(image.Rect(0, 0, 7*len(text)+16, 29))
+	for i := range m.Pix {
+		m.Pix[i] = 0xff
+	}
+	d := font.Drawer{Dst: m, Src: image.NewUniform(color.Black), Face: face, Dot: fixed.P(8, 19)}
+	d.DrawString(text)
+	var b bytes.Buffer
+	png.Encode(&b, m)
+	return b.Bytes()
+})
 
 func (s *EngineService) testASRAPI(test string, a prefs.ASRAPI, key string) {
 	spec, ok := asr.ByID(a.ID)
@@ -120,11 +201,14 @@ func (s *EngineService) testASRAPI(test string, a prefs.ASRAPI, key string) {
 	s.startTest(test, 15*time.Second, func(ctx context.Context) TestResult {
 		took, err := spec.Test(ctx, s.cloudConfig(a, key))
 		return TestResult{Err: err, Took: took}
-	})
+	}, nil)
 }
 
 func (s *EngineService) translator(id string, endpoints []prefs.Endpoint) (func(context.Context) (translate.Translator, error), bool, error) {
 	if _, ok := models.ByID(id); ok {
+		if s.models != nil && s.models.Moving().Active {
+			return nil, true, ErrModelsMoving
+		}
 		if s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
 			return nil, true, ErrModelMissing
 		}
@@ -155,13 +239,20 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint) (func(
 
 // imageEndpoint says how to get the endpoint that translates pictures with engine id ready, as
 // translator does for the subtitles. A local model reads them with its vision projector, downloaded
-// with it. A model not downloaded, or an API gone or reading no pictures, fails as the subtitles
-// do: the picture goes to no other engine than the one chosen.
-func (s *EngineService) imageEndpoint(id string, endpoints []prefs.Endpoint) (open func(context.Context) (*translate.Endpoint, error), via string) {
+// with it, on the one llama-server: not while serving, another local model, translates the
+// subtitles. A model not downloaded or busy, or an API gone or reading no pictures, fails: the
+// picture goes to no other engine than the one chosen.
+func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endpoint) (open func(context.Context) (*translate.Endpoint, error), via string) {
 	fail := func(err error) func(context.Context) (*translate.Endpoint, error) {
 		return func(context.Context) (*translate.Endpoint, error) { return nil, err }
 	}
 	if m, ok := models.ByID(id); ok {
+		switch {
+		case s.models != nil && s.models.Moving().Active:
+			return fail(ErrModelsMoving), id
+		case serving != "" && serving != id:
+			return fail(ErrModelBusy), id
+		}
 		if m.Vision == "" || s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
 			return fail(ErrModelMissing), id
 		}
@@ -224,6 +315,22 @@ func (s *EngineService) ModelStatus(id string) models.Status {
 		return models.Status{}
 	}
 	return s.models.Status(id)
+}
+
+// ModelsDir is the folder the local models are kept in, "" without local models.
+func (s *EngineService) ModelsDir() string {
+	if s.models == nil {
+		return ""
+	}
+	return s.models.Dir()
+}
+
+// ModelsMoving says how moving the local models to another folder goes.
+func (s *EngineService) ModelsMoving() models.Move {
+	if s.models == nil {
+		return models.Move{}
+	}
+	return s.models.Moving()
 }
 
 // Download starts or resumes a model download.

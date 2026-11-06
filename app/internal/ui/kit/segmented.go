@@ -1,23 +1,33 @@
 package kit
 
-import "github.com/egoist/mygo/ui"
+import (
+	"math"
+
+	"github.com/egoist/mygo/ui"
+)
 
 // Segmented chooses one of labels, *selected its index: a track of the paper's fill, the chosen
-// segment raised on it. Name it with Label; Changed reports a new choice.
+// segment raised on it, every segment as wide as the widest. Name it with Label; Changed reports a
+// new choice.
 func Segmented(c *ui.Context, selected *int, labels ...string) ui.Element {
 	p := Colors(c)
 	parts := ui.SegmentedBase(c, selected, len(labels))
-	const h = 30
-	return parts.Track.Padding(3).Gap(2).Radius(RadiusField).Background(p.Fill).Children(func() {
+	const h, in, gap = 28, 4, 2
+	w := float32(0)
+	for _, label := range labels {
+		lw, _ := c.MeasureText(0, ui.Span{Text: label, Size: TextControl, Weight: WeightMedium})
+		w = max(w, lw)
+	}
+	w = float32(math.Ceil(float64(w))) + 2*Space(3)
+	return parts.Track.Padding(in).Gap(gap).Radius(RadiusField).Background(p.Fill).Children(func() {
 		for i, label := range labels {
-			s := parts.Segment(i).Height(h).Padding(0, Space(3.5)).Radius(RadiusInner + 1).FontSize(TextSmall).Cursor(ui.CursorPointer)
+			s := parts.Segment(i).Height(h).Width(w).Padding(0, Space(3)).Radius(RadiusInner).FontSize(TextControl).Cursor(ui.CursorPointer)
 			if i == *selected {
-				s = s.Background(s.AnimateColor("face", p.Card, Fade)).FontWeight(WeightBold).TextColor(p.Ink).
-					Shadow(0, 1, 3, 0, ui.RGBA(80, 60, 20, .18))
+				s = p.SegShadow.Cast(s.Background(s.AnimateColor("face", p.SegOn, Fade)).FontWeight(WeightMedium).TextColor(p.Ink))
 			} else {
-				col := ui.Transparent
+				col := p.SegOn.Alpha(0)
 				if s.Hovered() {
-					col = p.LineStrong.Alpha(.6)
+					col = p.Fill.Mix(p.SegOn, .5)
 				}
 				s = s.Background(s.AnimateColor("face", col, Fade)).TextColor(p.Ink)
 			}
