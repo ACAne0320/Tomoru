@@ -62,15 +62,6 @@ func (s *Settings) general(c *ui.Context) {
 	})
 }
 
-// pictureShortcutDesc says what the picture's shortcut does: select a part of the screen, where the
-// app may capture it, else translate the screenshot copied.
-func pictureShortcutDesc(k *core.Core) string {
-	if k.CanSelect() {
-		return locales.ImageShortcutSelectDesc()
-	}
-	return locales.ImageShortcutDesc(kit.ShortcutText(shared.SnapShortcut))
-}
-
 // network is how the app reaches the cloud: through a proxy, the user's or else the system's, or
 // directly.
 func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {

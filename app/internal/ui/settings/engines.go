@@ -74,7 +74,7 @@ func (s *Settings) pictures(c *ui.Context) {
 					}).Grow(1).Shrink(1).MinWidth(0).Label(locales.ImageEngine())
 				})
 			})
-			kit.SettingRow(c, 1, locales.ImageShortcutRow(), pictureShortcutDesc(k), func() {
+			kit.SettingRow(c, 1, locales.ImageShortcutRow(), "", func() {
 				kit.Control(c, func() {
 					shared.ShortcutField(c, k, s.nav, core.PictureShortcut, locales.ImageShortcut(), &s.imageKeys)
 				})

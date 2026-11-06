@@ -4883,13 +4883,13 @@ func (msgs Messages) RecordSource(app string) string {
 	return Catalog.Format(msgs.locale, "recordSource", map[string]any{"app": app})
 }
 
-// OrderLabel says "Order"
+// OrderLabel says "On top"
 // in the language the app shows.
 //
 // A setting of the subtitles' text: which line is on top.
 func OrderLabel() string { return In(i18n.Locale()).OrderLabel() }
 
-// OrderLabel says "Order"
+// OrderLabel says "On top"
 // in the language of msgs.
 //
 // A setting of the subtitles' text: which line is on top.
@@ -4897,13 +4897,13 @@ func (msgs Messages) OrderLabel() string {
 	return Catalog.Format(msgs.locale, "orderLabel", nil)
 }
 
-// OrderSrcFirst says "Original on top"
+// OrderSrcFirst says "Original"
 // in the language the app shows.
 //
 // The original above its translation.
 func OrderSrcFirst() string { return In(i18n.Locale()).OrderSrcFirst() }
 
-// OrderSrcFirst says "Original on top"
+// OrderSrcFirst says "Original"
 // in the language of msgs.
 //
 // The original above its translation.
@@ -4911,13 +4911,13 @@ func (msgs Messages) OrderSrcFirst() string {
 	return Catalog.Format(msgs.locale, "orderSrcFirst", nil)
 }
 
-// OrderTgtFirst says "Translation on top"
+// OrderTgtFirst says "Translation"
 // in the language the app shows.
 //
 // The translation above the original.
 func OrderTgtFirst() string { return In(i18n.Locale()).OrderTgtFirst() }
 
-// OrderTgtFirst says "Translation on top"
+// OrderTgtFirst says "Translation"
 // in the language of msgs.
 //
 // The translation above the original.
@@ -5243,20 +5243,6 @@ func (msgs Messages) ImageShortcut() string {
 	return Catalog.Format(msgs.locale, "imageShortcut", nil)
 }
 
-// ImageShortcutDesc says "Copy a screenshot with {snap}, then press it"
-// in the language the app shows.
-//
-// Under imageShortcut.
-func ImageShortcutDesc(snap string) string { return In(i18n.Locale()).ImageShortcutDesc(snap) }
-
-// ImageShortcutDesc says "Copy a screenshot with {snap}, then press it"
-// in the language of msgs.
-//
-// Under imageShortcut.
-func (msgs Messages) ImageShortcutDesc(snap string) string {
-	return Catalog.Format(msgs.locale, "imageShortcutDesc", map[string]any{"snap": snap})
-}
-
 // ShortcutDuplicate says "{keys} is the other shortcut already"
 // in the language the app shows.
 //
@@ -5311,20 +5297,6 @@ func ScreenSelectAsking() string { return In(i18n.Locale()).ScreenSelectAsking()
 // The button while the system asks the user for Screen Recording.
 func (msgs Messages) ScreenSelectAsking() string {
 	return Catalog.Format(msgs.locale, "screenSelectAsking", nil)
-}
-
-// ImageShortcutSelectDesc says "Press it, then select part of the screen"
-// in the language the app shows.
-//
-// Under imageShortcut, when selecting a part of the screen is on.
-func ImageShortcutSelectDesc() string { return In(i18n.Locale()).ImageShortcutSelectDesc() }
-
-// ImageShortcutSelectDesc says "Press it, then select part of the screen"
-// in the language of msgs.
-//
-// Under imageShortcut, when selecting a part of the screen is on.
-func (msgs Messages) ImageShortcutSelectDesc() string {
-	return Catalog.Format(msgs.locale, "imageShortcutSelectDesc", nil)
 }
 
 // ImageEngine says "Engine"

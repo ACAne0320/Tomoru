@@ -79,6 +79,8 @@ func TestGallery(t *testing.T) {
 	}{
 		{"home", 1000, func() { s.Tab = "home" }},
 		{"subtitles", 1300, func() { s.Tab = "subtitles" }},
+		{"subtitles-tgt-only", 1300, func() { k.Prefs.Display = 1 }},
+		{"subtitles-custom", 1500, func() { k.Prefs.Display, k.Prefs.SrcColor, k.Prefs.TgtColor = 0, "#ffec8c", "#7fdbff" }},
 		{"engines", 1200, func() { s.Tab, s.sides[core.ASR], s.sides[core.MT] = "engines", true, true }},
 		{"engines-local", 1200, func() { s.sides[core.ASR], s.sides[core.MT] = false, false; k.SetImageEngine("local-2b") }},
 		{"endpoint", Height, func() { s.sides[core.MT] = true; k.SetImageEngine("cloud"); s.editEndpoint(prefs.Endpoint{}) }},

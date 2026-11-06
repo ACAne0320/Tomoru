@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/egoist/mygo/ui"
@@ -40,64 +39,76 @@ func (s *Settings) subtitles(c *ui.Context) {
 			subtitle.Draw(c, samples, *p, .8, max(320, w-s.navWidth-kit.Space(44)), subtitle.NoBlock)
 		})
 	})
+	custom := s.customColors || schemeOf(p) == ""
+	// The two cards side by side, as wide as each other, their controls in one column: they wrap
+	// before a name would be cut.
+	basis := kit.ControlCardWidth(c, locales.StyleLabel(), locales.EdgeLabel(), locales.AlignLabel(), locales.FontLabel(),
+		locales.SrcSize(), locales.TgtSize(), locales.OrderLabel(), locales.ColorScheme())
 	kit.Groups(c, func() {
-		card := func(title string, rows func()) {
-			kit.Group(c, title, nil, kit.RowsCard, rows).Grow(1).Basis(300)
-		}
-		card(locales.StyleLook(), func() { s.styleLook(c, p) })
-		card(locales.StyleText(), func() { s.styleText(c, p) })
-		card(locales.StyleShow(), func() { s.styleShow(c, p) })
+		kit.Group(c, locales.StyleLook(), nil, kit.RowsCard, func() { s.styleLook(c, p) }).Grow(1).Basis(basis)
+		kit.Group(c, locales.StyleText(), nil, kit.RowsCard, func() { s.styleText(c, p, custom) }).Grow(1).Basis(basis)
 	})
+	if custom {
+		kit.Group(c, locales.SchemeCustom(), nil, kit.RowsCard, func() { styleColors(c, p) })
+	}
+	kit.Group(c, locales.StyleShow(), nil, kit.RowsCard, func() { s.styleShow(c, p) })
 }
 
 // styleLook is the background, the edge, the alignment and the font.
 func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.StyleLabel(), "", func() {
-		// Text alone needs an edge to stay readable over a plain or bright picture.
-		if kit.Segmented(c, &p.Style, locales.StyleBox(), locales.StyleImmersive()).Label(locales.StyleLabel()).Changed() && p.Style == 1 && p.Edge == 0 {
-			p.Edge = 1
-		}
+		kit.Control(c, func() {
+			// Text alone needs an edge to stay readable over a plain or bright picture.
+			if kit.Segmented(c, &p.Style, locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() && p.Style == 1 && p.Edge == 0 {
+				p.Edge = 1
+			}
+		})
 	})
 	kit.SettingRow(c, 1, locales.EdgeLabel(), "", func() {
-		kit.Segmented(c, &p.Edge, locales.EdgeNone(), locales.EdgeOutline(), locales.EdgeShadow()).Label(locales.EdgeLabel())
+		kit.Control(c, func() {
+			kit.Segmented(c, &p.Edge, locales.EdgeNone(), locales.EdgeOutline(), locales.EdgeShadow()).Grow(1).Label(locales.EdgeLabel())
+		})
 	})
 	kit.SettingRow(c, 2, locales.AlignLabel(), "", func() {
-		kit.Segmented(c, &p.Align, locales.AlignLeft(), locales.AlignCenter()).Label(locales.AlignLabel())
+		kit.Control(c, func() {
+			kit.Segmented(c, &p.Align, locales.AlignLeft(), locales.AlignCenter()).Grow(1).Label(locales.AlignLabel())
+		})
 	})
 	kit.SettingRow(c, 3, locales.FontLabel(), "", func() {
-		kit.Picker(c, shared.FontName(p.Font), kit.Choices(p.Font, prefs.Fonts, shared.FontName, func(f string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f }) })).Label(locales.FontLabel())
+		kit.Control(c, func() {
+			kit.Picker(c, shared.FontName(p.Font), kit.Choices(p.Font, prefs.Fonts, shared.FontName, func(f string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f }) })).
+				Grow(1).Shrink(1).MinWidth(0).Label(locales.FontLabel())
+		})
 	})
 }
 
-// styleText is the sizes, which comes first, and the colors: a scheme, or colors of one's own.
-func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs) {
-	size := func(i int, label string, v *float64, lo, hi float64) {
-		kit.SettingRow(c, i, label, "", func() {
-			ui.Slider(c, v, lo, hi).Step(1).Width(kit.Space(30)).Label(label)
-			ui.Text(c, strconv.Itoa(int(*v))).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).
-				TextColor(kit.Colors(c).InkMuted).MinWidth(kit.Space(6)).TextAlign(ui.End)
+// styleText is the sizes and the order of the two lines, and their colors: a scheme, or with
+// custom, colors of one's own, which styleColors sets under the cards.
+func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs, custom bool) {
+	// With the translation only, the original's size and the order do nothing: they stay, greyed.
+	tgtOnly := p.Display == 1
+	size := func(i int, label string, off bool, v *float64, lo, hi float64) {
+		kit.SettingRowOff(c, i, label, "", off, func() {
+			kit.Control(c, func() { kit.Slider(c, v, lo, hi, label).Grow(1) })
 		})
 	}
-	size(0, locales.SrcSize(), &p.SrcSize, 14, 36)
-	size(1, locales.TgtSize(), &p.TgtSize, 18, 48)
-	i := 2
-	if p.Display == 0 { // with the translation only, there is no order
-		kit.SettingRow(c, i, locales.OrderLabel(), "", func() {
+	size(0, locales.SrcSize(), tgtOnly, &p.SrcSize, 14, 36)
+	size(1, locales.TgtSize(), false, &p.TgtSize, 18, 48)
+	kit.SettingRowOff(c, 2, locales.OrderLabel(), "", tgtOnly, func() {
+		kit.Control(c, func() {
 			order := 0
 			if p.TgtFirst {
 				order = 1
 			}
-			if kit.Segmented(c, &order, locales.OrderSrcFirst(), locales.OrderTgtFirst()).Label(locales.OrderLabel()).Changed() {
+			if kit.Segmented(c, &order, locales.OrderSrcFirst(), locales.OrderTgtFirst()).Grow(1).Label(locales.OrderLabel()).Changed() {
 				p.TgtFirst = order == 1
 			}
 		})
-		i++
-	}
-	custom := s.customColors || schemeOf(p) == ""
-	kit.SettingBlock(c, i, locales.ColorScheme(), func() {
-		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
+	})
+	kit.SettingRow(c, 3, locales.ColorScheme(), "", func() {
+		kit.Control(c, func() {
 			for _, sc := range subtitle.Schemes {
-				if swatch(c.Key(sc.ID), schemeName(sc.ID), ui.Hex(sc.Edge), ui.Hex(sc.Src), ui.Hex(sc.Tgt), !custom && schemeOf(p) == sc.ID).Clicked() {
+				if kit.SchemeSwatch(c.Key(sc.ID), schemeName(sc.ID), ui.Hex(sc.Edge), ui.Hex(sc.Src), ui.Hex(sc.Tgt), !custom && schemeOf(p) == sc.ID).Clicked() {
 					p.SrcColor, p.TgtColor, p.EdgeColor = sc.Src, sc.Tgt, sc.Edge
 					s.customColors = false
 				}
@@ -105,18 +116,20 @@ func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs) {
 			if kit.CustomSwatch(c.Key("custom"), locales.SchemeCustom(), custom).Clicked() {
 				s.customColors = true
 			}
-		})
+		}).Justify(ui.SpaceBetween)
 	})
-	if !custom {
-		return
-	}
+}
+
+// styleColors is colors of one's own: the original's, the translation's and, when there is an
+// edge or a box, the edge's, each a color of the list or any from the system's picker.
+func styleColors(c *ui.Context, p *prefs.Prefs) {
 	colors := func(i int, label string, v *string, from []string) {
-		kit.SettingBlock(c, i, label, func() { kit.Swatches(c, v, from) })
+		kit.SettingRow(c, i, label, "", func() { kit.Swatches(c, v, from) })
 	}
-	colors(i+1, locales.SrcColor(), &p.SrcColor, subtitle.TextColors)
-	colors(i+2, locales.TgtColor(), &p.TgtColor, subtitle.TextColors)
+	colors(0, locales.SrcColor(), &p.SrcColor, subtitle.TextColors)
+	colors(1, locales.TgtColor(), &p.TgtColor, subtitle.TextColors)
 	if p.Edge != 0 || p.Style == 0 {
-		colors(i+3, locales.EdgeColor(), &p.EdgeColor, subtitle.EdgeColors)
+		colors(2, locales.EdgeColor(), &p.EdgeColor, subtitle.EdgeColors)
 	}
 }
 
@@ -145,24 +158,6 @@ func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 		if kit.Switch(c, &p.HideFromCapture, locales.HideFromCapture()).Changed() {
 			s.nav.SetHideFromCapture(p.HideFromCapture)
 		}
-	})
-}
-
-// swatch is a color scheme's button: its text colors on its edge's, as outlined text reads, named
-// in its tooltip; ringed in the lantern's amber when chosen.
-func swatch(c *ui.Context, name string, ground, src, tgt ui.Color, on bool) ui.Element {
-	pal := kit.Colors(c)
-	const d = 40
-	b := ui.ButtonBase(c).Selected(on).Size(d, d).Radius(kit.Pill(d)).Background(ground).Label(name).Tooltip(name).
-		Column().Justify(ui.Center).AlignItems(ui.Center).Cursor(ui.CursorPointer)
-	if on {
-		b = b.Border(2, pal.Lantern)
-	} else {
-		b = b.Border(1, pal.LineStrong)
-	}
-	return b.Children(func() {
-		ui.Text(c, "Aa").FontSize(kit.TextMicro).FontWeight(kit.WeightBold).TextColor(src)
-		ui.Text(c, "Aa").FontSize(kit.TextControl).FontWeight(kit.WeightHeavy).TextColor(tgt)
 	})
 }
 

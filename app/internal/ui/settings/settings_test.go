@@ -3,6 +3,7 @@ package settings
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -53,14 +54,21 @@ func TestResetStyle(t *testing.T) {
 	}
 }
 
-// TestCustomColor chooses the original text's color in the picker of its custom well.
+// TestCustomColor shows colors of one's own under the cards only with Custom chosen, and chooses
+// the original text's color in the picker of its custom well.
 func TestCustomColor(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
 	s.Tab = "subtitles"
 	tt := ui.NewTester(s.View, Width, 1400)
+	if tt.HasText(locales.SrcColor()) {
+		t.Error("custom colors with a scheme chosen")
+	}
 	if err := tt.Click(locales.SchemeCustom()); err != nil {
 		t.Fatal(err)
+	}
+	if tt.Frame(); !tt.HasText(locales.SrcColor()) || !tt.HasText(locales.CustomColor()) {
+		t.Fatalf("no custom colors in %q", tt.Texts())
 	}
 	if err := tt.Click(locales.CustomColor()); err != nil {
 		t.Fatal(err)
@@ -70,6 +78,12 @@ func TestCustomColor(t *testing.T) {
 	}
 	if k.Prefs.SrcColor != "#ef4444" || k.Prefs.TgtColor != subtitle.Schemes[0].Tgt {
 		t.Errorf("colors %s %s", k.Prefs.SrcColor, k.Prefs.TgtColor)
+	}
+	if err := tt.Click(locales.SchemeSakura()); err != nil {
+		t.Fatal(err)
+	}
+	if tt.Frame(); tt.HasText(locales.SrcColor()) {
+		t.Error("custom colors after a scheme is chosen")
 	}
 }
 
@@ -806,8 +820,44 @@ func TestOrder(t *testing.T) {
 	if err := tt.Click(locales.DisplayTgt()); err != nil {
 		t.Fatal(err)
 	}
-	if tt.Frame(); tt.HasText(locales.OrderLabel()) {
-		t.Error("an order with the translation only")
+	tt.Frame()
+	if !tt.HasText(locales.OrderLabel()) || !tt.HasText(locales.SrcSize()) {
+		t.Error("the order or the original's size gone with the translation only")
+	}
+	if err := tt.Click(locales.OrderSrcFirst()); err != nil {
+		t.Fatal(err)
+	}
+	if !k.Prefs.TgtFirst {
+		t.Error("the order changed with the translation only")
+	}
+}
+
+// TestSizeOff drags the original's size, which a click on its slider changes, and with the
+// translation only, does not.
+func TestSizeOff(t *testing.T) {
+	k := coretest.New()
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	click := func() {
+		// The slider's track, left of the size it shows.
+		r, ok := tt.Find(strconv.Itoa(int(k.Prefs.SrcSize)))
+		if !ok {
+			t.Fatalf("no original size in %q", tt.Texts())
+		}
+		tt.ClickAt(r.X-kit.Space(30), r.Y+r.H/2)
+		tt.Frame()
+	}
+	before := k.Prefs.SrcSize
+	click()
+	if k.Prefs.SrcSize == before {
+		t.Fatal("a click on the slider changes nothing")
+	}
+	k.Prefs.SrcSize, k.Prefs.Display = before, 1
+	tt.Frame()
+	click()
+	if k.Prefs.SrcSize != before {
+		t.Errorf("the original's size changed to %v with the translation only", k.Prefs.SrcSize)
 	}
 }
 

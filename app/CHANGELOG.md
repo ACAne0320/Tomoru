@@ -16,6 +16,10 @@
   one height whose dividers line up across cards, group titles above their cards, the chosen
   engine on a tinted band with its button and dot on one line, and a dark appearance with clearly
   separated layers and no cream buttons.
+- Subtitle style lines its two cards up row for row, their controls in one column. With
+  Translation only, the original's size and the order stay in place, greyed, instead of
+  disappearing; Custom colors open in their own card under them, each with the system color
+  picker as before.
 
 ## 0.1.3
 

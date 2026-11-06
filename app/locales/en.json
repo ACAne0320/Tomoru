@@ -1713,15 +1713,15 @@
       }
     }
   },
-  "orderLabel": "Order",
+  "orderLabel": "On top",
   "@orderLabel": {
     "description": "A setting of the subtitles' text: which line is on top."
   },
-  "orderSrcFirst": "Original on top",
+  "orderSrcFirst": "Original",
   "@orderSrcFirst": {
     "description": "The original above its translation."
   },
-  "orderTgtFirst": "Translation on top",
+  "orderTgtFirst": "Translation",
   "@orderTgtFirst": {
     "description": "The translation above the original."
   },
@@ -1849,16 +1849,6 @@
   "@imageShortcut": {
     "description": "Settings, General: the shortcut that translates the picture on the clipboard."
   },
-  "imageShortcutDesc": "Copy a screenshot with {snap}, then press it",
-  "@imageShortcutDesc": {
-    "description": "Under imageShortcut.",
-    "placeholders": {
-      "snap": {
-        "type": "String",
-        "example": "⌃⇧⌘4"
-      }
-    }
-  },
   "shortcutDuplicate": "{keys} is the other shortcut already",
   "@shortcutDuplicate": {
     "description": "A shortcut recorded that the other shortcut of the app already is.",
@@ -1880,10 +1870,6 @@
   "screenSelectAsking": "Waiting for the system…",
   "@screenSelectAsking": {
     "description": "The button while the system asks the user for Screen Recording."
-  },
-  "imageShortcutSelectDesc": "Press it, then select part of the screen",
-  "@imageShortcutSelectDesc": {
-    "description": "Under imageShortcut, when selecting a part of the screen is on."
   },
   "imageEngine": "Engine",
   "@imageEngine": {

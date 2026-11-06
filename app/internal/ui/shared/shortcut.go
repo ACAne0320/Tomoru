@@ -7,10 +7,6 @@ import (
 	"tomoru/internal/ui/kit"
 )
 
-// SnapShortcut is the system's shortcut that copies a part of the screen to the clipboard, for
-// the picture's shortcut to translate: macOS's ⌃⇧⌘4, Windows's Snipping Tool's Win+Shift+S.
-var SnapShortcut = OnWindows("Ctrl+Shift+Cmd+4", "Shift+Cmd+S")
-
 // held is the accelerator of which in k's settings, the other shortcut's, and how nav registers it.
 func held(k *core.Core, nav Nav, which core.Shortcut) (acc string, other string, register func(string) error) {
 	p := k.Preferences()
