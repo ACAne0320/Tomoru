@@ -54,7 +54,7 @@ func (s *Settings) general(c *ui.Context) {
 			kit.SettingRow(c, 2, locales.Shortcut(), "", func() {
 				kit.Control(c, func() { shared.ShortcutField(c, k, s.nav, core.StartStop, locales.Shortcut(), &s.keys) })
 			})
-			kit.SettingRow(c, 3, locales.ImageShortcut(), pictureShortcutDesc(k), func() {
+			kit.SettingRow(c, 3, locales.ImageShortcut(), "", func() {
 				kit.Control(c, func() { shared.ShortcutField(c, k, s.nav, core.PictureShortcut, locales.ImageShortcut(), &s.imageKeys) })
 			})
 		}).Grow(1).Basis(360)

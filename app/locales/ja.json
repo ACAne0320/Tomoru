@@ -356,7 +356,7 @@
   "imageZoomIn": "元の画像を見る",
   "copy": "コピー",
   "copied": "コピーしました",
-  "imageShortcut": "画像を翻訳",
+  "imageShortcut": "スクリーンショット翻訳",
   "imageShortcutDesc": "{snap} でクリップボードに撮ってから押します",
   "shortcutDuplicate": "{keys} はもう一方のショートカットで使っています",
   "screenSelectWhy": "画面収録の許可が必要です。選んだ範囲だけを撮ります。",

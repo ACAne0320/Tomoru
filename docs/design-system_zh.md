@@ -193,7 +193,7 @@ Tomoru 是「点亮字幕」的应用，名字是灯る，看板娘 Tomoru（と
 |---|---|---|
 | `TextField` / `TextBox` | 纸面风格的输入框和多行输入框（场景介绍、API key） | `TextInputBase`、`TextAreaBase` |
 | `CellInput` | 表格里的单元格：平时像文字，悬停显底色，聚焦有琥珀描边 | `TextInputBase` |
-| `ShortcutField` | 录制快捷键；开始 / 停止和翻译图片两个快捷键共用，不能设成同一个 | |
+| `ShortcutField` | 录制快捷键；开始 / 停止和截图翻译两个快捷键共用，不能设成同一个 | |
 
 **展示**
 

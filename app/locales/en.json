@@ -1845,7 +1845,7 @@
   "@copied": {
     "description": "The Copy button for a moment after a click."
   },
-  "imageShortcut": "Translate Picture",
+  "imageShortcut": "Screenshot translation",
   "@imageShortcut": {
     "description": "Settings, General: the shortcut that translates the picture on the clipboard."
   },

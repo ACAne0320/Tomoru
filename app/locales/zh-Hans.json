@@ -356,7 +356,7 @@
   "imageZoomIn": "查看原图",
   "copy": "复制",
   "copied": "已复制",
-  "imageShortcut": "翻译图片",
+  "imageShortcut": "截图翻译",
   "imageShortcutDesc": "先用 {snap} 截图到剪贴板，再按它",
   "shortcutDuplicate": "{keys} 已经用在另一个快捷键上",
   "screenSelectWhy": "需要屏幕录制权限，只截你框住的一块。",

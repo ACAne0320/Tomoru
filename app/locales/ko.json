@@ -356,7 +356,7 @@
   "imageZoomIn": "원본 이미지 보기",
   "copy": "복사",
   "copied": "복사됨",
-  "imageShortcut": "이미지 번역",
+  "imageShortcut": "스크린샷 번역",
   "imageShortcutDesc": "{snap}로 클립보드에 캡처한 뒤 눌러요",
   "shortcutDuplicate": "{keys}은(는) 다른 단축키에 이미 쓰고 있어요",
   "screenSelectWhy": "화면 기록 권한이 필요해요. 선택한 부분만 캡처해요.",

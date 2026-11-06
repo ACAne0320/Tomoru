@@ -24,7 +24,7 @@ func ShortcutField(c *ui.Context, acc, other, label string, register func(string
 		if r.on {
 			border = t.Accent
 		}
-		b := ui.ButtonBase(c).Label(label).Tooltip(locales.ShortcutChange()).Row().AlignItems(ui.Center).Justify(ui.Start).MinHeight(36).Padding(0, Space(3)).
+		b := ui.ButtonBase(c).Label(label).Tooltip(locales.ShortcutChange()).Row().AlignItems(ui.Center).Justify(ui.Center).MinHeight(36).Padding(0, Space(3)).
 			Radius(RadiusField).Border(1, border).Background(t.Surface).AlignSelf(ui.Stretch).Children(func() {
 			if r.on {
 				ui.Text(c, locales.ShortcutRecording()).FontSize(TextCaption).TextColor(Colors(c).InkMuted).Padding(0, 4)

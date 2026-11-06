@@ -5227,14 +5227,14 @@ func (msgs Messages) Copied() string {
 	return Catalog.Format(msgs.locale, "copied", nil)
 }
 
-// ImageShortcut says "Translate Picture"
+// ImageShortcut says "Screenshot translation"
 // in the language the app shows.
 //
 // Settings, General: the shortcut that translates the picture on the
 // clipboard.
 func ImageShortcut() string { return In(i18n.Locale()).ImageShortcut() }
 
-// ImageShortcut says "Translate Picture"
+// ImageShortcut says "Screenshot translation"
 // in the language of msgs.
 //
 // Settings, General: the shortcut that translates the picture on the
