@@ -105,7 +105,7 @@ func TestErrors(t *testing.T) {
 	if ps, err := New(Config{URL: srv.URL, Key: "ok"}, "en").Decode(context.Background(), nil); err != nil || len(ps) != 1 || calls.Load() != 2 {
 		t.Errorf("tried again: %v %v, %d calls", ps, err, calls.Load())
 	}
-	if took, err := Test(context.Background(), Config{URL: srv.URL, Key: "ok"}); err != nil || took <= 0 {
+	if took, err := Test(context.Background(), Config{URL: srv.URL, Key: "ok"}); err != nil || took < 0 { // 0 where the clock is coarse, as on Windows
 		t.Errorf("test: %v %v", took, err)
 	}
 }
