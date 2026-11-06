@@ -441,7 +441,7 @@
   "showInExplorer": "在檔案總管中顯示",
   "engineNone": "未選擇",
   "errNoAsr": "先選一個語音辨識：在 設定 › 辨識與翻譯 裡選本機模型或雲端辨識。",
-  "guideAsrChoose": "選一個：下載到本機的模型（選了才下載），或雲端辨識。",
+  "guideAsrChoose": "選一個在本機執行的模型，選了才下載。",
   "tryModelDownloading": "正在下載模型（{done} / {size}）",
   "tryModelThen": "下載完成後會自動開始翻譯。",
   "tryHearingWin": "接收電腦的聲音"

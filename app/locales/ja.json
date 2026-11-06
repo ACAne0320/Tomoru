@@ -441,7 +441,7 @@
   "showInExplorer": "エクスプローラーで表示",
   "engineNone": "未選択",
   "errNoAsr": "先に音声認識を選んでください：設定 › 認識と翻訳 で、ダウンロードするモデルかクラウドを選べます。",
-  "guideAsrChoose": "どちらかを選んでください：このパソコンで動くモデル（選んだときにダウンロード）か、クラウドの認識。",
+  "guideAsrChoose": "このパソコンで動くモデルを選んでください。選んだときにダウンロードします。",
   "tryModelDownloading": "モデルをダウンロード中（{done} / {size}）",
   "tryModelThen": "ダウンロードが終わると翻訳が始まります。",
   "tryHearingWin": "パソコンの音声を受信"

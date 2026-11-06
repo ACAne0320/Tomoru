@@ -441,7 +441,7 @@
   "showInExplorer": "在文件资源管理器中显示",
   "engineNone": "未选择",
   "errNoAsr": "先选一个语音识别：在 设置 › 识别与翻译 里选本地模型或云端识别。",
-  "guideAsrChoose": "选一个：下载到本机的模型（选了才下载），或云端识别。",
+  "guideAsrChoose": "选一个在本机运行的模型，选了才下载。",
   "tryModelDownloading": "正在下载模型（{done} / {size}）",
   "tryModelThen": "下载完成后会自动开始翻译。",
   "tryHearingWin": "接收电脑的声音"

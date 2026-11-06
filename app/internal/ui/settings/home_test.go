@@ -9,7 +9,9 @@ import (
 	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 
+	"tomoru/internal/core"
 	"tomoru/internal/core/coretest"
+	"tomoru/internal/history"
 	"tomoru/internal/live"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/kit"
@@ -185,5 +187,23 @@ func TestStatsDay(t *testing.T) {
 				t.Errorf("%d:30, %d days ago: tab %q, span %d, bar %d; want %d, %d", hour, c.ago, s.Tab, e.span, e.bar, c.span, c.bar)
 			}
 		}
+	}
+}
+
+// TestHomeRecent shows the sessions kept last once there are any, and no empty card before: as
+// at first, with the subtitles not kept.
+func TestHomeRecent(t *testing.T) {
+	k := coretest.NewWith(func(d *core.Deps) { d.HistoryDir = t.TempDir() })
+	k.History = core.HistoryView{Loaded: true}
+	tt := ui.NewTester(New(k, &coretest.Nav{}).View, Width, 1000)
+	if tt.HasText(locales.HomeRecent()) {
+		t.Error("recent sessions with none kept")
+	}
+	k.History = core.HistoryView{Loaded: true, Records: []history.Record{
+		{Path: "/h/a.jsonl", Head: history.Head{Src: "en", Tgt: "zh", Start: time.Now()}, Lines: 3},
+	}}
+	tt.Frame()
+	if !tt.HasText(locales.HomeRecent()) || !hasTextContaining(tt, locales.HistoryLines(3)) {
+		t.Errorf("a session kept: %q", tt.Texts())
 	}
 }

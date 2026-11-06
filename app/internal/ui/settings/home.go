@@ -184,7 +184,7 @@ func homeLine(c *ui.Context, s *Settings) {
 	})
 }
 
-// homeRecent is the records kept last, while they are kept, as the history lists them: one
+// homeRecent is the records kept last, as the history lists them, once there are any: one
 // clicked shows in the history.
 func homeRecent(c *ui.Context, s *Settings) {
 	k := s.core
@@ -193,6 +193,9 @@ func homeRecent(c *ui.Context, s *Settings) {
 	}
 	k.LoadHistory()
 	recs := k.History.Records[:min(len(k.History.Records), 2)]
+	if len(recs) == 0 {
+		return
+	}
 	kit.Group(c, locales.HomeRecent(), func() {
 		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.AllRecords()).Clicked() {
 			s.Tab = "history"

@@ -2287,7 +2287,7 @@
   "@errNoAsr": {
     "description": "Translating could not start: no speech recognition is chosen yet."
   },
-  "guideAsrChoose": "Choose one: a model on this computer, downloaded when you choose it, or the cloud's.",
+  "guideAsrChoose": "Choose a model to run on this computer. It downloads when you choose it.",
   "@guideAsrChoose": {
     "description": "Guide, engines step, where the system has no speech recognition: what to choose."
   },

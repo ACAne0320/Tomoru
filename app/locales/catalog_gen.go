@@ -6467,14 +6467,14 @@ func (msgs Messages) ErrNoAsr() string {
 	return Catalog.Format(msgs.locale, "errNoAsr", nil)
 }
 
-// GuideAsrChoose says "Choose one: a model on this computer, downloaded when you choose it, or the cloud's."
+// GuideAsrChoose says "Choose a model to run on this computer. It downloads when you choose it."
 // in the language the app shows.
 //
 // Guide, engines step, where the system has no speech recognition: what to
 // choose.
 func GuideAsrChoose() string { return In(i18n.Locale()).GuideAsrChoose() }
 
-// GuideAsrChoose says "Choose one: a model on this computer, downloaded when you choose it, or the cloud's."
+// GuideAsrChoose says "Choose a model to run on this computer. It downloads when you choose it."
 // in the language of msgs.
 //
 // Guide, engines step, where the system has no speech recognition: what to
