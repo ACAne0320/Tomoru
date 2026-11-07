@@ -1,56 +1,55 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
+- Speech & translation is redesigned: each model family is listed once, on device and in the
+  cloud together, with its sizes or its setup beside the list. Download only downloads; a model
+  is used by its radio or Use once it is in. Each size says whether it is the quicker or the more
+  accurate one, and whether this computer runs it. Each model links to where it is from. A cloud
+  service asks for its API key first, with its model and address folded away.
+  ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
+- Hy-MT2, Tencent's translation model: 1.8B and 7B download to translate on your device; on
+  Tencent Cloud it translates with your TokenHub API key (Plus, Pro or Lite); and an API of yours
+  can be prompted as Hy-MT2 (Add API › Prompt). It reads no pictures, so it isn't offered for
+  picture translation. ([#7](https://github.com/ACAne0320/Tomoru/pull/7))
+- Index-Translate in the cloud, free from the bilibili team, comes in 9B and 2B too. In our tests
+  both translated closer to the human subtitles than 35B, and sooner; 35B stays the default, and
+  the one that translates pictures. ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
+- Qwen3-ASR 0.6B, for GPUs without the memory of the 1.7B: about 2 GB, a little quicker, as
+  accurate but in Korean. ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
 - Picture translation has its own engine, in Speech & translation › Picture translation, chosen
   from the engines that read pictures: Index-Translate 35B in the cloud by default, a downloaded
-  on-device model, or an API of yours. Testing an API now says whether it reads pictures, and one
-  that can't isn't offered. A picture still goes only to the engine you chose. Settings from
-  before keep using the subtitles' engine for pictures where it reads them.
-  ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
-
+  on-device model, or an API of yours. Testing an API says whether it reads pictures, and one
+  that can't isn't offered. A picture still goes only to the engine you chose.
+  ([dd36f5e](https://github.com/ACAne0320/Tomoru/commit/dd36f5e),
+  [60f4cd2](https://github.com/ACAne0320/Tomoru/commit/60f4cd2))
 - The on-device models can live in a folder you choose, on another drive if the system one is
-  full: Speech & translation › Model folder › Change… moves the models into a "Tomoru Models"
-  folder there, with its progress, and keeps them there. ([#5](https://github.com/ACAne0320/Tomoru/issues/5))
-- The settings, the menu bar panel and the first-run guide share one tightened design: rows of
-  one height whose dividers line up across cards, group titles above their cards, the chosen
-  engine on a tinted band with its button and dot on one line, and a dark appearance with clearly
-  separated layers and no cream buttons.
-- On Home, the lines-by-day chart fills its card in a maximized window instead of a third of it.
-- Subtitle style lines its two cards up row for row, their controls in one column. With
-  Translation only, the original's size and the order stay in place, greyed, instead of
-  disappearing; Custom colors open in their own card under them, each with the system color
-  picker as before.
-- Home, Scenes and History use the same design. A session looks the same on Home as in History,
-  with its scene as the title and its languages, lines and app under it. Clicking one on Home
-  opens it in History. Lists never wrap a line: what doesn't fit is dropped from the end and shows
-  in a tooltip. Keep subtitles is a setting row at the top of History, and the scene filter shows
-  once there is something to filter.
-- Statistics titles its two cards, Usage and Latency, each with its switch beside the title;
-  latency names too long for a tile take two lines instead of being cut. About lists the version,
-  the first-run guide and the logs as rows, each with its button. English labels use sentence
-  case throughout ("New scene", "Learn names"), and Preferences no longer cuts "Screenshot
-  translation" short.
-- Hy-MT2 1.8B and 7B, Tencent's translation models, can be downloaded to translate on your
-  device, and an API of yours can be prompted as Hy-MT2 too (Add API › Prompt). Hy-MT2 reads no
-  pictures, so it isn't offered for picture translation.
-- Index-Translate in the cloud, free from the bilibili team, comes in 9B and 2B too: Speech &
-  translation › Index-Translate (bilibili). In our tests both translated closer to the human
-  subtitles than 35B, and sooner; 35B stays the default, and the one that translates pictures.
-- Hy-MT2 on Tencent Cloud translates with your TokenHub API key, in Plus (7B), Pro (30B-A3B) or
-  Lite (1.8B): Speech & translation › Hy-MT2 (Tencent Cloud). It reads no pictures.
+  full: Speech & translation › Model folder › Change… moves them into a "Tomoru Models" folder
+  there. ([#5](https://github.com/ACAne0320/Tomoru/issues/5),
+  [dd36f5e](https://github.com/ACAne0320/Tomoru/commit/dd36f5e))
+- The settings, the menu bar panel and the first-run guide share one tightened design, in light
+  and dark. Home, Scenes, History, Statistics and About are laid out alike; a session on Home
+  opens in History; lists never wrap a line; Subtitle style lines its two cards up row for row;
+  the lines-by-day chart fills a maximized window. English labels use sentence case.
+  ([dd36f5e](https://github.com/ACAne0320/Tomoru/commit/dd36f5e),
+  [e51858f](https://github.com/ACAne0320/Tomoru/commit/e51858f),
+  [9c0d150](https://github.com/ACAne0320/Tomoru/commit/9c0d150),
+  [9075a60](https://github.com/ACAne0320/Tomoru/commit/9075a60),
+  [d4113ab](https://github.com/ACAne0320/Tomoru/commit/d4113ab),
+  [7f9a251](https://github.com/ACAne0320/Tomoru/commit/7f9a251))
 - When a translation service says it gets too many requests, translate ahead pauses for a
   minute, so the lines' own translations still get through.
-- Qwen3-ASR 0.6B, for GPUs without the memory of the 1.7B: about 2 GB, a little quicker, as
-  accurate but in Korean.
-- Speech & translation lists each model family once, on device and in the cloud together, with
-  its sizes and setup beside the list; Download only downloads, a model is used by its radio or
-  the Use button once it is in, and sizes this computer can't run say so.
-- Each model there links to where it is from, its GitHub or its service's page, at the top right,
-  where an API of yours has its Delete.
-- A model's sizes say which is quicker and which more accurate, and that this computer runs them.
-  A cloud service asks for its API key first, its model and address folded under it; set up, it
-  is a line with Use and Edit.
+  ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
+- A subtitle line without a translation says why: the key refused, the quota used up, the service
+  not answering, or translating fell behind. ([553894d](https://github.com/ACAne0320/Tomoru/commit/553894d))
+- When on-device recognition falls behind, translating stops and says so, instead of the
+  subtitles freezing while it still says it listens. ([b1e794a](https://github.com/ACAne0320/Tomoru/commit/b1e794a))
+- Long lines are no longer cut short by the translation's length limit; a translation that is cut
+  ends with an ellipsis. ([8e1a9d5](https://github.com/ACAne0320/Tomoru/commit/8e1a9d5))
+- Deleting the translation API in use stops translating and says so, instead of sending the next
+  lines to the cloud; Undo puts it back. ([962ded7](https://github.com/ACAne0320/Tomoru/commit/962ded7))
+- English messages name the Speech & Translation tab rightly, and on Windows the Locked message
+  says to click the taskbar icon. ([86a8e30](https://github.com/ACAne0320/Tomoru/commit/86a8e30))
 
 ## 0.1.3
 
