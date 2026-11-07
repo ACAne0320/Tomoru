@@ -167,10 +167,10 @@ var (
 	NoPicture     = ui.MustParseSVG(imageOffSVG)
 	ZoomIn        = ui.MustParseSVG(zoomInSVG)
 
-	// Starring Index-Translate, which serves the cloud's translation free.
-	//go:embed icons/star.svg
-	starSVG []byte
-	Star    = ui.MustParseSVG(starSVG)
+	// External opens a page in the browser: where a model is from.
+	//go:embed icons/arrow-up-right.svg
+	externalSVG []byte
+	External    = ui.MustParseSVG(externalSVG)
 
 	// Tray is the menu bar icon to draw, a template: black on clear; TrayAwake, translating, her
 	// eyes open.

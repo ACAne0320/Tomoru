@@ -34,17 +34,23 @@ const MinSide = 1000
 // errLooping is a model saying a line over and over, which it would until it ran out of tokens.
 var errLooping = errors.New("translate: the model repeats itself")
 
+// ErrNoPictures is a picture to translate with a model whose format reads none: it is not sent.
+var ErrNoPictures = errors.New("translate: the model reads no pictures")
+
 // TranslateImage translates the text in pic, a PNG, into tgt, with the names in terms as given,
 // calling onDelta with the translation so far as it streams in. A line the model repeats comes
 // once, and one it keeps repeating ends the translation there.
 func (e *Endpoint) TranslateImage(ctx context.Context, pic []byte, tgt string, terms []Term, onDelta func(string)) (string, error) {
+	if !e.format().ReadsPictures() {
+		return "", ErrNoPictures
+	}
 	pic, err := fit(pic, cmp.Or(e.ImageSide, MaxSide))
 	if err != nil {
 		return "", err
 	}
 	parts := []map[string]any{
 		{"type": "image_url", "image_url": map[string]string{"url": "data:image/png;base64," + base64.StdEncoding.EncodeToString(pic)}},
-		{"type": "text", "text": imagePrompt(e.Style, tgt, terms)},
+		{"type": "text", "text": e.format().image(tgt, terms)},
 	}
 	body := e.request([]message{{"user", parts}}, 0, 2048)
 	s, err := e.readImage(ctx, body, onDelta)
@@ -129,20 +135,23 @@ func looping(s string) bool {
 	return false
 }
 
-// imagePrompt asks for the text of a picture in tgt. Its names are not known before, so the
-// glossary goes whole, in Index-Translate's form of one (instTrans) as for subtitles.
-func imagePrompt(style Style, tgt string, terms []Term) string {
-	if style == Chat {
-		s := fmt.Sprintf("Translate all the text in the image into %s. Output only the translation.", enName(tgt))
-		if len(terms) > 0 {
-			pairs := make([]string, len(terms))
-			for i, t := range terms {
-				pairs[i] = t.Src + " → " + t.Tgt
-			}
-			s += " Render these names as given: " + strings.Join(pairs, "; ") + "."
+// chatImagePrompt asks a chat model for the text of a picture in tgt. Its names are not known
+// before, so the glossary goes whole.
+func chatImagePrompt(tgt string, terms []Term) string {
+	s := fmt.Sprintf("Translate all the text in the image into %s. Output only the translation.", enName(tgt))
+	if len(terms) > 0 {
+		pairs := make([]string, len(terms))
+		for i, t := range terms {
+			pairs[i] = t.Src + " → " + t.Tgt
 		}
-		return s
+		s += " Render these names as given: " + strings.Join(pairs, "; ") + "."
 	}
+	return s
+}
+
+// indexImagePrompt asks Index-Translate for the text of a picture in tgt, the glossary whole, in
+// its form of one (instTrans) as for subtitles.
+func indexImagePrompt(tgt string, terms []Term) string {
 	if len(terms) == 0 {
 		return fmt.Sprintf("请将图片中的文本翻译为%s，直接输出翻译结果。", zhName(tgt))
 	}

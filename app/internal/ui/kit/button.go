@@ -190,3 +190,27 @@ const QuietInset = 8
 func CancelButton(c *ui.Context, label string) ui.Element {
 	return IconButton(c, Destructive(Quiet), Small, assets.Close, label)
 }
+
+// Disclosure is a title that folds what follows it away, open telling whether it shows: what
+// most never change, as a service's model and address under its key. It says whether to build
+// it.
+func Disclosure(c *ui.Context, open *bool, label string) bool {
+	p := Colors(c)
+	b := ui.ButtonBase(c).Gap(Space(1)).AlignSelf(ui.Start).Cursor(ui.CursorPointer).Expanded(*open).Label(label)
+	ink := p.InkMuted
+	if b.Hovered() {
+		ink = p.Ink
+	}
+	turn := float32(-90)
+	if *open {
+		turn = 0
+	}
+	b.Children(func() {
+		ui.Icon(c, assets.Chevron).FontSize(TextControl).TextColor(ink).Rotate(turn)
+		ui.Text(c, label).FontSize(TextBody).FontWeight(WeightBold).TextColor(ink)
+	})
+	if b.Clicked() {
+		*open = !*open
+	}
+	return *open
+}

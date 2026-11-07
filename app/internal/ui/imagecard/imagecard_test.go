@@ -30,7 +30,7 @@ import (
 // at the bottom.
 func TestCard(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Style: translate.Index} // what it brings is dropped
+		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Format: translate.Index} // what it brings is dropped
 		d.Select = func(context.Context) ([]byte, image.Rectangle, error) { return nil, image.Rectangle{}, nil }
 	})
 	closed, picked := false, 0
@@ -180,7 +180,7 @@ func TestFit(t *testing.T) {
 	}
 
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Style: translate.Index}
+		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Format: translate.Index}
 	})
 	d := New(k, func() {}, func() {})
 	peeked := 0

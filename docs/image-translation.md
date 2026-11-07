@@ -63,13 +63,12 @@ doesn't appear in the capture.
 Pictures have an engine of their own (`Preferences.ImageMT`), apart from the subtitles'
 (`Preferences.MT`): some engines read no pictures, as most text-only APIs a user adds. It is
 always an explicit choice, in Speech & translation › Picture translation, from a menu of the
-engines that read pictures now (`Core.ImageEngines`): Index-Translate 35B in the cloud (the
-default), the local 2B and 9B once downloaded, and the user's APIs but those whose test found
-they read none. Under it, with an engine in the cloud, a line says the service receives the
-pictures. The picture's shortcut is in that group too, as in Preferences.
+engines that read pictures now (`Core.ImageEngines`): Index-Translate 35B in the cloud (its 9B and 2B there read text alone; the
+default), the local models with a vision projector once downloaded (Index-Translate 2B and 9B), and the user's APIs but those whose test found
+they read none. The picture's shortcut is in that group too, as in Preferences.
 
 - **Settings from before**: an empty `ImageMT` is set once, at launch, from `MT` where that reads
-  pictures (a local model, an API not found to read none), else the cloud. In the first-run guide,
+  pictures (a local model with a vision projector, an API not found to read none), else the cloud. In the first-run guide,
   choosing the translation engine chooses it for pictures too, where it reads them.
 - **Testing an API**: the add/edit API dialog's Test sends, alongside the sample sentence, a small
   picture of it (`testPicture`). When the sentence comes back, the picture's answer says whether

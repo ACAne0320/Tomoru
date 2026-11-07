@@ -44,7 +44,7 @@ func TestTranslateImage(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, f := scenesCore(t)
-	c.ImageService.endpoint = &translate.Endpoint{URL: srv.URL, Model: "m", Style: translate.Index}
+	c.ImageService.endpoint = &translate.Endpoint{URL: srv.URL, Model: "m", Format: translate.Index}
 	c.Prefs.Onboarded = true
 	id := c.AddScene("FF7")
 	c.AddTerm(id, scene.Term{Src: "クラウド", Tgt: "克劳德"})
@@ -129,7 +129,7 @@ func TestSelectImage(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, f := newCore(t)
-	c.ImageService.endpoint = &translate.Endpoint{URL: srv.URL, Model: "m", Style: translate.Index}
+	c.ImageService.endpoint = &translate.Endpoint{URL: srv.URL, Model: "m", Format: translate.Index}
 	f.answers["screen-access"] = []engine.Event{{Type: "access", State: "unknown"}}
 	c.CheckScreen()
 	f.flush(t, 1)
@@ -200,7 +200,7 @@ func TestImageEngines(t *testing.T) {
 	defer api.Close()
 	defer func(f func() *translate.Endpoint) { imageCloud = f }(imageCloud)
 	imageCloud = func() *translate.Endpoint {
-		return &translate.Endpoint{URL: cloud.URL, Model: "m", Style: translate.Index}
+		return &translate.Endpoint{URL: cloud.URL, Model: "m", Format: translate.Index}
 	}
 	c, f, m, srv, sec := engineCore(t)
 	srv.url = local.URL

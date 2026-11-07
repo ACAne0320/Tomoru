@@ -86,6 +86,12 @@ func AccentTag(c *ui.Context, s string) ui.Element {
 	return ui.Text(c, s).FontSize(TextMicro).FontWeight(WeightBold).TextColor(p.LanternText).Background(p.LanternTint).Radius(99).Padding(1, Space(2))
 }
 
+// OkTag is a Tag in green: a word for what is ready, as Downloaded.
+func OkTag(c *ui.Context, s string) ui.Element {
+	p := Colors(c)
+	return ui.Text(c, s).FontSize(TextMicro).FontWeight(WeightBold).TextColor(p.OkText).Background(p.OkTint).Radius(99).Padding(1, Space(2))
+}
+
 // Progress is a progress bar that goes smoothly from one value to the next, as a download's comes
 // a few times a second.
 func Progress(c *ui.Context, value float64) ui.Element {

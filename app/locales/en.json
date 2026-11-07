@@ -381,21 +381,9 @@
   "@engineCloudThanks": {
     "description": "In the settings, under Index-Translate 35B in the cloud's list: thanks to the team that serves it free. A few words: a Star button is beside it."
   },
-  "starOnGithub": "Star",
-  "@starOnGithub": {
-    "description": "A small button beside the thanks to Index-Translate's team: opens its repository on GitHub, to star it. One short word."
-  },
   "cloudSendsText": "The cloud service you choose receives the recognized text.",
   "@cloudSendsText": {
     "description": "Under the cloud's translation services, in the settings and the guide: what leaves the computer. One short line."
-  },
-  "cloudSendsPicture": "The cloud service you choose receives the pictures you translate.",
-  "@cloudSendsPicture": {
-    "description": "Under the Picture Translation group, when the engine chosen for pictures is in the cloud, as cloudSendsText is under translation's."
-  },
-  "cloudSendsAudio": "The cloud service you choose receives the sound your computer plays.",
-  "@cloudSendsAudio": {
-    "description": "Under the cloud's recognition services, in the settings and the guide: what leaves the computer. One short line."
   },
   "draftLabel": "Translate ahead",
   "@draftLabel": {
@@ -727,16 +715,6 @@
   "@guideMtLater": {
     "description": "The guide's translation step, under its title: the cloud first; a local model downloads meanwhile without blocking the guide."
   },
-  "memoryWarning": "This Mac has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
-  "@memoryWarning": {
-    "description": "Under the 9B model, on a computer with less memory than it needs.",
-    "placeholders": {
-      "gb": {
-        "type": "int",
-        "example": "8"
-      }
-    }
-  },
   "meteredNote": "You're on a metered connection: downloading uses {size} of data.",
   "@meteredNote": {
     "description": "Under a model to download, on a metered connection.",
@@ -817,27 +795,9 @@
   "@addEndpoint": {
     "description": "Button that adds a translation API, and that dialog's title."
   },
-  "endpointEditTitle": "Edit translation API",
-  "@endpointEditTitle": {
-    "description": "The title of the dialog that edits a translation API."
-  },
   "endpointIntro": "Works with OpenAI-compatible APIs, such as DeepSeek or Ollama.",
   "@endpointIntro": {
     "description": "Under the title of the dialog that adds or edits a translation API: which APIs work."
-  },
-  "endpointDescription": "{model} at {host}. The recognized text is sent there.",
-  "@endpointDescription": {
-    "description": "Under a translation API the user added.",
-    "placeholders": {
-      "model": {
-        "type": "String",
-        "example": "deepseek-chat"
-      },
-      "host": {
-        "type": "String",
-        "example": "api.deepseek.com"
-      }
-    }
   },
   "endpointName": "Name",
   "@endpointName": {
@@ -958,16 +918,6 @@
   "undo": "Undo",
   "@undo": {
     "description": "The button of a toast that takes back what was just done."
-  },
-  "modelReady": "{name} is ready to use",
-  "@modelReady": {
-    "description": "A toast once a local translation model has downloaded and can be chosen.",
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "Index-Translate 2B"
-      }
-    }
   },
   "modelDeleted": "Deleted {name}",
   "@modelDeleted": {
@@ -1149,24 +1099,6 @@
   "@retry": {
     "description": "Guide, try step: starts translating again after it failed."
   },
-  "engineWhere": "Runs",
-  "@engineWhere": {
-    "description": "A field's name, before the choice between on device and cloud for recognition or translation."
-  },
-  "engineWaiting": "Switches over once downloaded; until then, {current} is used.",
-  "@engineWaiting": {
-    "description": "Under a model chosen and not downloaded yet: the engine in use meanwhile.",
-    "placeholders": {
-      "current": {
-        "type": "String",
-        "example": "Index-Translate Cloud"
-      }
-    }
-  },
-  "asrLocalNone": "There's no on-device recognition for this computer yet.",
-  "@asrLocalNone": {
-    "description": "Where the on-device recognition engines would be listed, on a system that has none yet."
-  },
   "modelReadyInUse": "{name} is downloaded and now in use",
   "@modelReadyInUse": {
     "description": "A toast once a model chosen before it downloaded has come in and is used.",
@@ -1177,9 +1109,9 @@
       }
     }
   },
-  "engineSenseVoiceDescription": "Runs on the CPU, no GPU needed.",
-  "@engineSenseVoiceDescription": {
-    "description": "Under SenseVoice, a speech recognition model to download: that it runs on the CPU, with no GPU needed."
+  "modelRunsOnCpu": "Runs on the CPU, no GPU needed.",
+  "@modelRunsOnCpu": {
+    "description": "Under a model to download that runs on the CPU, as SenseVoice: that it needs no GPU."
   },
   "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation.",
   "@errAsrModelMissing": {
@@ -1197,31 +1129,13 @@
   "@engineOpenAiDescription": {
     "description": "Under OpenAI's speech recognition: what it costs, and that compatible services work."
   },
-  "engineWaitingSetup": "Used once set up; until then, {current} is used.",
-  "@engineWaitingSetup": {
-    "description": "Under a cloud service chosen and not set up yet: the engine in use meanwhile.",
-    "placeholders": {
-      "current": {
-        "type": "String",
-        "example": "Apple Speech"
-      }
-    }
-  },
-  "setUp": "Set up…",
-  "@setUp": {
-    "description": "Button that opens the dialog setting up a cloud service."
-  },
-  "asrCloudTitle": "Cloud recognition",
-  "@asrCloudTitle": {
-    "description": "Title of the dialog setting up the cloud speech recognition."
-  },
   "asrCloudIntro": "Create an API key in the Alibaba Cloud Model Studio console.",
   "@asrCloudIntro": {
-    "description": "Under the title of the cloud recognition dialog."
+    "description": "Under the API key field of Qwen ASR on Alibaba Cloud: where to get one, asrCloudConsole linking there."
   },
   "asrOpenAiIntro": "Create an API key on the OpenAI platform, or use one of a service compatible with its transcription API.",
   "@asrOpenAiIntro": {
-    "description": "Under the title of the dialog setting up OpenAI's speech recognition."
+    "description": "Under the API key field of OpenAI's recognition: where to get one, asrOpenAiPlatform linking there."
   },
   "asrCloudHost": "Address",
   "@asrCloudHost": {
@@ -1586,6 +1500,158 @@
   "addApi": "Add API",
   "@addApi": {
     "description": "The last tile of the cloud translation: add an API of one's own."
+  },
+  "useEngine": "Use {name}",
+  "@useEngine": {
+    "description": "For assistive technology: the radio button beside an engine in the list, which uses it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Qwen3-ASR"
+      }
+    }
+  },
+  "use": "Use",
+  "@use": {
+    "description": "The button of the toast saying a model downloaded: uses it."
+  },
+  "sizeDownloading": "{size} downloading",
+  "@sizeDownloading": {
+    "description": "Under an engine in the list: one of its sizes is downloading.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "9B"
+      }
+    }
+  },
+  "doesntHear": "Doesn't hear {lang}",
+  "@doesntHear": {
+    "description": "Under a recognition engine in the list, in red: it does not recognize the spoken language.",
+    "placeholders": {
+      "lang": {
+        "type": "String",
+        "example": "French"
+      }
+    }
+  },
+  "doesntHearSwitch": "Doesn't hear {lang}. Using it changes the spoken language to {then}.",
+  "@doesntHearSwitch": {
+    "description": "In a recognition engine's detail, when it does not recognize the spoken language: what using it changes.",
+    "placeholders": {
+      "lang": {
+        "type": "String",
+        "example": "French"
+      },
+      "then": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  "needsKey": "Add an API key to use it",
+  "@needsKey": {
+    "description": "Under a cloud recognition service in the list, before it is set up."
+  },
+  "notDownloaded": "Not downloaded · {size}",
+  "@notDownloaded": {
+    "description": "Under a model of one size in the list, before it is downloaded: its size.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "228 MB"
+      }
+    }
+  },
+  "sizesNotDownloaded": "{n} sizes · not downloaded",
+  "@sizesNotDownloaded": {
+    "description": "Under a model of a few sizes in the list, none downloaded.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "sizesDownloaded": "{n} sizes · {sizes} downloaded",
+  "@sizesDownloaded": {
+    "description": "Under a model of a few sizes in the list, not in use: the sizes downloaded.",
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "2"
+      },
+      "sizes": {
+        "type": "String",
+        "example": "2B, 9B"
+      }
+    }
+  },
+  "listSeparator": ", ",
+  "@listSeparator": {
+    "description": "Between the items of a list in a line: the sizes downloaded, the languages a recognizer hears."
+  },
+  "keySaved": "key saved",
+  "@keySaved": {
+    "description": "The end of a cloud recognition service's line once set up, after its model and address."
+  },
+  "modelSizes": "Size",
+  "@modelSizes": {
+    "description": "Heading of a model's sizes, in its detail."
+  },
+  "service": "Service",
+  "@service": {
+    "description": "Heading of a cloud service's row, in its detail."
+  },
+  "supportedLanguages": "Supported languages",
+  "@supportedLanguages": {
+    "description": "Heading of the languages a recognition engine hears, in its detail."
+  },
+  "downloaded": "Downloaded",
+  "@downloaded": {
+    "description": "A tag beside a size of a model that is downloaded."
+  },
+  "tooLarge": "Needs {need} GB of memory; this computer has {has} GB",
+  "@tooLarge": {
+    "description": "Under a size of a model this computer can't run, in red: the memory it needs, and what the computer has.",
+    "placeholders": {
+      "need": {
+        "type": "int",
+        "example": "16"
+      },
+      "has": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "tooLargeGpu": "Needs {need} GB of video memory; this computer has {has} GB",
+  "@tooLargeGpu": {
+    "description": "Under a size of a model this computer's graphics card can't run, in red: the video memory it needs, and what the card has.",
+    "placeholders": {
+      "need": {
+        "type": "int",
+        "example": "8"
+      },
+      "has": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "notSetUp": "Not set up",
+  "@notSetUp": {
+    "description": "A cloud recognition service's row, before it is set up."
+  },
+  "modelDownloaded": "{name} downloaded",
+  "@modelDownloaded": {
+    "description": "A toast once a model has downloaded, beside a button that uses it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Qwen3-ASR 1.7B"
+      }
+    }
   },
   "downloadModel": "Download",
   "@downloadModel": {
@@ -2251,16 +2317,6 @@
   "@lockedToastWin": {
     "description": "Over the subtitles, on Windows, once they are locked in place."
   },
-  "memoryWarningWin": "This computer has {gb} GB of memory: the 9B model may be slow, and slow down other apps.",
-  "@memoryWarningWin": {
-    "description": "Under the 9B model, on a Windows computer with less memory than it needs.",
-    "placeholders": {
-      "gb": {
-        "type": "int",
-        "example": "8"
-      }
-    }
-  },
   "sampleNoVoiceWin": "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings › Time & language › Speech.",
   "@sampleNoVoiceWin": {
     "description": "Guide, try step, on Windows: the system has no voice to say the sample in the spoken language.",
@@ -2312,5 +2368,51 @@
   "tryHearingWin": "Receiving sound from your computer",
   "@tryHearingWin": {
     "description": "tryHearing on Windows."
+  },
+  "errMtCloudKey": "Cloud translation has no API key. Set it up in Settings › Speech & translation.",
+  "@errMtCloudKey": {
+    "description": "Where the subtitles show, when a cloud translation service is chosen without its API key."
+  },
+  "asrCloudConsole": "Alibaba Cloud Model Studio console",
+  "@asrCloudConsole": {
+    "description": "The part of asrCloudIntro that links to the console's API key page: word for word as it is there."
+  },
+  "asrOpenAiPlatform": "OpenAI platform",
+  "@asrOpenAiPlatform": {
+    "description": "The part of asrOpenAiIntro that links to OpenAI's API key page: word for word as it is there."
+  },
+  "engineCloudSize": "Index-Translate {size} (cloud)",
+  "@engineCloudSize": {
+    "description": "A smaller size of Index-Translate in the cloud, by its size (9B): said to be the cloud's, as there are local ones of that size.",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "9B"
+      }
+    }
+  },
+  "engineIndexCloud": "Index-Translate (bilibili)",
+  "@engineIndexCloud": {
+    "description": "Index-Translate in the cloud, its sizes together, in the settings' list of engines: by who serves it, as the other cloud services are."
+  },
+  "linkModelStudio": "Model Studio",
+  "@linkModelStudio": {
+    "description": "A small button at the top right of Qwen ASR's detail, in the settings: opens the page of its models on Alibaba Cloud Model Studio. The platform's name, short."
+  },
+  "sizeQuicker": "Quicker",
+  "@sizeQuicker": {
+    "description": "Before a model's size and what it needs, in its row in the settings: this size translates or recognizes sooner than the family's other. One or two words."
+  },
+  "sizeMoreAccurate": "More accurate",
+  "@sizeMoreAccurate": {
+    "description": "Before a model's size and what it needs, in its row in the settings: this size makes fewer mistakes than the family's other. One or two words."
+  },
+  "runsHere": "Runs on this computer",
+  "@runsHere": {
+    "description": "After a model's size, in its row in the settings and the guide: this computer has the memory it needs. Short, plain."
+  },
+  "modelAndAddress": "Model and address",
+  "@modelAndAddress": {
+    "description": "A fold under a cloud service's API key, in the settings: opens its model and address fields, which most leave as they are."
   }
 }

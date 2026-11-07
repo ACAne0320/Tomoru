@@ -91,7 +91,7 @@ func TestUsage(t *testing.T) {
 	c.Prefs.Onboarded = true
 	c.Prefs.Endpoints = []prefs.Endpoint{{ID: "or", Name: "OpenRouter", URL: "https://openrouter.ai/api", Model: "qwen/qwen3"}}
 	c.Prefs.ASR, c.Prefs.MT = QwenCloud, prefs.CustomPrefix+"or"
-	c.Prefs.ASRAPIs = []prefs.ASRAPI{{ID: QwenCloud, Key: true}}
+	c.Prefs.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}}
 	c.Start()
 	f.flush(t, 1)
 	f.sessions[0].report(live.State{Phase: "listening", Stats: live.Stats{Lines: 2, Audio: 12, InTokens: 64}})

@@ -114,7 +114,7 @@ func (s *Settings) learnSetup(c *ui.Context) {
 				d.open = false
 			}
 			if kit.Button(c, kit.Primary, kit.Small, assets.Plus, locales.AddEndpoint()).Clicked() {
-				s.editEndpoint(prefs.Endpoint{})
+				s.editAPI(&s.edit, prefs.Endpoint{})
 			}
 		})
 		return

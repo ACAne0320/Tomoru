@@ -57,12 +57,37 @@ func TestImageShortcut(t *testing.T) {
 	}
 }
 
+// TestEndpointFormat reads an API's format, and moves Index, as settings kept it before Format,
+// into it.
+func TestEndpointFormat(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	os.WriteFile(path, []byte(`{"Endpoints": [{"ID": "a", "Index": true}, {"ID": "b", "Index": false}, {"ID": "c"}, {"ID": "d", "Format": "hy-mt"}]}`), 0o644)
+	p, err := Load(path, "zh-Hans")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for id, want := range map[string]string{"a": "index", "b": "chat", "c": "chat", "d": "hy-mt"} {
+		if e, ok := p.Endpoint(id); !ok || e.Format != want || e.Index {
+			t.Errorf("%s: %+v, want %q", id, e, want)
+		}
+	}
+	if err := Save(path, p); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(path); strings.Contains(string(b), `"Index"`) {
+		t.Error("saved the old field")
+	}
+	if p, _ := Load(path, "zh-Hans"); p.Endpoints[0].Format != "index" || p.Endpoints[3].Format != "hy-mt" {
+		t.Errorf("read again: %+v", p.Endpoints)
+	}
+}
+
 // TestASRCloud moves Qwen's service, as settings kept it before ASRAPIs, into them, once.
 func TestASRCloud(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	os.WriteFile(path, []byte(`{"ASR": "qwen-cloud", "ASRCloud": {"Host": "dashscope-intl.aliyuncs.com", "Model": "", "Key": true}}`), 0o644)
 	p, err := Load(path, "zh-Hans")
-	a, ok := p.ASRAPI("qwen-cloud")
+	a, ok := p.API("qwen-cloud")
 	if err != nil || !ok || len(p.ASRAPIs) != 1 || !a.Key || a.URL != "dashscope-intl.aliyuncs.com" || p.ASRCloud != nil || p.ASR != "qwen-cloud" {
 		t.Fatalf("%+v %v", p.ASRAPIs, err)
 	}

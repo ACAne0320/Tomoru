@@ -5,6 +5,7 @@ import (
 	"errors"
 	"image"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -37,7 +38,7 @@ func TestSteps(t *testing.T) {
 	}{
 		{stepWelcome, locales.GuideWelcomeBody(), locales.Continue()},
 		{stepPermission, locales.SystemAudioOnlyDescription(), locales.Continue()},
-		{stepRecognition, "Qwen3-ASR 1.7B", locales.Continue()},
+		{stepRecognition, "Qwen3-ASR", locales.Continue()},
 		{stepTranslation, shared.CloudName, locales.Continue()},
 		{stepTry, shared.OnWindows(locales.TryHearing(), locales.TryHearingWin()), locales.Skip()},
 		{stepShortcuts, locales.GuideShortcutsBody(), locales.Continue()},
@@ -228,11 +229,15 @@ func TestTryCloudFailed(t *testing.T) {
 	}
 }
 
-// TestLocalModel chooses the local model before it is downloaded, and uses it once it is; cancels
-// and resumes its download, which says why it failed; goes on while it downloads.
+// TestLocalModel chooses the local model before it is downloaded, the size this computer runs, and
+// uses it once it is; cancels and resumes its download, which says why it failed; goes on while it
+// downloads.
 func TestLocalModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{}}
-	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = m
+		d.Memory = func() uint64 { return 8 << 30 } // too little for the 9B
+	})
 	g := New(k, &coretest.Nav{})
 	g.Step, g.next = stepTranslation, stepTranslation
 	tt := ui.NewTester(g.View, Width, Height)
@@ -247,8 +252,8 @@ func TestLocalModel(t *testing.T) {
 	tt.Frame()
 	// Its progress under its name, in one line, and nothing else said: the step says the cloud
 	// translates meanwhile.
-	if !tt.HasText(locales.Downloading(shared.Size(100<<20), shared.Size(local.Size))) || tt.HasText(locales.EngineWaiting(shared.CloudName)) {
-		t.Errorf("no progress, or a waiting note: %q", tt.Texts())
+	if !tt.HasText(locales.Downloading(shared.Size(100<<20), shared.Size(local.Size))) {
+		t.Errorf("no progress: %q", tt.Texts())
 	}
 	if err := tt.Click(locales.Cancel()); err != nil {
 		t.Fatal(err)
@@ -311,7 +316,7 @@ func TestEnginesNeedRecognition(t *testing.T) {
 	if g.Step != stepRecognition {
 		t.Fatalf("went on to step %d without recognition", g.Step)
 	}
-	if err := tt.Click("Qwen3-ASR 1.7B"); err != nil {
+	if err := tt.Click("Qwen3-ASR"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -357,5 +362,34 @@ func TestTryWaitsForModel(t *testing.T) {
 	tt.Frame()
 	if k.InUse(core.ASR) != sv.ID || !k.Started {
 		t.Errorf("in use %q, started %v once downloaded", k.InUse(core.ASR), k.Started)
+	}
+}
+
+// TestFamilyRows lists a family of models as one row, its size picked for this computer: the one
+// to recommend where it runs, else the largest that runs; recommended, the cloud is not.
+func TestFamilyRows(t *testing.T) {
+	mem := uint64(16 << 30)
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = &coretest.Models{St: map[string]models.Status{}}
+		d.GPU = func() uint64 { return 12 << 30 }
+		d.Memory = func() uint64 { return mem }
+	})
+	g := New(k, &coretest.Nav{})
+	g.Step, g.next = stepTranslation, stepTranslation
+	tt := ui.NewTester(g.View, Width, Height)
+	large, _ := models.ByID("local-9b")
+	for _, want := range []string{"Index-Translate", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large))} {
+		if !tt.HasText(want) {
+			t.Errorf("no %q in %q", want, tt.Texts())
+		}
+	}
+	if n := strings.Count(strings.Join(tt.Texts(), "\n"), locales.TagRecommended()); n != 1 {
+		t.Errorf("%d recommended: %q", n, tt.Texts())
+	}
+	mem = 8 << 30
+	tt.Frame()
+	small, _ := models.ByID("local-2b")
+	if !tt.HasText("2B · " + shared.ModelNote(small, models.Status{}, k.Runs(small))) {
+		t.Errorf("8 GB: %q", tt.Texts())
 	}
 }

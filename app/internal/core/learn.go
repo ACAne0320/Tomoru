@@ -12,7 +12,7 @@ import (
 func (c *Core) ChatEndpoints() []prefs.Endpoint {
 	var out []prefs.Endpoint
 	for _, e := range c.Prefs.Endpoints {
-		if !e.Index {
+		if formatOf(e) == translate.Chat {
 			out = append(out, e)
 		}
 	}
@@ -23,7 +23,7 @@ func (c *Core) ChatEndpoints() []prefs.Endpoint {
 func (c *Core) LearnFrom(paths []string, sceneID, endpointID string) {
 	r := learningRequest{Paths: paths, Scene: sceneID}
 	e, ok := c.Prefs.Endpoint(endpointID)
-	if !ok || e.Index {
+	if !ok || formatOf(*e) != translate.Chat {
 		r.Err = ErrNoChatEndpoint
 		c.LearningService.startLearning(r)
 		return
@@ -49,7 +49,7 @@ func (c *Core) LearnFrom(paths []string, sceneID, endpointID string) {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		return &translate.Endpoint{URL: ep.URL, Model: ep.Model, APIKey: key, Style: translate.Chat}, nil
+		return &translate.Endpoint{URL: ep.URL, Model: ep.Model, APIKey: key, Format: translate.Chat}, nil
 	}
 	c.LearningService.startLearning(r)
 }

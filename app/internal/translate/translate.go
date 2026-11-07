@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -45,22 +46,62 @@ type Translator interface {
 	Translate(ctx context.Context, r Request, onDelta func(string)) (string, error)
 }
 
-// Style is how a model is prompted.
-type Style int
+// Format is how a kind of model is asked to translate: its prompts and its sampling. The way they
+// are sent, an OpenAI-compatible chat API, is the same for all.
+type Format struct {
+	ID   string // as settings name it: "chat", "index"
+	Name string // the model's, as shown; "" for Chat, which the app names in its language
+	// prompt is the turns that ask for r's translation.
+	prompt func(Request) []message
+	// image asks for the text of a picture in tgt, with the names in terms as given; nil for a
+	// model that reads no pictures.
+	image func(tgt string, terms []Term) string
+	// temperature is the sampling's for a line.
+	temperature float64
+	// chat tells it is a general chat model, which is told not to think in each of the ways
+	// services take it.
+	chat bool
+}
 
-const (
-	// Index is Index-Translate's prompt: one turn, in Chinese, with the requirements numbered.
-	Index Style = iota
-	// Chat is a system prompt and the line, for general chat models.
-	Chat
+var (
+	// Index is Index-Translate's: one turn, in Chinese, with the requirements numbered (instTrans),
+	// decoded greedily, as its authors advise.
+	Index = &Format{
+		ID: "index", Name: "Index-Translate",
+		prompt: func(r Request) []message { return []message{{"user", indexPrompt(r)}} },
+		image:  indexImagePrompt,
+	}
+	// Chat is a general chat model's: a system prompt and the line.
+	Chat = &Format{
+		ID:          "chat",
+		prompt:      func(r Request) []message { return []message{{"system", chatSystem(r)}, {"user", r.Text}} },
+		image:       chatImagePrompt,
+		temperature: 0.2,
+		chat:        true,
+	}
 )
+
+// Formats are those a user's API may be prompted in, in the order to choose them.
+var Formats = []*Format{Chat, Index}
+
+// ReadsPictures tells whether a model of f reads the text in pictures.
+func (f *Format) ReadsPictures() bool { return f.image != nil }
+
+// FormatByID finds a format by ID.
+func FormatByID(id string) (*Format, bool) {
+	i := slices.IndexFunc(Formats, func(f *Format) bool { return f.ID == id })
+	if i < 0 {
+		return nil, false
+	}
+	return Formats[i], true
+}
 
 // Endpoint is a model behind an OpenAI-compatible /v1/chat/completions.
 type Endpoint struct {
 	URL    string // the base, without /v1
 	Model  string
 	APIKey string
-	Style  Style
+	Format *Format // nil for Chat
 	// Llama sends llama.cpp's own parameters (prompt caching, no thinking), which Index-Translate's
 	// cloud and llama-server take and other services may refuse.
 	Llama  bool
@@ -82,8 +123,9 @@ type Endpoint struct {
 
 	// plain is set once the server refused the parameters it may not know (those that turn a chat
 	// model's thinking off, and asking for the tokens used): they go no more.
-	plain atomic.Bool
-	used  atomic.Int64 // when a request was last sent, in Unix nanoseconds
+	plain   atomic.Bool
+	used    atomic.Int64 // when a request was last sent, in Unix nanoseconds
+	limited atomic.Int64 // when the service last said too many requests, in Unix nanoseconds
 }
 
 // Usage is the tokens a completion took, as the server counted them.
@@ -107,7 +149,7 @@ const (
 // (half the requests, some hours), after 6 s, if at all, and once after 30 s; a whole line within
 // 1.5 s. It closes a connection unused for 40 to 60 s, and a new one takes 0.4 to 0.5 s more.
 func Cloud() *Endpoint {
-	return &Endpoint{URL: CloudURL, Model: CloudModel, Style: Index, Llama: true,
+	return &Endpoint{URL: CloudURL, Model: CloudModel, Format: Index, Llama: true,
 		FirstWait: 2 * time.Second, Gap: 2 * time.Second, Timeout: 8 * time.Second, Parallel: 3, WarmIdle: 30 * time.Second,
 		ImageWait: 10 * time.Second}
 }
@@ -179,12 +221,11 @@ type message struct {
 // body is the request for r's translation. Its tokens are enough for a long line's, and bounded by
 // the line, so that a model repeating itself stops.
 func (e *Endpoint) body(r Request) map[string]any {
-	limit := 128 + utf8.RuneCountInString(r.Text)
-	if e.Style == Index {
-		return e.request([]message{{"user", indexPrompt(r)}}, 0, limit)
-	}
-	return e.request([]message{{"system", chatSystem(r)}, {"user", r.Text}}, 0.2, limit)
+	f := e.format()
+	return e.request(f.prompt(r), f.temperature, 128+utf8.RuneCountInString(r.Text))
 }
+
+func (e *Endpoint) format() *Format { return cmp.Or(e.Format, Chat) }
 
 // request is the body of a streamed completion of msgs.
 func (e *Endpoint) request(msgs []message, temp float64, maxTokens int) map[string]any {
@@ -207,7 +248,7 @@ func (e *Endpoint) request(msgs []message, temp float64, maxTokens int) map[stri
 }
 
 // quiet tells that requests ask a chat model not to think.
-func (e *Endpoint) quiet() bool { return e.Style == Chat && !e.Llama && !e.plain.Load() }
+func (e *Endpoint) quiet() bool { return e.format().chat && !e.Llama && !e.plain.Load() }
 
 // optional are the parameters of a request a server may refuse, which go no more once one did.
 var optional = []string{"stream_options", "thinking", "reasoning_effort", "enable_thinking"}
@@ -221,11 +262,27 @@ func (e *Endpoint) Chat(ctx context.Context, system, user string, maxTokens int)
 
 // Translate implements Translator.
 func (e *Endpoint) Translate(ctx context.Context, r Request, onDelta func(string)) (string, error) {
-	if e.FirstWait <= 0 {
-		return e.attempt(ctx, r, onDelta)
+	if r.Draft && time.Since(time.Unix(0, e.limited.Load())) < LimitedPause {
+		return "", ErrDraftPaused
 	}
-	return e.hedged(ctx, r, onDelta)
+	run := e.hedged
+	if e.FirstWait <= 0 {
+		run = e.attempt
+	}
+	out, err := run(ctx, r, onDelta)
+	if status := (*StatusError)(nil); errors.As(err, &status) && status.Status == http.StatusTooManyRequests {
+		e.limited.Store(time.Now().UnixNano())
+	}
+	return out, err
 }
+
+// LimitedPause is how long drafts pause after a service said too many requests (429): a draft
+// can go without, and the requests left are the lines'. A service that takes 60 a minute is gone
+// past by the drafts of a fast talk alone.
+const LimitedPause = time.Minute
+
+// ErrDraftPaused is a draft not asked for, in the pause after the service limited requests.
+var ErrDraftPaused = errors.New("translate: drafts pause while the service limits requests")
 
 // ErrStalled is a translation whose words did not come in time: Endpoint.FirstWait for a draft's
 // first, Endpoint.Gap between them.

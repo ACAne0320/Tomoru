@@ -168,12 +168,24 @@ func TestShortcut(t *testing.T) {
 
 // TestAddEndpoint adds a translation API from the end of the cloud's list of the engines page, uses it,
 // and deletes it.
-func TestAddEndpoint(t *testing.T) {
-	k := coretest.New()
+// enginesPage is the engines page on a computer with the local models m has, tall enough for all.
+func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.Tester) {
+	t.Helper()
+	k := coretest.NewWith(func(d *core.Deps) {
+		if m != nil {
+			d.Models = m
+		}
+	})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "engines"
-	tt := ui.NewTester(s.View, Width, 1400)
-	wants := []string{"Index-Translate 35B", locales.EngineCloudThanks()}
+	return k, s, ui.NewTester(s.View, Width, 1800)
+}
+
+// TestAddEndpoint lists the cloud's translation with its star, adds an API in place, which saving
+// doesn't use, uses it by its radio, and deletes it, which can be undone.
+func TestAddEndpoint(t *testing.T) {
+	k, _, tt := enginesPage(t, nil)
+	wants := []string{locales.EngineIndexCloud(), "Index-Translate", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
 	if prefs.SystemASR() != "" {
 		wants = append(wants, locales.EngineApple())
 	}
@@ -182,11 +194,13 @@ func TestAddEndpoint(t *testing.T) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	if tt.HasText("Index-Translate 2B") {
-		t.Errorf("a local model shows while the cloud is chosen: %q", tt.Texts())
+	for _, gone := range []string{locales.CloudSendsText(), "Index-Translate 2B"} {
+		if tt.HasText(gone) {
+			t.Errorf("%q shows: %q", gone, tt.Texts())
+		}
 	}
-	// The star at the end of Index-Translate's row goes to its repository.
-	if err := tt.Click(locales.StarOnGithub()); err != nil {
+	// Index-Translate's cloud, shown as it is in use, links to its repository.
+	if err := tt.Click("GitHub"); err != nil {
 		t.Fatal(err)
 	}
 	if got := tt.OpenedURLs(); len(got) != 1 || got[0] != core.CloudRepo {
@@ -194,6 +208,10 @@ func TestAddEndpoint(t *testing.T) {
 	}
 	if err := tt.Click(locales.AddApi()); err != nil {
 		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.EndpointIntro()) {
+		t.Fatalf("no form: %q", tt.Texts())
 	}
 	// The name, then the address and the model, a Tab away each.
 	if err := tt.Click(locales.EndpointName()); err != nil {
@@ -208,28 +226,28 @@ func TestAddEndpoint(t *testing.T) {
 	if err := tt.Click(locales.Save()); err != nil {
 		t.Fatal(err)
 	}
+	tt.Frame()
 	if len(k.Prefs.Endpoints) != 1 || k.Prefs.Endpoints[0].URL != "http://localhost:11434" || k.Prefs.Endpoints[0].Model != "qwen3" {
 		t.Fatalf("endpoints %+v", k.Prefs.Endpoints)
 	}
-	if !tt.HasText("qwen3 · localhost:11434") {
-		t.Errorf("not listed: %q", tt.Texts())
+	if k.Prefs.MT != "cloud" || !tt.HasText("qwen3 · localhost:11434") || tt.HasText(locales.EndpointIntro()) {
+		t.Errorf("saved: in use %q, texts %q", k.Prefs.MT, tt.Texts())
 	}
-	if err := tt.Click("Mine"); err != nil {
+	if err := tt.Click(locales.UseEngine("Mine")); err != nil {
 		t.Fatal(err)
 	}
 	if k.Prefs.MT != "custom:"+k.Prefs.Endpoints[0].ID {
 		t.Errorf("engine %q, texts %q", k.Prefs.MT, tt.Texts())
 	}
 
-	// Deleting it doesn't ask: it says so, with a button that puts it back.
-	if err := tt.Click(locales.Edit()); err != nil {
-		t.Fatal(err)
-	}
+	// Deleting it, by the button beside its name, doesn't ask: it says so, with a button that
+	// puts it back.
+	tt.Frame()
 	if err := tt.Click(locales.Delete()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if len(k.Prefs.Endpoints) != 0 || !tt.HasText(locales.EndpointDeleted("Mine")) {
+	if len(k.Prefs.Endpoints) != 0 || !tt.HasText(locales.EndpointDeletedInUse("Mine")) {
 		t.Fatalf("endpoints %+v, texts %q", k.Prefs.Endpoints, tt.Texts())
 	}
 	if err := tt.Click(locales.Undo()); err != nil {
@@ -240,36 +258,96 @@ func TestAddEndpoint(t *testing.T) {
 	}
 }
 
-// TestLocalModel chooses a model on this computer to translate with: the cloud translates until it
-// is downloaded, and using the cloud again drops it.
-func TestLocalModel(t *testing.T) {
-	k := coretest.New()
-	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
-	tt := ui.NewTester(s.View, Width, 1400)
-	s.sides[core.MT] = false // as translation's "On device" does: recognition's is first
+// TestDownloadThenUse can't use a model before it is downloaded: Download only downloads, and
+// once it is in, a toast's button uses it, as its radio does then.
+func TestDownloadThenUse(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{}}
+	k, _, tt := enginesPage(t, m)
+	if err := tt.Click("Index-Translate"); err != nil {
+		t.Fatal(err)
+	}
 	tt.Frame()
-	for _, want := range []string{"Index-Translate 2B", "Index-Translate 9B", locales.DownloadModel(), shared.ModelNote(models.All[1], models.Status{}, "")} {
+	for _, want := range []string{locales.SizesNotDownloaded(2), locales.ModelSizes(), "2B", "9B", shared.SizeNote(models.All[0]) + " · " + shared.ModelNote(models.All[0], models.Status{}, k.Runs(models.All[0]))} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	if k.Chosen(core.MT) != "cloud" {
-		t.Errorf("looking chose %q", k.Chosen(core.MT))
-	}
-	if err := tt.Click("Index-Translate 2B"); err != nil {
+	if err := tt.Click(locales.UseEngine("Index-Translate")); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.MT != "cloud" || k.Chosen(core.MT) != "local-2b" || !tt.HasText(locales.EngineWaiting(shared.CloudName)) {
-		t.Fatalf("in use %q, chosen %q, texts %q", k.Prefs.MT, k.Chosen(core.MT), tt.Texts())
+	if err := tt.Click("2B"); err != nil {
+		t.Fatal(err)
 	}
-	s.sides[core.MT] = true
+	if k.Prefs.MT != "cloud" || k.Chosen(core.MT) != "cloud" {
+		t.Fatalf("not downloaded, chose: in use %q, chosen %q", k.Prefs.MT, k.Chosen(core.MT))
+	}
+	if err := tt.Click(locales.DownloadModel()); err != nil { // the 2B's, the first
+		t.Fatal(err)
+	}
+	if !slices.Equal(m.Downloads, []string{"local-2b"}) || k.Prefs.MT != "cloud" || k.Chosen(core.MT) != "cloud" {
+		t.Fatalf("downloads %q, in use %q, chosen %q", m.Downloads, k.Prefs.MT, k.Chosen(core.MT))
+	}
+	m.St["local-2b"] = models.Status{State: models.Downloading, Done: 400 << 20, Total: models.All[0].Size}
 	tt.Frame()
-	if err := tt.Click("Index-Translate 35B"); err != nil {
+	if !tt.HasText(locales.Downloading(shared.Size(400<<20), shared.Size(models.All[0].Size))) {
+		t.Fatalf("no progress: %q", tt.Texts())
+	}
+	// Cancelled, it stops; downloaded, it says so, and is used only by the toast's button.
+	if err := tt.Click(locales.Cancel()); err != nil {
 		t.Fatal(err)
 	}
-	if k.Chosen(core.MT) != "cloud" || tt.HasText(locales.EngineWaiting(shared.CloudName)) {
-		t.Errorf("chosen %q, texts %q", k.Chosen(core.MT), tt.Texts())
+	if !slices.Equal(m.Cancels, []string{"local-2b"}) {
+		t.Errorf("cancels %q", m.Cancels)
+	}
+	m.St["local-2b"] = models.Status{State: models.Ready}
+	k.Changed()
+	tt.Frame()
+	if k.Prefs.MT != "cloud" || !tt.HasText(locales.ModelDownloaded("Index-Translate 2B")) || !tt.HasText(locales.Downloaded()) {
+		t.Fatalf("downloaded: in use %q, texts %q", k.Prefs.MT, tt.Texts())
+	}
+	if err := tt.Click(locales.Use()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if k.Prefs.MT != "local-2b" {
+		t.Errorf("used: in use %q, texts %q", k.Prefs.MT, tt.Texts())
+	}
+	// The cloud's radio goes back to it, the family's to its size downloaded.
+	if err := tt.Click(locales.UseEngine(locales.EngineIndexCloud())); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click(locales.UseEngine("Index-Translate")); err != nil {
+		t.Fatal(err)
+	}
+	if k.Prefs.MT != "local-2b" {
+		t.Errorf("the family's radio: in use %q", k.Prefs.MT)
+	}
+}
+
+// TestTooLarge offers no download of a size this computer can't run, and says why.
+func TestTooLarge(t *testing.T) {
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = &coretest.Models{St: map[string]models.Status{}}
+		d.Memory = func() uint64 { return 8 << 30 }
+	})
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1800)
+	if err := tt.Click("Index-Translate"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.TooLarge(16, 8)) {
+		t.Errorf("not said: %q", tt.Texts())
+	}
+	n := 0
+	for _, text := range tt.Texts() {
+		if text == locales.DownloadModel() {
+			n++
+		}
+	}
+	if n != 1 {
+		t.Errorf("%d downloads offered, want the 2B's: %q", n, tt.Texts())
 	}
 }
 
@@ -277,11 +355,10 @@ func TestLocalModel(t *testing.T) {
 // one in use asks in a dialog, which says what takes over.
 func TestDeleteModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
-	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
-	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
-	tt := ui.NewTester(s.View, Width, 1400)
-	s.sides[core.MT] = false
+	k, _, tt := enginesPage(t, m)
+	if err := tt.Click("Index-Translate"); err != nil {
+		t.Fatal(err)
+	}
 	tt.Frame()
 	e, _ := k.Engine(core.MT, "local-2b")
 	question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
@@ -332,18 +409,16 @@ func TestDeleteModel(t *testing.T) {
 	}
 }
 
-// TestDiscardChanges closes a dialog with Escape at once while nothing changed; with changes, it
-// asks first: Escape again goes back to them, Discard throws them away.
+// TestDiscardChanges closes learning names' dialog adding an API with Escape at once while nothing
+// changed; with changes, it asks first: Escape again goes back to them, Discard throws them away.
 func TestDiscardChanges(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
+	s.Tab = "scenes"
 	tt := ui.NewTester(s.View, Width, 1400)
 	open := func() {
 		t.Helper()
-		if err := tt.Click(locales.AddApi()); err != nil {
-			t.Fatal(err)
-		}
+		s.editAPI(&s.edit, prefs.Endpoint{})
 		tt.Frame()
 	}
 	open()
@@ -378,24 +453,22 @@ func TestDiscardChanges(t *testing.T) {
 	}
 }
 
-// TestRecognitionCloud uses the cloud's recognition, which needs setting up: until it is,
-// recognition stays on this computer; set up, it is used.
+// TestRecognitionCloud sets up the cloud's recognition in place: its radio does nothing until it
+// is set up, saving uses nothing, and then its radio uses it.
 func TestRecognitionCloud(t *testing.T) {
-	k := coretest.New()
-	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
-	tt := ui.NewTester(s.View, Width, 1400)
-	if err := tt.Click(locales.TagCloud()); err != nil { // recognition's
-		t.Fatal(err)
-	}
-	if !tt.HasText(locales.EngineQwenAsrDescription()) || !tt.HasText(locales.SetUp()) || k.Chosen(core.ASR) != prefs.DefaultASR() {
-		t.Fatalf("chosen %q, texts %q", k.Chosen(core.ASR), tt.Texts())
-	}
+	k, _, tt := enginesPage(t, nil)
 	if err := tt.Click(locales.EngineQwenAsr()); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.ASR != prefs.DefaultASR() || k.Chosen(core.ASR) != core.QwenCloud || !tt.HasText(locales.AsrCloudIntro()) {
-		t.Fatalf("in use %q, chosen %q, texts %q", k.Prefs.ASR, k.Chosen(core.ASR), tt.Texts())
+	tt.Frame()
+	if !tt.HasText(locales.EngineQwenAsrDescription()) || !tt.HasText(locales.AsrCloudIntro()) || !tt.HasText(locales.NeedsKey()) {
+		t.Fatalf("texts %q", tt.Texts())
+	}
+	if err := tt.Click(locales.UseEngine(locales.EngineQwenAsr())); err != nil {
+		t.Fatal(err)
+	}
+	if k.Prefs.ASR != prefs.DefaultASR() {
+		t.Fatalf("not set up, used: %q", k.Prefs.ASR)
 	}
 	if err := tt.Click(locales.EndpointKey()); err != nil {
 		t.Fatal(err)
@@ -404,23 +477,49 @@ func TestRecognitionCloud(t *testing.T) {
 	if err := tt.Click(locales.Save()); err != nil {
 		t.Fatal(err)
 	}
-	if a := k.ASRAPI(core.QwenCloud); k.Prefs.ASR != core.QwenCloud || !a.Key || a.Model != "qwen-audio-3.1-asr-flash-streaming" {
+	tt.Frame()
+	if a := k.API(core.QwenCloud); k.Prefs.ASR != prefs.DefaultASR() || !a.Key || a.Model != "qwen-audio-3.1-asr-flash-streaming" {
 		t.Errorf("after saving: in use %q, %+v", k.Prefs.ASR, a)
 	}
-	if !tt.HasText("qwen-audio-3.1-asr-flash-streaming · dashscope.aliyuncs.com") || tt.HasText(locales.EngineWaitingSetup(locales.EngineApple())) {
+	line := "qwen-audio-3.1-asr-flash-streaming · dashscope.aliyuncs.com · " + locales.KeySaved()
+	if !tt.HasText(line) || tt.HasText(locales.AsrCloudIntro()) {
 		t.Errorf("texts %q", tt.Texts())
 	}
-
-	// OpenAI's beside it, set up as it is chosen, at a compatible service's address.
-	if !tt.HasText(locales.EngineOpenAiDescription()) {
-		t.Fatalf("texts %q", tt.Texts())
+	if err := tt.Click(locales.UseEngine(locales.EngineQwenAsr())); err != nil {
+		t.Fatal(err)
 	}
+	if k.Prefs.ASR != core.QwenCloud {
+		t.Errorf("set up, not used: %q", k.Prefs.ASR)
+	}
+	// Edited, Cancel puts the form away.
+	tt.Frame()
+	if err := tt.Click(locales.Edit()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.AsrCloudIntro()) {
+		t.Fatalf("no form: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.Cancel()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if tt.HasText(locales.AsrCloudIntro()) {
+		t.Errorf("the form stays: %q", tt.Texts())
+	}
+
+	// OpenAI's beside it, at a compatible service's address, folded under its key.
 	if err := tt.Click("OpenAI"); err != nil {
 		t.Fatal(err)
 	}
-	if !tt.HasText(locales.AsrOpenAiIntro()) || k.Prefs.ASR != core.QwenCloud {
-		t.Fatalf("in use %q, texts %q", k.Prefs.ASR, tt.Texts())
+	tt.Frame()
+	if tt.HasText(locales.AsrCloudHost()) {
+		t.Errorf("the address shows: %q", tt.Texts())
 	}
+	if err := tt.Click(locales.ModelAndAddress()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
 	for field, text := range map[string]string{locales.EndpointKey(): "sk-2", locales.AsrCloudHost(): "https://api.groq.com/openai/v1"} {
 		if err := tt.Click(field); err != nil {
 			t.Fatal(err)
@@ -430,27 +529,50 @@ func TestRecognitionCloud(t *testing.T) {
 	if err := tt.Click(locales.Save()); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.ASR != core.OpenAI || !k.ASRAPI(core.OpenAI).Key || !tt.HasText("gpt-live-transcribe · api.groq.com") {
+	tt.Frame()
+	if k.Prefs.ASR != core.QwenCloud || !k.API(core.OpenAI).Key || !tt.HasText("gpt-live-transcribe · api.groq.com · "+locales.KeySaved()) {
 		t.Errorf("in use %q, %+v, texts %q", k.Prefs.ASR, k.Prefs.ASRAPIs, tt.Texts())
 	}
+}
 
-	// On device: the system's, and the model to download, which the system's stands in for.
-	if prefs.SystemASR() == "" {
-		return // no system's on this one
+// TestCloudSizes lists Index-Translate's cloud sizes, each used by its row.
+func TestCloudSizes(t *testing.T) {
+	k, _, tt := enginesPage(t, nil)
+	if err := tt.Click(locales.EngineIndexCloud()); err != nil {
+		t.Fatal(err)
 	}
-	s.sides[core.ASR] = false
 	tt.Frame()
-	if err := tt.Click(locales.EngineApple()); err != nil {
+	for _, want := range []string{"2B", "9B", "35B"} {
+		if !tt.HasText(want) {
+			t.Fatalf("no %q in %q", want, tt.Texts())
+		}
+	}
+	if err := tt.Click("9B"); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.ASR != "apple" {
-		t.Errorf("in use %q", k.Prefs.ASR)
+	tt.Frame()
+	if k.Prefs.MT != "cloud-9b" {
+		t.Errorf("in use %q", k.Prefs.MT)
 	}
-	if err := tt.Click("SenseVoice Small"); err != nil {
+}
+
+// TestDeafRecognizer says, of a recognizer that doesn't hear the language spoken, so in its row and
+// what using it changes in its detail.
+func TestDeafRecognizer(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{"sensevoice-small": {State: models.Ready}}}
+	k, _, tt := enginesPage(t, m)
+	k.Prefs.Src, k.Prefs.Tgt = "fr", "zh"
+	if prefs.SystemASR() == "" {
+		k.Prefs.ASR = core.OpenAI // one that hears French, in use
+	}
+	tt.Frame()
+	if err := tt.Click("SenseVoice"); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.ASR != "apple" || k.Chosen(core.ASR) != "sensevoice-small" || !tt.HasText(locales.EngineWaiting(locales.EngineApple())) {
-		t.Errorf("in use %q, chosen %q, texts %q", k.Prefs.ASR, k.Chosen(core.ASR), tt.Texts())
+	tt.Frame()
+	fr, en := shared.LangName("fr"), shared.LangName("en")
+	if !tt.HasText(locales.DoesntHear(fr)) || !tt.HasText(locales.DoesntHearSwitch(fr, en)) || !tt.HasText(locales.SupportedLanguages()) {
+		t.Errorf("texts %q", tt.Texts())
 	}
 }
 
@@ -458,11 +580,10 @@ func TestRecognitionCloud(t *testing.T) {
 // translation did not work, and a model that only thought says so; one that worked, whether it
 // read the picture.
 func TestEndpointTest(t *testing.T) {
-	k := coretest.New()
-	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
-	tt := ui.NewTester(s.View, Width, 1400)
-	s.editEndpoint(prefs.Endpoint{Name: "DeepSeek", URL: "https://api.deepseek.com", Model: "m"})
+	_, s, tt := enginesPage(t, nil)
+	k := s.core
+	s.addingAPI = true
+	s.editAPI(&s.api, prefs.Endpoint{Name: "DeepSeek", URL: "https://api.deepseek.com", Model: "m"})
 	tt.Frame()
 	if !tt.HasText(locales.EndpointIntro()) {
 		t.Errorf("says not which APIs work: %q", tt.Texts())
@@ -477,7 +598,7 @@ func TestEndpointTest(t *testing.T) {
 		{core.TestResult{Text: "大家晚上好。", Vision: prefs.VisionYes}, []string{"大家晚上好。", locales.ReadsPictures()}},
 		{core.TestResult{Text: "大家晚上好。", Vision: prefs.VisionNo}, []string{"大家晚上好。", locales.ReadsNoPictures()}},
 	} {
-		k.Tests[s.edit.test] = c.r
+		k.Tests[s.api.test] = c.r
 		tt.Frame()
 		for _, want := range c.want {
 			if !tt.HasText(want) {
@@ -487,9 +608,31 @@ func TestEndpointTest(t *testing.T) {
 	}
 }
 
-// TestImageEngine chooses the engine for pictures from a menu of those that read them, which
-// still commits after its frame has ended; the cloud's says what it receives. The picture's
-// shortcut is here too.
+// TestEndpointFormat offers the formats an API may be prompted in, the chat model's first, and
+// edits the one chosen.
+func TestEndpointFormat(t *testing.T) {
+	_, s, tt := enginesPage(t, nil)
+	s.addingAPI = true
+	s.editAPI(&s.api, prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:8080", Model: "m"})
+	tt.Frame()
+	if err := tt.Click(locales.EndpointFormatChat()); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate"}; !slices.Equal(got, want) {
+		t.Fatalf("menu %q, want %q", got, want)
+	}
+	tt.Frame() // the menu's frame has ended
+	if err := tt.ChooseMenuItem("Index-Translate"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if s.api.e.Format != "index" {
+		t.Errorf("format %q", s.api.e.Format)
+	}
+}
+
+// TestImageEngine chooses the engine for pictures from a menu of those that read pictures, which
+// still commits after its frame has ended. The picture's shortcut is here too.
 func TestImageEngine(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
@@ -498,16 +641,19 @@ func TestImageEngine(t *testing.T) {
 	k.Prefs.Endpoints[0].Vision = prefs.VisionNo
 	k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com", Model: "qwen-vl"}, "")
 	s := New(k, &coretest.Nav{})
-	s.Tab, s.sides[core.MT] = "engines", false // the cloud's name only in the picker
-	tt := ui.NewTester(s.View, Width, 1400)
-	for _, want := range []string{locales.ImageTitle(), locales.ImageEngine(), locales.ImageShortcutRow(), locales.CloudSendsPicture()} {
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1800)
+	for _, want := range []string{locales.ImageTitle(), locales.ImageEngine(), locales.ImageShortcutRow()} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	if err := tt.Click(shared.CloudName); err != nil {
-		t.Fatal(err)
+	// Its picker, at the end of its row: the list above names the cloud too.
+	row, ok := tt.Find(locales.ImageEngine())
+	if !ok {
+		t.Fatalf("no picture's engine: %q", tt.Texts())
 	}
+	tt.ClickAt(Width-kit.Space(8)-kit.Space(5)-kit.Space(10), row.Y+row.H/2)
 	if got, want := tt.Menu(), []string{shared.CloudName, "Index-Translate 2B", "-", "Qwen-VL"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
@@ -516,7 +662,7 @@ func TestImageEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if k.Prefs.ImageMT != "local-2b" || tt.HasText(locales.CloudSendsPicture()) {
+	if k.Prefs.ImageMT != "local-2b" {
 		t.Errorf("pictures with %q, texts %q", k.Prefs.ImageMT, tt.Texts())
 	}
 }
@@ -916,9 +1062,8 @@ func TestModelsFolder(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
 	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
 	s := New(k, &coretest.Nav{})
-	s.Tab = "engines"
-	s.sides[core.MT] = false
-	tt := ui.NewTester(s.View, Width, 1400)
+	s.Tab, s.shown[core.MT] = "engines", "Index-Translate"
+	tt := ui.NewTester(s.View, Width, 1800)
 	tt.Frame()
 	if !tt.HasText(locales.ModelsFolder()) || !tt.HasText("/models") {
 		t.Fatalf("no folder: texts %q", tt.Texts())

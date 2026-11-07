@@ -109,7 +109,7 @@ func TestLocalModel(t *testing.T) {
 	}
 	f.flush(t, 1)
 	ep, ok := f.sessions[0].cfg.Translator.(*translate.Endpoint)
-	if !ok || ep.URL != "http://127.0.0.1:1234" || ep.Style != translate.Index || len(srv.ensured) != 1 || srv.ensured[0] != m.Path("local-2b") {
+	if !ok || ep.URL != "http://127.0.0.1:1234" || ep.Format != translate.Index || len(srv.ensured) != 1 || srv.ensured[0] != m.Path("local-2b") {
 		t.Errorf("translator %+v, ensured %q", ep, srv.ensured)
 	}
 
@@ -146,7 +146,7 @@ func TestEndpoints(t *testing.T) {
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL + "/v1/", Model: "m"}, "sk-1")
 	e, ok := c.Prefs.Endpoint(id)
-	if !ok || e.URL != api.URL || string(sec[keyName(id)]) != "sk-1" {
+	if !ok || e.URL != api.URL || e.Format != "chat" || string(sec[keyName(id)]) != "sk-1" {
 		t.Fatalf("saved %+v, key %q", e, sec[keyName(id)])
 	}
 
@@ -164,7 +164,7 @@ func TestEndpoints(t *testing.T) {
 	c.SetEngine(prefs.CustomPrefix + id)
 	c.Start()
 	f.flush(t, 1)
-	if ep := f.sessions[0].cfg.Translator.(*translate.Endpoint); ep.APIKey != "sk-1" || ep.Style != translate.Chat || ep.Llama {
+	if ep := f.sessions[0].cfg.Translator.(*translate.Endpoint); ep.APIKey != "sk-1" || ep.Format != translate.Chat || ep.Llama {
 		t.Errorf("translator %+v", ep)
 	}
 
@@ -188,6 +188,16 @@ func TestEndpoints(t *testing.T) {
 	}
 	if ep, ok := f.sessions[1].cfg.Translator.(*translate.Endpoint); !ok || ep.APIKey != "sk-1" {
 		t.Errorf("after undo: translator %+v", f.sessions[1].cfg.Translator)
+	}
+
+	// Prompted as Index-Translate is, from the next session.
+	e, _ = c.Prefs.Endpoint(id)
+	changed := *e
+	changed.Format = "index"
+	c.SaveEndpoint(changed, "")
+	f.flush(t, 1)
+	if ep, ok := f.sessions[len(f.sessions)-1].cfg.Translator.(*translate.Endpoint); !ok || ep.Format != translate.Index {
+		t.Errorf("as Index-Translate: translator %+v", f.sessions[len(f.sessions)-1].cfg.Translator)
 	}
 }
 
@@ -268,25 +278,27 @@ func TestRecognitionModel(t *testing.T) {
 	}
 }
 
-// TestCloudRecognition chooses the cloud's recognition before it has a key: it is used once the
-// key is saved, which goes to the credential store under the service's name.
+// TestCloudRecognition can't use the cloud's recognition before it has a key; saving the key,
+// which goes to the credential store under the service's name, uses nothing; then it can be used.
 func TestCloudRecognition(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
 	c.Prefs.ASR = prefs.DefaultASR() // as the system has it at first
-	c.Choose(ASR, QwenCloud)
-	if c.Prefs.ASR != prefs.DefaultASR() || c.Chosen(ASR) != QwenCloud {
-		t.Fatalf("in use %q, chosen %q", c.Prefs.ASR, c.Chosen(ASR))
+	if c.Use(ASR, QwenCloud) || c.Prefs.ASR != prefs.DefaultASR() {
+		t.Fatalf("used without a key: in use %q", c.Prefs.ASR)
 	}
-	c.SaveASRAPI(prefs.ASRAPI{ID: QwenCloud, URL: " ws-1.cn-beijing.maas.aliyuncs.com "}, "sk-1")
-	if a := c.ASRAPI(QwenCloud); c.Prefs.ASR != QwenCloud || !a.Key || string(sec["asr-key:qwen-cloud"]) != "sk-1" || a.URL != "ws-1.cn-beijing.maas.aliyuncs.com" {
+	c.SaveAPI(prefs.Service{ID: QwenCloud, URL: " ws-1.cn-beijing.maas.aliyuncs.com "}, "sk-1")
+	if a := c.API(QwenCloud); c.Prefs.ASR != prefs.DefaultASR() || !a.Key || string(sec["asr-key:qwen-cloud"]) != "sk-1" || a.URL != "ws-1.cn-beijing.maas.aliyuncs.com" {
 		t.Fatalf("saved: in use %q, prefs %+v", c.Prefs.ASR, c.Prefs.ASRAPIs)
 	}
-	if got := c.EngineService.cloudConfig(c.ASRAPI(QwenCloud), ""); got.Key != "sk-1" {
+	if !c.Use(ASR, QwenCloud) || c.Prefs.ASR != QwenCloud {
+		t.Fatalf("set up: in use %q", c.Prefs.ASR)
+	}
+	if got := c.EngineService.cloudConfig(c.API(QwenCloud), ""); got.Key != "sk-1" {
 		t.Errorf("config %+v", got)
 	}
 	// Saved again without a key, it keeps the one it has.
-	c.SaveASRAPI(prefs.ASRAPI{ID: QwenCloud, Model: "qwen-audio-3.0-asr-flash-streaming"}, "")
-	if a := c.ASRAPI(QwenCloud); !a.Key || len(c.Prefs.ASRAPIs) != 1 || string(sec["asr-key:qwen-cloud"]) != "sk-1" {
+	c.SaveAPI(prefs.Service{ID: QwenCloud, Model: "qwen-audio-3.0-asr-flash-streaming"}, "")
+	if a := c.API(QwenCloud); !a.Key || len(c.Prefs.ASRAPIs) != 1 || string(sec["asr-key:qwen-cloud"]) != "sk-1" {
 		t.Errorf("resaved: %+v", c.Prefs.ASRAPIs)
 	}
 	c.Start()
@@ -303,16 +315,43 @@ func TestCloudRecognition(t *testing.T) {
 	}
 }
 
+// TestCloudSizes translates with Index-Translate's cloud in the size chosen; choosing the family
+// uses 35B, the default, which alone of them reads pictures.
+func TestCloudSizes(t *testing.T) {
+	c, f, _, _, _ := engineCore(t)
+	var family []Engine
+	for _, fam := range c.Families(MT) {
+		if fam[0].Family() == "cloud" {
+			family = fam
+		}
+	}
+	if e, ok := c.Pick(family); !ok || e.ID != "cloud" {
+		t.Errorf("picked %q", e.ID)
+	}
+	c.SetEngine("cloud-9b")
+	c.Start()
+	f.flush(t, 1)
+	if ep, ok := f.sessions[0].cfg.Translator.(*translate.Endpoint); !ok || ep.Model != "Index-Translate-9B" || ep.URL != translate.CloudURL {
+		t.Errorf("translator %+v", f.sessions[0].cfg.Translator)
+	}
+	var pictures []string
+	for _, e := range c.ImageEngines() {
+		if e.Family() == "cloud" {
+			pictures = append(pictures, e.ID)
+		}
+	}
+	if !slices.Equal(pictures, []string{"cloud"}) {
+		t.Errorf("for pictures %q", pictures)
+	}
+}
+
 // TestOpenAIRecognition sets up OpenAI's recognition beside Qwen's: each has its own key, and the
 // one in use is the one started.
 func TestOpenAIRecognition(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
-	c.SaveASRAPI(prefs.ASRAPI{ID: QwenCloud}, "sk-qwen")
-	c.Choose(ASR, OpenAI)
-	if c.Chosen(ASR) != OpenAI || c.Prefs.ASR == OpenAI {
-		t.Fatalf("not set up, it waits: in use %q", c.Prefs.ASR)
-	}
-	c.SaveASRAPI(prefs.ASRAPI{ID: OpenAI, URL: "https://api.groq.com/openai", Model: "whisper-large-v3"}, "sk-oa")
+	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-qwen")
+	c.SaveAPI(prefs.Service{ID: OpenAI, URL: "https://api.groq.com/openai", Model: "whisper-large-v3"}, "sk-oa")
+	c.Use(ASR, OpenAI)
 	if c.Prefs.ASR != OpenAI || string(sec["asr-key:openai"]) != "sk-oa" || string(sec["asr-key:qwen-cloud"]) != "sk-qwen" {
 		t.Fatalf("in use %q, keys %v", c.Prefs.ASR, sec)
 	}
@@ -372,22 +411,208 @@ func TestServedModel(t *testing.T) {
 	}
 }
 
-// TestRecommended recommends Qwen3-ASR where a GPU has the memory it needs, and nothing else.
+// TestRecommended recommends one engine of each kind: a family's size to recommend where the GPU
+// has the memory it needs, Qwen3-ASR from 3 GB, Index-Translate 9B from 8 GB; else the cloud's
+// translation, and no recognition.
 func TestRecommended(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
-	qwen3, _ := c.Engine(ASR, "qwen3-asr-1.7b")
-	sense, _ := c.Engine(ASR, "sensevoice-small")
-	if c.Recommended(qwen3) {
-		t.Error("recommended with no GPU known")
+	recommended := func() (out []string) {
+		for _, k := range []Kind{ASR, MT} {
+			for _, e := range c.Engines(k) {
+				if c.Recommended(e) {
+					out = append(out, e.ID)
+				}
+			}
+		}
+		return out
 	}
-	gpu := uint64(8 << 30)
+	if got := recommended(); !slices.Equal(got, []string{"cloud"}) {
+		t.Errorf("no GPU known: %q", got)
+	}
+	gpu := uint64(0)
 	c.deps.GPU = func() uint64 { return gpu }
-	if !c.Recommended(qwen3) || c.Recommended(sense) {
-		t.Error("an 8 GB GPU: Qwen3-ASR, not SenseVoice")
+	for _, tc := range []struct {
+		gpu  uint64
+		want []string
+	}{
+		{0, []string{"cloud"}},
+		{2 << 30, []string{"cloud"}},
+		{4 << 30, []string{"qwen3-asr-1.7b", "cloud"}},
+		{7895 << 20, []string{"qwen3-asr-1.7b", "local-9b"}}, // a card of 8 GB, as its driver says
+		{24 << 30, []string{"qwen3-asr-1.7b", "local-9b"}},
+	} {
+		gpu = tc.gpu
+		if got := recommended(); !slices.Equal(got, tc.want) {
+			t.Errorf("a GPU of %d MiB: %q, want %q", tc.gpu>>20, got, tc.want)
+		}
 	}
-	gpu = 2 << 30
-	if c.Recommended(qwen3) {
-		t.Error("recommended on a 2 GB GPU")
+	// A Mac of 8 GB runs no 9B, whatever its GPU may take.
+	c.deps.Memory = func() uint64 { return 8 << 30 }
+	if got := recommended(); !slices.Equal(got, []string{"qwen3-asr-1.7b", "cloud"}) {
+		t.Errorf("8 GB of memory: %q", got)
+	}
+}
+
+// TestShortfall says what a computer lacks to run a model, its memory first, in whole GB; nothing
+// where what it has is not known.
+func TestShortfall(t *testing.T) {
+	c, _, _, _, _ := engineCore(t)
+	large, _ := models.ByID("local-9b")
+	if got := c.Shortfall(large); got != (Shortfall{}) {
+		t.Errorf("nothing known: %+v", got)
+	}
+	mem, gpu := uint64(8<<30), uint64(16<<30)
+	c.deps.Memory, c.deps.GPU = func() uint64 { return mem }, func() uint64 { return gpu }
+	if got := c.Shortfall(large); got != (Shortfall{Need: 16, Has: 8}) {
+		t.Errorf("8 GB of memory: %+v", got)
+	}
+	mem, gpu = 32<<30, 6<<30
+	if got := c.Shortfall(large); got != (Shortfall{Need: 8, Has: 6, GPU: true}) {
+		t.Errorf("a GPU of 6 GB: %+v", got)
+	}
+	mem, gpu = 16<<30-200<<20, 7895<<20 // as Windows and a card of 8 GB tell them
+	if got := c.Shortfall(large); got != (Shortfall{}) {
+		t.Errorf("16 GB and a card of 8: %+v", got)
+	}
+}
+
+// TestPick picks the size of a family to use on choosing it: the one in use, else the one to
+// recommend, else the largest; only those downloaded that this computer runs.
+func TestPick(t *testing.T) {
+	c, _, m, _, _ := engineCore(t)
+	index := c.Families(MT)[0]
+	pick := func() string {
+		e, ok := c.Pick(index)
+		if !ok {
+			return ""
+		}
+		return e.ID
+	}
+	if got := pick(); got != "" {
+		t.Errorf("none downloaded: %q", got)
+	}
+	m.ready["local-2b"] = true
+	if got := pick(); got != "local-2b" {
+		t.Errorf("the 2B downloaded: %q", got)
+	}
+	m.ready["local-9b"] = true
+	if got := pick(); got != "local-9b" {
+		t.Errorf("both downloaded: %q, want the one to recommend", got)
+	}
+	c.SetEngine("local-2b")
+	if got := pick(); got != "local-2b" {
+		t.Errorf("the 2B in use: %q", got)
+	}
+	c.SetEngine("cloud")
+	c.deps.Memory = func() uint64 { return 8 << 30 }
+	if got := pick(); got != "local-2b" {
+		t.Errorf("the 9B too large: %q", got)
+	}
+	if cloud := c.Families(MT)[1]; !slices.ContainsFunc(cloud, c.Usable) {
+		t.Error("the cloud can't be used")
+	}
+}
+
+// TestSuggested offers a family's size to recommend where this computer runs it, else the largest
+// it runs, else the smallest.
+func TestSuggested(t *testing.T) {
+	c, _, _, _, _ := engineCore(t)
+	index := c.Families(MT)[0]
+	mem := uint64(16 << 30)
+	c.deps.Memory = func() uint64 { return mem }
+	for _, tc := range []struct {
+		mem   uint64
+		index string
+	}{
+		{16 << 30, "local-9b"},
+		{8 << 30, "local-2b"},
+		{4 << 30, "local-2b"},
+	} {
+		mem = tc.mem
+		if got := c.Suggested(index).ID; got != tc.index {
+			t.Errorf("%d GB: %q, want %q", tc.mem>>30, got, tc.index)
+		}
+	}
+}
+
+// TestUse uses only what can be used now: a model downloaded, never one to download, which it
+// leaves waiting for nothing; and forgets what the guide chose to use once downloaded.
+func TestUse(t *testing.T) {
+	c, _, m, _, _ := engineCore(t)
+	if c.Use(MT, "local-2b") || c.Prefs.MT != "cloud" || c.Chosen(MT) != "cloud" {
+		t.Fatalf("not downloaded: in use %q, chosen %q", c.Prefs.MT, c.Chosen(MT))
+	}
+	m.ready["local-2b"] = true
+	c.Changed()
+	if c.Prefs.MT != "cloud" {
+		t.Fatalf("came in, used unasked: %q", c.Prefs.MT)
+	}
+	c.Choose(MT, "local-9b") // as the guide does
+	if !c.Use(MT, "local-2b") || c.Prefs.MT != "local-2b" {
+		t.Fatalf("downloaded: in use %q", c.Prefs.MT)
+	}
+	m.ready["local-9b"] = true
+	c.Changed()
+	if c.Prefs.MT != "local-2b" {
+		t.Errorf("the guide's choice came in after another was used: %q", c.Prefs.MT)
+	}
+}
+
+// TestSpokenWith tells the language spoken once a recognizer is used: the one now, if it hears
+// it, else English, else Japanese, but the one translated into.
+func TestSpokenWith(t *testing.T) {
+	c, _, _, _, _ := engineCore(t)
+	sense, _ := c.Engine(ASR, "sensevoice-small")
+	qwen3, _ := c.Engine(ASR, "qwen3-asr-1.7b")
+	c.Prefs.Src, c.Prefs.Tgt = "fr", "zh"
+	if got := c.SpokenWith(sense); got != "en" {
+		t.Errorf("French with SenseVoice: %q", got)
+	}
+	if got := c.SpokenWith(qwen3); got != "fr" {
+		t.Errorf("French with Qwen3-ASR: %q", got)
+	}
+	c.Prefs.Tgt = "en"
+	if got := c.SpokenWith(sense); got != "ja" {
+		t.Errorf("French into English with SenseVoice: %q", got)
+	}
+}
+
+// TestFamilies lists a model's sizes together, in the catalog's order, local before cloud, and
+// the cloud's and the user's APIs each on its own.
+func TestFamilies(t *testing.T) {
+	c, _, _, _, _ := engineCore(t)
+	c.Prefs.Endpoints = []prefs.Endpoint{{ID: "a"}, {ID: "b"}}
+	var got [][]string
+	for _, f := range c.Families(MT) {
+		var ids []string
+		for _, e := range f {
+			ids = append(ids, e.ID)
+		}
+		got = append(got, ids)
+	}
+	want := [][]string{{"local-2b", "local-9b"}, {"cloud-2b", "cloud-9b", "cloud"}, {"custom:a"}, {"custom:b"}}
+	if !slices.EqualFunc(got, want, slices.Equal) {
+		t.Errorf("translation's families %q, want %q", got, want)
+	}
+}
+
+// TestModelFormats prompts each translation model in a format translate knows, and a local model's
+// translator in its model's.
+func TestModelFormats(t *testing.T) {
+	for _, m := range models.All {
+		if _, ok := translate.FormatByID(m.Format); !m.ASR && !ok {
+			t.Errorf("%s: no format %q", m.ID, m.Format)
+		}
+	}
+	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index} {
+		c, f, _, _, _ := engineCore(t)
+		c.Download(id)
+		c.SetEngine(id)
+		c.Start()
+		f.flush(t, 1)
+		if ep, ok := f.sessions[0].cfg.Translator.(*translate.Endpoint); !ok || ep.Format != want {
+			t.Errorf("%s: translator %+v, want format %s", id, f.sessions[0].cfg.Translator, want.ID)
+		}
 	}
 }
 
@@ -395,7 +620,7 @@ func TestRecommended(t *testing.T) {
 // starts again for another scene's.
 func TestRecognitionHints(t *testing.T) {
 	c, f, _, _, _ := engineCore(t)
-	c.SaveASRAPI(prefs.ASRAPI{ID: QwenCloud}, "sk-1")
+	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
 	c.Prefs.ASR = QwenCloud
 	id := c.AddScene("只狼")
 	c.AddTerm(id, scene.Term{Src: "一心", Tgt: "一心"})

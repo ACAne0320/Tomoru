@@ -6,10 +6,12 @@
 //	go run ./cmd/tomoru-bench -asr apple -mt cloud [-j 10] [-max 120] [-case id,...] [-lang ja] [-scene talk] [-all]
 //	go run ./cmd/tomoru-bench -mt cloud -mt-only    translate the references' sentences only
 //
-// -asr is apple, sensevoice, qwen3-asr-1.7b, qwen-cloud[:model] with DASHSCOPE_API_KEY and
-// DASHSCOPE_API_HOST, or openai[:model] (live transcription, or the transcription API for another
-// model than gpt-live-transcribe) with OPENAI_API_KEY and OPENAI_BASE_URL;
-// -mt is cloud, local-2b, local-9b, or chat with -mt-url, -mt-model and the key in $MT_API_KEY.
+// -asr is apple, a recognition model's ID (sensevoice, qwen3-asr-0.6b…), qwen-cloud[:model] with
+// DASHSCOPE_API_KEY and DASHSCOPE_API_HOST, or openai[:model] (live transcription, or the
+// transcription API for another model than gpt-live-transcribe) with OPENAI_API_KEY and
+// OPENAI_BASE_URL;
+// -mt is cloud[:model], a translation model's ID (local-2b…), or chat with -mt-url, -mt-model and
+// the key in $MT_API_KEY.
 // A run goes to bench/runs/<name>/: run.json, and <case>.json for each case. Another run of the same
 // name and engines adds its cases to it: a long run goes in batches.
 package main
@@ -30,6 +32,7 @@ import (
 	"tomoru/internal/asr"
 	"tomoru/internal/engine"
 	"tomoru/internal/live"
+	"tomoru/internal/models"
 	"tomoru/internal/scene"
 )
 
@@ -37,8 +40,19 @@ func main() {
 	log.SetFlags(0)
 	resourceDir := flag.String("resources", "", "bundled resources root (default: <bench>/../app/resources)")
 	benchDir := flag.String("bench", "", "the bench directory (default: ../bench or ./bench)")
-	asrName := flag.String("asr", "apple", "recognition: apple, sensevoice, qwen3-asr-1.7b, qwen-cloud[:model], openai[:model]")
-	mt := flag.String("mt", "cloud", "translation: cloud, local-2b, local-9b, chat")
+	var hear, local []string
+	for _, m := range models.All {
+		switch {
+		case m.ID == "sensevoice-small":
+			hear = append(hear, "sensevoice")
+		case m.ASR:
+			hear = append(hear, m.ID)
+		default:
+			local = append(local, m.ID)
+		}
+	}
+	asrName := flag.String("asr", "apple", "recognition: apple, "+strings.Join(hear, ", ")+", qwen-cloud[:model], openai[:model]")
+	mt := flag.String("mt", "cloud", "translation: cloud[:model], "+strings.Join(local, ", ")+", chat")
 	mtURL := flag.String("mt-url", "", "with -mt chat: the API's base URL, without /v1")
 	mtModel := flag.String("mt-model", "", "with -mt chat: the model")
 	draft := flag.Bool("draft", true, "translate sentences while they are spoken, as the app does by default")

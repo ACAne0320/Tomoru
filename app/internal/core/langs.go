@@ -16,19 +16,35 @@ import (
 // SourceLangs are the languages the recognition in use hears, in the order of lang.All: the
 // system's as it says, a model's, the cloud's. Any may be spoken while the system has not said,
 // and with no recognition chosen.
-func (c *Core) SourceLangs() []string {
-	var hears []string
-	if s, ok := asr.ByID(c.Prefs.ASR); ok {
-		if hears = s.Langs; hears == nil {
-			hears = c.sysLangs
-		}
+func (c *Core) SourceLangs() []string { return c.spoken(c.Prefs.ASR) }
+
+func (c *Core) spoken(id string) []string {
+	if hears := c.Hears(id); hears != nil {
+		return hears
 	}
-	spoken := lang.Spoken()
-	if hears == nil {
-		return spoken
-	}
-	return slices.DeleteFunc(spoken, func(l string) bool { return !slices.Contains(hears, l) })
+	return lang.Spoken()
 }
+
+// Hears are the languages recognition id hears that can be spoken, in the order of lang.All; nil
+// where that is not known: the system's before it says, or no recognition.
+func (c *Core) Hears(id string) []string {
+	s, ok := asr.ByID(id)
+	if !ok {
+		return nil
+	}
+	hears := s.Langs
+	if hears == nil {
+		hears = c.sysLangs
+	}
+	if hears == nil {
+		return nil
+	}
+	return slices.DeleteFunc(lang.Spoken(), func(l string) bool { return !slices.Contains(hears, l) })
+}
+
+// SpokenWith is the language spoken once recognition e is used: the one spoken now, if e hears it,
+// else the one fitLangs makes it.
+func (c *Core) SpokenWith(e Engine) string { return fitSrc(c.spoken(e.ID), c.Prefs.Src, c.Prefs.Tgt) }
 
 // TargetLangs are the languages to translate into: any of lang.All, as every translation engine
 // writes them.
@@ -38,19 +54,28 @@ func (c *Core) TargetLangs() []string { return slices.Clone(lang.All) }
 func (c *Core) CanSwap() bool { return slices.Contains(c.SourceLangs(), c.Prefs.Tgt) }
 
 // fitLangs makes the spoken language one the recognition hears, if it is not, and tells whether it
-// changed it: English, else Japanese, else the first it hears, but the target.
+// changed it.
 func (c *Core) fitLangs() bool {
-	srcs := c.SourceLangs()
-	if slices.Contains(srcs, c.Prefs.Src) {
+	src := fitSrc(c.SourceLangs(), c.Prefs.Src, c.Prefs.Tgt)
+	if src == c.Prefs.Src {
 		return false
 	}
+	c.Prefs.Src = src
+	return true
+}
+
+// fitSrc is src if srcs has it, else English, else Japanese, else the first of srcs, but tgt; src
+// where none is left.
+func fitSrc(srcs []string, src, tgt string) string {
+	if slices.Contains(srcs, src) {
+		return src
+	}
 	for _, l := range append([]string{"en", "ja"}, srcs...) {
-		if l != c.Prefs.Tgt && slices.Contains(srcs, l) {
-			c.Prefs.Src = l
-			return true
+		if l != tgt && slices.Contains(srcs, l) {
+			return l
 		}
 	}
-	return false
+	return src
 }
 
 // ListLangs asks the system which languages its recognition hears, once; the spoken language

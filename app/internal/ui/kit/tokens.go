@@ -53,9 +53,10 @@ type Palette struct {
 	// heatmap's days, a chart's bars, what is dimmed beside the one chosen. In dark it warms from
 	// the indigo through mauve, never through brown.
 	Amber [6]ui.Color
-	// Band is the ground of the option chosen in a list; DotRing a radio's ring, SwitchOff a
-	// switch's track while off.
-	Band, DotRing, SwitchOff ui.Color
+	// Band is the ground of the option chosen in a list; Shown, neutral, of the row a list shows
+	// the detail of beside it, which may not be the one chosen; DotRing a radio's ring, SwitchOff
+	// a switch's track while off.
+	Band, Shown, DotRing, SwitchOff ui.Color
 
 	// Strong is the face of a firm action's button and a chosen chip, StrongInk its label.
 	Strong, StrongInk ui.Color
@@ -78,11 +79,11 @@ type Palette struct {
 	// Series tell apart a chart's series of no color of their own, as one's own APIs in the
 	// statistics: the lantern's family, apart in lightness.
 	Series [4]ui.Color
-	// The engines' makers' colors, the engines' in charts: Apple's blue; Qwen's purple; Alibaba's
-	// orange, SenseVoice's; and bilibili's pink, Index-Translate's: in the cloud, deeper for 9B,
-	// paler for 2B.
-	Apple, Qwen, Alibaba ui.Color
-	Bilibili             [3]ui.Color
+	// The engines' makers' colors, the engines' in charts: Apple's blue; Qwen's purple, paler for
+	// Qwen3-ASR 0.6B; Alibaba's orange, SenseVoice's; and bilibili's pink, Index-Translate's: in
+	// the cloud, deeper for 9B, paler for 2B.
+	Apple, Qwen, QwenPale, Alibaba ui.Color
+	Bilibili                       [3]ui.Color
 }
 
 // Shadow is a shadow cast by what is raised: its offset, blur, spread and color.
@@ -113,7 +114,7 @@ var Light = Palette{
 	Lantern: ui.Hex("#f5a524"), LanternHover: ui.Hex("#f8b445"), LanternPressed: ui.Hex("#e0931a"),
 	LanternInk: ui.Hex("#232057"), LanternTint: ui.Hex("#fff0d1"), LanternText: ui.Hex("#8a5200"),
 	Amber: [6]ui.Color{ui.Hex("#f3ead8"), ui.Hex("#fbefd6"), ui.Hex("#fadda9"), ui.Hex("#fcc771"), ui.Hex("#f5a524"), ui.Hex("#d27908")},
-	Band:  ui.Hex("#fff3d9"), DotRing: ui.Hex("#c9b997"), SwitchOff: ui.Hex("#d1c3a6"),
+	Band:  ui.Hex("#fff3d9"), Shown: ui.Hex("#f4ead6"), DotRing: ui.Hex("#c9b997"), SwitchOff: ui.Hex("#d1c3a6"),
 
 	Strong: ui.Hex("#232057"), StrongInk: ui.Hex("#fbf6ec"),
 
@@ -129,7 +130,7 @@ var Light = Palette{
 	SubSrc: ui.Hex("#f4f2ff"), SubTgt: ui.Hex("#f5a524"),
 
 	Series: [4]ui.Color{ui.Hex("#f5a524"), ui.Hex("#8a5200"), ui.Hex("#e8cf9f"), ui.Hex("#4a3a24")},
-	Apple:  ui.Hex("#007aff"), Qwen: ui.Hex("#615ced"), Alibaba: ui.Hex("#ff6a00"),
+	Apple:  ui.Hex("#007aff"), Qwen: ui.Hex("#615ced"), QwenPale: ui.Hex("#aeabf6"), Alibaba: ui.Hex("#ff6a00"),
 	Bilibili: [3]ui.Color{ui.Hex("#fb7299"), ui.Hex("#d63f73"), ui.Hex("#fdb2c9")},
 }
 
@@ -153,7 +154,7 @@ var Dark = Palette{
 	Lantern: ui.Hex("#f5a524"), LanternHover: ui.Hex("#f8b445"), LanternPressed: ui.Hex("#e0931a"),
 	LanternInk: ui.Hex("#232057"), LanternTint: ui.Hex("#603d6b"), LanternText: ui.Hex("#ffc760"),
 	Amber: [6]ui.Color{ui.Hex("#181639"), ui.Hex("#53355c"), ui.Hex("#874463"), ui.Hex("#b95a4f"), ui.Hex("#de8035"), ui.Hex("#f5a524")},
-	Band:  ui.Hex("#4c3155"), DotRing: ui.Hex("#626396"), SwitchOff: ui.Hex("#555681"),
+	Band:  ui.Hex("#4c3155"), Shown: ui.Hex("#3c3c65"), DotRing: ui.Hex("#626396"), SwitchOff: ui.Hex("#555681"),
 
 	Strong: ui.Hex("#5455b6"), StrongInk: ui.Hex("#fbf3e2"),
 
@@ -169,7 +170,7 @@ var Dark = Palette{
 	SubSrc: ui.Hex("#f4f2ff"), SubTgt: ui.Hex("#f5a524"),
 
 	Series: [4]ui.Color{ui.Hex("#f5a524"), ui.Hex("#ffc760"), ui.Hex("#b8741a"), ui.Hex("#d9c9a3")},
-	Apple:  ui.Hex("#0a84ff"), Qwen: ui.Hex("#8f8af7"), Alibaba: ui.Hex("#ff7a1a"),
+	Apple:  ui.Hex("#0a84ff"), Qwen: ui.Hex("#8f8af7"), QwenPale: ui.Hex("#5d58b8"), Alibaba: ui.Hex("#ff7a1a"),
 	Bilibili: [3]ui.Color{ui.Hex("#fb7299"), ui.Hex("#ffa3c0"), ui.Hex("#c24d78")},
 }
 

@@ -1331,22 +1331,6 @@ func (msgs Messages) EngineCloudThanks() string {
 	return Catalog.Format(msgs.locale, "engineCloudThanks", nil)
 }
 
-// StarOnGithub says "Star"
-// in the language the app shows.
-//
-// A small button beside the thanks to Index-Translate's team: opens its
-// repository on GitHub, to star it. One short word.
-func StarOnGithub() string { return In(i18n.Locale()).StarOnGithub() }
-
-// StarOnGithub says "Star"
-// in the language of msgs.
-//
-// A small button beside the thanks to Index-Translate's team: opens its
-// repository on GitHub, to star it. One short word.
-func (msgs Messages) StarOnGithub() string {
-	return Catalog.Format(msgs.locale, "starOnGithub", nil)
-}
-
 // CloudSendsText says "The cloud service you choose receives the recognized text."
 // in the language the app shows.
 //
@@ -1361,38 +1345,6 @@ func CloudSendsText() string { return In(i18n.Locale()).CloudSendsText() }
 // what leaves the computer. One short line.
 func (msgs Messages) CloudSendsText() string {
 	return Catalog.Format(msgs.locale, "cloudSendsText", nil)
-}
-
-// CloudSendsPicture says "The cloud service you choose receives the pictures you translate."
-// in the language the app shows.
-//
-// Under the Picture Translation group, when the engine chosen for pictures
-// is in the cloud, as cloudSendsText is under translation's.
-func CloudSendsPicture() string { return In(i18n.Locale()).CloudSendsPicture() }
-
-// CloudSendsPicture says "The cloud service you choose receives the pictures you translate."
-// in the language of msgs.
-//
-// Under the Picture Translation group, when the engine chosen for pictures
-// is in the cloud, as cloudSendsText is under translation's.
-func (msgs Messages) CloudSendsPicture() string {
-	return Catalog.Format(msgs.locale, "cloudSendsPicture", nil)
-}
-
-// CloudSendsAudio says "The cloud service you choose receives the sound your computer plays."
-// in the language the app shows.
-//
-// Under the cloud's recognition services, in the settings and the guide:
-// what leaves the computer. One short line.
-func CloudSendsAudio() string { return In(i18n.Locale()).CloudSendsAudio() }
-
-// CloudSendsAudio says "The cloud service you choose receives the sound your computer plays."
-// in the language of msgs.
-//
-// Under the cloud's recognition services, in the settings and the guide:
-// what leaves the computer. One short line.
-func (msgs Messages) CloudSendsAudio() string {
-	return Catalog.Format(msgs.locale, "cloudSendsAudio", nil)
 }
 
 // DraftLabel says "Translate ahead"
@@ -2233,20 +2185,6 @@ func (msgs Messages) GuideMtLater() string {
 	return Catalog.Format(msgs.locale, "guideMtLater", nil)
 }
 
-// MemoryWarning says "This Mac has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
-// in the language the app shows.
-//
-// Under the 9B model, on a computer with less memory than it needs.
-func MemoryWarning(gb int) string { return In(i18n.Locale()).MemoryWarning(gb) }
-
-// MemoryWarning says "This Mac has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
-// in the language of msgs.
-//
-// Under the 9B model, on a computer with less memory than it needs.
-func (msgs Messages) MemoryWarning(gb int) string {
-	return Catalog.Format(msgs.locale, "memoryWarning", map[string]any{"gb": gb})
-}
-
 // MeteredNote says "You're on a metered connection: downloading uses {size} of data."
 // in the language the app shows.
 //
@@ -2431,20 +2369,6 @@ func (msgs Messages) AddEndpoint() string {
 	return Catalog.Format(msgs.locale, "addEndpoint", nil)
 }
 
-// EndpointEditTitle says "Edit translation API"
-// in the language the app shows.
-//
-// The title of the dialog that edits a translation API.
-func EndpointEditTitle() string { return In(i18n.Locale()).EndpointEditTitle() }
-
-// EndpointEditTitle says "Edit translation API"
-// in the language of msgs.
-//
-// The title of the dialog that edits a translation API.
-func (msgs Messages) EndpointEditTitle() string {
-	return Catalog.Format(msgs.locale, "endpointEditTitle", nil)
-}
-
 // EndpointIntro says "Works with OpenAI-compatible APIs, such as DeepSeek or Ollama."
 // in the language the app shows.
 //
@@ -2459,22 +2383,6 @@ func EndpointIntro() string { return In(i18n.Locale()).EndpointIntro() }
 // APIs work.
 func (msgs Messages) EndpointIntro() string {
 	return Catalog.Format(msgs.locale, "endpointIntro", nil)
-}
-
-// EndpointDescription says "{model} at {host}. The recognized text is sent there."
-// in the language the app shows.
-//
-// Under a translation API the user added.
-func EndpointDescription(model string, host string) string {
-	return In(i18n.Locale()).EndpointDescription(model, host)
-}
-
-// EndpointDescription says "{model} at {host}. The recognized text is sent there."
-// in the language of msgs.
-//
-// Under a translation API the user added.
-func (msgs Messages) EndpointDescription(model string, host string) string {
-	return Catalog.Format(msgs.locale, "endpointDescription", map[string]any{"model": model, "host": host})
 }
 
 // EndpointName says "Name"
@@ -2781,20 +2689,6 @@ func Undo() string { return In(i18n.Locale()).Undo() }
 // The button of a toast that takes back what was just done.
 func (msgs Messages) Undo() string {
 	return Catalog.Format(msgs.locale, "undo", nil)
-}
-
-// ModelReady says "{name} is ready to use"
-// in the language the app shows.
-//
-// A toast once a local translation model has downloaded and can be chosen.
-func ModelReady(name string) string { return In(i18n.Locale()).ModelReady(name) }
-
-// ModelReady says "{name} is ready to use"
-// in the language of msgs.
-//
-// A toast once a local translation model has downloaded and can be chosen.
-func (msgs Messages) ModelReady(name string) string {
-	return Catalog.Format(msgs.locale, "modelReady", map[string]any{"name": name})
 }
 
 // ModelDeleted says "Deleted {name}"
@@ -3219,52 +3113,6 @@ func (msgs Messages) Retry() string {
 	return Catalog.Format(msgs.locale, "retry", nil)
 }
 
-// EngineWhere says "Runs"
-// in the language the app shows.
-//
-// A field's name, before the choice between on device and cloud for
-// recognition or translation.
-func EngineWhere() string { return In(i18n.Locale()).EngineWhere() }
-
-// EngineWhere says "Runs"
-// in the language of msgs.
-//
-// A field's name, before the choice between on device and cloud for
-// recognition or translation.
-func (msgs Messages) EngineWhere() string {
-	return Catalog.Format(msgs.locale, "engineWhere", nil)
-}
-
-// EngineWaiting says "Switches over once downloaded; until then, {current} is used."
-// in the language the app shows.
-//
-// Under a model chosen and not downloaded yet: the engine in use meanwhile.
-func EngineWaiting(current string) string { return In(i18n.Locale()).EngineWaiting(current) }
-
-// EngineWaiting says "Switches over once downloaded; until then, {current} is used."
-// in the language of msgs.
-//
-// Under a model chosen and not downloaded yet: the engine in use meanwhile.
-func (msgs Messages) EngineWaiting(current string) string {
-	return Catalog.Format(msgs.locale, "engineWaiting", map[string]any{"current": current})
-}
-
-// AsrLocalNone says "There's no on-device recognition for this computer yet."
-// in the language the app shows.
-//
-// Where the on-device recognition engines would be listed, on a system that
-// has none yet.
-func AsrLocalNone() string { return In(i18n.Locale()).AsrLocalNone() }
-
-// AsrLocalNone says "There's no on-device recognition for this computer yet."
-// in the language of msgs.
-//
-// Where the on-device recognition engines would be listed, on a system that
-// has none yet.
-func (msgs Messages) AsrLocalNone() string {
-	return Catalog.Format(msgs.locale, "asrLocalNone", nil)
-}
-
 // ModelReadyInUse says "{name} is downloaded and now in use"
 // in the language the app shows.
 //
@@ -3279,20 +3127,20 @@ func (msgs Messages) ModelReadyInUse(name string) string {
 	return Catalog.Format(msgs.locale, "modelReadyInUse", map[string]any{"name": name})
 }
 
-// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
+// ModelRunsOnCpu says "Runs on the CPU, no GPU needed."
 // in the language the app shows.
 //
-// Under SenseVoice, a speech recognition model to download: that it runs on
-// the CPU, with no GPU needed.
-func EngineSenseVoiceDescription() string { return In(i18n.Locale()).EngineSenseVoiceDescription() }
+// Under a model to download that runs on the CPU, as SenseVoice: that it
+// needs no GPU.
+func ModelRunsOnCpu() string { return In(i18n.Locale()).ModelRunsOnCpu() }
 
-// EngineSenseVoiceDescription says "Runs on the CPU, no GPU needed."
+// ModelRunsOnCpu says "Runs on the CPU, no GPU needed."
 // in the language of msgs.
 //
-// Under SenseVoice, a speech recognition model to download: that it runs on
-// the CPU, with no GPU needed.
-func (msgs Messages) EngineSenseVoiceDescription() string {
-	return Catalog.Format(msgs.locale, "engineSenseVoiceDescription", nil)
+// Under a model to download that runs on the CPU, as SenseVoice: that it
+// needs no GPU.
+func (msgs Messages) ModelRunsOnCpu() string {
+	return Catalog.Format(msgs.locale, "modelRunsOnCpu", nil)
 }
 
 // ErrAsrModelMissing says "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation."
@@ -3359,60 +3207,18 @@ func (msgs Messages) EngineOpenAiDescription() string {
 	return Catalog.Format(msgs.locale, "engineOpenAiDescription", nil)
 }
 
-// EngineWaitingSetup says "Used once set up; until then, {current} is used."
-// in the language the app shows.
-//
-// Under a cloud service chosen and not set up yet: the engine in use
-// meanwhile.
-func EngineWaitingSetup(current string) string { return In(i18n.Locale()).EngineWaitingSetup(current) }
-
-// EngineWaitingSetup says "Used once set up; until then, {current} is used."
-// in the language of msgs.
-//
-// Under a cloud service chosen and not set up yet: the engine in use
-// meanwhile.
-func (msgs Messages) EngineWaitingSetup(current string) string {
-	return Catalog.Format(msgs.locale, "engineWaitingSetup", map[string]any{"current": current})
-}
-
-// SetUp says "Set up…"
-// in the language the app shows.
-//
-// Button that opens the dialog setting up a cloud service.
-func SetUp() string { return In(i18n.Locale()).SetUp() }
-
-// SetUp says "Set up…"
-// in the language of msgs.
-//
-// Button that opens the dialog setting up a cloud service.
-func (msgs Messages) SetUp() string {
-	return Catalog.Format(msgs.locale, "setUp", nil)
-}
-
-// AsrCloudTitle says "Cloud recognition"
-// in the language the app shows.
-//
-// Title of the dialog setting up the cloud speech recognition.
-func AsrCloudTitle() string { return In(i18n.Locale()).AsrCloudTitle() }
-
-// AsrCloudTitle says "Cloud recognition"
-// in the language of msgs.
-//
-// Title of the dialog setting up the cloud speech recognition.
-func (msgs Messages) AsrCloudTitle() string {
-	return Catalog.Format(msgs.locale, "asrCloudTitle", nil)
-}
-
 // AsrCloudIntro says "Create an API key in the Alibaba Cloud Model Studio console."
 // in the language the app shows.
 //
-// Under the title of the cloud recognition dialog.
+// Under the API key field of Qwen ASR on Alibaba Cloud: where to get one,
+// asrCloudConsole linking there.
 func AsrCloudIntro() string { return In(i18n.Locale()).AsrCloudIntro() }
 
 // AsrCloudIntro says "Create an API key in the Alibaba Cloud Model Studio console."
 // in the language of msgs.
 //
-// Under the title of the cloud recognition dialog.
+// Under the API key field of Qwen ASR on Alibaba Cloud: where to get one,
+// asrCloudConsole linking there.
 func (msgs Messages) AsrCloudIntro() string {
 	return Catalog.Format(msgs.locale, "asrCloudIntro", nil)
 }
@@ -3420,13 +3226,15 @@ func (msgs Messages) AsrCloudIntro() string {
 // AsrOpenAiIntro says "Create an API key on the OpenAI platform, or use one of a service compatible with its transcription API."
 // in the language the app shows.
 //
-// Under the title of the dialog setting up OpenAI's speech recognition.
+// Under the API key field of OpenAI's recognition: where to get one,
+// asrOpenAiPlatform linking there.
 func AsrOpenAiIntro() string { return In(i18n.Locale()).AsrOpenAiIntro() }
 
 // AsrOpenAiIntro says "Create an API key on the OpenAI platform, or use one of a service compatible with its transcription API."
 // in the language of msgs.
 //
-// Under the title of the dialog setting up OpenAI's speech recognition.
+// Under the API key field of OpenAI's recognition: where to get one,
+// asrOpenAiPlatform linking there.
 func (msgs Messages) AsrOpenAiIntro() string {
 	return Catalog.Format(msgs.locale, "asrOpenAiIntro", nil)
 }
@@ -4491,6 +4299,290 @@ func AddApi() string { return In(i18n.Locale()).AddApi() }
 // The last tile of the cloud translation: add an API of one's own.
 func (msgs Messages) AddApi() string {
 	return Catalog.Format(msgs.locale, "addApi", nil)
+}
+
+// UseEngine says "Use {name}"
+// in the language the app shows.
+//
+// For assistive technology: the radio button beside an engine in the list,
+// which uses it.
+func UseEngine(name string) string { return In(i18n.Locale()).UseEngine(name) }
+
+// UseEngine says "Use {name}"
+// in the language of msgs.
+//
+// For assistive technology: the radio button beside an engine in the list,
+// which uses it.
+func (msgs Messages) UseEngine(name string) string {
+	return Catalog.Format(msgs.locale, "useEngine", map[string]any{"name": name})
+}
+
+// Use says "Use"
+// in the language the app shows.
+//
+// The button of the toast saying a model downloaded: uses it.
+func Use() string { return In(i18n.Locale()).Use() }
+
+// Use says "Use"
+// in the language of msgs.
+//
+// The button of the toast saying a model downloaded: uses it.
+func (msgs Messages) Use() string {
+	return Catalog.Format(msgs.locale, "use", nil)
+}
+
+// SizeDownloading says "{size} downloading"
+// in the language the app shows.
+//
+// Under an engine in the list: one of its sizes is downloading.
+func SizeDownloading(size string) string { return In(i18n.Locale()).SizeDownloading(size) }
+
+// SizeDownloading says "{size} downloading"
+// in the language of msgs.
+//
+// Under an engine in the list: one of its sizes is downloading.
+func (msgs Messages) SizeDownloading(size string) string {
+	return Catalog.Format(msgs.locale, "sizeDownloading", map[string]any{"size": size})
+}
+
+// DoesntHear says "Doesn't hear {lang}"
+// in the language the app shows.
+//
+// Under a recognition engine in the list, in red: it does not recognize the
+// spoken language.
+func DoesntHear(lang string) string { return In(i18n.Locale()).DoesntHear(lang) }
+
+// DoesntHear says "Doesn't hear {lang}"
+// in the language of msgs.
+//
+// Under a recognition engine in the list, in red: it does not recognize the
+// spoken language.
+func (msgs Messages) DoesntHear(lang string) string {
+	return Catalog.Format(msgs.locale, "doesntHear", map[string]any{"lang": lang})
+}
+
+// DoesntHearSwitch says "Doesn't hear {lang}. Using it changes the spoken language to {then}."
+// in the language the app shows.
+//
+// In a recognition engine's detail, when it does not recognize the spoken
+// language: what using it changes.
+func DoesntHearSwitch(lang string, then string) string {
+	return In(i18n.Locale()).DoesntHearSwitch(lang, then)
+}
+
+// DoesntHearSwitch says "Doesn't hear {lang}. Using it changes the spoken language to {then}."
+// in the language of msgs.
+//
+// In a recognition engine's detail, when it does not recognize the spoken
+// language: what using it changes.
+func (msgs Messages) DoesntHearSwitch(lang string, then string) string {
+	return Catalog.Format(msgs.locale, "doesntHearSwitch", map[string]any{"lang": lang, "then": then})
+}
+
+// NeedsKey says "Add an API key to use it"
+// in the language the app shows.
+//
+// Under a cloud recognition service in the list, before it is set up.
+func NeedsKey() string { return In(i18n.Locale()).NeedsKey() }
+
+// NeedsKey says "Add an API key to use it"
+// in the language of msgs.
+//
+// Under a cloud recognition service in the list, before it is set up.
+func (msgs Messages) NeedsKey() string {
+	return Catalog.Format(msgs.locale, "needsKey", nil)
+}
+
+// NotDownloaded says "Not downloaded · {size}"
+// in the language the app shows.
+//
+// Under a model of one size in the list, before it is downloaded: its size.
+func NotDownloaded(size string) string { return In(i18n.Locale()).NotDownloaded(size) }
+
+// NotDownloaded says "Not downloaded · {size}"
+// in the language of msgs.
+//
+// Under a model of one size in the list, before it is downloaded: its size.
+func (msgs Messages) NotDownloaded(size string) string {
+	return Catalog.Format(msgs.locale, "notDownloaded", map[string]any{"size": size})
+}
+
+// SizesNotDownloaded says "{n} sizes · not downloaded"
+// in the language the app shows.
+//
+// Under a model of a few sizes in the list, none downloaded.
+func SizesNotDownloaded(n int) string { return In(i18n.Locale()).SizesNotDownloaded(n) }
+
+// SizesNotDownloaded says "{n} sizes · not downloaded"
+// in the language of msgs.
+//
+// Under a model of a few sizes in the list, none downloaded.
+func (msgs Messages) SizesNotDownloaded(n int) string {
+	return Catalog.Format(msgs.locale, "sizesNotDownloaded", map[string]any{"n": n})
+}
+
+// SizesDownloaded says "{n} sizes · {sizes} downloaded"
+// in the language the app shows.
+//
+// Under a model of a few sizes in the list, not in use: the sizes
+// downloaded.
+func SizesDownloaded(n int, sizes string) string { return In(i18n.Locale()).SizesDownloaded(n, sizes) }
+
+// SizesDownloaded says "{n} sizes · {sizes} downloaded"
+// in the language of msgs.
+//
+// Under a model of a few sizes in the list, not in use: the sizes
+// downloaded.
+func (msgs Messages) SizesDownloaded(n int, sizes string) string {
+	return Catalog.Format(msgs.locale, "sizesDownloaded", map[string]any{"n": n, "sizes": sizes})
+}
+
+// ListSeparator says ", "
+// in the language the app shows.
+//
+// Between the items of a list in a line: the sizes downloaded, the
+// languages a recognizer hears.
+func ListSeparator() string { return In(i18n.Locale()).ListSeparator() }
+
+// ListSeparator says ", "
+// in the language of msgs.
+//
+// Between the items of a list in a line: the sizes downloaded, the
+// languages a recognizer hears.
+func (msgs Messages) ListSeparator() string {
+	return Catalog.Format(msgs.locale, "listSeparator", nil)
+}
+
+// KeySaved says "key saved"
+// in the language the app shows.
+//
+// The end of a cloud recognition service's line once set up, after its
+// model and address.
+func KeySaved() string { return In(i18n.Locale()).KeySaved() }
+
+// KeySaved says "key saved"
+// in the language of msgs.
+//
+// The end of a cloud recognition service's line once set up, after its
+// model and address.
+func (msgs Messages) KeySaved() string {
+	return Catalog.Format(msgs.locale, "keySaved", nil)
+}
+
+// ModelSizes says "Size"
+// in the language the app shows.
+//
+// Heading of a model's sizes, in its detail.
+func ModelSizes() string { return In(i18n.Locale()).ModelSizes() }
+
+// ModelSizes says "Size"
+// in the language of msgs.
+//
+// Heading of a model's sizes, in its detail.
+func (msgs Messages) ModelSizes() string {
+	return Catalog.Format(msgs.locale, "modelSizes", nil)
+}
+
+// Service says "Service"
+// in the language the app shows.
+//
+// Heading of a cloud service's row, in its detail.
+func Service() string { return In(i18n.Locale()).Service() }
+
+// Service says "Service"
+// in the language of msgs.
+//
+// Heading of a cloud service's row, in its detail.
+func (msgs Messages) Service() string {
+	return Catalog.Format(msgs.locale, "service", nil)
+}
+
+// SupportedLanguages says "Supported languages"
+// in the language the app shows.
+//
+// Heading of the languages a recognition engine hears, in its detail.
+func SupportedLanguages() string { return In(i18n.Locale()).SupportedLanguages() }
+
+// SupportedLanguages says "Supported languages"
+// in the language of msgs.
+//
+// Heading of the languages a recognition engine hears, in its detail.
+func (msgs Messages) SupportedLanguages() string {
+	return Catalog.Format(msgs.locale, "supportedLanguages", nil)
+}
+
+// Downloaded says "Downloaded"
+// in the language the app shows.
+//
+// A tag beside a size of a model that is downloaded.
+func Downloaded() string { return In(i18n.Locale()).Downloaded() }
+
+// Downloaded says "Downloaded"
+// in the language of msgs.
+//
+// A tag beside a size of a model that is downloaded.
+func (msgs Messages) Downloaded() string {
+	return Catalog.Format(msgs.locale, "downloaded", nil)
+}
+
+// TooLarge says "Needs {need}\u00a0GB of memory; this computer has {has}\u00a0GB"
+// in the language the app shows.
+//
+// Under a size of a model this computer can't run, in red: the memory it
+// needs, and what the computer has.
+func TooLarge(need int, has int) string { return In(i18n.Locale()).TooLarge(need, has) }
+
+// TooLarge says "Needs {need}\u00a0GB of memory; this computer has {has}\u00a0GB"
+// in the language of msgs.
+//
+// Under a size of a model this computer can't run, in red: the memory it
+// needs, and what the computer has.
+func (msgs Messages) TooLarge(need int, has int) string {
+	return Catalog.Format(msgs.locale, "tooLarge", map[string]any{"need": need, "has": has})
+}
+
+// TooLargeGpu says "Needs {need}\u00a0GB of video memory; this computer has {has}\u00a0GB"
+// in the language the app shows.
+//
+// Under a size of a model this computer's graphics card can't run, in red:
+// the video memory it needs, and what the card has.
+func TooLargeGpu(need int, has int) string { return In(i18n.Locale()).TooLargeGpu(need, has) }
+
+// TooLargeGpu says "Needs {need}\u00a0GB of video memory; this computer has {has}\u00a0GB"
+// in the language of msgs.
+//
+// Under a size of a model this computer's graphics card can't run, in red:
+// the video memory it needs, and what the card has.
+func (msgs Messages) TooLargeGpu(need int, has int) string {
+	return Catalog.Format(msgs.locale, "tooLargeGpu", map[string]any{"need": need, "has": has})
+}
+
+// NotSetUp says "Not set up"
+// in the language the app shows.
+//
+// A cloud recognition service's row, before it is set up.
+func NotSetUp() string { return In(i18n.Locale()).NotSetUp() }
+
+// NotSetUp says "Not set up"
+// in the language of msgs.
+//
+// A cloud recognition service's row, before it is set up.
+func (msgs Messages) NotSetUp() string {
+	return Catalog.Format(msgs.locale, "notSetUp", nil)
+}
+
+// ModelDownloaded says "{name} downloaded"
+// in the language the app shows.
+//
+// A toast once a model has downloaded, beside a button that uses it.
+func ModelDownloaded(name string) string { return In(i18n.Locale()).ModelDownloaded(name) }
+
+// ModelDownloaded says "{name} downloaded"
+// in the language of msgs.
+//
+// A toast once a model has downloaded, beside a button that uses it.
+func (msgs Messages) ModelDownloaded(name string) string {
+	return Catalog.Format(msgs.locale, "modelDownloaded", map[string]any{"name": name})
 }
 
 // DownloadModel says "Download"
@@ -6379,20 +6471,6 @@ func (msgs Messages) LockedToastWin() string {
 	return Catalog.Format(msgs.locale, "lockedToastWin", nil)
 }
 
-// MemoryWarningWin says "This computer has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
-// in the language the app shows.
-//
-// Under the 9B model, on a Windows computer with less memory than it needs.
-func MemoryWarningWin(gb int) string { return In(i18n.Locale()).MemoryWarningWin(gb) }
-
-// MemoryWarningWin says "This computer has {gb}\u00a0GB of memory: the 9B model may be slow, and slow down other apps."
-// in the language of msgs.
-//
-// Under the 9B model, on a Windows computer with less memory than it needs.
-func (msgs Messages) MemoryWarningWin(gb int) string {
-	return Catalog.Format(msgs.locale, "memoryWarningWin", map[string]any{"gb": gb})
-}
-
 // SampleNoVoiceWin says "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings …"
 // in the language the app shows.
 //
@@ -6527,4 +6605,168 @@ func TryHearingWin() string { return In(i18n.Locale()).TryHearingWin() }
 // tryHearing on Windows.
 func (msgs Messages) TryHearingWin() string {
 	return Catalog.Format(msgs.locale, "tryHearingWin", nil)
+}
+
+// ErrMtCloudKey says "Cloud translation has no API key. Set it up in Settings › Speech & translation."
+// in the language the app shows.
+//
+// Where the subtitles show, when a cloud translation service is chosen
+// without its API key.
+func ErrMtCloudKey() string { return In(i18n.Locale()).ErrMtCloudKey() }
+
+// ErrMtCloudKey says "Cloud translation has no API key. Set it up in Settings › Speech & translation."
+// in the language of msgs.
+//
+// Where the subtitles show, when a cloud translation service is chosen
+// without its API key.
+func (msgs Messages) ErrMtCloudKey() string {
+	return Catalog.Format(msgs.locale, "errMtCloudKey", nil)
+}
+
+// AsrCloudConsole says "Alibaba Cloud Model Studio console"
+// in the language the app shows.
+//
+// The part of asrCloudIntro that links to the console's API key page: word
+// for word as it is there.
+func AsrCloudConsole() string { return In(i18n.Locale()).AsrCloudConsole() }
+
+// AsrCloudConsole says "Alibaba Cloud Model Studio console"
+// in the language of msgs.
+//
+// The part of asrCloudIntro that links to the console's API key page: word
+// for word as it is there.
+func (msgs Messages) AsrCloudConsole() string {
+	return Catalog.Format(msgs.locale, "asrCloudConsole", nil)
+}
+
+// AsrOpenAiPlatform says "OpenAI platform"
+// in the language the app shows.
+//
+// The part of asrOpenAiIntro that links to OpenAI's API key page: word for
+// word as it is there.
+func AsrOpenAiPlatform() string { return In(i18n.Locale()).AsrOpenAiPlatform() }
+
+// AsrOpenAiPlatform says "OpenAI platform"
+// in the language of msgs.
+//
+// The part of asrOpenAiIntro that links to OpenAI's API key page: word for
+// word as it is there.
+func (msgs Messages) AsrOpenAiPlatform() string {
+	return Catalog.Format(msgs.locale, "asrOpenAiPlatform", nil)
+}
+
+// EngineCloudSize says "Index-Translate {size} (cloud)"
+// in the language the app shows.
+//
+// A smaller size of Index-Translate in the cloud, by its size (9B): said to
+// be the cloud's, as there are local ones of that size.
+func EngineCloudSize(size string) string { return In(i18n.Locale()).EngineCloudSize(size) }
+
+// EngineCloudSize says "Index-Translate {size} (cloud)"
+// in the language of msgs.
+//
+// A smaller size of Index-Translate in the cloud, by its size (9B): said to
+// be the cloud's, as there are local ones of that size.
+func (msgs Messages) EngineCloudSize(size string) string {
+	return Catalog.Format(msgs.locale, "engineCloudSize", map[string]any{"size": size})
+}
+
+// EngineIndexCloud says "Index-Translate (bilibili)"
+// in the language the app shows.
+//
+// Index-Translate in the cloud, its sizes together, in the settings' list
+// of engines: by who serves it, as the other cloud services are.
+func EngineIndexCloud() string { return In(i18n.Locale()).EngineIndexCloud() }
+
+// EngineIndexCloud says "Index-Translate (bilibili)"
+// in the language of msgs.
+//
+// Index-Translate in the cloud, its sizes together, in the settings' list
+// of engines: by who serves it, as the other cloud services are.
+func (msgs Messages) EngineIndexCloud() string {
+	return Catalog.Format(msgs.locale, "engineIndexCloud", nil)
+}
+
+// LinkModelStudio says "Model Studio"
+// in the language the app shows.
+//
+// A small button at the top right of Qwen ASR's detail, in the settings:
+// opens the page of its models on Alibaba Cloud Model Studio. The
+// platform's name, short.
+func LinkModelStudio() string { return In(i18n.Locale()).LinkModelStudio() }
+
+// LinkModelStudio says "Model Studio"
+// in the language of msgs.
+//
+// A small button at the top right of Qwen ASR's detail, in the settings:
+// opens the page of its models on Alibaba Cloud Model Studio. The
+// platform's name, short.
+func (msgs Messages) LinkModelStudio() string {
+	return Catalog.Format(msgs.locale, "linkModelStudio", nil)
+}
+
+// SizeQuicker says "Quicker"
+// in the language the app shows.
+//
+// Before a model's size and what it needs, in its row in the settings: this
+// size translates or recognizes sooner than the family's other. One or two
+// words.
+func SizeQuicker() string { return In(i18n.Locale()).SizeQuicker() }
+
+// SizeQuicker says "Quicker"
+// in the language of msgs.
+//
+// Before a model's size and what it needs, in its row in the settings: this
+// size translates or recognizes sooner than the family's other. One or two
+// words.
+func (msgs Messages) SizeQuicker() string {
+	return Catalog.Format(msgs.locale, "sizeQuicker", nil)
+}
+
+// SizeMoreAccurate says "More accurate"
+// in the language the app shows.
+//
+// Before a model's size and what it needs, in its row in the settings: this
+// size makes fewer mistakes than the family's other. One or two words.
+func SizeMoreAccurate() string { return In(i18n.Locale()).SizeMoreAccurate() }
+
+// SizeMoreAccurate says "More accurate"
+// in the language of msgs.
+//
+// Before a model's size and what it needs, in its row in the settings: this
+// size makes fewer mistakes than the family's other. One or two words.
+func (msgs Messages) SizeMoreAccurate() string {
+	return Catalog.Format(msgs.locale, "sizeMoreAccurate", nil)
+}
+
+// RunsHere says "Runs on this computer"
+// in the language the app shows.
+//
+// After a model's size, in its row in the settings and the guide: this
+// computer has the memory it needs. Short, plain.
+func RunsHere() string { return In(i18n.Locale()).RunsHere() }
+
+// RunsHere says "Runs on this computer"
+// in the language of msgs.
+//
+// After a model's size, in its row in the settings and the guide: this
+// computer has the memory it needs. Short, plain.
+func (msgs Messages) RunsHere() string {
+	return Catalog.Format(msgs.locale, "runsHere", nil)
+}
+
+// ModelAndAddress says "Model and address"
+// in the language the app shows.
+//
+// A fold under a cloud service's API key, in the settings: opens its model
+// and address fields, which most leave as they are.
+func ModelAndAddress() string { return In(i18n.Locale()).ModelAndAddress() }
+
+// ModelAndAddress says "Model and address"
+// in the language of msgs.
+//
+// A fold under a cloud service's API key, in the settings: opens its model
+// and address fields, which most leave as they are.
+func (msgs Messages) ModelAndAddress() string {
+	return Catalog.Format(msgs.locale, "modelAndAddress", nil)
 }

@@ -73,13 +73,13 @@ func (c *Core) Start() {
 	}
 	request := sessionRequest{Config: cfg, Ready: ready, Local: local, Err: err}
 	spec, _ := asr.ByID(p.ASR)
-	served := spec.Model != nil && spec.Model.Runtime == "llama"
+	served := spec.Model != nil && spec.Model.Served()
 	if !served && c.deps.ASRServer != nil {
 		c.deps.ASRServer.Stop() // its memory back, the model not in use
 	}
 	switch {
 	case spec.Cloud:
-		providers, api, hints := c.EngineService, c.ASRAPI(p.ASR), c.hints()
+		providers, api, hints := c.EngineService, c.API(p.ASR), c.hints()
 		request.Prepare = func(ctx context.Context, cfg *live.Config) error {
 			// Credential access may block; resolve it with the translator's background
 			// preparation, before the application thread starts the runtime.
@@ -122,7 +122,7 @@ func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 		if c.deps.Models == nil || c.deps.Models.Status(id).State != models.Ready {
 			return nil, ErrASRMissing
 		}
-		if s.Model.Runtime == "llama" {
+		if s.Model.Served() {
 			if c.deps.ASRServer == nil {
 				return nil, ErrASRMissing
 			}

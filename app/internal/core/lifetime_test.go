@@ -104,7 +104,7 @@ func TestCloudCredentialPreparationDoesNotBlockApplicationThread(t *testing.T) {
 	c, f := newCore(t)
 	secrets := &blockingCredentials{started: make(chan struct{}), release: make(chan struct{})}
 	c.EngineService.secrets = secrets
-	c.UpdatePrefs(func(p *prefs.Prefs) { p.ASR = QwenCloud; p.ASRAPIs = []prefs.ASRAPI{{ID: QwenCloud, Key: true}} })
+	c.UpdatePrefs(func(p *prefs.Prefs) { p.ASR = QwenCloud; p.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}} })
 	returned := make(chan struct{})
 	// This goroutine stands in for the application thread. No test accesses Core
 	// until its return is synchronized; credential IO must run on another worker.

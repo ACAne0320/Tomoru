@@ -14,6 +14,7 @@ import (
 
 	"tomoru/internal/core"
 	"tomoru/internal/core/coretest"
+	"tomoru/internal/models"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/usage"
 	"tomoru/locales"
@@ -195,6 +196,21 @@ func TestEngineColors(t *testing.T) {
 	}
 	if !slices.Contains(p.Series[:], engineColor(p, "custom:or")) || engineColor(p, "") != p.LineStrong {
 		t.Error("one's own API, or none noted")
+	}
+	for id, want := range map[string]ui.Color{
+		"local-2b": p.Bilibili[2], "local-9b": p.Bilibili[1], // paler for the smaller
+		"qwen3-asr-0.6b": p.QwenPale, "qwen3-asr-1.7b": p.Qwen, core.QwenCloud: p.Qwen, "sensevoice-small": p.Alibaba,
+	} {
+		if got := engineColor(p, id); got != want {
+			t.Errorf("%s: %v, want its maker's %v", id, got, want)
+		}
+	}
+	for i, a := range models.All {
+		for _, b := range models.All[i+1:] {
+			if a.Family == b.Family && engineColor(p, a.ID) == engineColor(p, b.ID) {
+				t.Errorf("%s and %s alike", a.ID, b.ID)
+			}
+		}
 	}
 }
 

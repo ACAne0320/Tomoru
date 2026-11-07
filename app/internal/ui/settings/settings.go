@@ -24,18 +24,17 @@ type Settings struct {
 	nav    shared.Nav
 	Tab    string // the page: "home", "general", "scenes", "history", "stats", "subtitles", "engines" or "about"
 	source shared.SourceMenu
-	edit   endpointEdit
-	cloud  shared.ASRCloudEdit
-	edits  int                     // the endpoint dialogs opened, to tell their tests apart
+	edit   endpointEdit            // learning names' dialog adding an API
+	edits  int                     // the forms opened, to tell their tests apart
 	models map[string]models.State // the local models' states, as last shown: one coming in says so
 	// modelsMoving is the models moving to another folder, as last shown: once there, it says so.
 	modelsMoving bool
-	sides        map[core.Kind]bool      // the side of the engines page looked at, the cloud's if true; else the chosen engine's
 	keys         shared.ShortcutRecorder // start and stop's
 	imageKeys    shared.ShortcutRecorder // the picture's
 	// customColors shows the subtitles' colors of one's own, chosen as a scheme's swatch is.
 	customColors bool
 	navWidth     float32 // the sidebar's, as the language shown has it
+	enginesEdit
 	sceneEdit
 	historyEdit
 	learn     learnEdit
@@ -45,7 +44,7 @@ type Settings struct {
 }
 
 func New(k *core.Core, nav shared.Nav) *Settings {
-	return &Settings{core: k, nav: nav, Tab: "home", models: map[string]models.State{}, sides: map[core.Kind]bool{},
+	return &Settings{core: k, nav: nav, Tab: "home", models: map[string]models.State{}, enginesEdit: enginesEdit{shown: map[core.Kind]string{}},
 		statsEdit: statsEdit{kind: 1, bar: -1, latBar: -1}}
 }
 

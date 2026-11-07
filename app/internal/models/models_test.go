@@ -355,13 +355,12 @@ func TestRealDownload(t *testing.T) {
 	}
 }
 
-// TestVisions: each translation model comes with its vision projector, and each recognition model
-// llama-server runs with its audio projector, one of its files, which VisionOf finds once the model
-// is downloaded; tomoru-asr's recognition models have none.
+// TestVisions: a translation model that reads pictures comes with its vision projector, and each
+// recognition model llama-server runs with its audio projector, one of its files, which VisionOf
+// finds once the model is downloaded; tomoru-asr's recognition models have none.
 func TestVisions(t *testing.T) {
 	for _, m := range All {
-		projects := !m.ASR || m.Runtime == "llama"
-		if (m.Vision != "") != projects || m.Vision != "" && !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == m.Vision }) {
+		if m.ASR && (m.Vision != "") != m.Served() || m.Vision != "" && !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == m.Vision }) {
 			t.Errorf("%s: vision %q", m.ID, m.Vision)
 		}
 	}

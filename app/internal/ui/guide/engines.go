@@ -2,6 +2,7 @@ package guide
 
 import (
 	"cmp"
+	"slices"
 	"time"
 
 	"github.com/egoist/mygo/ui"
@@ -28,7 +29,7 @@ func (g *Guide) recognition(c *ui.Context) {
 }
 
 // recognitionChoices are the recognition step's choices, as the settings list them: the system's,
-// then the models, Qwen3-ASR recommended where the GPU runs it.
+// then the models, a family a row, its size picked for this computer.
 func (g *Guide) recognitionChoices(c *ui.Context) {
 	k := g.core
 	ui.Column(c).Gap(kit.Space(2)).Role(ui.RoleRadioGroup).Label(locales.GuideAsrChoose()).Children(func() {
@@ -39,19 +40,11 @@ func (g *Guide) recognitionChoices(c *ui.Context) {
 			o, take := g.systemOption(c)
 			rows, takes = append(rows, o), append(takes, take)
 		}
-		for _, e := range k.Engines(core.ASR) {
-			if e.Model == nil {
-				continue
+		for _, f := range k.Families(core.ASR) {
+			if f[0].Model != nil {
+				o, take := g.modelOption(c, f)
+				rows, takes = append(rows, o), append(takes, take)
 			}
-			tag, body := "", ""
-			if k.Recommended(e) {
-				tag = locales.TagRecommended()
-			}
-			if e.ID == "sensevoice-small" {
-				body = locales.EngineSenseVoiceDescription()
-			}
-			o, take := g.modelOption(c, core.ASR, *e.Model, tag, body)
-			rows, takes = append(rows, o), append(takes, take)
 		}
 		choices(c, rows, takes)
 	})
@@ -68,28 +61,33 @@ func (g *Guide) translation(c *ui.Context) {
 	g.part(c, 1, func() { g.translationChoices(c) })
 }
 
-// translationChoices are the translation step's choices: this computer's models, then the cloud.
+// translationChoices are the translation step's choices: this computer's models, a family a row,
+// then the cloud.
 func (g *Guide) translationChoices(c *ui.Context) {
 	k := g.core
 	ui.Column(c).Gap(kit.Space(2)).Role(ui.RoleRadioGroup).Children(func() {
 		section(c, locales.TagLocal())
 		var rows []kit.Option
 		var takes []func()
-		for _, m := range models.All {
-			if !m.ASR {
-				o, take := g.modelOption(c, core.MT, m, "", "")
+		for _, f := range k.Families(core.MT) {
+			if f[0].Model != nil {
+				o, take := g.modelOption(c, f)
 				rows, takes = append(rows, o), append(takes, take)
 			}
 		}
 		choices(c, rows, takes)
 		section(c, locales.TagCloud())
-		cloud := k.Chosen(core.MT) == "cloud"
+		cloud, _ := k.Engine(core.MT, "cloud")
+		on := k.Chosen(core.MT) == cloud.ID
 		kit.OptionsCard(c).Children(func() {
-			o := kit.Option{Key: "cloud", On: cloud, Title: shared.CloudName, Tag: locales.TagRecommended(), Accent: true, Meta: locales.EngineCloudThanks()}
-			if kit.Options(c, []kit.Option{o}) == 0 && !cloud {
-				k.Choose(core.MT, "cloud")
+			o := kit.Option{Key: cloud.ID, On: on, Title: shared.CloudName, Meta: locales.EngineCloudThanks()}
+			if k.Recommended(cloud) {
+				o.Tag, o.Accent = locales.TagRecommended(), true
 			}
-			kit.Caption(c, shared.CloudSends(core.MT)).Margin(kit.Space(2), kit.Space(3), kit.Space(3))
+			if kit.Options(c, []kit.Option{o}) == 0 && !on {
+				k.Choose(core.MT, cloud.ID)
+			}
+			kit.Caption(c, locales.CloudSendsText()).Margin(kit.Space(2), kit.Space(3), kit.Space(3))
 		})
 	})
 }
@@ -130,13 +128,19 @@ func (g *Guide) systemOption(c *ui.Context) (kit.Option, func()) {
 	return o, func() { k.Choose(core.ASR, "apple") }
 }
 
-// modelOption is a model to download as a choice of kind, as the settings list it: its name and
-// tag over shared.ModelNote of body; under them why its download failed, or its download's
-// progress, under way or stopped; and at its end its download's button, or cancelling it. Chosen,
-// it is downloaded, and used once it is; the step says so once for all. It returns the row and
-// taking it.
-func (g *Guide) modelOption(c *ui.Context, kind core.Kind, m models.Model, tag, body string) (kit.Option, func()) {
+// modelOption is a family of models as a choice, its size picked for the user: the one chosen if
+// it is of the family, else the one core.Suggested offers. Its name and tag over its size and
+// shared.ModelNote; under them why its download failed, or its download's progress, under way or
+// stopped; and at its end its download's button, or cancelling it. Chosen, it is downloaded, and
+// used once it is; the step says so once for all. It returns the row and taking it.
+func (g *Guide) modelOption(c *ui.Context, f []core.Engine) (kit.Option, func()) {
 	k := g.core
+	kind := f[0].Kind
+	e := k.Suggested(f)
+	if i := slices.IndexFunc(f, func(e core.Engine) bool { return e.ID == k.Chosen(kind) }); i >= 0 {
+		e = f[i]
+	}
+	m := *e.Model
 	st := k.ModelStatus(m.ID)
 	if st.State == models.Downloading {
 		c.After(250 * time.Millisecond)
@@ -147,8 +151,10 @@ func (g *Guide) modelOption(c *ui.Context, kind core.Kind, m models.Model, tag, 
 			k.Download(m.ID)
 		}
 	}
-	o := kit.Option{Key: m.ID, On: k.Chosen(kind) == m.ID, Title: shared.EngineName(core.Engine{ID: m.ID}), Tag: tag, Accent: tag != "",
-		Meta: shared.ModelNote(m, st, body)}
+	o := kit.Option{Key: m.Family, On: k.Chosen(kind) == m.ID, Title: m.Family, Meta: m.Label + " · " + shared.ModelNote(m, st, k.Runs(m))}
+	if k.Recommended(e) {
+		o.Tag, o.Accent = locales.TagRecommended(), true
+	}
 	switch why := shared.DownloadError(st.Err); {
 	case why != "" && st.State == models.Missing:
 		o.Below = func() { kit.Warning(c, why).MaxLines(1).Tooltip(why) }
@@ -249,7 +255,7 @@ func (g *Guide) enginesStage(c *ui.Context, focus core.Kind) {
 	case core.QwenCloud, core.OpenAI:
 		where = locales.TagCloud()
 	case "":
-		asr.ID = "sensevoice-small" // the stage shows the way of a sentence, chosen or not
+		asr = k.Engines(core.ASR)[0] // the stage shows the way of a sentence, chosen or not
 	}
 	pal := kit.Colors(c)
 	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6)).Children(func() {

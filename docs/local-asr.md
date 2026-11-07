@@ -13,7 +13,7 @@ the cloud.
 |---|---|
 | Runtime | sherpa-onnx (C API + Go bindings, pinned at v1.13.8). It also supports Qwen3-ASR, Fun-ASR-Nano, Whisper and more; after evaluation only SenseVoice is used (see "Other models" below) |
 | Process | Recognition runs in its own process, `tomoru-asr` (Go + cgo), started and stopped by the app like llama-server: a crash doesn't take the UI down, stopping gives the memory back to the system, and the app itself needs no cgo |
-| Models | Only SenseVoice Small for now, downloaded when the user chooses it, not bundled with the app (230 MB, which every update would download again, and which users of cloud recognition never need) |
+| Models | Only SenseVoice Small for now, downloaded when the user asks for it, not bundled with the app (230 MB, which every update would download again, and which users of cloud recognition never need) |
 
 ## Architecture
 

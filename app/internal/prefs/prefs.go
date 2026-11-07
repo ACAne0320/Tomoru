@@ -65,12 +65,13 @@ type Prefs struct {
 	// "openai"), used as set up in ASRAPIs; or "" where the system has none and the
 	// user chose none yet.
 	ASR     string
-	ASRAPIs []ASRAPI // the cloud recognition services the user set up
+	ASRAPIs []Service // the cloud recognition services the user set up
 	// ASRCloud is Qwen's service as settings kept it before ASRAPIs: read, it moves into them.
 	ASRCloud *ASRCloud `json:",omitempty"`
-	// MT is the translation engine: "cloud", a local model's ID ("local-2b"), or "custom:" and
-	// the ID of one of Endpoints.
+	// MT is the translation engine: "cloud", a local model's ID ("local-2b"), a cloud service's
+	// ID, used as set up in MTAPIs, or "custom:" and the ID of one of Endpoints.
 	MT        string
+	MTAPIs    []Service  // the cloud translation services the user set up
 	Endpoints []Endpoint // the translation APIs the user added
 	// ImageMT is the engine that translates pictures, named as MT is, one that reads them: the
 	// cloud, a local model with its vision projector, or an endpoint not found to read none. ""
@@ -98,7 +99,11 @@ type Endpoint struct {
 	Name  string
 	URL   string // the base, as https://api.openai.com, without /v1
 	Model string
-	Index bool // prompted as Index-Translate is, rather than as a chat model
+	// Format is how it is prompted, as translate's formats are named: "chat", "index" (as
+	// Index-Translate is).
+	Format string
+	// Index is Format as settings kept it before, true for "index": read, it moves into Format.
+	Index bool `json:",omitempty"`
 	// Vision is whether it reads pictures, as its last test found.
 	Vision Vision `json:",omitempty"`
 }
@@ -112,10 +117,10 @@ const (
 	VisionNo
 )
 
-// ASRAPI is a cloud recognition service the user set up. Its API key is in the system's credential
-// store, not here.
-type ASRAPI struct {
-	ID    string // the service, as asr.Specs names it: "qwen-cloud", "openai"
+// Service is a cloud service the user set up, of recognition or of translation. Its API key is in
+// the system's credential store, not here.
+type Service struct {
+	ID    string // the service, as asr.Specs or core names it: "qwen-cloud", "openai"
 	URL   string // its address, "" for the service's
 	Model string // "" for the service's default
 	Key   bool   // an API key is kept: the service can be used
@@ -128,11 +133,16 @@ type ASRCloud struct {
 	Key   bool
 }
 
-// ASRAPI finds a recognition service the user set up, by ID.
-func (p *Prefs) ASRAPI(id string) (*ASRAPI, bool) {
-	for i := range p.ASRAPIs {
-		if p.ASRAPIs[i].ID == id {
-			return &p.ASRAPIs[i], true
+// APIs are the cloud services the user set up, of both kinds.
+func (p *Prefs) APIs() []Service { return slices.Concat(p.ASRAPIs, p.MTAPIs) }
+
+// API finds a cloud service the user set up, of either kind, by ID.
+func (p *Prefs) API(id string) (*Service, bool) {
+	for _, apis := range [][]Service{p.ASRAPIs, p.MTAPIs} {
+		for i := range apis {
+			if apis[i].ID == id {
+				return &apis[i], true
+			}
 		}
 	}
 	return nil, false
@@ -154,7 +164,7 @@ func (p *Prefs) Endpoint(id string) (*Endpoint, bool) {
 // Clone is a copy of p that shares nothing with it.
 func (p Prefs) Clone() Prefs {
 	p.Endpoints = slices.Clone(p.Endpoints)
-	p.ASRAPIs = slices.Clone(p.ASRAPIs)
+	p.ASRAPIs, p.MTAPIs = slices.Clone(p.ASRAPIs), slices.Clone(p.MTAPIs)
 	p.ASRCloud = nil
 	return p
 }
@@ -236,10 +246,20 @@ func (p *Prefs) fix(d Prefs) {
 	}
 	if a := p.ASRCloud; a != nil {
 		// Its key is kept under the same name: the service's ID.
-		if _, ok := p.ASRAPI("qwen-cloud"); !ok && (a.Key || a.Host != "" || a.Model != "") {
-			p.ASRAPIs = append(p.ASRAPIs, ASRAPI{ID: "qwen-cloud", URL: a.Host, Model: a.Model, Key: a.Key})
+		if _, ok := p.API("qwen-cloud"); !ok && (a.Key || a.Host != "" || a.Model != "") {
+			p.ASRAPIs = append(p.ASRAPIs, Service{ID: "qwen-cloud", URL: a.Host, Model: a.Model, Key: a.Key})
 		}
 		p.ASRCloud = nil
+	}
+	for i := range p.Endpoints {
+		e := &p.Endpoints[i]
+		if e.Format == "" {
+			e.Format = "chat"
+			if e.Index {
+				e.Format = "index"
+			}
+		}
+		e.Index = false
 	}
 	if p.Shortcut == "" {
 		p.Shortcut = d.Shortcut

@@ -75,8 +75,8 @@ type Deps struct {
 	ASRServer Server
 	Secrets   Secrets
 	// GPU is the memory of the largest GPU here llama-server runs models on, in bytes: 0 for none,
-	// or not known yet. Without it, none.
-	GPU func() uint64
+	// or not known yet. Without it, none. Memory is the computer's, 0 or nil where not known.
+	GPU, Memory func() uint64
 	// Proxy has the cloud reached as the settings say: directly with off, else through addr, or
 	// the system's proxy when "" (package proxy). SystemProxy is the system's, as Preferences
 	// shows it: "" for none. Without them, as Go's transport does.

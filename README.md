@@ -139,7 +139,7 @@ Want to contribute? See [CONTRIBUTING](CONTRIBUTING.md). Report security issues 
 
 | For | Project | By |
 |---|---|---|
-| Translation (the free 35B cloud API, the on-device 2B / 9B models) | [Index-Translate](https://github.com/bilibili/Index-Translate) | [bilibili's Index team](https://huggingface.co/IndexTeam) |
+| Translation (the free cloud API, 2B / 9B / 35B; the on-device 2B / 9B models) | [Index-Translate](https://github.com/bilibili/Index-Translate) | [bilibili's Index team](https://huggingface.co/IndexTeam) |
 | Speech recognition | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [Alibaba's Qwen Audio team](https://github.com/QwenAudio) |
 | Speech recognition | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [Alibaba's Qwen team](https://github.com/QwenLM) |
 | Speech recognition on macOS | [Apple speech recognition](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com) |

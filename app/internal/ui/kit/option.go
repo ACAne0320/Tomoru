@@ -17,7 +17,11 @@ type Option struct {
 	Title  string // its name
 	Tag    string // a word beside the name, in amber if Accent: Recommended, Built in
 	Accent bool
+	Done   string // a word after the tag, in green: Downloaded
 	Meta   string // what it is, under the name
+	Warn   bool   // Meta says what keeps it from running, in red
+	// Off tells it can't be chosen yet: its dot is dashed, and clicking it does nothing.
+	Off    bool
 	Action func() // what is done with it, at the row's end: Download, Delete, Edit
 	Below  func() // what goes under its name and meta, across the row: a download's progress, a note
 }
@@ -63,28 +67,48 @@ func optionRow(c *ui.Context, o Option) ui.Element {
 	if o.On {
 		face = p.Band
 	}
+	text := func() {
+		ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
+			ui.Row(c).Gap(Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
+				ui.Text(c, o.Title).FontSize(TextBody).FontWeight(WeightBold).TextColor(p.Ink)
+				switch {
+				case o.Tag != "" && o.Accent:
+					AccentTag(c, o.Tag)
+				case o.Tag != "":
+					Tag(c, o.Tag)
+				}
+				if o.Done != "" {
+					OkTag(c, o.Done)
+				}
+			})
+			if o.Meta != "" {
+				ink := p.InkMuted
+				if o.Warn {
+					ink = p.Danger
+				}
+				ui.Text(c, o.Meta).FontSize(TextCaption).TextColor(ink).MaxLines(2)
+			}
+		})
+	}
 	var pick ui.Element
 	row.Background(row.AnimateColor("face", face, Fade)).Children(func() {
 		ui.Row(c).Gap(Space(3)).AlignItems(ui.Center).Children(func() {
-			pick = ui.ButtonBase(c).Grow(1).MinWidth(0).Gap(optGap).Justify(ui.Start).AlignItems(ui.Center).
-				Role(ui.RoleRadio).Checked(o.On).Label(o.Title).Cursor(ui.CursorPointer)
-			pick.Children(func() {
-				Dot(c, o.On)
-				ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
-					ui.Row(c).Gap(Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
-						ui.Text(c, o.Title).FontSize(TextBody).FontWeight(WeightBold).TextColor(p.Ink)
-						switch {
-						case o.Tag != "" && o.Accent:
-							AccentTag(c, o.Tag)
-						case o.Tag != "":
-							Tag(c, o.Tag)
-						}
-					})
-					if o.Meta != "" {
-						ui.Text(c, o.Meta).FontSize(TextCaption).TextColor(p.InkMuted).MaxLines(2)
-					}
+			if o.Off {
+				// Only the radio is disabled, which fades what is in it: the text stays as legible
+				// as the others'.
+				ui.Row(c).Grow(1).MinWidth(0).Gap(optGap).AlignItems(ui.Center).Children(func() {
+					pick = ui.ButtonBase(c).Shrink(0).Role(ui.RoleRadio).Checked(false).Label(o.Title).Disabled(true).
+						Children(func() { dotOff(c) })
+					text()
 				})
-			})
+			} else {
+				pick = ui.ButtonBase(c).Grow(1).MinWidth(0).Gap(optGap).Justify(ui.Start).AlignItems(ui.Center).
+					Role(ui.RoleRadio).Checked(o.On).Label(o.Title).Cursor(ui.CursorPointer).
+					Children(func() {
+						Dot(c, o.On)
+						text()
+					})
+			}
 			if o.Action != nil {
 				o.Action()
 			}
@@ -128,6 +152,12 @@ func Dot(c *ui.Context, on bool) ui.Element {
 	dot := ui.Box(c).Size(dotSize, dotSize).Radius(Pill(dotSize)).Shrink(0)
 	a := ui.Animation{Duration: 180 * time.Millisecond}
 	return dot.Background(dot.AnimateColor("heart", heart, a)).Border(dot.AnimateTo("ring", ring, a), dot.AnimateColor("color", col, a))
+}
+
+// dotOff is the dot of a radio button that can't be chosen yet, in one disabled, which fades it:
+// its ring dashed.
+func dotOff(c *ui.Context) ui.Element {
+	return ui.Box(c).Size(dotSize, dotSize).Radius(Pill(dotSize)).Shrink(0).Border(2, Colors(c).DotRing).BorderStyle(ui.BorderDashed)
 }
 
 // OptionProgress is a download's progress under an Option's meta: its bar, across, and how far it

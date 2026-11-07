@@ -111,7 +111,6 @@ type Caps struct {
 // Spec is a recognizer to choose. asr.Specs lists them; the catalog and the settings read it.
 type Spec struct {
 	ID                string        // as prefs.ASR names it
-	Family            Family        // Stream or Batch
 	Cloud             bool          // what is heard leaves the computer
 	Billed            bool          // the service bills the audio sent: hang up while nobody speaks
 	URL               string        // a cloud's address unless the user gives one
@@ -181,6 +180,16 @@ type Spec struct {
 - 语音段越过 1 s 以内的停顿继续（`Gap`）：只狼的「ほら昔聞かせてくれたであろう」能连成一句。每 0.5 s 解码一次，超过 15 s 在下一个停顿处定稿。
 - `llama-server --list-devices` 显示有 GPU 且内存够（3 GB）时，引擎页推荐它；默认仍是 SenseVoice。
 
+Qwen3-ASR 0.6B，2026-11-07 加入，给显存不够跑 1.7B 的 GPU：适配器相同，文件来自同一发布者（`ggml-org/Qwen3-ASR-0.6B-GGUF`，Q8_0，768 MB，投影器 205 MB）。M5 上的快速集，一次一段，两个大小同一天重跑：
+
+| | 错误率 % 中 / 英 / 日 / 韩 | 错误率 % | 上屏 p50 / p90 | 见到译文 p50 / p90 | chrF | 内存 |
+|---|---|---|---|---|---|---|
+| 0.6B | 9.6 / 1.3 / 22.0 / 25.1 | 15.3 | 1.31 / 3.33 s | 2.16 / 5.43 s | 24.2 | 1.9 GB |
+| 1.7B | 9.8 / 1.3 / 22.8 / 20.6 | 13.9 | 1.70 / 6.51 s | 2.56 / 5.24 s | 24.2 | 3.1 GB |
+
+- 除了韩语都一样好，韩语综艺里的闲聊它听错得多；原文早 0.4 s 出现。推荐的大小仍是 1.7B。
+- 内存是 Metal 的，用 app 的参数从 llama-server 日志读出：权重、上下文、计算和投影器（1862 MiB；1.7B 是 3141）。它的 Needs（内存和显存各 2 GB）据此估计，还没在 Windows 上跑过。
+
 第 5 步 OpenAI 转写，2026-10-31 完成（M5 上的快速集，4 段同时跑：云端服务互不影响）：
 
 | | 错误率 % | 漏字 % | 上屏 p50 / p90 | 见到译文 p50 / p90 | chrF | 过长 % |
@@ -199,7 +208,7 @@ type Spec struct {
 - `asr/openai`：调用 `POST {base}/v1/audio/transcriptions` 的整段解码器，把这段作为 WAV 发送，带上 `model`、`language`（ISO-639-1：繁体中文发 `zh`；粤语和菲律宾语没有两字母代码，不发，由模型自己判断）和 `prompt`（上一段末尾约 120 个字，让人名和句子前后一致）。连接或服务端失败（5xx、429）的解码重试一次；key 被拒（401）是 `openai.ErrAuth`。
 - 不给时间，也不做临时解码（`Volatile: 0`，`batch` 视为不做）：每次解码按发送的音频计费。一段在 0.5 s 的停顿处结束，或超过 5 s 后的第一个停顿处结束，结束后往返一次，文字才出来。
 - 2026-10-31 查阅 OpenAI 文档：转写模型有 `gpt-transcribe`（这里的默认），以及已弃用、2027-02-26 停用的 `gpt-4o-transcribe`、`gpt-4o-mini-transcribe` 和 `whisper-1`。只有 `gpt-transcribe` 接受 `languages`（多个可能的语言）和 `keywords`（预期会出现的词），以后术语表可以填它。实时转写有 `gpt-live-transcribe`（第 6 步）。
-- 设置：`prefs.ASRAPIs` 是设置好的云端服务（`qwen-cloud`、`openai`），各自记地址和模型（空为服务默认）以及是否存了 key；key 在系统凭据里，名为 `asr-key:` 加服务 ID，和 Qwen 原来的一样，所以读取设置时把 `prefs.ASRCloud` 并进列表，不用挪 key。引擎页云端一侧列出 Qwen 和 OpenAI；OpenAI 的对话框可以填兼容服务的地址和模型名。
+- 设置：`prefs.ASRAPIs` 是设置好的云端服务（`qwen-cloud`、`openai`），各自记地址和模型（空为服务默认）以及是否存了 key；key 在系统凭据里，名为 `asr-key:` 加服务 ID，和 Qwen 原来的一样，所以读取设置时把 `prefs.ASRCloud` 并进列表，不用挪 key。引擎页云端一组列出 Qwen 和 OpenAI；OpenAI 的对话框可以填兼容服务的地址和模型名。
 
 第 6 步 OpenAI Realtime，2026-10-31 完成（M5 上的快速集，4 段同时跑）：
 
@@ -245,7 +254,7 @@ type Spec struct {
 | `apple` | 流式 | 在引擎里。`asr/apple` 的 `Hint` 告诉会话何时让引擎 `finalize`：临时结果 1.3 s 不变时；中文的分句结束得晚，在 0.2 s 的停顿处也定稿（原来断句器 `VoiceCuts` 做的事） |
 | `qwen-cloud` | 流式 | `cloudasr` 挪到 `asr/qwencloud`；静音挂断挪到 `asr`，所有计费的适配器共用 |
 | `sensevoice-small` | 整段 | `tomoru-asr serve`；有时间；临时解码间隔 0.4 s；Gap 和 Longest 按实测（现在 0.5 s、12 s；改用引擎的检测器前是 0.25 s，见 local-asr_zh.md） |
-| `qwen3-asr-1.7b` | 整段 | llama-server 加载模型的音频投影器，用 chat 接口把这段作为 `input_audio` WAV 发过去；回复是 `language Japanese<asr_text>…`；用 assistant 预填 `language Japanese<asr_text>` 指定语言；场景里的名字放在 system 消息里；没有时间。只用 GPU：CPU 跟不上 |
+| `qwen3-asr-0.6b`、`qwen3-asr-1.7b` | 整段 | llama-server 加载模型的音频投影器，用 chat 接口把这段作为 `input_audio` WAV 发过去；回复是 `language Japanese<asr_text>…`；用 assistant 预填 `language Japanese<asr_text>` 指定语言；场景里的名字放在 system 消息里；没有时间。只用 GPU：CPU 跟不上 |
 | `openai` | 流式 | 默认实时转写：WebSocket 会话，24 kHz，轮次由引擎的语音检测切分，每轮提交；`…transcription.delta` 作为临时结果，`…completed` 作为定稿，按条目提交的顺序，因为定稿可能乱序到达；计费 |
 | `openai` 填了别的模型 | 整段 | `POST {base}/v1/audio/transcriptions`，multipart WAV；`model`、`language`、`prompt`（上一段）；不做临时解码（每次解码都花钱且要往返）；Gap 0.5 s，Longest 5 s，降低延迟 |
 
@@ -258,7 +267,7 @@ type Spec struct {
 - `prefs.ASR` 仍是所选识别引擎的 ID。
 - 用户为识别设置的 API 和翻译的一样保存（`prefs.ASRAPIs`，密钥在 `mygo.Secrets`），记下类型（`qwen-cloud`、`openai`）、base URL 和模型。Qwen 云端已并进来：读取设置时把 `prefs.ASRCloud` 迁进列表，旧字段删除（第 5 步）。
 - 默认仍是 SenseVoice（小，任何电脑都能跑）。满足 Qwen3-ASR 的 `Needs`（有足够显存的 GPU，或内存足够的 Mac）时，引擎页推荐 Qwen3-ASR。
-- 引擎页云端一侧列出 Qwen 和 OpenAI，OpenAI 可以填用户自己的地址来用兼容服务；"添加 API…"（同时用多个兼容服务）等有人需要再做。本地一侧列出 SenseVoice 和 Qwen3-ASR 1.7B，并标明需要什么。
+- 引擎页云端一组列出 Qwen 和 OpenAI，OpenAI 可以填用户自己的地址来用兼容服务；"添加 API…"（同时用多个兼容服务）等有人需要再做。本地一组列出 SenseVoice 和 Qwen3-ASR，每个大小标明需要什么。
 
 ## 涉及的代码
 
@@ -304,6 +313,6 @@ type Spec struct {
 
 1. Qwen 云端的设置并入识别 API，迁移它的密钥（第 5 步）。
 2. SenseVoice 仍是默认；有 GPU 能跑 Qwen3-ASR 时，引擎页推荐它。
-3. Qwen3-ASR 从 `ggml-org/Qwen3-ASR-1.7B-GGUF` 下载，Hugging Face 和 ModelScope 都有。
+3. Qwen3-ASR 从 `ggml-org/Qwen3-ASR-1.7B-GGUF`（和 `-0.6B-GGUF`）下载，Hugging Face 和 ModelScope 都有。
 4. Apple 识别和其他识别不一样：加快它中文出句的处理保留，但放在它自己的适配器里，不放在断句器里。
 5. 过长句子的保险暂时保留。

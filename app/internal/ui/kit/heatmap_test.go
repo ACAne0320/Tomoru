@@ -82,3 +82,34 @@ func TestHeatmapHover(t *testing.T) {
 		t.Errorf("picked %d, want the third week's Monday, 14", picked)
 	}
 }
+
+// TestHeatmapFills spans a wide card with a year of squares, as on a maximized window, rather
+// than leaving most of it empty.
+func TestHeatmapFills(t *testing.T) {
+	days := make([]HeatDay, 7*53)
+	for i := range days {
+		days[i] = HeatDay{Value: float64(i % 5), Tip: "day"}
+	}
+	const width = 1200
+	tt := ui.NewTester(func(c *ui.Context) {
+		Paper(c)
+		ui.Column(c).Fill().Padding(Space(4)).Background(Colors(c).Card).Children(func() {
+			Heatmap(c, "days", days, make([]string, 53), [7]string{0: "Mon"}, "Less", "More", nil)
+		})
+	}, width, 600)
+	tt.Frame()
+	mon, ok := tt.Find("Mon")
+	if !ok {
+		t.Fatalf("no weekday in %q", tt.Texts())
+	}
+	img, card, row := tt.Image(), Light.Card, int(mon.Y+mon.H/2)
+	end := -1
+	for px := range width {
+		if c := img.RGBAAt(px, row); c.R != card.R || c.G != card.G || c.B != card.B {
+			end = px
+		}
+	}
+	if want := width - int(Space(4)); end < want-3 {
+		t.Errorf("the squares end at %d, want about %d", end, want)
+	}
+}

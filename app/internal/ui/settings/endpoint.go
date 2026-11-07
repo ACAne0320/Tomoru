@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,9 +17,10 @@ import (
 	"tomoru/locales"
 )
 
-// The dialog that adds or edits a translation API.
+// The form that adds or edits a translation API: in place on the engines page, and in a dialog
+// where learning names needs one added.
 
-// endpointEdit is the dialog's state while it shows.
+// endpointEdit is the form's state while it shows.
 type endpointEdit struct {
 	open bool
 	e    prefs.Endpoint // as edited; a new one has no ID
@@ -29,24 +31,55 @@ type endpointEdit struct {
 	asking bool
 }
 
-func (s *Settings) editEndpoint(e prefs.Endpoint) {
+// next numbers a form opened, to tell its tests from those of the forms before.
+func (s *Settings) next() int {
 	s.edits++
-	s.edit = endpointEdit{open: true, e: e, was: e, test: fmt.Sprintf("edit-%d", s.edits)}
+	return s.edits
+}
+
+// editAPI opens d on e.
+func (s *Settings) editAPI(d *endpointEdit, e prefs.Endpoint) {
+	if d.open {
+		s.core.ForgetTest(d.test)
+	}
+	*d = endpointEdit{open: true, e: e, was: e, test: fmt.Sprintf("edit-%d", s.next())}
+}
+
+// closeAPI closes the engines page's form, its test forgotten.
+func (s *Settings) closeAPI() {
+	if s.api.open {
+		s.core.ForgetTest(s.api.test)
+	}
+	s.api, s.addingAPI = endpointEdit{}, false
 }
 
 // changed tells whether the endpoint was edited.
 func (d *endpointEdit) changed() bool { return d.e != d.was || d.key != "" }
 
-// endpointDialog is the dialog: the endpoint's form, how its test went, and its buttons.
+// apiPane is the detail of translation's list while it adds an API: what APIs work, and the form.
+func (s *Settings) apiPane(c *ui.Context) {
+	ui.Text(c, locales.AddApi()).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(kit.Colors(c).Ink).MaxLines(1)
+	kit.Caption(c, locales.EndpointIntro()).Margin(-kit.Space(2), 0, 0)
+	s.apiForm(c, &s.api, func() { s.closeAPI() })
+}
+
+// apiForm is d's fields, how its test went, and its buttons; closed by close. Saved, a new API
+// shows on the engines page.
+func (s *Settings) apiForm(c *ui.Context, d *endpointEdit, close func()) {
+	endpointForm(c, d)
+	if r, ok := s.core.Tests[d.test]; ok {
+		testResult(c, r)
+	}
+	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() { s.endpointActions(c, d, close) })
+}
+
+// endpointDialog is the dialog learning names opens to add an API: the form, in a dialog.
 func (s *Settings) endpointDialog(c *ui.Context) {
 	k, d := s.core, &s.edit
 	if !d.open {
 		return
 	}
-	title := locales.EndpointEditTitle()
-	if d.e.ID == "" {
-		title = strings.TrimSuffix(locales.AddEndpoint(), "…") // the button's label: a title has no ellipsis
-	}
+	title := strings.TrimSuffix(locales.AddEndpoint(), "…") // the button's label: a title has no ellipsis
 	dialog := kit.Dialog(c, &d.open, title, locales.EndpointIntro(), func() {
 		endpointForm(c, d)
 		if r, ok := k.Tests[d.test]; ok {
@@ -55,7 +88,7 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 		if d.asking {
 			kit.Discard(c, &d.open, &d.asking)
 		} else {
-			s.endpointActions(c)
+			kit.DialogActions(c, func() { s.endpointActions(c, d, func() { d.open = false }) })
 		}
 	})
 	kit.Guard(dialog, &d.open, &d.asking, d.changed())
@@ -64,9 +97,9 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 	}
 }
 
-// endpointForm is the endpoint's fields.
+// endpointForm is the endpoint's fields, each under its label: the detail's pane is narrow.
 func endpointForm(c *ui.Context, d *endpointEdit) {
-	ui.Form(c, func() {
+	ui.Column(c).Gap(kit.Space(3)).Children(func() {
 		ui.Field(c, locales.EndpointName(), func() {
 			kit.TextField(c, &d.e.Name).Placeholder("DeepSeek").Label(locales.EndpointName()).AutoFocus()
 		})
@@ -83,15 +116,27 @@ func endpointForm(c *ui.Context, d *endpointEdit) {
 			}
 		})
 		ui.Field(c, locales.EndpointFormat(), func() {
-			format := 0
-			if d.e.Index {
-				format = 1
+			// A menu: the formats' names are too long for a segmented control in the pane.
+			ids := make([]string, len(translate.Formats))
+			for i, f := range translate.Formats {
+				ids[i] = f.ID
 			}
-			if kit.Segmented(c, &format, locales.EndpointFormatChat(), "Index-Translate").AlignSelf(ui.Start).Label(locales.EndpointFormat()).Changed() {
-				d.e.Index = format == 1
+			name := func(id string) string {
+				f, _ := translate.FormatByID(id)
+				return cmp.Or(f.Name, locales.EndpointFormatChat())
 			}
+			id := formatOf(d.e)
+			kit.Picker(c, name(id), kit.Choices(id, ids, name, func(id string) { d.e.Format = id })).AlignSelf(ui.Start).Label(locales.EndpointFormat())
 		})
 	})
+}
+
+// formatOf is the ID of the format e is prompted in: the chat model's unless it names another.
+func formatOf(e prefs.Endpoint) string {
+	if f, ok := translate.FormatByID(e.Format); ok {
+		return f.ID
+	}
+	return translate.Chat.ID
 }
 
 // valid tells whether the endpoint has what translating with it needs: a name, an address and a
@@ -131,32 +176,36 @@ func testResult(c *ui.Context, r core.TestResult) {
 	}
 }
 
-// endpointActions is the dialog's buttons: Delete for an endpoint kept, which can be undone, Test,
-// Cancel and Save.
-func (s *Settings) endpointActions(c *ui.Context) {
-	k, d := s.core, &s.edit
+// deleteAPI deletes the endpoint e, its form closed if it is open, and says so with Undo.
+func (s *Settings) deleteAPI(c *ui.Context, e prefs.Endpoint) {
+	k := s.core
+	deleted := locales.EndpointDeleted(e.Name)
+	if k.Preferences().MT == prefs.CustomPrefix+e.ID {
+		deleted = locales.EndpointDeletedInUse(e.Name)
+	}
+	if s.api.open && s.api.e.ID == e.ID {
+		s.closeAPI()
+	}
+	c.ToastAction(deleted, locales.Undo(), k.DeleteEndpoint(e.ID))
+}
+
+// endpointActions is the form's buttons: Test, Cancel and Save, after which close closes it.
+func (s *Settings) endpointActions(c *ui.Context, d *endpointEdit, close func()) {
+	k := s.core
 	valid := d.valid()
-	kit.DialogActions(c, func() {
-		if d.e.ID != "" && kit.Button(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete()).Clicked() {
-			deleted := locales.EndpointDeleted(d.was.Name)
-			if k.Preferences().MT == prefs.CustomPrefix+d.e.ID {
-				deleted = locales.EndpointDeletedInUse(d.was.Name)
-			}
-			c.ToastAction(deleted, locales.Undo(), k.DeleteEndpoint(d.e.ID))
-			d.open = false
-		}
-		ui.Spacer(c)
-		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
-			k.TestEndpoint(d.test, d.e, d.key)
-		}
-		if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
-			d.open = false
-		}
-		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
-			d.e.Name, d.e.URL, d.e.Model = strings.TrimSpace(d.e.Name), strings.TrimSpace(d.e.URL), strings.TrimSpace(d.e.Model)
-			k.SaveEndpoint(d.e, d.key)
-			c.Toast(locales.EndpointSaved(d.e.Name))
-			d.open = false
-		}
-	})
+	ui.Spacer(c)
+	if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
+		k.TestEndpoint(d.test, d.e, d.key)
+	}
+	if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
+		close()
+		return
+	}
+	if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
+		d.e.Name, d.e.URL, d.e.Model = strings.TrimSpace(d.e.Name), strings.TrimSpace(d.e.URL), strings.TrimSpace(d.e.Model)
+		id := k.SaveEndpoint(d.e, d.key)
+		c.Toast(locales.EndpointSaved(d.e.Name))
+		close()
+		s.shown[core.MT] = prefs.CustomPrefix + id
+	}
 }

@@ -69,11 +69,11 @@ func (c *Core) addRunUsage(l *usage.Ledger, now time.Time) {
 }
 
 // engines are the engines of p, as the numbers keep them: with an endpoint's name and model, and
-// a cloud recognizer's model, as they are now.
+// a cloud service's model, as they are now.
 func engines(p prefs.Prefs) usage.Engines {
 	e := usage.Engines{ASR: p.ASR, MT: p.MT}
 	if s, ok := asr.ByID(p.ASR); ok && s.Cloud {
-		if a, ok := p.ASRAPI(p.ASR); ok {
+		if a, ok := p.API(p.ASR); ok {
 			e.ASRModel = a.Model
 		}
 		if e.ASRModel == "" && len(s.Models) > 0 {
@@ -84,6 +84,13 @@ func engines(p prefs.Prefs) usage.Engines {
 		if ep, ok := p.Endpoint(id); ok {
 			e.MTName, e.MTModel = ep.Name, ep.Model
 		}
+	}
+	if s, ok := MTServiceByID(p.MT); ok {
+		a, _ := p.API(p.MT)
+		if a == nil {
+			a = &prefs.Service{}
+		}
+		e.MTModel = s.endpoint(*a).Model
 	}
 	return e
 }

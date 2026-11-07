@@ -22,7 +22,7 @@ import (
 var imageCloud = translate.Cloud
 
 // readsPictures tells whether translation engine id reads pictures: the cloud, a local model with
-// its vision projector, an endpoint not found to read none.
+// its vision projector, an endpoint of a format that reads them not found to read none.
 func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
 		return !m.ASR && m.Vision != ""
@@ -30,7 +30,7 @@ func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
-				return e.Vision != prefs.VisionNo
+				return e.Vision != prefs.VisionNo && formatOf(e).ReadsPictures()
 			}
 		}
 		return false
@@ -48,7 +48,8 @@ func imageEngineFrom(id string, endpoints []prefs.Endpoint) string {
 }
 
 // ImageEngines are the engines to choose for pictures, those that can read them now: the cloud,
-// the local models downloaded, and the user's APIs but those found to read none.
+// the local models downloaded, and the user's APIs but those found to read none, or prompted as
+// a model that reads none.
 func (c *Core) ImageEngines() []Engine {
 	var es []Engine
 	for _, e := range c.Engines(MT) {

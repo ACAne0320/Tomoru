@@ -8,13 +8,10 @@ import (
 	"tomoru/internal/translate"
 )
 
-// Endpoint constructs a remote translator. Credentials are supplied by the caller.
-func Endpoint(url, model, key string, index bool) *translate.Endpoint {
-	style := translate.Chat
-	if index {
-		style = translate.Index
-	}
-	return &translate.Endpoint{URL: url, Model: model, APIKey: key, Style: style}
+// Endpoint constructs a remote translator, prompted in format. Credentials are supplied by the
+// caller.
+func Endpoint(url, model, key string, format *translate.Format) *translate.Endpoint {
+	return &translate.Endpoint{URL: url, Model: model, APIKey: key, Format: format}
 }
 
 // Server is the model-server capability needed for local translation.
@@ -31,23 +28,23 @@ type VisionServer interface {
 	EnsureVision(context.Context, string) (string, error)
 }
 
-// Local prepares an already resolved model and constructs its translator.
-func Local(ctx context.Context, server Server, modelPath string) (*translate.Endpoint, error) {
-	return local(server.Ensure(ctx, modelPath))(modelPath)
+// Local prepares an already resolved model and constructs its translator, prompted in its format.
+func Local(ctx context.Context, server Server, modelPath string, format *translate.Format) (*translate.Endpoint, error) {
+	url, err := server.Ensure(ctx, modelPath)
+	return local(url, modelPath, format, err)
 }
 
 // LocalVision prepares an already resolved model with its vision projector, to translate pictures.
-func LocalVision(ctx context.Context, server VisionServer, modelPath string) (*translate.Endpoint, error) {
-	return local(server.EnsureVision(ctx, modelPath))(modelPath)
+func LocalVision(ctx context.Context, server VisionServer, modelPath string, format *translate.Format) (*translate.Endpoint, error) {
+	url, err := server.EnsureVision(ctx, modelPath)
+	return local(url, modelPath, format, err)
 }
 
-func local(url string, err error) func(string) (*translate.Endpoint, error) {
-	return func(modelPath string) (*translate.Endpoint, error) {
-		if err != nil {
-			return nil, err
-		}
-		e := Endpoint(url, modelPath, "", true)
-		e.Llama, e.ImageSide = true, LocalImageSide
-		return e, nil
+func local(url, modelPath string, format *translate.Format, err error) (*translate.Endpoint, error) {
+	if err != nil {
+		return nil, err
 	}
+	e := Endpoint(url, modelPath, "", format)
+	e.Llama, e.ImageSide = true, LocalImageSide
+	return e, nil
 }

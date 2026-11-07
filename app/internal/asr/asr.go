@@ -37,16 +37,6 @@ type Recognizer interface {
 // Factory starts a session's recognizer for the language lang, reporting its events to on.
 type Factory func(lang string, on func(engine.Event)) (Recognizer, error)
 
-// Family is who ends sentences.
-type Family int
-
-const (
-	// Stream recognizers end sentences themselves, as they hear: Apple's, the clouds'.
-	Stream Family = iota
-	// Batch recognizers decode stretches of speech that voice detection cuts: local models.
-	Batch
-)
-
 // The cloud services' IDs.
 const (
 	QwenCloud = "qwen-cloud" // Qwen ASR on Alibaba Cloud Model Studio
@@ -55,8 +45,7 @@ const (
 
 // Spec is a recognizer to choose.
 type Spec struct {
-	ID     string // as the settings name it
-	Family Family
+	ID string // as the settings name it
 	// Cloud tells it runs on a server, which gets what is heard; else on this computer.
 	Cloud bool
 	// Billed tells the service bills the audio it is sent: it is sent only while somebody speaks.
@@ -171,22 +160,22 @@ var specsOnce = sync.OnceValue(func() []Spec { return specs(runtime.GOOS) })
 func specs(goos string) []Spec {
 	var ss []Spec
 	if goos == "darwin" {
-		ss = append(ss, Spec{ID: "apple", Family: Stream, VolatileSentences: true, FinalsEnd: true, Hint: apple.Hint,
+		ss = append(ss, Spec{ID: "apple", VolatileSentences: true, FinalsEnd: true, Hint: apple.Hint,
 			New: func(Env) (Factory, error) { return nil, nil }})
 	}
 	for i := range models.All {
 		m := &models.All[i]
 		switch {
 		case !m.ASR:
-		case m.Runtime == "llama":
+		case m.Served():
 			// Untimed: the sentences it ends while a stretch goes on commit from its volatile text.
-			ss = append(ss, Spec{ID: m.ID, Family: Batch, Langs: m.Langs, Model: m, VolatileSentences: true, Hints: true, New: served})
+			ss = append(ss, Spec{ID: m.ID, Langs: m.Langs, Model: m, VolatileSentences: true, Hints: true, New: served})
 		default:
-			ss = append(ss, Spec{ID: m.ID, Family: Batch, Langs: m.Langs, Model: m, New: local})
+			ss = append(ss, Spec{ID: m.ID, Langs: m.Langs, Model: m, New: local})
 		}
 	}
 	// Qwen's volatile sentence ends hold once qwencloud has steadied them.
-	ss = append(ss, Spec{ID: QwenCloud, Family: Stream, Cloud: true, Billed: true, Langs: qwencloud.Langs, Key: true, Hints: true, VolatileSentences: true, FinalsEnd: true,
+	ss = append(ss, Spec{ID: QwenCloud, Cloud: true, Billed: true, Langs: qwencloud.Langs, Key: true, Hints: true, VolatileSentences: true, FinalsEnd: true,
 		URL: qwencloud.DefaultHost, Models: qwencloud.Models,
 		New: func(env Env) (Factory, error) {
 			cfg := qwen(env.Service)
@@ -200,7 +189,7 @@ func specs(goos string) []Spec {
 	// final results end where the speaker paused, maybe mid-sentence; with a model of the
 	// transcription API, a compatible service's, it decodes stretches as they end, untimed, which
 	// is more accurate, and later (docs/recognition.md, steps 5 and 6).
-	ss = append(ss, Spec{ID: OpenAI, Family: Stream, Cloud: true, Billed: true, Langs: lang.Spoken(), Key: true, Hints: true, VolatileSentences: true,
+	ss = append(ss, Spec{ID: OpenAI, Cloud: true, Billed: true, Langs: lang.Spoken(), Key: true, Hints: true, VolatileSentences: true,
 		URL: openai.DefaultURL, Models: append(slices.Clone(openai.RealtimeModels[:1]), openai.Models...),
 		New: func(env Env) (Factory, error) {
 			cfg := openAI(env.Service)

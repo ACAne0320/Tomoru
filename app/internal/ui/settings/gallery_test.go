@@ -4,6 +4,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,7 +34,7 @@ func TestGallery(t *testing.T) {
 	}
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.HistoryDir = t.TempDir()
-		d.GPU = func() uint64 { return 8 << 30 }
+		d.GPU, d.Memory = func() uint64 { return 8 << 30 }, func() uint64 { return 16 << 30 }
 		d.StatsPath = stats
 		d.Models = &coretest.Models{St: map[string]models.Status{
 			"sensevoice-small": {State: models.Ready},
@@ -81,17 +82,29 @@ func TestGallery(t *testing.T) {
 		{"subtitles", 1300, func() { s.Tab = "subtitles" }},
 		{"subtitles-tgt-only", 1300, func() { k.Prefs.Display = 1 }},
 		{"subtitles-custom", 1500, func() { k.Prefs.Display, k.Prefs.SrcColor, k.Prefs.TgtColor = 0, "#ffec8c", "#7fdbff" }},
-		{"engines", 1200, func() { s.Tab, s.sides[core.ASR], s.sides[core.MT] = "engines", true, true }},
-		{"engines-local", 1200, func() { s.sides[core.ASR], s.sides[core.MT] = false, false; k.SetImageEngine("local-2b") }},
-		{"endpoint", Height, func() { s.sides[core.MT] = true; k.SetImageEngine("cloud"); s.editEndpoint(prefs.Endpoint{}) }},
-		{"endpoint-tested", Height, func() {
-			s.editEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com/compatible-mode", Model: "qwen-vl-max"})
-			k.Tests[s.edit.test] = core.TestResult{Text: "大家晚上好。今天的直播会比平时长一点。", Took: 820 * time.Millisecond, Vision: prefs.VisionYes}
+		{"engines", 1900, func() {
+			s.Tab, s.shown[core.ASR], s.shown[core.MT] = "engines", "Qwen3-ASR", "Index-Translate"
+			k.SetEngine("local-2b")
 		}},
-		{"endpoint-text", Height, func() {
-			k.Tests[s.edit.test] = core.TestResult{Text: "大家晚上好。今天的直播会比平时长一点。", Took: 640 * time.Millisecond, Vision: prefs.VisionNo}
+		{"engines-cloud", 1900, func() {
+			s.shown[core.ASR], s.shown[core.MT] = core.QwenCloud, "cloud"
+			k.SetImageEngine("cloud")
 		}},
-		{"scenes", Height, func() { s.edit.open, s.Tab = false, "scenes" }},
+		{"engines-api", 1900, func() {
+			id := k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com/compatible-mode", Model: "qwen-vl-max"}, "sk")
+			s.show(core.MT, prefs.CustomPrefix+id)
+			p := k.Preferences()
+			ep, _ := p.Endpoint(id)
+			s.editAPI(&s.api, *ep)
+			k.Tests[s.api.test] = core.TestResult{Text: "大家晚上好。今天的直播会比平时长一点。", Took: 820 * time.Millisecond, Vision: prefs.VisionYes}
+		}},
+		{"engines-add", 1900, func() {
+			s.show(core.MT, "")
+			s.addingAPI = true
+			s.editAPI(&s.api, prefs.Endpoint{})
+		}},
+		{"engines-add-narrow", 1900, func() {}}, // at the window's least width
+		{"scenes", Height, func() { s.closeAPI(); s.Tab = "scenes" }},
 		{"history", Height, func() { s.Tab = "history" }},
 		{"history-empty", Height, func() { k.History = core.HistoryView{Loaded: true} }},
 		{"stats", 1900, func() { k.History, s.Tab = records, "stats" }},
@@ -104,7 +117,11 @@ func TestGallery(t *testing.T) {
 		}},
 	} {
 		shot.show()
-		tt.SetSize(Width, shot.height)
+		width := Width
+		if strings.HasSuffix(shot.name, "-narrow") {
+			width = MinWidth
+		}
+		tt.SetSize(width, shot.height)
 		for _, dark := range []bool{false, true} {
 			tt.SetDark(dark)
 			tt.Frame()

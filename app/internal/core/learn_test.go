@@ -67,7 +67,7 @@ func TestLearnFrom(t *testing.T) {
 	}))
 	defer srv.Close()
 	ep := c.SaveEndpoint(prefs.Endpoint{Name: "M", URL: srv.URL, Model: "m"}, "k")
-	c.SaveEndpoint(prefs.Endpoint{Name: "Index", URL: srv.URL, Model: "i", Index: true}, "")
+	c.SaveEndpoint(prefs.Endpoint{Name: "Index", URL: srv.URL, Model: "i", Format: "index"}, "")
 	if es := c.ChatEndpoints(); len(es) != 1 || es[0].ID != ep {
 		t.Fatalf("chat endpoints %+v", es)
 	}

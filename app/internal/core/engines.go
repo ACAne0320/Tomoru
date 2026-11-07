@@ -54,8 +54,7 @@ func (c *Core) SetEngine(id string) {
 	c.settingsChanged()
 }
 
-// CloudRepo is Index-Translate's repository, where the app asks those who use its cloud to star
-// it.
+// CloudRepo is Index-Translate's repository, which the app links to where it names the model.
 const CloudRepo = "https://github.com/bilibili/Index-Translate"
 
 // translator says how to get the translator of engine id ready: ready runs in the background, and
@@ -64,10 +63,18 @@ func (c *Core) translator(id string) (ready func(context.Context) (translate.Tra
 	if tr := c.deps.Translator; tr != nil {
 		return func(context.Context) (translate.Translator, error) { return tr, nil }, false, nil
 	}
-	return c.EngineService.translator(id, c.Prefs.Endpoints)
+	return c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs)
 }
 
 func keyName(id string) string { return "endpoint-key:" + id }
+
+// testTgt is the language a test translates TestSample, English, into: the user's, else Chinese.
+func (c *Core) testTgt() string {
+	if c.Prefs.Tgt == "en" {
+		return "zh"
+	}
+	return c.Prefs.Tgt
+}
 
 // Successor is the engine of kind k that takes over from a local model in use as it is deleted:
 // the cloud's translation, or the system's recognition, "" where there is none.
@@ -110,7 +117,7 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 		rand.Read(b)
 		e.ID = hex.EncodeToString(b)
 	}
-	e.URL = apiOf(e).url
+	e.URL, e.Format = apiOf(e).url, apiOf(e).format
 	e.Vision = prefs.VisionUnknown
 	old, ok := c.Prefs.Endpoint(e.ID)
 	if ok && apiOf(*old) == apiOf(e) {
@@ -177,11 +184,7 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 // when "". Its result goes to Tests under key test.
 // It finds too whether e reads pictures, which e as saved keeps if it is the same API.
 func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
-	tgt := c.Prefs.Tgt
-	if tgt == "en" {
-		tgt = "zh"
-	}
-	c.EngineService.testEndpoint(test, e, key, tgt, func(v prefs.Vision) bool {
+	c.EngineService.testEndpoint(test, e, key, c.testTgt(), func(v prefs.Vision) bool {
 		saved, ok := c.Prefs.Endpoint(e.ID)
 		if !ok || apiOf(*saved) != apiOf(e) || saved.Vision == v {
 			return false

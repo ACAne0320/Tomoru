@@ -16,7 +16,7 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 
 - **快速集**用于日常检查（重构、小的行为改动）：每种语言一段有标准答案的，只跑前 2 分钟。只有真的需要看数字时才跑全量：加新模型、断句或性能有大的改动。对比改动时，用同样的用例、换一个 `-name` 先跑一遍改动前的。
 - 引擎用 `listen --file` 按原速“播放”每段录音，不用外放，也不需要录音权限；session 和 app 里的完全一样（断句、抢先翻译都开着）。所以每段要跑满它的时长，`-j` 决定同时跑几段。
-- `-asr`：`apple`、`sensevoice`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud`、`local-2b`、`local-9b`，或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
+- `-asr`：`apple`、`sensevoice`、`qwen3-asr-0.6b`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud[:模型]`（`Index-Translate-9B`、`Index-Translate-2B`）、翻译模型的 ID（`local-2b`、`local-9b`），或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
 - 结果在 `runs/<名字>/`（不进仓库）：每段一个 JSON，记下字幕每一次变化的时间和内容；`score.py` 写出 `score.md`。同名再跑会把新的段并进去，可以分批跑。
 - 本地引擎同时跑太多段会互相抢 CPU，延迟变差：SenseVoice 建议 `-j 6` 以内，本地翻译模型 `-j 1`。
 
@@ -159,3 +159,14 @@ Apple 的延迟（2026-10-17 试过，都没采用）：SpeechTranscriber 大约
 | 本地 9B | 40.1 | 2.28** |
 
 \** 两批同时跑、两份模型抢资源，偏慢。
+
+Index-Translate 云端除了 35B-A3B 还提供 2B 和 9B（见它的 `/v1/models`，2026-11-07；只有 35B 收图片）。同一天依次跑（运行 `mtcloud1107_Index-Translate-*`），再用实际使用的方式三个同时跑快速集（运行 `qidx1107_*`）：
+
+| 云端 | chrF | 每句秒 | 快速集：见到译文 p50 / p90 | chrF |
+|---|---|---|---|---|
+| 35B-A3B | 38.6 | 0.81 | 1.17 / 2.91 s | 22.5 |
+| 9B | 40.4 | 0.47 | 1.08 / 2.70 s | 25.6 |
+| 2B | 39.4 | 0.26 | 1.09 / 2.56 s | 23.8 |
+
+- 35B 的分数和以前一样（38.6），每句却要 0.81 s，以前是 0.28 s：免费服务的速度随负载变化，只有同一时段的结果能比。
+- 两种测法里 9B 和 2B 都更接近人工字幕，也更快。默认暂时仍是 35B（它能读图片，官方报告里它和 9B 持平：FLORES 0.8794 和 0.8789）；用户在 识别与翻译 里自己选大小。

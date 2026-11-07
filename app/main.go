@@ -120,7 +120,7 @@ func main() {
 			deps.Server, deps.ASRServer = server, hearing
 			// The GPUs, for the engines to recommend: once, in the background (some 50 ms).
 			var gpu atomic.Uint64
-			deps.GPU = gpu.Load
+			deps.GPU, deps.Memory = gpu.Load, models.Memory
 			go func() {
 				ds, err := models.Devices(ctx, bin)
 				if err != nil {

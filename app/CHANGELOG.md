@@ -16,6 +16,7 @@
   one height whose dividers line up across cards, group titles above their cards, the chosen
   engine on a tinted band with its button and dot on one line, and a dark appearance with clearly
   separated layers and no cream buttons.
+- On Home, the lines-by-day chart fills its card in a maximized window instead of a third of it.
 - Subtitle style lines its two cards up row for row, their controls in one column. With
   Translation only, the original's size and the order stay in place, greyed, instead of
   disappearing; Custom colors open in their own card under them, each with the system color
@@ -30,6 +31,21 @@
   the first-run guide and the logs as rows, each with its button. English labels use sentence
   case throughout ("New scene", "Learn names"), and Preferences no longer cuts "Screenshot
   translation" short.
+- Index-Translate in the cloud, free from the bilibili team, comes in 9B and 2B too: Speech &
+  translation › Index-Translate (bilibili). In our tests both translated closer to the human
+  subtitles than 35B, and sooner; 35B stays the default, and the one that translates pictures.
+- When a translation service says it gets too many requests, translate ahead pauses for a
+  minute, so the lines' own translations still get through.
+- Qwen3-ASR 0.6B, for GPUs without the memory of the 1.7B: about 2 GB, a little quicker, as
+  accurate but in Korean.
+- Speech & translation lists each model family once, on device and in the cloud together, with
+  its sizes and setup beside the list; Download only downloads, a model is used by its radio or
+  the Use button once it is in, and sizes this computer can't run say so.
+- Each model there links to where it is from, its GitHub or its service's page, at the top right,
+  where an API of yours has its Delete.
+- A model's sizes say which is quicker and which more accurate, and that this computer runs them.
+  A cloud service asks for its API key first, its model and address folded under it; set up, it
+  is a line with Use and Edit.
 
 ## 0.1.3
 

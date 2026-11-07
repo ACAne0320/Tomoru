@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -32,16 +33,21 @@ func modelsDir() (string, error) {
 
 // translator makes the translator of -mt, and what stops it at the end.
 func translator(mt, url, model string, roots ...string) (translate.Translator, func(), error) {
-	switch mt {
+	id, cloudModel, _ := strings.Cut(mt, ":")
+	switch id {
 	case "cloud":
-		return translate.Cloud(), func() {}, nil
+		tr := translate.Cloud()
+		tr.Model = cmp.Or(cloudModel, tr.Model)
+		return tr, func() {}, nil
 	case "chat":
 		if url == "" || model == "" {
 			return nil, nil, errors.New("-mt chat needs -mt-url and -mt-model")
 		}
-		return provider.Endpoint(url, model, os.Getenv("MT_API_KEY"), false), func() {}, nil
+		return provider.Endpoint(url, model, os.Getenv("MT_API_KEY"), translate.Chat), func() {}, nil
 	}
-	if _, ok := models.ByID(mt); !ok {
+	m, ok := models.ByID(mt)
+	format, known := translate.FormatByID(m.Format)
+	if !ok || !known {
 		return nil, nil, fmt.Errorf("-mt %s: not a translation", mt)
 	}
 	dir, err := modelsDir()
@@ -59,7 +65,7 @@ func translator(mt, url, model string, roots ...string) (translate.Translator, f
 	srv := models.NewServer(bin, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	tr, err := provider.Local(ctx, srv, path)
+	tr, err := provider.Local(ctx, srv, path, format)
 	if err != nil {
 		srv.Stop()
 		return nil, nil, err
@@ -90,7 +96,7 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 			return spec, env, nil, fmt.Errorf("-asr %s: not downloaded to %s", id, dir)
 		}
 		env.ModelDir, env.ModelPath = filepath.Join(dir, spec.Model.Dir), manager.Path(id)
-		if spec.Model.Runtime == "llama" {
+		if spec.Model.Served() {
 			bin, err := resource.Bin("llama-server", roots...)
 			if err != nil {
 				return spec, env, nil, err

@@ -2,14 +2,16 @@ package core
 
 import (
 	"errors"
+	"slices"
 	"strings"
 
 	"tomoru/internal/asr"
 	"tomoru/internal/prefs"
+	"tomoru/internal/translate"
 )
 
-// Recognition in the cloud: the services of asr.Specs that take an API key, Qwen's and OpenAI's,
-// as the user set them up.
+// The cloud services that take the user's API key, as the user set them up: of recognition, those
+// of asr.Specs, Qwen's and OpenAI's; of translation, those of MTServices.
 
 // The cloud recognition services' IDs.
 const (
@@ -17,51 +19,131 @@ const (
 	OpenAI    = asr.OpenAI
 )
 
+// CloudSize is a size of Index-Translate that the bilibili team serves free: its engine's ID, its
+// size's name, and the model it asks for.
+type CloudSize struct{ ID, Label, Model string }
+
+// CloudSizes are Index-Translate's cloud, the smallest first, as a model's sizes are: 35B-A3B,
+// "cloud", the default, which alone reads pictures; and 9B and 2B, which read text alone and,
+// measured, translated closer to the human subtitles and sooner (bench/README.md).
+var CloudSizes = []CloudSize{
+	{ID: "cloud-2b", Label: "2B", Model: "Index-Translate-2B"},
+	{ID: "cloud-9b", Label: "9B", Model: "Index-Translate-9B"},
+	{ID: "cloud", Label: "35B", Model: translate.CloudModel},
+}
+
+// CloudSizeByID finds a size of Index-Translate's cloud.
+func CloudSizeByID(id string) (CloudSize, bool) {
+	i := slices.IndexFunc(CloudSizes, func(s CloudSize) bool { return s.ID == id })
+	if i < 0 {
+		return CloudSize{}, false
+	}
+	return CloudSizes[i], true
+}
+
+// MTService is a translation service in the cloud: its address, as an Endpoint's, its models, the
+// first its default, and how they are prompted.
+type MTService struct {
+	ID, URL string
+	Models  []string
+	Format  *translate.Format
+}
+
+// MTServices are the cloud translation services to set up with an API key.
+var MTServices []MTService
+
+// MTServiceByID finds a cloud translation service.
+func MTServiceByID(id string) (MTService, bool) {
+	i := slices.IndexFunc(MTServices, func(s MTService) bool { return s.ID == id })
+	if i < 0 {
+		return MTService{}, false
+	}
+	return MTServices[i], true
+}
+
+// endpoint is the service as a set up, as an API to translate with.
+func (s MTService) endpoint(a prefs.Service) prefs.Endpoint {
+	e := prefs.Endpoint{ID: s.ID, URL: a.URL, Model: a.Model, Format: s.Format.ID}
+	if e.URL == "" {
+		e.URL = s.URL
+	}
+	if e.Model == "" {
+		e.Model = s.Models[0]
+	}
+	return e
+}
+
 // ErrASRCloudKey is a cloud recognition service chosen without an API key.
 var ErrASRCloudKey = errors.New("cloud recognition has no API key")
 
-// asrKey names a service's API key in the credential store: Qwen's was kept so before there were
-// others.
-func asrKey(id string) string { return "asr-key:" + id }
+// ErrMTCloudKey is a cloud translation service chosen without an API key.
+var ErrMTCloudKey = errors.New("cloud translation has no API key")
 
-// ASRAPI is the cloud recognition service id as the user set it up; not set up, its ID alone.
-func (c *Core) ASRAPI(id string) prefs.ASRAPI {
-	if a, ok := c.Prefs.ASRAPI(id); ok {
-		return *a
+// apiKey names a service's API key in the credential store: a recognition service's as Qwen's was
+// kept before there were others.
+func apiKey(id string) string {
+	if _, ok := MTServiceByID(id); ok {
+		return "mt-key:" + id
 	}
-	return prefs.ASRAPI{ID: id}
+	return "asr-key:" + id
 }
 
-// SaveASRAPI sets up the cloud recognition service a.ID, keeping key as its API key unless "".
-// The service chosen to use once set up is used from now on.
-func (c *Core) SaveASRAPI(a prefs.ASRAPI, key string) {
-	a.Key = c.ASRAPI(a.ID).Key
-	if key != "" && c.EngineService.saveKey(asrKey(a.ID), []byte(key)) {
+// ServiceOf is the cloud service id's own address and models, the first its default.
+func ServiceOf(id string) (url string, models []string) {
+	if s, ok := MTServiceByID(id); ok {
+		return s.URL, s.Models
+	}
+	s, _ := asr.ByID(id)
+	return s.URL, s.Models
+}
+
+// API is the cloud service id as the user set it up; not set up, its ID alone.
+func (c *Core) API(id string) prefs.Service {
+	if a, ok := c.Prefs.API(id); ok {
+		return *a
+	}
+	return prefs.Service{ID: id}
+}
+
+// SaveAPI sets up the cloud service a.ID, keeping key as its API key unless "". Saving uses
+// nothing: Use does.
+func (c *Core) SaveAPI(a prefs.Service, key string) {
+	a.Key = c.API(a.ID).Key
+	if key != "" && c.EngineService.saveKey(apiKey(a.ID), []byte(key)) {
 		a.Key = true
 	}
 	a.URL, a.Model = strings.TrimSpace(a.URL), strings.TrimSpace(a.Model)
-	if old, ok := c.Prefs.ASRAPI(a.ID); ok {
+	_, mt := MTServiceByID(a.ID)
+	switch old, ok := c.Prefs.API(a.ID); {
+	case ok:
 		*old = a
-	} else {
+	case mt:
+		c.Prefs.MTAPIs = append(c.Prefs.MTAPIs, a)
+	default:
 		c.Prefs.ASRAPIs = append(c.Prefs.ASRAPIs, a)
 	}
-	if c.Prefs.ASR == a.ID {
+	if c.Prefs.ASR == a.ID || c.Prefs.MT == a.ID {
 		c.RestartIfRunning()
 	}
-	c.usePending()
 	c.settingsChanged()
 }
 
-// TestASRAPI connects to the service a as it is being edited, with key, or the one kept when "".
-// Its result goes to Tests under key test: no text, only whether it worked and how long it took.
-func (c *Core) TestASRAPI(test string, a prefs.ASRAPI, key string) {
-	c.EngineService.testASRAPI(test, a, key)
+// TestAPI connects to the service a as it is being edited, with key, or the one kept when "".
+// Its result goes to Tests under key test: whether it worked and how long it took, and a
+// translation service's translation of TestSample.
+func (c *Core) TestAPI(test string, a prefs.Service, key string) {
+	if s, ok := MTServiceByID(a.ID); ok {
+		c.EngineService.testEndpoint(test, s.endpoint(a), key, c.testTgt(), func(prefs.Vision) bool { return false })
+		return
+	}
+	c.EngineService.testAPI(test, a, key)
 }
 
-// hasKey tells whether the recognition id can be used for its key: it takes none, or one is kept.
-func hasKey(id string, apis []prefs.ASRAPI) bool {
+// hasKey tells whether engine id can be used for its key: it takes none, or one is kept, in apis,
+// the services the user set up of its kind.
+func hasKey(id string, apis []prefs.Service) bool {
 	s, ok := asr.ByID(id)
-	if !ok || !s.Key {
+	if _, mt := MTServiceByID(id); !mt && (!ok || !s.Key) {
 		return true
 	}
 	for _, a := range apis {

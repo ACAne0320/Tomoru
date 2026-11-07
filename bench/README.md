@@ -25,10 +25,10 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 - The engine "plays" each case at normal speed with `listen --file`, without loudspeakers or the
   audio recording permission; the session is exactly the app's (segmenting and translate ahead
   on). So each case takes its full length, and `-j` sets how many run at once.
-- `-asr`: `apple`, `sensevoice`, `qwen3-asr-1.7b`, `qwen-cloud[:model]` (reads
+- `-asr`: `apple`, `sensevoice`, `qwen3-asr-0.6b`, `qwen3-asr-1.7b`, `qwen-cloud[:model]` (reads
   `DASHSCOPE_API_KEY`, billed by duration), `openai[:model]` (live transcription; with another model than
   `gpt-live-transcribe`, the transcription API; reads `OPENAI_API_KEY`, and `OPENAI_BASE_URL` for a
-  compatible service; billed by duration). `-mt`: `cloud`, `local-2b`, `local-9b`, or `chat` with `-mt-url` and `-mt-model` (the
+  compatible service; billed by duration). `-mt`: `cloud[:model]` (`Index-Translate-9B`, `Index-Translate-2B`), a translation model's ID (`local-2b`, `local-9b`), or `chat` with `-mt-url` and `-mt-model` (the
   key from `MT_API_KEY`).
 - Results go in `runs/<name>/` (not in the repository): one JSON per case, recording each change
   of the subtitles with its time; `score.py` writes `score.md`. Running again under the same name
@@ -221,3 +221,19 @@ Translation only (14 cases, translating the human subtitles by sentence):
 | Local 9B | 40.1 | 2.28** |
 
 \** Two batches ran at once, two copies of the model competing, so slower than it should be.
+
+Index-Translate's cloud serves 2B and 9B besides 35B-A3B (its `/v1/models`, 2026-11-07; only 35B
+takes images). The same day, one after another (runs `mtcloud1107_Index-Translate-*`), and the
+quick set as used, the three at once (runs `qidx1107_*`):
+
+| Cloud | chrF | s/sentence | Quick set: translation seen p50 / p90 | chrF |
+|---|---|---|---|---|
+| 35B-A3B | 38.6 | 0.81 | 1.17 / 2.91 s | 22.5 |
+| 9B | 40.4 | 0.47 | 1.08 / 2.70 s | 25.6 |
+| 2B | 39.4 | 0.26 | 1.09 / 2.56 s | 23.8 |
+
+- 35B scored as it did before (38.6), but took 0.81 s a sentence where it took 0.28: the free
+  service's speed goes with its load, so only runs of the same hour compare.
+- 9B and 2B translated closer to the human subtitles and sooner, in both. 35B stays the default
+  for now (it reads pictures, and its report puts it level with 9B: FLORES 0.8794 and 0.8789);
+  the user chooses the size in Speech & translation.

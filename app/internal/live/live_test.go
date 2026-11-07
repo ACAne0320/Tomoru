@@ -261,7 +261,7 @@ func TestLatency(t *testing.T) {
 	defer srv.Close()
 	var mu sync.Mutex
 	var last State
-	tr := &translate.Endpoint{URL: srv.URL, Model: "m", Style: translate.Index, Llama: true}
+	tr := &translate.Endpoint{URL: srv.URL, Model: "m", Format: translate.Index, Llama: true}
 	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(st State) {
 		mu.Lock()
 		last = st

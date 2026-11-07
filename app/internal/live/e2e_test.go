@@ -53,7 +53,7 @@ func TestEndToEnd(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Logf("loaded %s in %.1fs", filepath.Base(model), time.Since(t0).Seconds())
-		tr = &translate.Endpoint{URL: url, Model: model, Style: translate.Index, Llama: true}
+		tr = &translate.Endpoint{URL: url, Model: model, Format: translate.Index, Llama: true}
 	}
 	cfg := Config{Engine: bin, Src: lang, Tgt: tgt, Translator: tr}
 	if dir := os.Getenv("TOMORU_E2E_ASR"); dir != "" {

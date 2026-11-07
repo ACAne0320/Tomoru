@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"image/png"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -58,13 +59,24 @@ type EngineService struct {
 }
 
 // api is a translation API as tested: what decides whether it reads pictures.
-type api struct {
-	url, model string
-	index      bool
-}
+type api struct{ url, model, format string }
 
 func apiOf(e prefs.Endpoint) api {
-	return api{strings.TrimSuffix(strings.TrimRight(strings.TrimSpace(e.URL), "/"), "/v1"), strings.TrimSpace(e.Model), e.Index}
+	return api{strings.TrimSuffix(strings.TrimRight(strings.TrimSpace(e.URL), "/"), "/v1"), strings.TrimSpace(e.Model), formatOf(e).ID}
+}
+
+// formatOf is how e is prompted: Chat unless it names another of translate's formats.
+func formatOf(e prefs.Endpoint) *translate.Format {
+	if f, ok := translate.FormatByID(e.Format); ok {
+		return f
+	}
+	return translate.Chat
+}
+
+// modelFormat is how the translation model m is prompted.
+func modelFormat(m models.Model) *translate.Format {
+	f, _ := translate.FormatByID(m.Format)
+	return f
 }
 
 type engineTest struct{ cancel context.CancelFunc }
@@ -172,13 +184,14 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 
 // visionOf is what a picture's translation that ended with err says of the API reading pictures,
 // the sample's text having been translated: one that reads none answers it with an error status,
-// 400 (DeepSeek) or 500 (llama-server without a vision projector), but 429, too many requests.
+// 400 (DeepSeek) or 500 (llama-server without a vision projector), but 429, too many requests; one
+// whose format reads none is not sent it.
 func visionOf(err error) prefs.Vision {
 	var status *translate.StatusError
 	switch {
 	case err == nil:
 		return prefs.VisionYes
-	case errors.As(err, &status) && status.Status != http.StatusTooManyRequests:
+	case errors.Is(err, translate.ErrNoPictures), errors.As(err, &status) && status.Status != http.StatusTooManyRequests:
 		return prefs.VisionNo
 	}
 	return prefs.VisionUnknown
@@ -199,7 +212,7 @@ var testPicture = sync.OnceValue(func() []byte {
 	return b.Bytes()
 })
 
-func (s *EngineService) testASRAPI(test string, a prefs.ASRAPI, key string) {
+func (s *EngineService) testAPI(test string, a prefs.Service, key string) {
 	spec, ok := asr.ByID(a.ID)
 	if !ok || spec.Test == nil {
 		return
@@ -210,17 +223,17 @@ func (s *EngineService) testASRAPI(test string, a prefs.ASRAPI, key string) {
 	}, nil)
 }
 
-func (s *EngineService) translator(id string, endpoints []prefs.Endpoint) (func(context.Context) (translate.Translator, error), bool, error) {
-	if _, ok := models.ByID(id); ok {
+func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis []prefs.Service) (func(context.Context) (translate.Translator, error), bool, error) {
+	if m, ok := models.ByID(id); ok {
 		if s.models != nil && s.models.Moving().Active {
 			return nil, true, ErrModelsMoving
 		}
 		if s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
 			return nil, true, ErrModelMissing
 		}
-		path := s.models.Path(id)
+		path, format := s.models.Path(id), modelFormat(m)
 		return func(ctx context.Context) (translate.Translator, error) {
-			tr, err := provider.Local(ctx, s.server, path)
+			tr, err := provider.Local(ctx, s.server, path, format)
 			if err != nil {
 				return nil, LocalError{err}
 			}
@@ -240,7 +253,22 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint) (func(
 		}
 		return nil, false, ErrNoEndpoint
 	}
-	return func(context.Context) (translate.Translator, error) { stop(); return translate.Cloud(), nil }, false, nil
+	if svc, ok := MTServiceByID(id); ok {
+		if !hasKey(id, apis) {
+			return nil, false, ErrMTCloudKey
+		}
+		i := slices.IndexFunc(apis, func(a prefs.Service) bool { return a.ID == id })
+		e := svc.endpoint(apis[i])
+		return func(context.Context) (translate.Translator, error) {
+			stop()
+			return provider.Endpoint(e.URL, e.Model, string(s.readKey(apiKey(id))), svc.Format), nil
+		}, false, nil
+	}
+	tr := translate.Cloud()
+	if size, ok := CloudSizeByID(id); ok {
+		tr.Model = size.Model
+	}
+	return func(context.Context) (translate.Translator, error) { stop(); return tr, nil }, false, nil
 }
 
 // imageEndpoint says how to get the endpoint that translates pictures with engine id ready, as
@@ -262,9 +290,9 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 		if m.Vision == "" || s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
 			return fail(ErrModelMissing), id
 		}
-		path := s.models.Path(id)
+		path, format := s.models.Path(id), modelFormat(m)
 		return func(ctx context.Context) (*translate.Endpoint, error) {
-			e, err := provider.LocalVision(ctx, s.server, path)
+			e, err := provider.LocalVision(ctx, s.server, path, format)
 			if err != nil {
 				return nil, LocalError{err}
 			}
@@ -286,14 +314,14 @@ func (s *EngineService) endpoint(e prefs.Endpoint, key string) *translate.Endpoi
 	if key == "" {
 		key = string(s.readKey(keyName(e.ID)))
 	}
-	return provider.Endpoint(e.URL, e.Model, key, e.Index)
+	return provider.Endpoint(e.URL, e.Model, key, formatOf(e))
 }
 
 // cloudConfig is the service a, with key, or the one kept when "". It may wait on the credential
 // store.
-func (s *EngineService) cloudConfig(a prefs.ASRAPI, key string) asr.Service {
+func (s *EngineService) cloudConfig(a prefs.Service, key string) asr.Service {
 	if key == "" {
-		key = string(s.readKey(asrKey(a.ID)))
+		key = string(s.readKey(apiKey(a.ID)))
 	}
 	return asr.Service{URL: a.URL, Model: a.Model, Key: key}
 }
@@ -363,7 +391,7 @@ func (s *EngineService) deleteModel(id string) {
 	switch m, _ := models.ByID(id); {
 	case !m.ASR && s.server != nil:
 		s.server.Stop()
-	case m.Runtime == "llama" && s.asrServer != nil:
+	case m.Served() && s.asrServer != nil:
 		s.asrServer.Stop()
 	}
 	if s.models != nil {
@@ -378,13 +406,13 @@ func (s *EngineService) chosen(kind Kind, current string) string {
 	return current
 }
 func (s *EngineService) cancelPending(kind Kind) { delete(s.pending, kind) }
-func (s *EngineService) usable(e Engine, apis []prefs.ASRAPI) bool {
-	if e.Kind == ASR && !hasKey(e.ID, apis) {
+func (s *EngineService) usable(e Engine, apis []prefs.Service) bool {
+	if !hasKey(e.ID, apis) {
 		return false
 	}
 	return e.Model == nil || s.ModelStatus(e.ID).State == models.Ready
 }
-func (s *EngineService) choose(e Engine, apis []prefs.ASRAPI) bool {
+func (s *EngineService) choose(e Engine, apis []prefs.Service) bool {
 	if !s.usable(e, apis) {
 		s.pending[e.Kind] = e.ID
 		return false
@@ -393,7 +421,7 @@ func (s *EngineService) choose(e Engine, apis []prefs.ASRAPI) bool {
 	return true
 }
 
-func (s *EngineService) readyPending(endpoints []prefs.Endpoint, apis []prefs.ASRAPI) []Engine {
+func (s *EngineService) readyPending(endpoints []prefs.Endpoint, apis []prefs.Service) []Engine {
 	var ready []Engine
 	for kind, id := range s.pending {
 		found := false

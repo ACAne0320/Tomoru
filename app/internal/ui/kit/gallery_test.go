@@ -158,6 +158,29 @@ func (g *gallery) view(c *ui.Context) {
 			})
 			AddRow(c, "添加接口")
 		})
+		Group(c, "语音识别", nil, SplitCard, func() {
+			SplitList(c, func() {
+				ChoiceList(c, "语音识别", []Choice{
+					{Key: "apple", Head: "本地", Title: "Apple 语音识别", Tag: "系统自带", Use: "使用 Apple", Meta: "延迟低，擅长日英韩", Progress: -1},
+					{Key: "sv", On: true, Title: "SenseVoice", Use: "使用 SenseVoice", Meta: "Small", Progress: -1},
+					{Key: "q3", Shown: true, Off: true, Title: "Qwen3-ASR", Tag: "推荐", Accent: true, Use: "使用 Qwen3-ASR", Meta: "下载中 · 0.6B", Progress: -1},
+					{Key: "hy", Off: true, Title: "Hy-MT2", Use: "使用 Hy-MT2", Meta: "下载中 · 7B", Progress: .3},
+					{Key: "qc", Head: "云端", Off: true, Title: "Qwen ASR（阿里云）", Use: "使用 Qwen ASR", Meta: "填好 API Key 后可用", Progress: -1},
+					{Key: "fr", Title: "OpenAI", Use: "使用 OpenAI", Meta: "听不懂法语", Warn: true, Progress: -1},
+				})
+				AddRow(c, "添加接口")
+			})
+			SplitDetail(c, func() {
+				OptionsCard(c).Children(func() {
+					Options(c, []Option{
+						{Key: "06", Off: true, Title: "0.6B", Meta: "0.9\u00a0GB · 需要 2\u00a0GB 显存", Action: func() { Button(c, Plain, Small, assets.Download, "下载 0.6B") },
+							Below: func() { OptionProgress(c, .4, "0.4\u00a0GB / 0.9\u00a0GB") }},
+						{Key: "17", On: true, Title: "1.7B", Tag: "推荐", Accent: true, Done: "已下载", Meta: "2.3\u00a0GB · 需要 4\u00a0GB 显存", Action: func() { DeleteButton(c, Small, "删除 1.7B") }},
+						{Key: "9b", Off: true, Warn: true, Title: "9B", Meta: "需要 16\u00a0GB 内存，这台电脑只有 8\u00a0GB"},
+					})
+				})
+			})
+		})
 		ui.Row(c).Gap(CardGap).AlignItems(ui.Start).Children(func() {
 			OptionsCard(c).Width(300).Children(func() {
 				List(c, []ListItem{
@@ -174,7 +197,7 @@ func (g *gallery) view(c *ui.Context) {
 	})
 }
 
-const galleryW, galleryH = 760, 2300
+const galleryW, galleryH = 760, 2800
 
 func TestGallery(t *testing.T) {
 	g := &gallery{on: true, seg2: 1, bar: 5, bin: 6, day: -1}

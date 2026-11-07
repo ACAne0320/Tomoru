@@ -13,6 +13,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
@@ -330,28 +331,48 @@ func engineColors(p *kit.Palette, engines []usage.Use, id func(usage.Use) string
 	return colors
 }
 
-// engineColor is the color of the engine id: its maker's, the lantern's family for one's own APIs
-// by their ids, and the lines' for what no engine was noted of.
+// engineColor is the color of the engine id: its maker's, a model's in the shade of its size
+// (familyColors); else the lantern's family, by the id of one's own API or a model's family; and
+// the lines' for what no engine was noted of.
 func engineColor(p *kit.Palette, id string) ui.Color {
 	switch id {
 	case "":
 		return p.LineStrong
 	case "apple":
 		return p.Apple
-	case core.QwenCloud, "qwen3-asr-1.7b":
+	case core.QwenCloud:
 		return p.Qwen
-	case "sensevoice-small":
-		return p.Alibaba
 	case "cloud":
 		return p.Bilibili[0]
-	case "local-9b":
-		return p.Bilibili[1]
-	case "local-2b":
-		return p.Bilibili[2]
+	}
+	key, size := id, 0
+	if m, ok := models.ByID(id); ok {
+		for _, o := range models.All {
+			if o.ID == id {
+				break
+			}
+			if o.Family == m.Family {
+				size++
+			}
+		}
+		if shades := familyColors(p)[m.Family]; len(shades) > 0 {
+			return shades[min(size, len(shades)-1)]
+		}
+		key = m.Family // its sizes side by side in Series, apart
 	}
 	h := fnv.New32a()
-	h.Write([]byte(id))
-	return p.Series[h.Sum32()%uint32(len(p.Series))]
+	h.Write([]byte(key))
+	return p.Series[(h.Sum32()+uint32(size))%uint32(len(p.Series))]
+}
+
+// familyColors are the colors of the families of models, by their makers: a shade for each size,
+// the smallest's first, the last for any larger.
+func familyColors(p *kit.Palette) map[string][]ui.Color {
+	return map[string][]ui.Color{
+		"Index-Translate": {p.Bilibili[2], p.Bilibili[1]},
+		"SenseVoice":      {p.Alibaba},
+		"Qwen3-ASR":       {p.QwenPale, p.Qwen},
+	}
 }
 
 // bucket is a bar of the chart: a day, or a month, and the days of it translating did something.
@@ -619,7 +640,8 @@ func asrName(u usage.Use) (name, model string) {
 	return shared.EngineName(core.Engine{ID: u.ASR}), u.ASRModel
 }
 
-// mtName names a translator, and an endpoint's model: an endpoint by its name, as they were.
+// mtName names a translator, and an endpoint's or a cloud service's model: an endpoint by its
+// name, as they were.
 func mtName(u usage.Use) (name, model string) {
 	switch {
 	case u.MT == "":
@@ -627,7 +649,7 @@ func mtName(u usage.Use) (name, model string) {
 	case strings.HasPrefix(u.MT, prefs.CustomPrefix):
 		return cmp.Or(u.MTName, strings.TrimPrefix(u.MT, prefs.CustomPrefix)), u.MTModel
 	}
-	return shared.EngineName(core.Engine{ID: u.MT}), ""
+	return shared.EngineName(core.Engine{ID: u.MT}), u.MTModel
 }
 
 // latencies are the typical times of hs, named by names, those timed.

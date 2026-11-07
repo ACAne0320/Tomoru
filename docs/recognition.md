@@ -36,7 +36,7 @@ speech does to recognition as it is:
 
 ## Requirements
 
-1. One interface for every recognizer, of two families (below), and adapters that implement it.
+1. One interface for every recognizer, of two endings (below), and adapters that implement it.
 2. One implementation of "cut speech into stretches and decode each" shared by every recognizer
    that decodes whole stretches: SenseVoice, Qwen3-ASR, OpenAI's transcriptions API.
 3. Sentences end where the recognizer ends them (its punctuation, its end of utterance). The
@@ -82,9 +82,9 @@ engine listen --asr none ──audio/voice──► live.Recognizer ──result
 
 ## Design
 
-### Two families
+### Two endings
 
-| Family | Who ends sentences | Recognizers |
+| Ending | Who ends sentences | Recognizers |
 |---|---|---|
 | Stream | The service, as it hears: volatile results, then final ones at its end of utterance | Apple (in the engine), Qwen cloud, OpenAI Realtime |
 | Batch | The app cuts speech into stretches by voice detection; the model punctuates each stretch | SenseVoice, Qwen3-ASR (llama.cpp), OpenAI transcriptions |
@@ -145,7 +145,6 @@ recognition runs in it, as `Spec.Hint` says (below).
 // Spec is a recognizer to choose. asr.Specs lists them; the catalog and the settings read it.
 type Spec struct {
 	ID                string        // as prefs.ASR names it
-	Family            Family        // Stream or Batch
 	Cloud             bool          // what is heard leaves the computer
 	Billed            bool          // the service bills the audio sent: hang up while nobody speaks
 	URL               string        // a cloud's address unless the user gives one
@@ -258,6 +257,21 @@ slow each other):
   holds together. A decode every 0.5 s, made final at the next pause past 15 s.
 - The engines page recommends it where `llama-server --list-devices` shows a GPU with its
   memory (3 GB); SenseVoice stays the default.
+
+Qwen3-ASR 0.6B, added 2026-11-07 for GPUs short of the 1.7B's memory: the same adapter and files
+from the same publisher (`ggml-org/Qwen3-ASR-0.6B-GGUF`, Q8_0, 768 MB and its projector 205 MB). The
+quick set on the M5, one case at a time, both sizes run again the same day:
+
+| | Errors % zh / en / ja / ko | Errors % | Shown p50 / p90 | Translation seen p50 / p90 | chrF | Memory |
+|---|---|---|---|---|---|---|
+| 0.6B | 9.6 / 1.3 / 22.0 / 25.1 | 15.3 | 1.31 / 3.33 s | 2.16 / 5.43 s | 24.2 | 1.9 GB |
+| 1.7B | 9.8 / 1.3 / 22.8 / 20.6 | 13.9 | 1.70 / 6.51 s | 2.56 / 5.24 s | 24.2 | 3.1 GB |
+
+- As good but in Korean, where it mishears a variety show's banter more; it shows text 0.4 s
+  sooner. The 1.7B stays the size to recommend.
+- Memory is Metal's, from llama-server's log with the app's flags: weights, context, compute and
+  the projector's (1862 MiB; 3141 for the 1.7B). Its Needs, 2 GB of memory and of VRAM, are
+  estimated from that; it has not run on Windows yet.
 
 Step 5, OpenAI transcriptions, done 2026-10-31 (the quick set on the M5, 4 cases at once: a
 cloud service shares nothing):
@@ -377,12 +391,12 @@ a recognizer that takes hints (`Spec.Hints`); a name learned meanwhile is heard 
 
 ### Adapters
 
-| Adapter | Family | Notes |
+| Adapter | Ending | Notes |
 |---|---|---|
 | `apple` | Stream | In the engine. `asr/apple`'s `Hint` tells the session when to have the engine `finalize`: once the hypothesis has stood 1.3 s, and in Chinese, whose clauses it ends late, at 0.2 s pauses too (what the segmenter's `VoiceCuts` did) |
 | `qwen-cloud` | Stream | `cloudasr` moved to `asr/qwencloud`; the hang-up on silence moves to `asr` for every billed adapter |
 | `sensevoice-small` | Batch | `tomoru-asr serve`; Timed; Volatile 0.4 s; Gap and Longest by measurement (now 0.5 s, 12 s; 0.25 s before the engine's detector, see local-asr.md) |
-| `qwen3-asr-1.7b` | Batch | llama-server with the model's audio projector, chat API with the stretch as `input_audio` WAV; the reply is `language Japanese<asr_text>…`; the language is forced by an assistant prefill `language Japanese<asr_text>`; the scene's names as a system message; untimed. GPU only: on the CPU it falls behind |
+| `qwen3-asr-0.6b`, `qwen3-asr-1.7b` | Batch | llama-server with the model's audio projector, chat API with the stretch as `input_audio` WAV; the reply is `language Japanese<asr_text>…`; the language is forced by an assistant prefill `language Japanese<asr_text>`; the scene's names as a system message; untimed. GPU only: on the CPU it falls behind |
 | `openai` | Stream | Realtime transcription by default: a WebSocket session, 24 kHz, turns by the engine's voice detection, each committed; `…transcription.delta` as volatile, `…completed` as final, in the commit order of items, as completions may come out of order; billed |
 | `openai` with another model | Batch | `POST {base}/v1/audio/transcriptions`, multipart WAV; `model`, `language`, `prompt` (the stretch before); Volatile 0 (each decode costs money and a round trip); Gap 0.5 s, Longest 5 s, for latency |
 
@@ -406,9 +420,9 @@ models together leave little of 8 GB of VRAM to a game; the page says so.
   settings are read, and the old field goes (step 5).
 - The default stays SenseVoice (small, any computer). Where Qwen3-ASR's `Needs` are met (a GPU with
   the VRAM, or a Mac with the memory), the engines page recommends Qwen3-ASR.
-- On the engines page, the cloud side lists Qwen and OpenAI, OpenAI's at an address of the user's
-  for a compatible service; "Add API…", for more than one compatible service, waits until someone
-  needs it. The local side lists SenseVoice and Qwen3-ASR 1.7B with what it needs.
+- On the engines page, the cloud group lists Qwen and OpenAI, OpenAI's at an address of the
+  user's for a compatible service; "Add API…", for more than one compatible service, waits until
+  someone needs it. The local group lists SenseVoice and Qwen3-ASR, each size with what it needs.
 
 ## Affected code
 
@@ -484,7 +498,7 @@ Taken 2026-10-31, on the questions this design left open:
 
 1. Qwen's cloud settings join the recognition APIs, its key migrated (step 5).
 2. SenseVoice stays the default; the engines page recommends Qwen3-ASR where a GPU can run it.
-3. Qwen3-ASR downloads from `ggml-org/Qwen3-ASR-1.7B-GGUF`, on Hugging Face and ModelScope alike.
+3. Qwen3-ASR downloads from `ggml-org/Qwen3-ASR-1.7B-GGUF` (and `-0.6B-GGUF`), on Hugging Face and ModelScope alike.
 4. Apple's recognizer is not like the others: the handling that speeds its Chinese up stays, inside
    its adapter, not in the segmenter.
 5. The safety cut for overlong sentences stays, for now.

@@ -112,7 +112,7 @@ func TestImageEngineOnly(t *testing.T) {
 	defer api.Close()
 	defer func(f func() *translate.Endpoint) { imageCloud = f }(imageCloud)
 	imageCloud = func() *translate.Endpoint {
-		return &translate.Endpoint{URL: cloud.URL, Model: "m", Style: translate.Index}
+		return &translate.Endpoint{URL: cloud.URL, Model: "m", Format: translate.Index}
 	}
 	c, f, m, srv, _ := engineCore(t)
 	c.Prefs.Onboarded = true

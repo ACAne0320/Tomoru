@@ -22,7 +22,7 @@ func TestSpecsOrder(t *testing.T) {
 		}
 	}
 	for _, m := range models.All {
-		if s, ok := ByID(m.ID); ok != m.ASR || ok && (s.Model == nil || s.Model.ID != m.ID || s.Family != Batch) {
+		if s, ok := ByID(m.ID); ok != m.ASR || ok && (s.Model == nil || s.Model.ID != m.ID) {
 			t.Fatalf("model %s: listed %v as %+v", m.ID, ok, s)
 		}
 	}
@@ -43,7 +43,7 @@ func TestSpecsMake(t *testing.T) {
 	for _, s := range specs("windows") {
 		switch {
 		case s.Model == nil:
-		case s.Model.Runtime == "llama":
+		case s.Model.Served():
 			served = s
 		default:
 			model = s

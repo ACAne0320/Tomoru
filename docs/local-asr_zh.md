@@ -10,7 +10,7 @@
 |---|---|
 | 运行时 | sherpa-onnx（C API + Go 绑定，锁定 v1.13.8）。它还支持 Qwen3-ASR、Fun-ASR-Nano、Whisper 等，评测后只用 SenseVoice（见下文“其他模型”） |
 | 进程 | 识别放在独立进程 `tomoru-asr`（Go + cgo），由 app 启动和停止，和 llama-server 一样：崩溃不影响界面，停止后内存还给系统，app 本身不需要 cgo |
-| 模型 | 目前只有 SenseVoice Small，用户选它时才下载，不随 app 打包（230 MB，每次更新都要重新下载，选云端识别的用户也用不上） |
+| 模型 | 目前只有 SenseVoice Small，用户要下载时才下载，不随 app 打包（230 MB，每次更新都要重新下载，选云端识别的用户也用不上） |
 
 ## 架构
 

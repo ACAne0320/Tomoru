@@ -50,7 +50,7 @@ func TestTranslateImage(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, Llama: true}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, Llama: true}
 	pic := picture(t, 1200, 300) // sent as it is
 	var last string
 	out, err := e.TranslateImage(context.Background(), pic, "zh", []Term{{"クロード", "克劳德"}, {"エルナ", "艾露娜"}}, func(s string) { last = s })
@@ -75,10 +75,10 @@ func TestTranslateImage(t *testing.T) {
 
 // TestImagePrompt asks plainly without a glossary, and a chat model in English.
 func TestImagePrompt(t *testing.T) {
-	if p := imagePrompt(Index, "en", nil); p != "请将图片中的文本翻译为英语，直接输出翻译结果。" {
+	if p := indexImagePrompt("en", nil); p != "请将图片中的文本翻译为英语，直接输出翻译结果。" {
 		t.Errorf("Index prompt %q", p)
 	}
-	if p := imagePrompt(Chat, "ja", []Term{{"Cloud", "クラウド"}}); !strings.Contains(p, "text in the image into Japanese") || !strings.Contains(p, "Cloud → クラウド") {
+	if p := chatImagePrompt("ja", []Term{{"Cloud", "クラウド"}}); !strings.Contains(p, "text in the image into Japanese") || !strings.Contains(p, "Cloud → クラウド") {
 		t.Errorf("chat prompt %q", p)
 	}
 }
@@ -152,7 +152,7 @@ func TestImageLoop(t *testing.T) {
 		}
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, ImageSide: 100}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, ImageSide: 100}
 	out, err := e.TranslateImage(context.Background(), picture(t, 400, 200), "en", nil, nil)
 	if err != nil || out != "Claude?\nElenna:" {
 		t.Errorf("%q %v", out, err)
@@ -210,7 +210,7 @@ func TestImageStalled(t *testing.T) {
 		conns, answer = c, a
 	}
 
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, Client: srv.Client(), ImageWait: 50 * time.Millisecond}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, Client: srv.Client(), ImageWait: 50 * time.Millisecond}
 	out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
 	if err != nil || out != "完" {
 		t.Fatalf("%q %v", out, err)

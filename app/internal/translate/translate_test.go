@@ -31,7 +31,7 @@ func TestEndpoint(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e := &Endpoint{URL: srv.URL + "/", Model: "m", APIKey: "k", Style: Index}
+	e := &Endpoint{URL: srv.URL + "/", Model: "m", APIKey: "k", Format: Index}
 	var deltas []string
 	out, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Hi all!"}, func(s string) { deltas = append(deltas, s) })
 	if err != nil || out != "大家好！" || strings.Join(deltas, "|") != "大家|大家好|大家好！" {
@@ -43,7 +43,7 @@ func TestEndpoint(t *testing.T) {
 	}
 
 	// A chat model gets a system prompt and the line.
-	e.Style, e.Llama = Chat, true
+	e.Format, e.Llama = Chat, true
 	e.Translate(context.Background(), Request{Src: "ja", Tgt: "en", Text: "こんにちは", Draft: true}, nil)
 	msgs := body["messages"].([]any)
 	sys := msgs[0].(map[string]any)["content"].(string)
@@ -101,7 +101,7 @@ func TestNoThinking(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Chat}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Chat}
 	if out, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Good"}, nil); err != nil || out != "好" {
 		t.Fatalf("%q %v", out, err)
 	}
@@ -113,7 +113,7 @@ func TestNoThinking(t *testing.T) {
 
 	// A server that refuses them.
 	bodies, refuse = nil, true
-	e = &Endpoint{URL: srv.URL, Model: "m", Style: Chat}
+	e = &Endpoint{URL: srv.URL, Model: "m", Format: Chat}
 	for range 2 {
 		if out, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Good"}, nil); err != nil || out != "好" {
 			t.Fatalf("%q %v", out, err)
@@ -125,7 +125,7 @@ func TestNoThinking(t *testing.T) {
 
 	// Index-Translate does not think: its requests stay as they were.
 	bodies = nil
-	e = &Endpoint{URL: srv.URL, Model: "m", Style: Index}
+	e = &Endpoint{URL: srv.URL, Model: "m", Format: Index}
 	e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Good"}, nil)
 	if len(bodies) != 1 || bodies[0]["thinking"] != nil || bodies[0]["reasoning_effort"] != nil {
 		t.Errorf("Index-Translate: %v", bodies)
@@ -157,7 +157,7 @@ func TestUsage(t *testing.T) {
 
 	var used []Usage
 	ctx := WithUsage(context.Background(), func(u Usage) { used = append(used, u) })
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, Llama: true}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, Llama: true}
 	if out, err := e.Translate(ctx, Request{Src: "en", Tgt: "zh", Text: "Good"}, nil); err != nil || out != "好" {
 		t.Fatalf("%q %v", out, err)
 	}
@@ -236,7 +236,7 @@ func TestChat(t *testing.T) {
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"{\\\"terms\\\":[]}\"}}]}\n\ndata: [DONE]\n\n")
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Chat}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Chat}
 	out, err := e.Chat(context.Background(), "sys", "user", 1024)
 	msgs := body["messages"].([]any)
 	if err != nil || out != `{"terms":[]}` || len(msgs) != 2 || msgs[0].(map[string]any)["content"] != "sys" || body["max_tokens"] != 1024.0 || body["reasoning_effort"] != "none" {
@@ -257,6 +257,31 @@ func TestStatus(t *testing.T) {
 	}
 }
 
+// TestLimited pauses drafts once the service says too many requests, a line still asked: the
+// requests it allows go to the lines.
+func TestLimited(t *testing.T) {
+	var asked atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if asked.Add(1) == 1 {
+			http.Error(w, `{"error":{"message":"The request rate exceeds the current model RPM limit 60."}}`, http.StatusTooManyRequests)
+			return
+		}
+		io.WriteString(w, "data: {\"choices\":[{\"delta\":{\"content\":\"好\"}}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer srv.Close()
+	e := &Endpoint{URL: srv.URL, Model: "m"}
+	draft := Request{Src: "ja", Tgt: "zh", Text: "はい", Draft: true}
+	if _, err := e.Translate(context.Background(), draft, nil); err == nil {
+		t.Fatal("no 429")
+	}
+	if _, err := e.Translate(context.Background(), draft, nil); !errors.Is(err, ErrDraftPaused) || asked.Load() != 1 {
+		t.Errorf("draft after the 429: %v, %d asked", err, asked.Load())
+	}
+	if out, err := e.Translate(context.Background(), Request{Src: "ja", Tgt: "zh", Text: "はい"}, nil); out != "好" || err != nil {
+		t.Errorf("line after the 429: %q, %v", out, err)
+	}
+}
+
 // TestTokenLimit gives a line's translation tokens for its length, and ends one the limit cut with
 // an ellipsis: its start is shown, as unfinished. Chat's answer is left as it came.
 func TestTokenLimit(t *testing.T) {
@@ -267,13 +292,13 @@ func TestTokenLimit(t *testing.T) {
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"length\"}]}\n\ndata: [DONE]\n\n")
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Chat}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Chat}
 	line := strings.Repeat("长", 100)
 	out, err := e.Translate(context.Background(), Request{Src: "zh", Tgt: "en", Text: line}, nil)
 	if err != nil || out != "So the plan was…" || body["max_tokens"] != 228.0 {
 		t.Errorf("%q %v, max_tokens %v", out, err, body["max_tokens"])
 	}
-	e.Style, e.Gap = Index, time.Second
+	e.Format, e.Gap = Index, time.Second
 	if out, err := e.Translate(context.Background(), Request{Src: "zh", Tgt: "en", Text: "好"}, nil); err != nil || out != "So the plan was…" || body["max_tokens"] != 129.0 {
 		t.Errorf("Index, with a gap: %q %v, max_tokens %v", out, err, body["max_tokens"])
 	}
@@ -322,7 +347,7 @@ func TestFirstWait(t *testing.T) {
 		fmt.Fprint(w, "data: [DONE]\n\n")
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, FirstWait: 100 * time.Millisecond}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, FirstWait: 100 * time.Millisecond}
 
 	for _, c := range []struct {
 		name     string
@@ -374,7 +399,7 @@ func TestDraftStalled(t *testing.T) {
 		<-r.Context().Done()
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, FirstWait: 100 * time.Millisecond}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, FirstWait: 100 * time.Millisecond}
 	start := time.Now()
 	_, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Hi", Draft: true}, nil)
 	time.Sleep(150 * time.Millisecond) // time to ask again, were it to
@@ -392,7 +417,7 @@ func TestGap(t *testing.T) {
 		<-r.Context().Done()
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index, FirstWait: time.Second, Gap: 100 * time.Millisecond}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, FirstWait: time.Second, Gap: 100 * time.Millisecond}
 	start := time.Now()
 	out, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Hi all"}, nil)
 	if !errors.Is(err, ErrStalled) || out != "大家" || time.Since(start) > time.Second {
@@ -414,7 +439,7 @@ func TestWarm(t *testing.T) {
 		}
 	}))
 	defer srv.Close()
-	e := &Endpoint{URL: srv.URL, Model: "m", Style: Index}
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index}
 	e.Warm(context.Background())
 	if models.Load() != 0 {
 		t.Fatal("warmed without WarmIdle")

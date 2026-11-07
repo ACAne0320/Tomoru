@@ -15,11 +15,10 @@ type HeatDay struct {
 // heatLevels are the depths of the lantern's amber a day can take, past none: its ramp's.
 const heatLevels = len(Palette{}.Amber) - 1
 
-// A square of a Heatmap is about heatSize, and grows to fill a row to heatMax, heatGap from the
-// next: small, as a year of days reads at a glance, without the card taking the page.
+// A square of a Heatmap is about heatSize, heatGap from the next: small, as a year of days reads
+// at a glance. It grows to fill its row, so that a year in a wide window spans the card.
 const (
 	heatSize = 12
-	heatMax  = 14
 	heatGap  = 3
 )
 
@@ -50,7 +49,7 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 		}
 		return p.Amber[min(heatLevels, max(1, int(math.Ceil(float64(heatLevels)*v/top))))]
 	}
-	cell := func(e ui.Element) ui.Element { return e.Grow(1).Basis(0).MinWidth(0).MaxWidth(heatMax) }
+	cell := func(e ui.Element) ui.Element { return e.Grow(1).Basis(0).MinWidth(0) }
 	side := func(e ui.Element) ui.Element { return e.Width(Space(8)).Shrink(0) }
 	return ui.Column(c).Gap(Space(1)).Role(ui.RoleGroup).Label(label).Children(func() {
 		ui.Row(c).Gap(heatGap).AlignItems(ui.Start).Children(func() {

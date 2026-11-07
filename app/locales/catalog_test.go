@@ -57,3 +57,19 @@ func TestTranslated(t *testing.T) {
 		}
 	}
 }
+
+// TestLinked checks each link's words are in the note they link from, as written there: else the
+// note shows with no link.
+func TestLinked(t *testing.T) {
+	for _, tag := range append([]string{"en"}, shipped...) {
+		l := In(tag)
+		for _, m := range [][2]string{
+			{l.AsrCloudIntro(), l.AsrCloudConsole()},
+			{l.AsrOpenAiIntro(), l.AsrOpenAiPlatform()},
+		} {
+			if !strings.Contains(m[0], m[1]) {
+				t.Errorf("%s: %q not in %q", tag, m[1], m[0])
+			}
+		}
+	}
+}
