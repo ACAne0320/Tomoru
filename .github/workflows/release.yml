@@ -1,10 +1,10 @@
 name: Release
 
 # Pushing a tag v<version> builds the macOS and Windows apps, signs them and their updates, and
-# uploads them to a draft release whose notes are the version's section of app/CHANGELOG.md. The
-# draft is published by hand (docs/release.md). Needs the repository secrets MACOS_CERTIFICATE
-# (the .p12 of "Tomoru Self-Signed", base64), MACOS_CERTIFICATE_PASSWORD and
-# MYGO_UPDATER_PRIVATE_KEY.
+# uploads them to a draft release whose notes are the version's section of app/CHANGELOG.md and
+# the installers' links. The draft is published by hand (docs/release.md). Needs the repository
+# secrets MACOS_CERTIFICATE (the .p12 of "Tomoru Self-Signed", base64), MACOS_CERTIFICATE_PASSWORD
+# and MYGO_UPDATER_PRIVATE_KEY.
 
 on:
   push:
@@ -35,6 +35,20 @@ jobs:
             echo "::error::app/CHANGELOG.md has no section for $version."
             exit 1
           fi
+          # The installers, among the assets' archives and deltas: on GitHub, and, for mainland China,
+          # from the website's R2 copy, the latest published release's (site/README.md).
+          releases="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME"
+          cat >> "$RUNNER_TEMP/notes.md" <<NOTES
+
+          ## Download
+
+          | | GitHub | Mainland China |
+          |---|---|---|
+          | macOS (Apple silicon) | [tomoru-$version-arm64.dmg]($releases/tomoru-$version-arm64.dmg) | [tomoru.acane.dev/download/mac](https://tomoru.acane.dev/download/mac?from=cloudflare) |
+          | Windows 11 x64 | [tomoru-setup-$version-amd64.exe]($releases/tomoru-setup-$version-amd64.exe) | [tomoru.acane.dev/download/windows](https://tomoru.acane.dev/download/windows?from=cloudflare) |
+
+          The mainland China links give the latest release, half an hour at most after it is published.
+          NOTES
       - name: Create the draft release, or update its notes
         env:
           GH_TOKEN: ${{ github.token }}

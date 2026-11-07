@@ -41,7 +41,8 @@ The certificate and update key below are for official releases.
    ```
 
    The Release workflow checks that the tag is the version and that the changelog has its
-   section, creates a draft release with that section as its notes, and builds on macOS and on
+   section, creates a draft release with that section as its notes, followed by the installers'
+   links (on GitHub, and the website's for mainland China), and builds on macOS and on
    Windows (MSYS2) at the same time: `scripts/setup.sh`, the license release check, then
    `go tool mygo build -upload`, which signs the apps and their updates and uploads them to the
    draft. A tag with a hyphen (`v0.2.0-beta.1`) makes a prerelease. "Re-run failed jobs" builds a
