@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0
+## 0.1.4
 
 Hy-MT2 joins Index-Translate, on your device and on Tencent Cloud, and Speech & translation is
 redesigned around model families, with more sizes to choose from. Pictures get an engine of their
