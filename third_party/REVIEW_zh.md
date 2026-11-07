@@ -43,5 +43,5 @@ Windows 修复和 `.icns` 图标支持的版本；`v0.7.3` 还修复了 Windows 
 - **Lucide：** SVG 来自 `lucide-static` 0.469.0（每个文件头部都写着）；该版本的上游
   LICENSE 放在 SVG 旁边和 `lucide.txt` 中，另附 Feather MIT 声明。更新图标时换成同一版本的声明。
 
-这些运行时声明不授予再分发下载的 SenseVoice、Index-Translate 权重或外部基准媒体的权利。
+这些运行时声明不授予再分发下载的 SenseVoice、Index-Translate、Hy-MT2 权重或外部基准媒体的权利。
 分发此类文件前应检查各自的模型卡和许可。普通模型下载和本地基准输入不属于发布归档。

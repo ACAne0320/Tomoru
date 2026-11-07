@@ -345,6 +345,53 @@ func TestCloudSizes(t *testing.T) {
 	}
 }
 
+// TestCloudTranslation can't translate with Hy-MT2 on Tencent Cloud before it has a key; saved,
+// with its key in the credential store under its own name, it translates with TokenHub's Hy-MT2 in
+// Hy-MT2's format, Plus unless another model is chosen; and it is not offered for pictures, which
+// Hy-MT2 doesn't read.
+func TestCloudTranslation(t *testing.T) {
+	c, f, _, _, sec := engineCore(t)
+	if c.Use(MT, HyMTCloud) || c.Prefs.MT == HyMTCloud {
+		t.Fatalf("used without a key: in use %q", c.Prefs.MT)
+	}
+	c.Prefs.MT = HyMTCloud // as settings kept it, its key gone
+	c.Start()
+	if !errors.Is(c.Err, ErrMTCloudKey) || c.Running {
+		t.Fatalf("without a key: running %v, err %v", c.Running, c.Err)
+	}
+	c.Prefs.MT = "cloud"
+
+	c.SaveAPI(prefs.Service{ID: HyMTCloud}, "sk-th")
+	if !c.API(HyMTCloud).Key || string(sec["mt-key:hy-mt-cloud"]) != "sk-th" || len(c.Prefs.MTAPIs) != 1 || len(c.Prefs.ASRAPIs) != 0 || c.Prefs.MT != "cloud" {
+		t.Fatalf("saved: in use %q, translation %+v, recognition %+v, keys %v", c.Prefs.MT, c.Prefs.MTAPIs, c.Prefs.ASRAPIs, sec)
+	}
+	if !c.Use(MT, HyMTCloud) || c.Prefs.MT != HyMTCloud {
+		t.Fatalf("set up: in use %q", c.Prefs.MT)
+	}
+	translator := func() *translate.Endpoint {
+		t.Helper()
+		f.sessions = nil
+		c.Start()
+		f.flush(t, 1)
+		c.Stop()
+		ep, ok := f.sessions[0].cfg.Translator.(*translate.Endpoint)
+		if !ok {
+			t.Fatalf("translator %T", f.sessions[0].cfg.Translator)
+		}
+		return ep
+	}
+	if ep := translator(); ep.URL != "https://tokenhub.tencentmaas.com" || ep.Model != "hy-mt2-plus" || ep.APIKey != "sk-th" || ep.Format != translate.HyMT {
+		t.Errorf("translator %+v", ep)
+	}
+	c.SaveAPI(prefs.Service{ID: HyMTCloud, Model: "hy-mt2-pro"}, "")
+	if ep := translator(); ep.Model != "hy-mt2-pro" || ep.APIKey != "sk-th" {
+		t.Errorf("with Pro: %+v", ep)
+	}
+	if slices.ContainsFunc(c.ImageEngines(), func(e Engine) bool { return e.ID == HyMTCloud }) {
+		t.Error("offered for pictures")
+	}
+}
+
 // TestOpenAIRecognition sets up OpenAI's recognition beside Qwen's: each has its own key, and the
 // one in use is the one started.
 func TestOpenAIRecognition(t *testing.T) {
@@ -508,7 +555,7 @@ func TestPick(t *testing.T) {
 	if got := pick(); got != "local-2b" {
 		t.Errorf("the 9B too large: %q", got)
 	}
-	if cloud := c.Families(MT)[1]; !slices.ContainsFunc(cloud, c.Usable) {
+	if cloud := c.Families(MT)[2]; !slices.ContainsFunc(cloud, c.Usable) {
 		t.Error("the cloud can't be used")
 	}
 }
@@ -517,20 +564,20 @@ func TestPick(t *testing.T) {
 // it runs, else the smallest.
 func TestSuggested(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
-	index := c.Families(MT)[0]
+	index, hy := c.Families(MT)[0], c.Families(MT)[1]
 	mem := uint64(16 << 30)
 	c.deps.Memory = func() uint64 { return mem }
 	for _, tc := range []struct {
-		mem   uint64
-		index string
+		mem       uint64
+		index, hy string
 	}{
-		{16 << 30, "local-9b"},
-		{8 << 30, "local-2b"},
-		{4 << 30, "local-2b"},
+		{16 << 30, "local-9b", "hy-mt2-7b"},
+		{8 << 30, "local-2b", "hy-mt2-1.8b"},
+		{4 << 30, "local-2b", "hy-mt2-1.8b"},
 	} {
 		mem = tc.mem
-		if got := c.Suggested(index).ID; got != tc.index {
-			t.Errorf("%d GB: %q, want %q", tc.mem>>30, got, tc.index)
+		if got, got2 := c.Suggested(index).ID, c.Suggested(hy).ID; got != tc.index || got2 != tc.hy {
+			t.Errorf("%d GB: %q and %q, want %q and %q", tc.mem>>30, got, got2, tc.index, tc.hy)
 		}
 	}
 }
@@ -590,7 +637,7 @@ func TestFamilies(t *testing.T) {
 		}
 		got = append(got, ids)
 	}
-	want := [][]string{{"local-2b", "local-9b"}, {"cloud-2b", "cloud-9b", "cloud"}, {"custom:a"}, {"custom:b"}}
+	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt2-1.8b", "hy-mt2-7b"}, {"cloud-2b", "cloud-9b", "cloud"}, {HyMTCloud}, {"custom:a"}, {"custom:b"}}
 	if !slices.EqualFunc(got, want, slices.Equal) {
 		t.Errorf("translation's families %q, want %q", got, want)
 	}
@@ -604,7 +651,7 @@ func TestModelFormats(t *testing.T) {
 			t.Errorf("%s: no format %q", m.ID, m.Format)
 		}
 	}
-	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index} {
+	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index, "hy-mt2-1.8b": translate.HyMT, "hy-mt2-7b": translate.HyMT} {
 		c, f, _, _, _ := engineCore(t)
 		c.Download(id)
 		c.SetEngine(id)

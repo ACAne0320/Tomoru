@@ -64,14 +64,15 @@ Pictures have an engine of their own (`Preferences.ImageMT`), apart from the sub
 (`Preferences.MT`): some engines read no pictures, as most text-only APIs a user adds. It is
 always an explicit choice, in Speech & translation › Picture translation, from a menu of the
 engines that read pictures now (`Core.ImageEngines`): Index-Translate 35B in the cloud (its 9B and 2B there read text alone; the
-default), the local models with a vision projector once downloaded (Index-Translate 2B and 9B), and the user's APIs but those whose test found
-they read none. The picture's shortcut is in that group too, as in Preferences.
+default), the local models with a vision projector once downloaded (Index-Translate 2B and 9B; Hy-MT2 has none, nor has its service on Tencent Cloud), and the user's APIs but those whose test found
+they read none and those prompted as Hy-MT2, a model that reads none (`Format.ReadsPictures`). The picture's shortcut is in that group too, as in Preferences.
 
 - **Settings from before**: an empty `ImageMT` is set once, at launch, from `MT` where that reads
   pictures (a local model with a vision projector, an API not found to read none), else the cloud. In the first-run guide,
   choosing the translation engine chooses it for pictures too, where it reads them.
 - **Testing an API**: the add/edit API dialog's Test sends, alongside the sample sentence, a small
-  picture of it (`testPicture`). When the sentence comes back, the picture's answer says whether
+  picture of it (`testPicture`); to an API prompted as Hy-MT2 it sends none
+  (`translate.ErrNoPictures`), and the result says it reads none. When the sentence comes back, the picture's answer says whether
   the API reads pictures: translated, it does; an error status (400 at DeepSeek, 500 at a
   llama-server without a vision projector; not 429) and it does not; anything else, not known. The
   result shows under the translation (reads pictures / can't read pictures) and is kept on the

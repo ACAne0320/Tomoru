@@ -6607,6 +6607,52 @@ func (msgs Messages) TryHearingWin() string {
 	return Catalog.Format(msgs.locale, "tryHearingWin", nil)
 }
 
+// EngineHyMtCloud says "Hy-MT2 (Tencent Cloud)"
+// in the language the app shows.
+//
+// The name of Hy-MT2 on Tencent Cloud's TokenHub, a translation service in
+// the cloud, in the settings' list of engines.
+func EngineHyMtCloud() string { return In(i18n.Locale()).EngineHyMtCloud() }
+
+// EngineHyMtCloud says "Hy-MT2 (Tencent Cloud)"
+// in the language of msgs.
+//
+// The name of Hy-MT2 on Tencent Cloud's TokenHub, a translation service in
+// the cloud, in the settings' list of engines.
+func (msgs Messages) EngineHyMtCloud() string {
+	return Catalog.Format(msgs.locale, "engineHyMtCloud", nil)
+}
+
+// EngineHyMtCloudDescription says "Billed by tokens"
+// in the language the app shows.
+//
+// Under Hy-MT2 on Tencent Cloud, in the settings: what it costs.
+func EngineHyMtCloudDescription() string { return In(i18n.Locale()).EngineHyMtCloudDescription() }
+
+// EngineHyMtCloudDescription says "Billed by tokens"
+// in the language of msgs.
+//
+// Under Hy-MT2 on Tencent Cloud, in the settings: what it costs.
+func (msgs Messages) EngineHyMtCloudDescription() string {
+	return Catalog.Format(msgs.locale, "engineHyMtCloudDescription", nil)
+}
+
+// MtHyMtIntro says "Create an API key in the Tencent Cloud TokenHub console."
+// in the language the app shows.
+//
+// Under the API key field of Hy-MT2 on Tencent Cloud: where to get one,
+// mtHyMtConsole linking there.
+func MtHyMtIntro() string { return In(i18n.Locale()).MtHyMtIntro() }
+
+// MtHyMtIntro says "Create an API key in the Tencent Cloud TokenHub console."
+// in the language of msgs.
+//
+// Under the API key field of Hy-MT2 on Tencent Cloud: where to get one,
+// mtHyMtConsole linking there.
+func (msgs Messages) MtHyMtIntro() string {
+	return Catalog.Format(msgs.locale, "mtHyMtIntro", nil)
+}
+
 // ErrMtCloudKey says "Cloud translation has no API key. Set it up in Settings › Speech & translation."
 // in the language the app shows.
 //
@@ -6653,6 +6699,22 @@ func AsrOpenAiPlatform() string { return In(i18n.Locale()).AsrOpenAiPlatform() }
 // word as it is there.
 func (msgs Messages) AsrOpenAiPlatform() string {
 	return Catalog.Format(msgs.locale, "asrOpenAiPlatform", nil)
+}
+
+// MtHyMtConsole says "Tencent Cloud TokenHub console"
+// in the language the app shows.
+//
+// The part of mtHyMtIntro that links to TokenHub's API key page: word for
+// word as it is there.
+func MtHyMtConsole() string { return In(i18n.Locale()).MtHyMtConsole() }
+
+// MtHyMtConsole says "Tencent Cloud TokenHub console"
+// in the language of msgs.
+//
+// The part of mtHyMtIntro that links to TokenHub's API key page: word for
+// word as it is there.
+func (msgs Messages) MtHyMtConsole() string {
+	return Catalog.Format(msgs.locale, "mtHyMtConsole", nil)
 }
 
 // EngineCloudSize says "Index-Translate {size} (cloud)"
@@ -6703,6 +6765,24 @@ func LinkModelStudio() string { return In(i18n.Locale()).LinkModelStudio() }
 // platform's name, short.
 func (msgs Messages) LinkModelStudio() string {
 	return Catalog.Format(msgs.locale, "linkModelStudio", nil)
+}
+
+// LinkTokenHub says "TokenHub"
+// in the language the app shows.
+//
+// A small button at the top right of Hy-MT2 on Tencent Cloud's detail, in
+// the settings: opens its model's page on TokenHub. The platform's name,
+// short.
+func LinkTokenHub() string { return In(i18n.Locale()).LinkTokenHub() }
+
+// LinkTokenHub says "TokenHub"
+// in the language of msgs.
+//
+// A small button at the top right of Hy-MT2 on Tencent Cloud's detail, in
+// the settings: opens its model's page on TokenHub. The platform's name,
+// short.
+func (msgs Messages) LinkTokenHub() string {
+	return Catalog.Format(msgs.locale, "linkTokenHub", nil)
 }
 
 // SizeQuicker says "Quicker"

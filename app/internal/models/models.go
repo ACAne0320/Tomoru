@@ -75,7 +75,10 @@ var Qwen3ASRLangs = []string{
 // All are the models, a family's sizes together, the smallest first. The translation models are
 // from the official repositories: Index-Translate's (Q4_K_M: in our tests, the same mistakes as
 // Q8_0 at less than two thirds of the size), each with its vision projector (Q8_0), so that it
-// translates pictures too. The recognition models are
+// translates pictures too; and Hy-MT2's, Tencent's, Q4_K_M too, which with llama-server's flags
+// here takes as much as Index-Translate's of its size (on an M5, 1380 MiB of Metal's memory for
+// the 1.8B, 1389 for the 2B; 5043 for the 7B, 5257 for the 9B) and has no projector: it reads no
+// pictures. The recognition models are
 // SenseVoice as sherpa-onnx publishes it, the 2024-07-17 release: the 2025-09-09 one recognizes
 // everything as Cantonese with sherpa-onnx 1.13.8 (docs/local-asr.md), and its only size: the
 // larger was never published; and Qwen3-ASR as llama.cpp's own (ggml-org) publish it, Q8_0 (bf16
@@ -93,6 +96,16 @@ var All = []Model{
 		Files: []File{
 			{"Index-Translate-9B.Q4_K_M.gguf", 5780090304, "9cc6758b0007f4cbf42ea3400768cbff91ae74ef8d640e467158348426d33713"},
 			{"Index-Translate-9B.mmproj-Q8_0.gguf", 620690272, "0c654bbb219cea5dbb80656ec506e308c82b06aac7287f7636b9b6d06a44b957"},
+		}},
+	{ID: "hy-mt2-1.8b", Family: "Hy-MT2", Label: "1.8B", Size: 1133080448, Repo: "tencent/Hy-MT2-1.8B-GGUF", Needs: needs(8, 4),
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-1.8B-GGUF", Rev: "a0c709d9fac510f2c807aa3af52872340dc37a4a", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT2-1.8B-Q4_K_M.gguf", 1133080448, "dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699"},
+		}},
+	{ID: "hy-mt2-7b", Family: "Hy-MT2", Label: "7B", Size: 4624648896, Repo: "tencent/Hy-MT2-7B-GGUF", Needs: needs(16, 8),
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-7B-GGUF", Rev: "ab8472660ac61fac25f1af43fac2599d52a8a775", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT2-7B-Q4_K_M.gguf", 4624648896, "9f96256500f3fc1ab4d64336b58f52a949a95ad7516b0c229476eef782f9f77b"},
 		}},
 	{ID: "sensevoice-small", Family: "SenseVoice", Label: "Small", Dir: "sensevoice-small-2024-07-17", Size: 239233841 + 315894, ASR: true, Langs: []string{"zh", "en", "ja", "ko", "yue"},
 		Repo:       "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",

@@ -69,7 +69,7 @@ type Prefs struct {
 	// ASRCloud is Qwen's service as settings kept it before ASRAPIs: read, it moves into them.
 	ASRCloud *ASRCloud `json:",omitempty"`
 	// MT is the translation engine: "cloud", a local model's ID ("local-2b"), a cloud service's
-	// ID, used as set up in MTAPIs, or "custom:" and the ID of one of Endpoints.
+	// ID ("hy-mt-cloud"), used as set up in MTAPIs, or "custom:" and the ID of one of Endpoints.
 	MT        string
 	MTAPIs    []Service  // the cloud translation services the user set up
 	Endpoints []Endpoint // the translation APIs the user added
@@ -100,7 +100,7 @@ type Endpoint struct {
 	URL   string // the base, as https://api.openai.com, without /v1
 	Model string
 	// Format is how it is prompted, as translate's formats are named: "chat", "index" (as
-	// Index-Translate is).
+	// Index-Translate is) or "hy-mt" (as Hy-MT2 is).
 	Format string
 	// Index is Format as settings kept it before, true for "index": read, it moves into Format.
 	Index bool `json:",omitempty"`
@@ -120,7 +120,7 @@ const (
 // Service is a cloud service the user set up, of recognition or of translation. Its API key is in
 // the system's credential store, not here.
 type Service struct {
-	ID    string // the service, as asr.Specs or core names it: "qwen-cloud", "openai"
+	ID    string // the service, as asr.Specs or core names it: "qwen-cloud", "openai", "hy-mt-cloud"
 	URL   string // its address, "" for the service's
 	Model string // "" for the service's default
 	Key   bool   // an API key is kept: the service can be used

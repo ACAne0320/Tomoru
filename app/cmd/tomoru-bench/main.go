@@ -10,8 +10,9 @@
 // DASHSCOPE_API_KEY and DASHSCOPE_API_HOST, or openai[:model] (live transcription, or the
 // transcription API for another model than gpt-live-transcribe) with OPENAI_API_KEY and
 // OPENAI_BASE_URL;
-// -mt is cloud[:model], a translation model's ID (local-2b…), or chat with -mt-url, -mt-model and
-// the key in $MT_API_KEY.
+// -mt is cloud[:model], a translation model's ID (local-2b, hy-mt2-1.8b…), hy-mt-cloud[:model] with
+// TOKENHUB_API_KEY and TOKENHUB_BASE_URL, or chat with -mt-url, -mt-model and the key in
+// $MT_API_KEY.
 // A run goes to bench/runs/<name>/: run.json, and <case>.json for each case. Another run of the same
 // name and engines adds its cases to it: a long run goes in batches.
 package main
@@ -52,7 +53,7 @@ func main() {
 		}
 	}
 	asrName := flag.String("asr", "apple", "recognition: apple, "+strings.Join(hear, ", ")+", qwen-cloud[:model], openai[:model]")
-	mt := flag.String("mt", "cloud", "translation: cloud[:model], "+strings.Join(local, ", ")+", chat")
+	mt := flag.String("mt", "cloud", "translation: cloud[:model], "+strings.Join(local, ", ")+", hy-mt-cloud[:model], chat")
 	mtURL := flag.String("mt-url", "", "with -mt chat: the API's base URL, without /v1")
 	mtModel := flag.String("mt-model", "", "with -mt chat: the model")
 	draft := flag.Bool("draft", true, "translate sentences while they are spoken, as the app does by default")

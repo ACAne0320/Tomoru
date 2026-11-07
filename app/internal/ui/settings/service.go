@@ -15,7 +15,7 @@ import (
 )
 
 // The form that sets up a cloud service in place on the engines page, of recognition, Qwen's or
-// OpenAI's, or of translation: its model, its address and its API key.
+// OpenAI's, or of translation, Hy-MT2 on Tencent Cloud: its model, its address and its API key.
 
 // serviceEdit is the form's state while it shows.
 type serviceEdit struct {
@@ -33,12 +33,14 @@ type serviceEdit struct {
 var keyPages = map[string]string{
 	core.QwenCloud: "https://bailian.console.aliyun.com/cn-beijing/model/settings/api-key",
 	core.OpenAI:    "https://platform.openai.com/api-keys",
+	core.HyMTCloud: "https://console.cloud.tencent.com/tokenhub/apikey",
 }
 
 // modelNames name, in its form, the models of a service of models of its own, as core.ServiceOf
 // lists them; OpenAI's, a compatible service naming its own, are typed.
 var modelNames = map[string][]string{
 	core.QwenCloud: {"3.1", "3.0"},
+	core.HyMTCloud: {"Plus", "Pro", "Lite"},
 }
 
 // Open opens the form on the service id as k has it. n tells its tests from those of the forms
@@ -65,6 +67,8 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 		keyNote, keyLink, hostNote = locales.AsrCloudIntro(), locales.AsrCloudConsole(), locales.AsrCloudHostDescription()
 	case core.OpenAI:
 		keyNote, keyLink, hostNote = locales.AsrOpenAiIntro(), locales.AsrOpenAiPlatform(), locales.AsrOpenAiHostDescription()
+	case core.HyMTCloud:
+		keyNote, keyLink = locales.MtHyMtIntro(), locales.MtHyMtConsole()
 	}
 	ui.Column(c).Gap(kit.Space(3)).Children(func() { // each under its label: the pane is narrow
 		ui.Field(c, locales.EndpointKey(), func() {

@@ -12,6 +12,7 @@ import (
 
 	"tomoru/internal/asr"
 	"tomoru/internal/asr/llama"
+	"tomoru/internal/core"
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
 	"tomoru/internal/prefs"
@@ -34,6 +35,14 @@ func modelsDir() (string, error) {
 // translator makes the translator of -mt, and what stops it at the end.
 func translator(mt, url, model string, roots ...string) (translate.Translator, func(), error) {
 	id, cloudModel, _ := strings.Cut(mt, ":")
+	if s, ok := core.MTServiceByID(id); ok {
+		// Its address and key from the environment, as a cloud recognizer's.
+		key := os.Getenv("TOKENHUB_API_KEY")
+		if key == "" {
+			return nil, nil, fmt.Errorf("-mt %s needs TOKENHUB_API_KEY", id)
+		}
+		return provider.Endpoint(cmp.Or(os.Getenv("TOKENHUB_BASE_URL"), s.URL), cmp.Or(cloudModel, s.Models[0]), key, s.Format), func() {}, nil
+	}
 	switch id {
 	case "cloud":
 		tr := translate.Cloud()

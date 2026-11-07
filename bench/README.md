@@ -28,7 +28,7 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 - `-asr`: `apple`, `sensevoice`, `qwen3-asr-0.6b`, `qwen3-asr-1.7b`, `qwen-cloud[:model]` (reads
   `DASHSCOPE_API_KEY`, billed by duration), `openai[:model]` (live transcription; with another model than
   `gpt-live-transcribe`, the transcription API; reads `OPENAI_API_KEY`, and `OPENAI_BASE_URL` for a
-  compatible service; billed by duration). `-mt`: `cloud[:model]` (`Index-Translate-9B`, `Index-Translate-2B`), a translation model's ID (`local-2b`, `local-9b`), or `chat` with `-mt-url` and `-mt-model` (the
+  compatible service; billed by duration). `-mt`: `cloud[:model]` (`Index-Translate-9B`, `Index-Translate-2B`), a translation model's ID (`local-2b`, `local-9b`, `hy-mt2-1.8b`, `hy-mt2-7b`), `hy-mt-cloud[:model]` (Hy-MT2 on Tencent Cloud's TokenHub, reads `TOKENHUB_API_KEY`, billed by tokens), or `chat` with `-mt-url` and `-mt-model` (the
   key from `MT_API_KEY`).
 - Results go in `runs/<name>/` (not in the repository): one JSON per case, recording each change
   of the subtitles with its time; `score.py` writes `score.md`. Running again under the same name
@@ -221,6 +221,39 @@ Translation only (14 cases, translating the human subtitles by sentence):
 | Local 9B | 40.1 | 2.28** |
 
 \** Two batches ran at once, two copies of the model competing, so slower than it should be.
+
+With Hy-MT2 added (2026-11-07, an M5, the same human subtitles, one model at a time; runs
+`mtfull1107_local-*` and `mtfull1107nostyle_hy-mt2-*`):
+
+| Translation | chrF | s/sentence |
+|---|---|---|
+| Local Index-Translate 2B | 38.8 | 0.35 |
+| Local Hy-MT2 1.8B | 40.5 | 0.33 |
+| Local Index-Translate 9B | 40.1 | 1.42 |
+| Local Hy-MT2 7B | 40.4 | 1.29 |
+
+Hy-MT2 is not asked for colloquial subtitles: asked, as Index-Translate is, it scored 38.1 (1.8B)
+and 36.1 (7B), the 7B putting 呗 and 啦 into lectures (runs `mtfull1107_hy-mt2-*`).
+
+Hy-MT2 on Tencent Cloud's TokenHub (2026-11-07). Translation only, the same subtitles: Lite 38.9 at
+0.55 s a sentence, its translations more written than the local 1.8B's ("在极短的时间内", "自身的身体与
+心理健康"), not wrong (run `mtcloud1107_hy-mt2-lite`). Plus and Pro could not be scored so: sent a
+sentence after another, Pro was refused 889 of 1263 (429, "RPM limit 60"), Plus 96 ("busy").
+So the quick set, as used: Apple's recognition, translate ahead on, real time, one case at a time
+(runs `qcloud1107_*`):
+
+| Translation | Lines refused | Translation seen p50 / p90 | chrF |
+|---|---|---|---|
+| Lite | 0 / 128 | 1.15 / 2.91 s | 24.2 |
+| Plus (the default) | 1 / 125 | 1.30 / 3.42 s | 26.0 |
+| Pro | 14 / 124 | 1.20 / 3.05 s | 25.1 |
+| Pro, drafts paused after a 429 | 3 / 126 | 1.54 / 3.44 s | 26.0 |
+
+- Pro's 60 requests a minute are fewer than translate ahead asks of a fast talk (a draft every
+  0.6 s at most, besides the line). So after a 429 an API gets no drafts for a minute
+  (`translate.LimitedPause`), for any API: the lines keep the requests, and show a little later
+  meanwhile.
+- Plus is the default: as good as Pro, quicker, and seldom refused.
 
 Index-Translate's cloud serves 2B and 9B besides 35B-A3B (its `/v1/models`, 2026-11-07; only 35B
 takes images). The same day, one after another (runs `mtcloud1107_Index-Translate-*`), and the

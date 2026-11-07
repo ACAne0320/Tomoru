@@ -83,6 +83,47 @@ func TestAbout(t *testing.T) {
 	}
 }
 
+// TestHyMT asks Hy-MT2 in one turn, its personalization template: the text, then the task's items
+// numbered, those of the glossary, the description and a draft only when there are, the language
+// last; greedily, and without the parameters of a chat model's thinking.
+func TestHyMT(t *testing.T) {
+	var body struct {
+		Messages []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"messages"`
+		Temperature *float64 `json:"temperature"`
+		Thinking    any      `json:"thinking"`
+		Effort      any      `json:"reasoning_effort"`
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&body)
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"克劳德！\"}}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer srv.Close()
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: HyMT}
+	for _, c := range []struct {
+		r    Request
+		want string
+	}{
+		{Request{Src: "ja", Tgt: "zh", Text: "クラウド！"},
+			"【待翻译文本】\nクラウド！\n\n【翻译任务】\n1、只输出译文，不要额外解释\n2、将【待翻译文本】翻译为中文。"},
+		{Request{Src: "ja", Tgt: "en", Text: "クラウドが", Draft: true, Terms: []Term{{"クラウド", "Cloud"}, {"メテオ", "Meteor"}}, About: "最终幻想7 重制版"},
+			"【待翻译文本】\nクラウドが\n\n【翻译任务】\n1、专名按此翻译：クラウド→Cloud、メテオ→Meteor\n2、背景：最终幻想7 重制版\n" +
+				"3、【待翻译文本】是一句还没说完的话的开头：只翻译已有的部分，不要补全或猜测后文\n4、只输出译文，不要额外解释\n5、将【待翻译文本】翻译为英语。"},
+	} {
+		if out, err := e.Translate(context.Background(), c.r, nil); err != nil || out != "克劳德！" {
+			t.Fatalf("%q %v", out, err)
+		}
+		if len(body.Messages) != 1 || body.Messages[0].Role != "user" || body.Messages[0].Content != c.want {
+			t.Errorf("%+v: messages %+v", c.r, body.Messages)
+		}
+		if body.Temperature == nil || *body.Temperature != 0 || body.Thinking != nil || body.Effort != nil {
+			t.Errorf("temperature %v, thinking %v, effort %v", body.Temperature, body.Thinking, body.Effort)
+		}
+	}
+}
+
 // TestNoThinking asks a chat model not to think, as a line's translation would wait for it, in each
 // of the ways services take it; a server that refuses them gets the request again without them,
 // and never again.

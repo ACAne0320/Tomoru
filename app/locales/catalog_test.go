@@ -66,6 +66,7 @@ func TestLinked(t *testing.T) {
 		for _, m := range [][2]string{
 			{l.AsrCloudIntro(), l.AsrCloudConsole()},
 			{l.AsrOpenAiIntro(), l.AsrOpenAiPlatform()},
+			{l.MtHyMtIntro(), l.MtHyMtConsole()},
 		} {
 			if !strings.Contains(m[0], m[1]) {
 				t.Errorf("%s: %q not in %q", tag, m[1], m[0])

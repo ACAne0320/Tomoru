@@ -86,12 +86,15 @@ The list and contents are read in the background.
 - **Index format**: in `【约束要求】` (constraints), add `【硬性要求】专名/术语对照: メデオ→陨石、メテオ→陨石`
   (hard requirement: name/term mapping), Index-Translate's official instTrans form. An entry
   carries only the spellings that matched.
+- **Hy-MT2 format**: in `【翻译任务】` (the task), the first item `专名按此翻译：メテオ→陨石` (translate the
+  names so). Without it, Hy-MT2 1.8B got names wrong.
 - **General chat models**: append to the system prompt `Render these names as given: A → B; C → D.`
 - **The original shown**: confirmed misheard spellings are replaced with the right spelling on
   commit, so the original line shows "メテオ". Only literal replacement, no fuzzy matching. The same
   goes for uncommitted text and translate-ahead drafts.
 - **The scene description**: the Index format adds `【注意】背景：<description>` after the glossary
-  (a note, the soft constraint official instTrans uses for disambiguation); general chat models get
+  (a note, the soft constraint official instTrans uses for disambiguation), the Hy-MT2 format
+  `背景：<description>` after it in the task; general chat models get
   `What is being watched: <description>.` in the system prompt. `translate.Request.About` and
   `live.Config.About`, provided by core and safe for concurrent use like the glossary, take an
   edited description or a new scene from the next sentence. The on-device 2B model gets none
