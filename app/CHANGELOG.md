@@ -2,12 +2,13 @@
 
 ## 0.2.0
 
-- Speech & translation is redesigned: each model family is listed once, on device and in the
-  cloud together, with its sizes or its setup beside the list. Download only downloads; a model
-  is used by its radio or Use once it is in. Each size says whether it is the quicker or the more
-  accurate one, and whether this computer runs it. Each model links to where it is from. A cloud
-  service asks for its API key first, with its model and address folded away.
-  ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
+Hy-MT2 joins Index-Translate, on your device and on Tencent Cloud, and Speech & translation is
+redesigned around model families, with more sizes to choose from. Pictures get an engine of their
+own, the models a folder of your choosing. A line that isn't translated now says why, and
+recognition that falls behind stops instead of freezing.
+
+### New
+
 - Hy-MT2, Tencent's translation model: 1.8B and 7B download to translate on your device; on
   Tencent Cloud it translates with your TokenHub API key (Plus, Pro or Lite); and an API of yours
   can be prompted as Hy-MT2 (Add API › Prompt). It reads no pictures, so it isn't offered for
@@ -27,6 +28,15 @@
   full: Speech & translation › Model folder › Change… moves them into a "Tomoru Models" folder
   there. ([#5](https://github.com/ACAne0320/Tomoru/issues/5),
   [dd36f5e](https://github.com/ACAne0320/Tomoru/commit/dd36f5e))
+
+### Improved
+
+- Speech & translation is redesigned: each model family is listed once, on device and in the
+  cloud together, with its sizes or its setup beside the list. Download only downloads; a model
+  is used by its radio or Use once it is in. Each size says whether it is the quicker or the more
+  accurate one, and whether this computer runs it. Each model links to where it is from. A cloud
+  service asks for its API key first, with its model and address folded away.
+  ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
 - The settings, the menu bar panel and the first-run guide share one tightened design, in light
   and dark. Home, Scenes, History, Statistics and About are laid out alike; a session on Home
   opens in History; lists never wrap a line; Subtitle style lines its two cards up row for row;
@@ -40,6 +50,9 @@
 - When a translation service says it gets too many requests, translate ahead pauses for a
   minute, so the lines' own translations still get through.
   ([968ccda](https://github.com/ACAne0320/Tomoru/commit/968ccda))
+
+### Fixed
+
 - A subtitle line without a translation says why: the key refused, the quota used up, the service
   not answering, or translating fell behind. ([553894d](https://github.com/ACAne0320/Tomoru/commit/553894d))
 - When on-device recognition falls behind, translating stops and says so, instead of the

@@ -29,8 +29,9 @@ The certificate and update key below are for official releases.
 ## Each release
 
 1. Set the version in `app/mygo.json`, and write its section in `app/CHANGELOG.md`
-   (`## 0.1.1`). That section is the release's notes, on GitHub and in the app's update window.
-   End each item with a link to its pull request, or to its commits when it had none:
+   (`## 0.1.1`). That section is the release's notes, on GitHub and in the app's update window:
+   a few sentences on what the release brings, then its items under `### New`, `### Improved`
+   and `### Fixed`, those it has. End each item with a link to its pull request, or to its commits when it had none:
    `([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))`.
 2. Commit to `main`, and wait for Checks and Tests to pass.
 3. Push the version's tag:
