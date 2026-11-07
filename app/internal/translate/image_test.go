@@ -73,6 +73,23 @@ func TestTranslateImage(t *testing.T) {
 	}
 }
 
+// TestNoPictures sends nothing to a model whose format reads no pictures, and says so.
+func TestNoPictures(t *testing.T) {
+	var asked int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		asked++
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"好\"}}]}\n\n")
+	}))
+	defer srv.Close()
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: HyMT}
+	if out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); !errors.Is(err, ErrNoPictures) || out != "" || asked != 0 {
+		t.Errorf("%q %v, %d requests", out, err, asked)
+	}
+	if HyMT.ReadsPictures() || !Index.ReadsPictures() || !Chat.ReadsPictures() {
+		t.Error("which formats read pictures")
+	}
+}
+
 // TestImagePrompt asks plainly without a glossary, and a chat model in English.
 func TestImagePrompt(t *testing.T) {
 	if p := indexImagePrompt("en", nil); p != "请将图片中的文本翻译为英语，直接输出翻译结果。" {

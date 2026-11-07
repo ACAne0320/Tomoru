@@ -456,10 +456,14 @@ func home(family string) (label, url string) {
 		return "GitHub", "https://github.com/QwenLM/Qwen3-ASR"
 	case "Index-Translate", "cloud":
 		return "GitHub", core.CloudRepo
+	case "Hy-MT2":
+		return "GitHub", "https://github.com/Tencent-Hunyuan/Hy-MT2"
 	case core.QwenCloud:
 		return locales.LinkModelStudio(), "https://help.aliyun.com/zh/model-studio/real-time-speech-recognition-user-guide"
 	case core.OpenAI:
 		return "OpenAI", "https://developers.openai.com/api/docs/guides/speech-to-text"
+	case core.HyMTCloud:
+		return locales.LinkTokenHub(), "https://console.cloud.tencent.com/tokenhub/models/detail?modelId=hy-mt2-plus&regionId=1"
 	}
 	return "", ""
 }

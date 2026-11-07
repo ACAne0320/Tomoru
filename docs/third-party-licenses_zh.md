@@ -43,5 +43,5 @@ scripts/package-licenses.sh --release-check windows-amd64
 更新 `third_party/DEPENDENCIES.sha256`。重新复制许可包，确认构建后的 app 中也包含这些文件，
 然后再上传。
 
-SenseVoice、Qwen3-ASR 和 Index-Translate 权重在安装后下载，不会因为与 Tomoru 一起使用就改为 GPL。
+SenseVoice、Qwen3-ASR、Index-Translate 和 Hy-MT2（Apache-2.0）权重在安装后下载，不会因为与 Tomoru 一起使用就改为 GPL。
 镜像或再分发权重前需要检查模型卡；基准视频与音频也保留原有条款。

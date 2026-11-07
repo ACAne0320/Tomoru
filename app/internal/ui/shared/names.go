@@ -100,7 +100,7 @@ func ModelNote(m models.Model, st models.Status, runs bool) string {
 // better.
 func SizeNote(m models.Model) string {
 	switch m.ID {
-	case "local-2b", "qwen3-asr-0.6b":
+	case "local-2b", "hy-mt2-1.8b", "qwen3-asr-0.6b":
 		return locales.SizeQuicker()
 	case "local-9b", "qwen3-asr-1.7b":
 		return locales.SizeMoreAccurate()
@@ -133,6 +133,8 @@ func FamilyNote(f []core.Engine) string {
 		return locales.EngineQwenAsrDescription()
 	case core.OpenAI:
 		return locales.EngineOpenAiDescription()
+	case core.HyMTCloud:
+		return locales.EngineHyMtCloudDescription()
 	}
 	return ""
 }
@@ -155,6 +157,8 @@ func EngineName(e core.Engine) string {
 		return locales.EngineQwenAsr()
 	case e.ID == core.OpenAI:
 		return "OpenAI"
+	case e.ID == core.HyMTCloud:
+		return locales.EngineHyMtCloud()
 	}
 	if m, ok := models.ByID(e.ID); ok {
 		return m.Name()

@@ -21,7 +21,7 @@
 
 <p align="center"><a href="#下载">下载</a> · <a href="README.md">English</a> · <a href="app/CHANGELOG.md">更新记录</a><br>
 </p>
-<p align="center">基于 <a href="https://github.com/egoist/mygo">MyGo</a> 构建 · 翻译由 <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> 提供 · 语音识别由 <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>、<a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> 和 <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a> 提供</p>
+<p align="center">基于 <a href="https://github.com/egoist/mygo">MyGo</a> 构建 · 翻译由 <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> 和 <a href="https://github.com/Tencent-Hunyuan/Hy-MT2">Hy-MT2</a> 提供 · 语音识别由 <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>、<a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> 和 <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a> 提供</p>
 
 看外语直播、生肉番剧、VTuber 切片、打游戏或开会时，Tomoru 会直接听电脑播放的声音，识别语音并把双语字幕实时显示在屏幕上。
 
@@ -108,6 +108,7 @@ go tool mygo build                            # 打包到 app/build/windows-amd6
 | 用途 | 项目 | 来自 |
 |---|---|---|
 | 翻译（免费云端接口 2B / 9B / 35B、本机 2B / 9B 模型） | [Index-Translate](https://github.com/bilibili/Index-Translate) | [哔哩哔哩 Index 团队](https://huggingface.co/IndexTeam) |
+| 翻译（本机 1.8B / 7B 模型） | [Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) | [腾讯混元](https://github.com/Tencent-Hunyuan) |
 | 语音识别 | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [阿里千问语音团队](https://github.com/QwenAudio) |
 | 语音识别 | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [阿里千问团队](https://github.com/QwenLM) |
 | 语音识别（macOS） | [Apple 语音识别](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com.cn) |

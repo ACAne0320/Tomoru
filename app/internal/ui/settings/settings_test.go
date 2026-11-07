@@ -185,7 +185,7 @@ func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.T
 // doesn't use, uses it by its radio, and deletes it, which can be undone.
 func TestAddEndpoint(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
-	wants := []string{locales.EngineIndexCloud(), "Index-Translate", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
+	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT2", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
 	if prefs.SystemASR() != "" {
 		wants = append(wants, locales.EngineApple())
 	}
@@ -556,6 +556,54 @@ func TestCloudSizes(t *testing.T) {
 	}
 }
 
+// TestTranslationCloud sets up Hy-MT2 on Tencent Cloud in place, as recognition's are: its size
+// chosen, its key saved, Use using it only then.
+func TestTranslationCloud(t *testing.T) {
+	k, _, tt := enginesPage(t, nil)
+	name := locales.EngineHyMtCloud()
+	if err := tt.Click(name); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.EngineHyMtCloudDescription()) || !tt.HasText(locales.MtHyMtIntro()) || !tt.HasText(locales.NeedsKey()) {
+		t.Fatalf("texts %q", tt.Texts())
+	}
+	if err := tt.Click(locales.UseEngine(name)); err != nil {
+		t.Fatal(err)
+	}
+	if k.Prefs.MT == core.HyMTCloud {
+		t.Fatal("not set up, used")
+	}
+	if err := tt.Click(locales.ModelAndAddress()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if err := tt.Click("Pro"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click(locales.EndpointKey()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Type("sk-th")
+	if err := tt.Click(locales.Save()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if a := k.API(core.HyMTCloud); k.Prefs.MT == core.HyMTCloud || !a.Key || a.Model != "hy-mt2-pro" || len(k.Prefs.ASRAPIs) != 0 {
+		t.Errorf("after saving: in use %q, %+v", k.Prefs.MT, k.Prefs.MTAPIs)
+	}
+	if !tt.HasText("hy-mt2-pro · tokenhub.tencentmaas.com · " + locales.KeySaved()) {
+		t.Errorf("texts %q", tt.Texts())
+	}
+	// Set up, Use beside it uses it.
+	if err := tt.Click(locales.Use()); err != nil {
+		t.Fatal(err)
+	}
+	if k.Prefs.MT != core.HyMTCloud {
+		t.Errorf("set up, not used: %q", k.Prefs.MT)
+	}
+}
+
 // TestDeafRecognizer says, of a recognizer that doesn't hear the language spoken, so in its row and
 // what using it changes in its detail.
 func TestDeafRecognizer(t *testing.T) {
@@ -618,15 +666,15 @@ func TestEndpointFormat(t *testing.T) {
 	if err := tt.Click(locales.EndpointFormatChat()); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate"}; !slices.Equal(got, want) {
+	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate", "Hy-MT2"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
 	tt.Frame() // the menu's frame has ended
-	if err := tt.ChooseMenuItem("Index-Translate"); err != nil {
+	if err := tt.ChooseMenuItem("Hy-MT2"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if s.api.e.Format != "index" {
+	if s.api.e.Format != "hy-mt" {
 		t.Errorf("format %q", s.api.e.Format)
 	}
 }

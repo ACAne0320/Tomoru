@@ -21,7 +21,7 @@
 
 <p align="center"><a href="#download">Download</a> · <a href="README_zh.md">中文</a> · <a href="app/CHANGELOG.md">Changelog</a><br>
 </p>
-<p align="center">Built with <a href="https://github.com/egoist/mygo">MyGo</a> · translation by <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> · speech recognition by <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>, <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> and <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a></p>
+<p align="center">Built with <a href="https://github.com/egoist/mygo">MyGo</a> · translation by <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a> and <a href="https://github.com/Tencent-Hunyuan/Hy-MT2">Hy-MT2</a> · speech recognition by <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>, <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a> and <a href="https://developer.apple.com/documentation/speech/speechanalyzer">Apple</a></p>
 
 Watching foreign streams, raw anime or VTuber clips, playing games, or sitting in a meeting? Tomoru
 listens to what your computer plays, recognizes the speech and shows live bilingual subtitles on
@@ -140,6 +140,7 @@ Want to contribute? See [CONTRIBUTING](CONTRIBUTING.md). Report security issues 
 | For | Project | By |
 |---|---|---|
 | Translation (the free cloud API, 2B / 9B / 35B; the on-device 2B / 9B models) | [Index-Translate](https://github.com/bilibili/Index-Translate) | [bilibili's Index team](https://huggingface.co/IndexTeam) |
+| Translation (the on-device 1.8B / 7B models) | [Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) | [Tencent Hunyuan](https://github.com/Tencent-Hunyuan) |
 | Speech recognition | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [Alibaba's Qwen Audio team](https://github.com/QwenAudio) |
 | Speech recognition | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [Alibaba's Qwen team](https://github.com/QwenLM) |
 | Speech recognition on macOS | [Apple speech recognition](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com) |

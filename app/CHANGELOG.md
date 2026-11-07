@@ -31,9 +31,14 @@
   the first-run guide and the logs as rows, each with its button. English labels use sentence
   case throughout ("New scene", "Learn names"), and Preferences no longer cuts "Screenshot
   translation" short.
+- Hy-MT2 1.8B and 7B, Tencent's translation models, can be downloaded to translate on your
+  device, and an API of yours can be prompted as Hy-MT2 too (Add API › Prompt). Hy-MT2 reads no
+  pictures, so it isn't offered for picture translation.
 - Index-Translate in the cloud, free from the bilibili team, comes in 9B and 2B too: Speech &
   translation › Index-Translate (bilibili). In our tests both translated closer to the human
   subtitles than 35B, and sooner; 35B stays the default, and the one that translates pictures.
+- Hy-MT2 on Tencent Cloud translates with your TokenHub API key, in Plus (7B), Pro (30B-A3B) or
+  Lite (1.8B): Speech & translation › Hy-MT2 (Tencent Cloud). It reads no pictures.
 - When a translation service says it gets too many requests, translate ahead pauses for a
   minute, so the lines' own translations still get through.
 - Qwen3-ASR 0.6B, for GPUs without the memory of the 1.7B: about 2 GB, a little quicker, as

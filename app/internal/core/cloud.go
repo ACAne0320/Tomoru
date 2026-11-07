@@ -41,6 +41,9 @@ func CloudSizeByID(id string) (CloudSize, bool) {
 	return CloudSizes[i], true
 }
 
+// HyMTCloud is Hy-MT2 on Tencent Cloud's TokenHub.
+const HyMTCloud = "hy-mt-cloud"
+
 // MTService is a translation service in the cloud: its address, as an Endpoint's, its models, the
 // first its default, and how they are prompted.
 type MTService struct {
@@ -49,8 +52,12 @@ type MTService struct {
 	Format  *translate.Format
 }
 
-// MTServices are the cloud translation services to set up with an API key.
-var MTServices []MTService
+// MTServices are the cloud translation services to set up with an API key. TokenHub serves Hy-MT2
+// in three sizes: Plus 7B, the default, as good as Pro 30B-A3B, quicker and seldom refused; Pro,
+// which takes 60 requests a minute; and Lite 1.8B (bench/README.md).
+var MTServices = []MTService{
+	{ID: HyMTCloud, URL: "https://tokenhub.tencentmaas.com", Models: []string{"hy-mt2-plus", "hy-mt2-pro", "hy-mt2-lite"}, Format: translate.HyMT},
+}
 
 // MTServiceByID finds a cloud translation service.
 func MTServiceByID(id string) (MTService, bool) {

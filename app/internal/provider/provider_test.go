@@ -27,7 +27,7 @@ func TestResolvedTranslationProviders(t *testing.T) {
 		t.Fatal("endpoint configuration lost")
 	}
 	s := &testServer{}
-	for _, format := range []*translate.Format{translate.Index} {
+	for _, format := range []*translate.Format{translate.Index, translate.HyMT} {
 		local, err := Local(context.Background(), s, "/models/model.gguf", format)
 		if err != nil {
 			t.Fatal(err)

@@ -66,9 +66,10 @@ type Term struct {
 - **只带相关条目**：一句话里出现了某个条目的原文写法或任一听错写法，才把这个条目带上，最多 `scene.MaxTerms` 条。
   - **匹配规则**：拉丁字母按整词匹配，不区分大小写，免得 `Eva` 匹配到 `evaluate`；其他文字先规范化再匹配（NFKC、全角半角、大小写、空格、「・」，Ⅶ 和 VII 视为相同）。
 - **Index 格式**：在 `【约束要求】` 里加一条 `【硬性要求】专名/术语对照: メデオ→陨石、メテオ→陨石`，这是官方的 instTrans 写法。条目只带它命中的写法。
+- **Hy-MT2 格式**：在 `【翻译任务】` 里第一条加 `专名按此翻译：メテオ→陨石`。不带的话，Hy-MT2 1.8B 会把名字译错。
 - **通用对话模型**：在系统提示末尾加一句 `Render these names as given: A → B; C → D.`
 - **原文显示**：确认过的听错写法在提交时直接替换成正确写法，所以原文栏显示「メテオ」。只按字面替换，不做模糊匹配。未提交的原文和抢先翻译的草稿也一样。
-- **场景描述**：Index 格式在对照表之后加一条 `【注意】背景：<描述>`（官方 instTrans 里用来消歧的软约束）；通用对话模型在系统提示里加 `What is being watched: <描述>.`。`translate.Request.About`、`live.Config.About` 和对照表一样由 core 提供、并发安全，改了描述或切场景，下一句就生效。本机 2B 不带（`models.Model.NoAbout`）。
+- **场景描述**：Index 格式在对照表之后加一条 `【注意】背景：<描述>`（官方 instTrans 里用来消歧的软约束），Hy-MT2 格式在翻译任务里对照表之后加 `背景：<描述>`；通用对话模型在系统提示里加 `What is being watched: <描述>.`。`translate.Request.About`、`live.Config.About` 和对照表一样由 core 提供、并发安全，改了描述或切场景，下一句就生效。本机 2B 不带（`models.Model.NoAbout`）。
 - **实现**：`translate.Request.Terms`；`live.Config.Terms` 在提交时改写原文，翻译时按当前对照表取条目，由 core 提供、并发安全。学到新条目后不用重启会话，下一句就生效。切场景时换语言和对照表，只有语言变了才重启会话。
 
 ## 学习专名

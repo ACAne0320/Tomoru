@@ -2369,6 +2369,18 @@
   "@tryHearingWin": {
     "description": "tryHearing on Windows."
   },
+  "engineHyMtCloud": "Hy-MT2 (Tencent Cloud)",
+  "@engineHyMtCloud": {
+    "description": "The name of Hy-MT2 on Tencent Cloud's TokenHub, a translation service in the cloud, in the settings' list of engines."
+  },
+  "engineHyMtCloudDescription": "Billed by tokens",
+  "@engineHyMtCloudDescription": {
+    "description": "Under Hy-MT2 on Tencent Cloud, in the settings: what it costs."
+  },
+  "mtHyMtIntro": "Create an API key in the Tencent Cloud TokenHub console.",
+  "@mtHyMtIntro": {
+    "description": "Under the API key field of Hy-MT2 on Tencent Cloud: where to get one, mtHyMtConsole linking there."
+  },
   "errMtCloudKey": "Cloud translation has no API key. Set it up in Settings › Speech & translation.",
   "@errMtCloudKey": {
     "description": "Where the subtitles show, when a cloud translation service is chosen without its API key."
@@ -2380,6 +2392,10 @@
   "asrOpenAiPlatform": "OpenAI platform",
   "@asrOpenAiPlatform": {
     "description": "The part of asrOpenAiIntro that links to OpenAI's API key page: word for word as it is there."
+  },
+  "mtHyMtConsole": "Tencent Cloud TokenHub console",
+  "@mtHyMtConsole": {
+    "description": "The part of mtHyMtIntro that links to TokenHub's API key page: word for word as it is there."
   },
   "engineCloudSize": "Index-Translate {size} (cloud)",
   "@engineCloudSize": {
@@ -2398,6 +2414,10 @@
   "linkModelStudio": "Model Studio",
   "@linkModelStudio": {
     "description": "A small button at the top right of Qwen ASR's detail, in the settings: opens the page of its models on Alibaba Cloud Model Studio. The platform's name, short."
+  },
+  "linkTokenHub": "TokenHub",
+  "@linkTokenHub": {
+    "description": "A small button at the top right of Hy-MT2 on Tencent Cloud's detail, in the settings: opens its model's page on TokenHub. The platform's name, short."
   },
   "sizeQuicker": "Quicker",
   "@sizeQuicker": {

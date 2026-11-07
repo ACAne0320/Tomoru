@@ -49,7 +49,7 @@ type Translator interface {
 // Format is how a kind of model is asked to translate: its prompts and its sampling. The way they
 // are sent, an OpenAI-compatible chat API, is the same for all.
 type Format struct {
-	ID   string // as settings name it: "chat", "index"
+	ID   string // as settings name it: "chat", "index", "hy-mt"
 	Name string // the model's, as shown; "" for Chat, which the app names in its language
 	// prompt is the turns that ask for r's translation.
 	prompt func(Request) []message
@@ -79,10 +79,16 @@ var (
 		temperature: 0.2,
 		chat:        true,
 	}
+	// HyMT is Hy-MT2's: one turn, in Chinese, its personalization template, decoded greedily. It
+	// reads no pictures, and has no system prompt and no thinking.
+	HyMT = &Format{
+		ID: "hy-mt", Name: "Hy-MT2",
+		prompt: func(r Request) []message { return []message{{"user", hymtPrompt(r)}} },
+	}
 )
 
 // Formats are those a user's API may be prompted in, in the order to choose them.
-var Formats = []*Format{Chat, Index}
+var Formats = []*Format{Chat, Index, HyMT}
 
 // ReadsPictures tells whether a model of f reads the text in pictures.
 func (f *Format) ReadsPictures() bool { return f.image != nil }
@@ -193,6 +199,34 @@ func indexPrompt(r Request) string {
 		zhName(r.Src), zhName(r.Tgt), r.Text, b.String())
 }
 
+// hymtPrompt is the single turn Hy-MT2 takes: the text, then the task's items numbered, the
+// language to translate into last. Without the glossary it got names wrong (2026-11-07, the 1.8B).
+// It is not asked for colloquial subtitles, as Index-Translate is: asked, the 7B put 呗 and 啦 in
+// lectures, and chrF on the full set fell from 40.5 to 38.1 (1.8B) and from 40.4 to 36.1 (7B).
+func hymtPrompt(r Request) string {
+	var task []string
+	if len(r.Terms) > 0 {
+		pairs := make([]string, len(r.Terms))
+		for i, t := range r.Terms {
+			pairs[i] = t.Src + "→" + t.Tgt
+		}
+		task = append(task, "专名按此翻译："+strings.Join(pairs, "、"))
+	}
+	if r.About != "" {
+		task = append(task, "背景："+r.About)
+	}
+	if r.Draft {
+		task = append(task, "【待翻译文本】是一句还没说完的话的开头：只翻译已有的部分，不要补全或猜测后文")
+	}
+	task = append(task, "只输出译文，不要额外解释", "将【待翻译文本】翻译为"+zhName(r.Tgt)+"。")
+	var b strings.Builder
+	fmt.Fprintf(&b, "【待翻译文本】\n%s\n\n【翻译任务】", r.Text)
+	for i, t := range task {
+		fmt.Fprintf(&b, "\n%d、%s", i+1, t)
+	}
+	return b.String()
+}
+
 func chatSystem(r Request) string {
 	s := fmt.Sprintf("You are a live subtitle translator. Translate the user's %s line into natural, colloquial %s suitable for on-screen subtitles. Output only the translation.",
 		enName(r.Src), enName(r.Tgt))
@@ -277,8 +311,8 @@ func (e *Endpoint) Translate(ctx context.Context, r Request, onDelta func(string
 }
 
 // LimitedPause is how long drafts pause after a service said too many requests (429): a draft
-// can go without, and the requests left are the lines'. A service that takes 60 a minute is gone
-// past by the drafts of a fast talk alone.
+// can go without, and the requests left are the lines'. Hy-MT2 Pro on Tencent Cloud takes 60 a
+// minute, which the drafts of a fast talk alone go past.
 const LimitedPause = time.Minute
 
 // ErrDraftPaused is a draft not asked for, in the pause after the service limited requests.

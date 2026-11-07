@@ -90,6 +90,8 @@ func TestGallery(t *testing.T) {
 			s.shown[core.ASR], s.shown[core.MT] = core.QwenCloud, "cloud"
 			k.SetImageEngine("cloud")
 		}},
+		{"engines-service", 1900, func() { s.shown[core.MT] = core.HyMTCloud }},
+		{"engines-service-set", 1900, func() { k.SaveAPI(prefs.Service{ID: core.HyMTCloud}, "sk"); s.svc[core.MT] = serviceEdit{} }},
 		{"engines-api", 1900, func() {
 			id := k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com/compatible-mode", Model: "qwen-vl-max"}, "sk")
 			s.show(core.MT, prefs.CustomPrefix+id)

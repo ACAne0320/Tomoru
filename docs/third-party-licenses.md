@@ -51,7 +51,7 @@ items. Then regenerate `third_party/SHA256SUMS` for the files in
 dependency declaration files. Repackage the notices and verify the built app
 contains them before uploading.
 
-SenseVoice, Qwen3-ASR and Index-Translate weights are downloaded after installation. Their
+SenseVoice, Qwen3-ASR, Index-Translate and Hy-MT2 (Apache-2.0) weights are downloaded after installation. Their
 model licenses do not become GPL by being used with Tomoru. Check their model
 cards before mirroring or redistributing weights; benchmark videos and audio
 also retain their original terms.

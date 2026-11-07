@@ -16,7 +16,7 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 
 - **快速集**用于日常检查（重构、小的行为改动）：每种语言一段有标准答案的，只跑前 2 分钟。只有真的需要看数字时才跑全量：加新模型、断句或性能有大的改动。对比改动时，用同样的用例、换一个 `-name` 先跑一遍改动前的。
 - 引擎用 `listen --file` 按原速“播放”每段录音，不用外放，也不需要录音权限；session 和 app 里的完全一样（断句、抢先翻译都开着）。所以每段要跑满它的时长，`-j` 决定同时跑几段。
-- `-asr`：`apple`、`sensevoice`、`qwen3-asr-0.6b`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud[:模型]`（`Index-Translate-9B`、`Index-Translate-2B`）、翻译模型的 ID（`local-2b`、`local-9b`），或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
+- `-asr`：`apple`、`sensevoice`、`qwen3-asr-0.6b`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud[:模型]`（`Index-Translate-9B`、`Index-Translate-2B`）、翻译模型的 ID（`local-2b`、`local-9b`、`hy-mt2-1.8b`、`hy-mt2-7b`）、`hy-mt-cloud[:模型]`（腾讯云 TokenHub 上的 Hy-MT2，读 `TOKENHUB_API_KEY`，按 token 计费），或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
 - 结果在 `runs/<名字>/`（不进仓库）：每段一个 JSON，记下字幕每一次变化的时间和内容；`score.py` 写出 `score.md`。同名再跑会把新的段并进去，可以分批跑。
 - 本地引擎同时跑太多段会互相抢 CPU，延迟变差：SenseVoice 建议 `-j 6` 以内，本地翻译模型 `-j 1`。
 
@@ -159,6 +159,29 @@ Apple 的延迟（2026-10-17 试过，都没采用）：SpeechTranscriber 大约
 | 本地 9B | 40.1 | 2.28** |
 
 \** 两批同时跑、两份模型抢资源，偏慢。
+
+加入 Hy-MT2 后（2026-11-07，M5，同一批人工字幕，一次只跑一个模型；运行 `mtfull1107_local-*` 和 `mtfull1107nostyle_hy-mt2-*`）：
+
+| 翻译 | chrF | 每句秒 |
+|---|---|---|
+| 本地 Index-Translate 2B | 38.8 | 0.35 |
+| 本地 Hy-MT2 1.8B | 40.5 | 0.33 |
+| 本地 Index-Translate 9B | 40.1 | 1.42 |
+| 本地 Hy-MT2 7B | 40.4 | 1.29 |
+
+Hy-MT2 的提示词里不要求“口语化字幕”：像 Index-Translate 那样要求时，1.8B 得 38.1、7B 得 36.1，7B 会在讲座里加“呗”“啦”（运行 `mtfull1107_hy-mt2-*`）。
+
+腾讯云 TokenHub 上的 Hy-MT2（2026-11-07）。只测翻译、同一批字幕：Lite 38.9，每句 0.55 s，译文比本地 1.8B 书面一些（“在极短的时间内”“自身的身体与心理健康”），不是译错（运行 `mtcloud1107_hy-mt2-lite`）。Plus 和 Pro 没法这样打分：一句接一句地发，Pro 1263 句被拒 889 句（429，“RPM limit 60”），Plus 被拒 96 句（“服务繁忙”）。所以改用实际使用的方式跑快速集：Apple 识别、抢先翻译开、实时播放、一次一段（运行 `qcloud1107_*`）：
+
+| 翻译 | 被拒的行 | 见到译文 p50 / p90 | chrF |
+|---|---|---|---|
+| Lite | 0 / 128 | 1.15 / 2.91 s | 24.2 |
+| Plus（默认） | 1 / 125 | 1.30 / 3.42 s | 26.0 |
+| Pro | 14 / 124 | 1.20 / 3.05 s | 25.1 |
+| Pro，429 后暂停草稿 | 3 / 126 | 1.54 / 3.44 s | 26.0 |
+
+- Pro 每分钟 60 次请求，比语速快时抢先翻译要的还少（草稿最多每 0.6 s 一次，另有每行的翻译）。所以接口一旦回 429，一分钟内不再发草稿（`translate.LimitedPause`），对所有接口都一样：请求留给每一行，这期间译文出来得稍晚。
+- 默认用 Plus：和 Pro 一样好，更快，很少被拒。
 
 Index-Translate 云端除了 35B-A3B 还提供 2B 和 9B（见它的 `/v1/models`，2026-11-07；只有 35B 收图片）。同一天依次跑（运行 `mtcloud1107_Index-Translate-*`），再用实际使用的方式三个同时跑快速集（运行 `qidx1107_*`）：
 

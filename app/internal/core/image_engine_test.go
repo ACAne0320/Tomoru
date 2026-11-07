@@ -68,13 +68,15 @@ func TestImageEngineInGuide(t *testing.T) {
 }
 
 // TestImageEngineMenu lists the engines that can read pictures now: the cloud first, the local
-// models downloaded, and the user's APIs but those a test found to read none.
+// models downloaded but Hy-MT2, which reads none, and the user's APIs but those a test found to
+// read none, or prompted as Hy-MT2.
 func TestImageEngineMenu(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	c.Prefs.Endpoints = []prefs.Endpoint{
 		{ID: "new", Name: "Not tested"},
 		{ID: "sees", Name: "Reads", Vision: prefs.VisionYes},
 		{ID: "text", Name: "Text only", Vision: prefs.VisionNo},
+		{ID: "hymt", Name: "Hy-MT2", Format: "hy-mt"},
 	}
 	ids := func() []string {
 		var out []string
@@ -86,7 +88,7 @@ func TestImageEngineMenu(t *testing.T) {
 	if got, want := ids(), []string{"cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("nothing downloaded: %q, want %q", got, want)
 	}
-	m.ready["local-2b"], m.ready["sensevoice-small"] = true, true
+	m.ready["local-2b"], m.ready["sensevoice-small"], m.ready["hy-mt2-1.8b"] = true, true, true
 	if got, want := ids(), []string{"cloud", "local-2b", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("2B downloaded: %q, want %q", got, want)
 	}
@@ -256,6 +258,43 @@ func TestEndpointReadsPictures(t *testing.T) {
 	e.URL = "http://127.0.0.1:1"
 	if r := test(e); r.Err == nil || r.Vision != prefs.VisionUnknown {
 		t.Errorf("unreachable: %+v", r)
+	}
+}
+
+// TestEndpointNoPictures tests an API prompted as Hy-MT2 is without a picture: it reads none.
+// Saved so while chosen for pictures, it gives them to the cloud.
+func TestEndpointNoPictures(t *testing.T) {
+	var pictures atomic.Int32
+	var line atomic.Value
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		if strings.Contains(string(b), "image_url") {
+			pictures.Add(1)
+		} else {
+			line.Store(string(b))
+		}
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"大家晚上好。\"}}]}\n\n")
+	}))
+	defer api.Close()
+	c, f, _, _, _ := engineCore(t)
+	c.Prefs.Onboarded = true
+	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "")
+	c.SetImageEngine(prefs.CustomPrefix + id)
+	saved, _ := c.Prefs.Endpoint(id)
+	e := *saved
+	e.Format = "hy-mt"
+
+	c.TestEndpoint("dialog", e, "")
+	f.flush(t, 1)
+	if r := c.Tests["dialog"]; r.Err != nil || r.Text != "大家晚上好。" || r.Vision != prefs.VisionNo || pictures.Load() != 0 {
+		t.Fatalf("test %+v, %d pictures sent", r, pictures.Load())
+	}
+	if body, _ := line.Load().(string); !strings.Contains(body, "【待翻译文本】") {
+		t.Errorf("not asked as Hy-MT2: %.300s", body)
+	}
+	c.SaveEndpoint(e, "")
+	if c.Prefs.ImageMT != "cloud" {
+		t.Errorf("saved as Hy-MT2: pictures with %q", c.Prefs.ImageMT)
 	}
 }
 
