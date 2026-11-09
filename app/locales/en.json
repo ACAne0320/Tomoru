@@ -1425,10 +1425,6 @@
   "@homeIdle": {
     "description": "The home page's title while not translating."
   },
-  "homeListen": "Listen to",
-  "@homeListen": {
-    "description": "On the home page, before the menu of what is heard (all of the system's sound, or an app): the sound translated."
-  },
   "stopTranslating": "Stop translating",
   "@stopTranslating": {
     "description": "The home page's button while translating."
@@ -1461,7 +1457,7 @@
   "@unitMinutes": {
     "description": "The unit after a number of minutes."
   },
-  "statChars": "Translations",
+  "statChars": "Translated text",
   "@statChars": {
     "description": "A number of the home page: how long the translations were."
   },

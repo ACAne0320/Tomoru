@@ -75,6 +75,24 @@ func TestHomeError(t *testing.T) {
 }
 
 // TestAppearance chooses a dark appearance in Preferences, which keeps it.
+// TestHomeSwap names what is heard as the panel does, and swaps the languages from between them.
+func TestHomeSwap(t *testing.T) {
+	k := coretest.New()
+	k.Err = nil
+	s := New(k, &coretest.Nav{})
+	tt := ui.NewTester(s.View, Width, Height)
+	if !tt.HasText(locales.Source()) {
+		t.Errorf("no %q in %q", locales.Source(), tt.Texts())
+	}
+	src, tgt := k.Preferences().Src, k.Preferences().Tgt
+	if err := tt.Click(locales.SwapLanguages()); err != nil {
+		t.Fatal(err)
+	}
+	if p := k.Preferences(); p.Src != tgt || p.Tgt != src {
+		t.Errorf("swapped %s → %s into %s → %s", src, tgt, p.Src, p.Tgt)
+	}
+}
+
 func TestAppearance(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})

@@ -93,6 +93,21 @@ func TestPanelError(t *testing.T) {
 	}
 }
 
+// TestPanelCount says the count with its unit, as many as there are ("1 line", "1,234 lines"),
+// apart from the time, so a line too long breaks between them and never inside the count.
+func TestPanelCount(t *testing.T) {
+	k := coretest.New()
+	k.Err, k.Running = nil, true
+	for _, n := range []int{1, 1234} {
+		k.State = live.State{Phase: "listening", Stats: live.Stats{Lines: n}}
+		tt := ui.NewTester(New(k, &coretest.Nav{}).View, Width, Height)
+		tt.Frame()
+		if !tt.HasText(locales.HistoryLines(n)) {
+			t.Errorf("%d: no %q in %q", n, locales.HistoryLines(n), tt.Texts())
+		}
+	}
+}
+
 // TestPanelRunning shows the run's numbers while translating, and stops it.
 func TestPanelRunning(t *testing.T) {
 	k := coretest.New()

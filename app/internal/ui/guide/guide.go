@@ -71,6 +71,7 @@ type Guide struct {
 	picks    map[core.Kind]pick // the engines the stage shows, to flash as they are chosen
 	// keysStep is the step keysSince is of: when it showed, for a shortcut pressed since to be
 	// seen working.
+	scroll    ui.ScrollState // where the step is scrolled, when it is taller than its room
 	keysStep  int
 	keysSince time.Time
 	shownAt   time.Time // when the step showed, for what it does a while after
@@ -112,6 +113,7 @@ func (g *Guide) View(c *ui.Context) {
 	})
 	if g.next != g.Step {
 		g.Step, g.shownAt = g.next, c.Now()
+		g.scroll.Y = 0 // a step starts at its top
 		c.AnimationFrame()
 	}
 }
@@ -134,9 +136,11 @@ func (g *Guide) steps(c *ui.Context, top float32) {
 			// The step in the middle of its room; one taller than it, as in a long language,
 			// scrolls rather than run into the buttons under it.
 			ui.Column(c).Grow(1).MinHeight(0).Justify(ui.Center).Children(func() {
-				ui.Scroll(c).Shrink(1).MinHeight(0).Padding(0, 0, kit.RiseBy).Children(func() { // room for it to rise from
-					// The step's room stays from step to step, for its parts (part) to come into it.
-					ui.Column(c).Gap(kit.Space(4)).Children(func() {
+				// Cut at its foot, it fades there, so that it reads as going on.
+				kit.FadeScroll(c, &g.scroll, func() {
+					// The step's room stays from step to step, for its parts (part) to come into it;
+					// under it, room for them to rise from.
+					ui.Column(c).Gap(kit.Space(4)).Padding(0, 0, kit.RiseBy).Children(func() {
 						switch g.Step {
 						case stepWelcome:
 							g.welcome(c)

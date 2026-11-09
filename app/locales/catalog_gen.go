@@ -4033,22 +4033,6 @@ func (msgs Messages) HomeIdle() string {
 	return Catalog.Format(msgs.locale, "homeIdle", nil)
 }
 
-// HomeListen says "Listen to"
-// in the language the app shows.
-//
-// On the home page, before the menu of what is heard (all of the system's
-// sound, or an app): the sound translated.
-func HomeListen() string { return In(i18n.Locale()).HomeListen() }
-
-// HomeListen says "Listen to"
-// in the language of msgs.
-//
-// On the home page, before the menu of what is heard (all of the system's
-// sound, or an app): the sound translated.
-func (msgs Messages) HomeListen() string {
-	return Catalog.Format(msgs.locale, "homeListen", nil)
-}
-
 // StopTranslating says "Stop translating"
 // in the language the app shows.
 //
@@ -4163,13 +4147,13 @@ func (msgs Messages) UnitMinutes() string {
 	return Catalog.Format(msgs.locale, "unitMinutes", nil)
 }
 
-// StatChars says "Translations"
+// StatChars says "Translated text"
 // in the language the app shows.
 //
 // A number of the home page: how long the translations were.
 func StatChars() string { return In(i18n.Locale()).StatChars() }
 
-// StatChars says "Translations"
+// StatChars says "Translated text"
 // in the language of msgs.
 //
 // A number of the home page: how long the translations were.

@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"os/exec"
 	"slices"
 	"sync"
 	"testing"
@@ -173,6 +174,14 @@ func TestSessionError(t *testing.T) {
 	f.flush(t, 1)
 	if !IsExited(c.Err) {
 		t.Errorf("exited without a word: %v", c.Err)
+	}
+	// Ended by the system, as a crash or a kill: the exit status is not the user's to read.
+	c.Start()
+	f.flush(t, 1)
+	f.sessions[2].report(live.State{Phase: "stopped", Err: &exec.ExitError{}})
+	f.flush(t, 1)
+	if !IsExited(c.Err) {
+		t.Errorf("killed: %v", c.Err)
 	}
 }
 

@@ -3,7 +3,6 @@
 package panel
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -77,7 +76,13 @@ func (p *Panel) head(c *ui.Context) {
 			title = locales.HomeTranslating()
 		}
 		ui.Text(c, title).FontSize(kit.TextSection).FontWeight(kit.WeightHeavy).TextColor(pal.NightTitle).MaxLines(1)
-		ui.Text(c, p.state()).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(pal.NightText).MaxLines(1)
+		// Under it, what it waits for, or the numbers: a line, or two in a wordy language, broken
+		// only between the time and the count, never inside one.
+		ui.Row(c).Wrap().GapX(kit.Space(1)).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(pal.NightText).Children(func() {
+			for _, part := range p.state() {
+				ui.Text(c, part).MaxLines(3)
+			}
+		})
 	})
 	keys := kit.ShortcutText(k.Preferences().Shortcut) // on hovering it, as the foot has no room to say it
 	if k.Running {
@@ -89,18 +94,18 @@ func (p *Panel) head(c *ui.Context) {
 	}
 }
 
-// state is the line under the title: what translating waits for, or its numbers, this run's while
-// translating and today's while not.
-func (p *Panel) state() string {
+// state is what goes under the title: what translating waits for, or its numbers, this run's while
+// translating and today's while not, the time and the count apart.
+func (p *Panel) state() []string {
 	k := p.core
 	if k.Running {
 		switch k.State.Phase {
 		case "downloading":
-			return locales.StatusDownloading()
+			return []string{locales.StatusDownloading()}
 		case "starting":
-			return locales.StatusPreparing()
+			return []string{locales.StatusPreparing()}
 		case "loading":
-			return locales.StatusLoadingModel()
+			return []string{locales.StatusLoadingModel()}
 		}
 	}
 	run, lines, label := k.RunFor(), k.State.Stats.Lines, locales.StatRunning()
@@ -108,7 +113,7 @@ func (p *Panel) state() string {
 		today := k.TodayStats()
 		run, lines, label = time.Duration(today.Run*float64(time.Second)), today.Lines, locales.StatToday()
 	}
-	return fmt.Sprintf("%s %s · %d %s", label, kit.Clock(run), lines, locales.UnitLines())
+	return []string{label + " " + kit.Clock(run) + " ·", locales.HistoryLines(lines)}
 }
 
 // body is why translating stopped, if it did, with the action that resolves it under it, for want
