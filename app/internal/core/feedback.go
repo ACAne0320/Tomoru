@@ -21,9 +21,12 @@ const Repo = "https://github.com/ACAne0320/Tomoru"
 // on some 6 KB (2026-11), and sends one not signed in to sign in with it escaped again.
 const maxIssueURL = 4000
 
-// Setup is the app as a report says it: its version and the system's, and the engines and
-// languages, as the issue form names them.
-func (c *Core) Setup() (version, system, engines string) {
+// Versions are the app's version and the system's, as "0.1.4" and "macOS 26.1".
+func (c *Core) Versions() (app, os string) { return c.deps.Version, c.deps.OS }
+
+// setup is the app as a report says it: its version, the system's with the computer, and the
+// engines and languages, as the issue form names them.
+func (c *Core) setup() (version, system, engines string) {
 	p := &c.Prefs
 	version = c.deps.Version
 	system = c.deps.OS + " (" + runtime.GOARCH + ")"
@@ -41,7 +44,7 @@ func (c *Core) Setup() (version, system, engines string) {
 // the logs are, and how to make an issue of it with the user.
 func (c *Core) Feedback(what string) string {
 	p := &c.Prefs
-	version, system, engines := c.Setup()
+	version, system, engines := c.setup()
 	var b strings.Builder
 	line := func(f string, a ...any) { fmt.Fprintf(&b, f+"\n", a...) }
 	line("I use Tomoru, a desktop app that shows live translated subtitles (%s), and I want to report a problem with it as a GitHub issue. Help me, as these steps say.", Repo)
@@ -94,7 +97,7 @@ var feedbackSteps = []string{
 // IssueURL is the issue form, started with the user's words what and the app's setup: what one
 // fills in without an agent.
 func (c *Core) IssueURL(what string) string {
-	version, system, engines := c.Setup()
+	version, system, engines := c.setup()
 	q := url.Values{"template": {"bug_report.yml"}, "version": {version}, "os": {system}, "engines": {engines}}
 	u := Repo + "/issues/new?" + q.Encode()
 	what = strings.TrimSpace(what)

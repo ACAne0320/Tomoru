@@ -2455,15 +2455,29 @@
   "@reportPlaceholder": {
     "description": "The dialog reporting a problem: the example in its empty text box."
   },
-  "reportIncluded": "Copied with it: {setup}. No API keys, subtitles or recordings.",
-  "@reportIncluded": {
-    "description": "The dialog reporting a problem: what goes with the user's words, as \"Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans\".",
-    "placeholders": {
-      "setup": {
-        "type": "String",
-        "example": "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans"
-      }
-    }
+  "reportSummary": "Copied with it",
+  "@reportSummary": {
+    "description": "The dialog reporting a problem: the title over what goes with the user's words."
+  },
+  "reportVersion": "Version",
+  "@reportVersion": {
+    "description": "The dialog reporting a problem: the app's version, beside \"Tomoru 0.1.4\"."
+  },
+  "reportSystem": "System",
+  "@reportSystem": {
+    "description": "The dialog reporting a problem: the system's name and version, beside \"macOS 26.1\"."
+  },
+  "reportEngines": "Engines",
+  "@reportEngines": {
+    "description": "The dialog reporting a problem: recognition and translation, beside \"Apple → Index-Translate cloud\"."
+  },
+  "reportLangs": "Languages",
+  "@reportLangs": {
+    "description": "The dialog reporting a problem: the languages translated, beside \"Japanese → Chinese\"."
+  },
+  "reportPrivate": "No API keys, subtitles or recordings",
+  "@reportPrivate": {
+    "description": "The dialog reporting a problem: beside a lock, under what goes with the user's words."
   },
   "reportShow": "What is copied",
   "@reportShow": {

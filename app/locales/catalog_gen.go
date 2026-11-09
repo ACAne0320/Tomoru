@@ -6927,20 +6927,98 @@ func (msgs Messages) ReportPlaceholder() string {
 	return Catalog.Format(msgs.locale, "reportPlaceholder", nil)
 }
 
-// ReportIncluded says "Copied with it: {setup}. No API keys, subtitles or recordings."
+// ReportSummary says "Copied with it"
 // in the language the app shows.
 //
-// The dialog reporting a problem: what goes with the user's words, as
-// "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans".
-func ReportIncluded(setup string) string { return In(i18n.Locale()).ReportIncluded(setup) }
+// The dialog reporting a problem: the title over what goes with the user's
+// words.
+func ReportSummary() string { return In(i18n.Locale()).ReportSummary() }
 
-// ReportIncluded says "Copied with it: {setup}. No API keys, subtitles or recordings."
+// ReportSummary says "Copied with it"
 // in the language of msgs.
 //
-// The dialog reporting a problem: what goes with the user's words, as
-// "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans".
-func (msgs Messages) ReportIncluded(setup string) string {
-	return Catalog.Format(msgs.locale, "reportIncluded", map[string]any{"setup": setup})
+// The dialog reporting a problem: the title over what goes with the user's
+// words.
+func (msgs Messages) ReportSummary() string {
+	return Catalog.Format(msgs.locale, "reportSummary", nil)
+}
+
+// ReportVersion says "Version"
+// in the language the app shows.
+//
+// The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
+func ReportVersion() string { return In(i18n.Locale()).ReportVersion() }
+
+// ReportVersion says "Version"
+// in the language of msgs.
+//
+// The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
+func (msgs Messages) ReportVersion() string {
+	return Catalog.Format(msgs.locale, "reportVersion", nil)
+}
+
+// ReportSystem says "System"
+// in the language the app shows.
+//
+// The dialog reporting a problem: the system's name and version, beside
+// "macOS 26.1".
+func ReportSystem() string { return In(i18n.Locale()).ReportSystem() }
+
+// ReportSystem says "System"
+// in the language of msgs.
+//
+// The dialog reporting a problem: the system's name and version, beside
+// "macOS 26.1".
+func (msgs Messages) ReportSystem() string {
+	return Catalog.Format(msgs.locale, "reportSystem", nil)
+}
+
+// ReportEngines says "Engines"
+// in the language the app shows.
+//
+// The dialog reporting a problem: recognition and translation, beside
+// "Apple → Index-Translate cloud".
+func ReportEngines() string { return In(i18n.Locale()).ReportEngines() }
+
+// ReportEngines says "Engines"
+// in the language of msgs.
+//
+// The dialog reporting a problem: recognition and translation, beside
+// "Apple → Index-Translate cloud".
+func (msgs Messages) ReportEngines() string {
+	return Catalog.Format(msgs.locale, "reportEngines", nil)
+}
+
+// ReportLangs says "Languages"
+// in the language the app shows.
+//
+// The dialog reporting a problem: the languages translated, beside
+// "Japanese → Chinese".
+func ReportLangs() string { return In(i18n.Locale()).ReportLangs() }
+
+// ReportLangs says "Languages"
+// in the language of msgs.
+//
+// The dialog reporting a problem: the languages translated, beside
+// "Japanese → Chinese".
+func (msgs Messages) ReportLangs() string {
+	return Catalog.Format(msgs.locale, "reportLangs", nil)
+}
+
+// ReportPrivate says "No API keys, subtitles or recordings"
+// in the language the app shows.
+//
+// The dialog reporting a problem: beside a lock, under what goes with the
+// user's words.
+func ReportPrivate() string { return In(i18n.Locale()).ReportPrivate() }
+
+// ReportPrivate says "No API keys, subtitles or recordings"
+// in the language of msgs.
+//
+// The dialog reporting a problem: beside a lock, under what goes with the
+// user's words.
+func (msgs Messages) ReportPrivate() string {
+	return Catalog.Format(msgs.locale, "reportPrivate", nil)
 }
 
 // ReportShow says "What is copied"

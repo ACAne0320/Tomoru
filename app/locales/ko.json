@@ -470,7 +470,12 @@
   "reportOpen": "신고…",
   "reportIntro": "무엇이 잘못됐는지 적고 복사해서 Claude Code나 Codex 같은 AI 에이전트에 붙여 넣으세요. 함께 로그를 살펴보고, 동의하면 GitHub에 이슈를 올립니다.",
   "reportPlaceholder": "예: 라프텔에서 '장송의 프리렌'을 보는데 10분쯤 지나 자막이 멈췄어요",
-  "reportIncluded": "함께 복사됨: {setup}. API 키, 자막, 녹음은 포함되지 않아요.",
+  "reportSummary": "함께 복사되는 정보",
+  "reportVersion": "버전",
+  "reportSystem": "시스템",
+  "reportEngines": "엔진",
+  "reportLangs": "언어",
+  "reportPrivate": "API 키, 자막, 녹음은 포함되지 않아요",
   "reportShow": "복사되는 내용",
   "reportOnGitHub": "GitHub에서 열기",
   "reportCopy": "AI 에이전트용으로 복사"

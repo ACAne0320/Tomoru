@@ -470,7 +470,12 @@
   "reportOpen": "回報…",
   "reportIntro": "寫下哪裡不對，複製後貼給 Claude Code、Codex 這樣的 AI Agent：它會和你一起看日誌，你同意後再到 GitHub 上提交 issue。",
   "reportPlaceholder": "例如：在巴哈姆特動畫瘋看《葬送的芙莉蓮》，十分鐘後字幕就不動了",
-  "reportIncluded": "一併複製：{setup}。不含 API 金鑰、字幕和錄音。",
+  "reportSummary": "一併複製",
+  "reportVersion": "版本",
+  "reportSystem": "系統",
+  "reportEngines": "引擎",
+  "reportLangs": "語言",
+  "reportPrivate": "不含 API 金鑰、字幕和錄音",
   "reportShow": "查看複製的內容",
   "reportOnGitHub": "在 GitHub 上填寫",
   "reportCopy": "複製給 AI Agent"
