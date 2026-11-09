@@ -8,17 +8,14 @@
 
 - 翻译因出错停止时，首页和面板会在错误信息旁边给出能解决问题的按钮：打开识别与翻译、打开系统设置，或者重试（`shared.ErrorFix`）。以前错误信息只说该去哪一页，要用户自己找过去。
 - 引导的翻译步骤，英文和韩文不再暗示本机模型会自己下载。只有用户选了某个模型才会下载。
+- 随后修了第 1、2、3、6、14、15 项：首页和面板一样可以交换语言，音源选择器也和面板一样叫"音源"（Sound from）；英文的字数统计改叫 "Translated text"；引导中比所在空间高的步骤，底部会渐隐（`kit.FadeScroll`）；引擎被系统终止时，提示的是引擎退出了；面板的数字带正确的单位（"1 line"、"1,234 lines"），太长时在时间和句数之间换到第二行，不会从中间断开。
 
 ## 下一步
 
 | # | 方面 | 问题 | 改法 | 位置 |
 |---|---|---|---|---|
-| 1 | 一致性、效率 | 首页两个语言之间只是一个静态箭头，面板和引导在同样的位置有交换按钮。首页没法交换语言。 | 换成面板那个交换 `IconButton`（Quiet、Small，配合 `kit.Off` 和 `k.CanSwap()`），保留"听 […]、场景 […]"这句话的结构。 | `settings/home.go` 的 `homeLine` |
-| 2 | 信息架构 | 同一个音源选择器，首页叫 "Listen to / 听"，面板叫 "Sound from / 音源"。 | 统一成一个叫法。"Sound from / 音源"是名词，更适合下拉框。删掉 `homeListen`。 | locales、`home.go` |
-| 3 | 认知负担 | 英文首页的 "Translated 70 lines" 和 "Translations 980 chars" 并排，名字几乎一样。中文（已翻译 / 译文）没有这个问题。 | `statChars` 改成 "Characters"，日文和韩文也检查一遍。 | locales |
 | 4 | 认知负担 | 场景背景的说明写着 "not to the on-device 2B model"，提到了用户可能根本没装的型号。 | 只在当前翻译引擎不使用背景时才提，用直白的话说。 | `settings/scenes.go`、locales |
 | 5 | 信息架构 | 引导的面包屑是 Set up › Try it › Get started，但快捷键和截图翻译两步挂在 Try it 下面，它们其实是设置。 | 先确认试用是否要紧跟在引擎选择之后；是的话，把这两步放到 Set up 里，或者按这一阶段的实际内容重新命名。 | 引导的阶段划分，`guide/guide.go` |
-| 6 | 反馈 | 引导翻译步骤里，云端的隐私说明在滚动列表底部被截断在半行，没有渐隐，也看不出还能滚动。 | 列表底部加渐隐（做成 kit 组件），或者把说明移到 Cloud 分组标题下面。 | `guide/engines.go` |
 
 ## 打磨
 
@@ -32,21 +29,13 @@
 | 12 | 文案 | "Engine not recorded" 说的是旧数据的实现细节。 | 改成 "Earlier versions"，或者归进一行淡色的 "Other"。 |
 | 13 | 产品 | 出于隐私，"保留字幕"默认关闭，所以大多数用户永远看不到最近记录、学习专名和场景的专名学习。 | 默认值不变。在场景的专名空列表里提供这个开关，并说明打开后才能学习专名。 |
 
-## 实际翻译时发现的问题
-
-在真实 app 里，把 QuickTime Player 中一个带硬字幕（中英双语）的英语视频翻译成中文时看到的。
-
-| # | 方面 | 问题 | 改法 | 位置 |
-|---|---|---|---|---|
-| 14 | 反馈 | 引擎被信号终止（崩溃或被 kill）时，面板和字幕显示的是 "Translation stopped: signal: killed"，而不是"引擎意外退出"。`errExited` 只覆盖引擎没有报错就退出的情况，`*exec.ExitError` 会落到 `StatusStopped`。"重试"按钮会出现，也能用。 | 在 `ErrorText` 和 `ErrorFix` 里，把引擎的 `*exec.ExitError` 当作引擎退出（`ErrEngineExited`）处理。 | `core/session_controller.go`、`shared/names.go` |
-| 15 | 视觉层级 | 句数到两位数时，面板的状态行就被截断："Listened today 0:39 · 11 lin…"。 | 把 Start 按钮剩下的空间都给这一行，或者用更短的写法（"11 lines" 改成 "11"），并在 340 宽、三位数句数下测一遍。 | `panel/panel.go` 的 `state` |
-
 ## 未验证的部分
 
 各页面先根据测试渲染的 gallery 判断（`TOMORU_GALLERY=<dir> go test ./internal/ui/settings ./internal/ui/guide ./internal/ui/panel -run 'Gallery|Panel'`，中文加 `TOMORU_GALLERY_LOCALE=zh-Hans`），再用 `verify-tomoru` 在真实 app 里核对：
 
-- 引导的翻译步骤显示的是新文案；云端卡片在列表底部被截断（第 6 项）。
-- 选了云端识别但没有 API key 时（在 `settings.json` 里构造，相当于 key 丢失；界面上没有 key 是选不了它的）：在面板点 Start、在首页点"开始翻译"，都会显示错误信息和"打开识别与翻译"按钮，点任意一个都会打开设置的这一页，并显示 Qwen ASR。首页也在真实 app 里以新用户的状态出现了第 2、7 项问题。
-- 把 QuickTime Player 里的英语视频翻译成中文，QuickTime 在最前面：字幕实时出现并翻译。杀掉引擎后翻译停止，面板出现"重试"（错误文案见第 14 项）；点"重试"后启动了新的引擎，翻译继续。
+- 引导的翻译步骤显示的是新文案；云端卡片当时在列表底部被截断（第 6 项，已修复）。
+- 选了云端识别但没有 API key 时（在 `settings.json` 里构造，相当于 key 丢失；界面上没有 key 是选不了它的）：在面板点 Start、在首页点"开始翻译"，都会显示错误信息和"打开识别与翻译"按钮，点任意一个都会打开设置的这一页，并显示 Qwen ASR。首页也在真实 app 里以新用户的状态出现了第 2 项（已修复）和第 7 项问题。
+- 把 QuickTime Player 里的英语视频翻译成中文，QuickTime 在最前面：字幕实时出现并翻译。杀掉引擎后翻译停止，面板提示识别引擎意外退出，并给出"重试"；点"重试"后启动了新的引擎，翻译继续。面板的数字一行显示为 "Listening for 0:25 · 7 lines"，一句时是 "1 line"，太长时整段换到第二行（"Listened today 0:35 ·" / "10 lines"）。
+- 首页的选择器叫 "Sound from"，两个语言之间的按钮能交换它们（已写入 `settings.json`）；引导翻译步骤的底部会渐隐。
 
 没有在真实 app 里操作过的：打开系统设置（需要拒绝录音权限才会出现）。Windows 没有检查。

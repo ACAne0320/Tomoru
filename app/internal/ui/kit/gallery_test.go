@@ -27,6 +27,7 @@ type gallery struct {
 	bin, day  int
 	shown     float64
 	text      string
+	fade      ui.ScrollState
 }
 
 func (g *gallery) view(c *ui.Context) {
@@ -88,6 +89,15 @@ func (g *gallery) view(c *ui.Context) {
 			Warning(c, "下载失败")
 			MenuLevels(c, true)
 			MenuLevels(c, false)
+		})
+		section("FadeScroll", func() {
+			Card(c).Width(340).Height(120).Children(func() {
+				FadeScroll(c, &g.fade, func() {
+					for _, s := range []string{"本机", "Index-Translate", "Hy-MT2", "云端", "Index-Translate 35B", "你选择的云端服务会收到字幕的原文"} {
+						Caption(c, s)
+					}
+				})
+			})
 		})
 		section("BarChart · StatStrip", func() {
 			Card(c).Width(340).Children(func() {

@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"errors"
+	"os/exec"
 	"slices"
 	"time"
 
@@ -141,8 +143,10 @@ func (s *SessionController) apply(st live.State) {
 		}
 		s.onStopped()
 		s.session, s.prepare, s.reports, s.Running = nil, nil, nil, false
+		// An engine that ends without a word, or is ended by the system (a crash, killed), exited:
+		// its exit status means nothing to the user.
 		s.Err = st.Err
-		if s.Err == nil {
+		if exit := (*exec.ExitError)(nil); s.Err == nil || errors.As(s.Err, &exit) {
 			s.Err = errExited
 		}
 	case st.Phase == "listening" && prev.Phase != "listening":

@@ -166,14 +166,14 @@ func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lin
 }
 
 // homeLine is what is heard, then the scene in use and its languages, from one to the other, each a
-// menu: the sound is what is translated, and the scene decides how, keeping its languages. The two
+// menu, and a button between the two that swaps them: the sound is what is translated, and the scene decides how, keeping its languages. The two
 // go to the next line whole, in a narrow window, and in a narrower one, what is in them.
 func homeLine(c *ui.Context, s *Settings) {
 	k, p := s.core, kit.Colors(c)
 	label := func(t string) { ui.Text(c, t).SingleLine().Shrink(0) }
 	ui.Row(c).GapX(kit.Space(6)).GapY(kit.Space(3)).AlignItems(ui.Center).Wrap().FontSize(kit.TextBody).TextColor(p.InkMuted).Children(func() {
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
-			label(locales.HomeListen())
+			label(locales.Source()) // as the panel names it
 			k.ListApps()
 			c.After(core.ListEvery) // the apps playing change
 			kit.Picker(c, shared.SourceName(k), s.source.Build(k)).Label(locales.Source())
@@ -182,7 +182,10 @@ func homeLine(c *ui.Context, s *Settings) {
 			label(locales.Scene())
 			kit.Picker(c, shared.CurrentSceneName(k), shared.SceneMenu(k, false, func() { s.Open("scenes") })).Label(locales.Scene())
 			kit.Picker(c, shared.LangName(k.Preferences().Src), kit.Choices(k.Preferences().Src, shared.LangChoices(k.SourceLangs()), shared.LangName, k.SetSrc)).Label(locales.SpokenLanguage())
-			ui.Icon(c, assets.Arrow).FontSize(kit.IconSizeButton)
+			// From one to the other, which swaps them, as in the panel.
+			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap()).Clicked() {
+				k.Swap()
+			}
 			kit.Picker(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto())
 		})
 	})
