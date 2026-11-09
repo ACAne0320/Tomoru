@@ -2434,5 +2434,47 @@
   "modelAndAddress": "Model and address",
   "@modelAndAddress": {
     "description": "A fold under a cloud service's API key, in the settings: opens its model and address fields, which most leave as they are."
+  },
+  "reportProblem": "Report a problem",
+  "@reportProblem": {
+    "description": "About: the row that reports a problem, and the title of its dialog."
+  },
+  "reportHint": "With an AI agent, or on GitHub",
+  "@reportHint": {
+    "description": "About: the note under Report a problem."
+  },
+  "reportOpen": "Report…",
+  "@reportOpen": {
+    "description": "About: the button that opens the dialog reporting a problem."
+  },
+  "reportIntro": "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with you, and opens the issue on GitHub once you say yes.",
+  "@reportIntro": {
+    "description": "The dialog reporting a problem: under its title."
+  },
+  "reportPlaceholder": "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes",
+  "@reportPlaceholder": {
+    "description": "The dialog reporting a problem: the example in its empty text box."
+  },
+  "reportIncluded": "Copied with it: {setup}. No API keys, subtitles or recordings.",
+  "@reportIncluded": {
+    "description": "The dialog reporting a problem: what goes with the user's words, as \"Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans\".",
+    "placeholders": {
+      "setup": {
+        "type": "String",
+        "example": "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans"
+      }
+    }
+  },
+  "reportShow": "What is copied",
+  "@reportShow": {
+    "description": "The dialog reporting a problem: a fold showing the whole text copied."
+  },
+  "reportOnGitHub": "Open on GitHub",
+  "@reportOnGitHub": {
+    "description": "The dialog reporting a problem: opens GitHub's issue form, started with what the user wrote and the app's setup."
+  },
+  "reportCopy": "Copy for an AI agent",
+  "@reportCopy": {
+    "description": "The dialog reporting a problem: copies the user's words with the app's setup and a guide for an AI agent."
   }
 }

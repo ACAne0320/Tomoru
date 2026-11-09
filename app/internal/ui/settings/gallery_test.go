@@ -112,7 +112,10 @@ func TestGallery(t *testing.T) {
 		{"stats", 1900, func() { k.History, s.Tab = records, "stats" }},
 		{"general", 1000, func() { s.Tab = "general" }},
 		{"about", Height, func() { s.Tab = "about" }},
-		{"scene-new", Height, func() { s.Tab, s.sceneEdit.scene = "scenes", k.AddScene("") }},
+		{"report", Height, func() {
+			s.feedback = feedbackEdit{open: true, shown: true, what: "在 B 站看《葬送的芙莉莲》，十分钟后字幕就不动了"}
+		}},
+		{"scene-new", Height, func() { s.feedback.open = false; s.Tab, s.sceneEdit.scene = "scenes", k.AddScene("") }},
 		{"home-error", 1000, func() { s.Tab, k.Err = "home", core.ErrMTCloudKey }},
 		{"home-running", 1000, func() {
 			s.Tab, k.Err, k.Running = "home", nil, true

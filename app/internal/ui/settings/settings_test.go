@@ -1138,3 +1138,32 @@ func TestModelsFolder(t *testing.T) {
 		t.Errorf("failed: texts %q", tt.Texts())
 	}
 }
+
+// TestReportProblem copies the user's words with the app's setup for an agent, and opens the issue
+// form started with them.
+func TestReportProblem(t *testing.T) {
+	k := coretest.New()
+	s := New(k, &coretest.Nav{})
+	s.Tab = "about"
+	tt := ui.NewTester(s.View, Width, Height)
+	if err := tt.Click(locales.ReportOpen()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.ReportIntro()) {
+		t.Fatalf("no dialog: %q", tt.Texts())
+	}
+	tt.Type("Subtitles stopped")
+	if err := tt.Click(locales.ReportCopy()); err != nil {
+		t.Fatal(err)
+	}
+	if got := tt.Clipboard(); !strings.Contains(got, "Subtitles stopped") || !strings.Contains(got, "## Steps") || !tt.HasText(locales.Copied()) {
+		t.Errorf("copied %q, %q", got, tt.Texts())
+	}
+	if err := tt.Click(locales.ReportOnGitHub()); err != nil {
+		t.Fatal(err)
+	}
+	if got := tt.OpenedURLs(); len(got) != 1 || !strings.HasPrefix(got[0], core.Repo+"/issues/new?") || !strings.Contains(got[0], "what=Subtitles+stopped") {
+		t.Errorf("opened %q", got)
+	}
+}

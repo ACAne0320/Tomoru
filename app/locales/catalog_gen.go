@@ -6856,3 +6856,135 @@ func ModelAndAddress() string { return In(i18n.Locale()).ModelAndAddress() }
 func (msgs Messages) ModelAndAddress() string {
 	return Catalog.Format(msgs.locale, "modelAndAddress", nil)
 }
+
+// ReportProblem says "Report a problem"
+// in the language the app shows.
+//
+// About: the row that reports a problem, and the title of its dialog.
+func ReportProblem() string { return In(i18n.Locale()).ReportProblem() }
+
+// ReportProblem says "Report a problem"
+// in the language of msgs.
+//
+// About: the row that reports a problem, and the title of its dialog.
+func (msgs Messages) ReportProblem() string {
+	return Catalog.Format(msgs.locale, "reportProblem", nil)
+}
+
+// ReportHint says "With an AI agent, or on GitHub"
+// in the language the app shows.
+//
+// About: the note under Report a problem.
+func ReportHint() string { return In(i18n.Locale()).ReportHint() }
+
+// ReportHint says "With an AI agent, or on GitHub"
+// in the language of msgs.
+//
+// About: the note under Report a problem.
+func (msgs Messages) ReportHint() string {
+	return Catalog.Format(msgs.locale, "reportHint", nil)
+}
+
+// ReportOpen says "Report…"
+// in the language the app shows.
+//
+// About: the button that opens the dialog reporting a problem.
+func ReportOpen() string { return In(i18n.Locale()).ReportOpen() }
+
+// ReportOpen says "Report…"
+// in the language of msgs.
+//
+// About: the button that opens the dialog reporting a problem.
+func (msgs Messages) ReportOpen() string {
+	return Catalog.Format(msgs.locale, "reportOpen", nil)
+}
+
+// ReportIntro says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// in the language the app shows.
+//
+// The dialog reporting a problem: under its title.
+func ReportIntro() string { return In(i18n.Locale()).ReportIntro() }
+
+// ReportIntro says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// in the language of msgs.
+//
+// The dialog reporting a problem: under its title.
+func (msgs Messages) ReportIntro() string {
+	return Catalog.Format(msgs.locale, "reportIntro", nil)
+}
+
+// ReportPlaceholder says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// in the language the app shows.
+//
+// The dialog reporting a problem: the example in its empty text box.
+func ReportPlaceholder() string { return In(i18n.Locale()).ReportPlaceholder() }
+
+// ReportPlaceholder says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// in the language of msgs.
+//
+// The dialog reporting a problem: the example in its empty text box.
+func (msgs Messages) ReportPlaceholder() string {
+	return Catalog.Format(msgs.locale, "reportPlaceholder", nil)
+}
+
+// ReportIncluded says "Copied with it: {setup}. No API keys, subtitles or recordings."
+// in the language the app shows.
+//
+// The dialog reporting a problem: what goes with the user's words, as
+// "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans".
+func ReportIncluded(setup string) string { return In(i18n.Locale()).ReportIncluded(setup) }
+
+// ReportIncluded says "Copied with it: {setup}. No API keys, subtitles or recordings."
+// in the language of msgs.
+//
+// The dialog reporting a problem: what goes with the user's words, as
+// "Tomoru 0.1.5 · macOS 26.1 (arm64) · apple → cloud, ja → zh-Hans".
+func (msgs Messages) ReportIncluded(setup string) string {
+	return Catalog.Format(msgs.locale, "reportIncluded", map[string]any{"setup": setup})
+}
+
+// ReportShow says "What is copied"
+// in the language the app shows.
+//
+// The dialog reporting a problem: a fold showing the whole text copied.
+func ReportShow() string { return In(i18n.Locale()).ReportShow() }
+
+// ReportShow says "What is copied"
+// in the language of msgs.
+//
+// The dialog reporting a problem: a fold showing the whole text copied.
+func (msgs Messages) ReportShow() string {
+	return Catalog.Format(msgs.locale, "reportShow", nil)
+}
+
+// ReportOnGitHub says "Open on GitHub"
+// in the language the app shows.
+//
+// The dialog reporting a problem: opens GitHub's issue form, started with
+// what the user wrote and the app's setup.
+func ReportOnGitHub() string { return In(i18n.Locale()).ReportOnGitHub() }
+
+// ReportOnGitHub says "Open on GitHub"
+// in the language of msgs.
+//
+// The dialog reporting a problem: opens GitHub's issue form, started with
+// what the user wrote and the app's setup.
+func (msgs Messages) ReportOnGitHub() string {
+	return Catalog.Format(msgs.locale, "reportOnGitHub", nil)
+}
+
+// ReportCopy says "Copy for an AI agent"
+// in the language the app shows.
+//
+// The dialog reporting a problem: copies the user's words with the app's
+// setup and a guide for an AI agent.
+func ReportCopy() string { return In(i18n.Locale()).ReportCopy() }
+
+// ReportCopy says "Copy for an AI agent"
+// in the language of msgs.
+//
+// The dialog reporting a problem: copies the user's words with the app's
+// setup and a guide for an AI agent.
+func (msgs Messages) ReportCopy() string {
+	return Catalog.Format(msgs.locale, "reportCopy", nil)
+}

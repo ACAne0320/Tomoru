@@ -51,6 +51,9 @@ type Deps struct {
 	Now func() time.Time
 	// LogPath is the app's log file, "" for none.
 	LogPath string
+	// Version is the app's, OS the system's with its version, as "macOS 26.1": what a report of a
+	// problem says.
+	Version, OS string
 	// EnginePath finds the engine, ASRPath tomoru-asr.
 	EnginePath, ASRPath func() (string, error)
 	// StartSession starts a translating session.
