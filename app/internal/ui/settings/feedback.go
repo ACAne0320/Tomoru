@@ -12,66 +12,75 @@ import (
 	"tomoru/locales"
 )
 
-// feedbackEdit is reporting a problem: the user's words, kept until sent or cleared, whether the
-// text copied shows, and when it was last copied.
+// feedbackEdit is feedback being written: a problem (0) or an idea (1), the user's words, kept
+// until sent or cleared, whether the text copied shows, and when it was last copied.
 type feedbackEdit struct {
 	open, shown bool
+	kind        int
 	what        string
 	copied      time.Time
 }
 
-// feedbackDialog asks what went wrong, and copies it with the app's setup and a guide, for an AI
-// agent to make an issue of it with the user; or opens the issue form, started with the same.
-// It sums up the setup as the app names it, and that nothing private goes with it; the text
-// itself, the computer's memory with it, shows unfolded.
+// feedbackDialog asks what went wrong, or what the user would like, and copies it with the app's
+// setup and a guide for either, for an AI agent to make an issue of it with the user; or opens the
+// repository's form for either, started with the same. It sums up the setup as the app names it,
+// and that nothing private goes with it; the text itself, the computer's memory with it, shows
+// unfolded.
 func (s *Settings) feedbackDialog(c *ui.Context) {
 	d, k := &s.feedback, s.core
 	if !d.open {
 		return
 	}
 	p := kit.Colors(c)
-	kit.Dialog(c, &d.open, locales.ReportProblem(), locales.ReportIntro(), func() {
-		kit.TextBox(c, &d.what).Placeholder(locales.ReportPlaceholder()).Label(locales.ReportProblem()).Height(96).Shrink(0).AutoFocus()
+	kind := core.FeedbackKind(d.kind)
+	intro, example := locales.FeedbackIntroProblem(), locales.FeedbackPlaceholderProblem()
+	if kind == core.FeedbackIdea {
+		intro, example = locales.FeedbackIntroIdea(), locales.FeedbackPlaceholderIdea()
+	}
+	kit.Dialog(c, &d.open, locales.Feedback(), intro, func() {
+		kit.Segmented(c, &d.kind, locales.FeedbackProblem(), locales.FeedbackIdea()).AlignSelf(ui.Start).Shrink(0).Label(locales.FeedbackKind())
+		kit.TextBox(c, &d.what).Placeholder(example).Label(locales.Feedback()).Height(96).MinHeight(kit.Space(16)).AutoFocus()
 		ui.Column(c).Gap(kit.Space(2)).Shrink(0).Children(func() {
 			app, system := k.Versions()
 			pr := k.Preferences()
-			reportFacts(c, locales.ReportSummary(), []kit.Fact{
-				{Label: locales.ReportVersion(), Value: "Tomoru " + app},
-				{Label: locales.ReportSystem(), Value: system},
-				{Label: locales.ReportEngines(), Value: engineName(k, core.ASR, pr.ASR) + " → " + engineName(k, core.MT, pr.MT)},
-				{Label: locales.ReportLangs(), Value: shared.Langs(pr.Src, pr.Tgt)},
+			feedbackFacts(c, locales.FeedbackSummary(), []kit.Fact{
+				{Label: locales.FeedbackVersion(), Value: "Tomoru " + app},
+				{Label: locales.FeedbackSystem(), Value: system},
+				{Label: locales.FeedbackEngines(), Value: engineName(k, core.ASR, pr.ASR) + " → " + engineName(k, core.MT, pr.MT)},
+				{Label: locales.FeedbackLangs(), Value: shared.Langs(pr.Src, pr.Tgt)},
 			})
-			kit.ResultMark(c, assets.Lock, locales.ReportPrivate(), true)
+			kit.ResultMark(c, assets.Lock, locales.FeedbackPrivate(), true)
 		})
-		// The text gives way when the window is short: the rest keep their size.
+		// The text, and the box written in, give way when the window is short: the rest keep their
+		// size.
 		ui.Column(c).Gap(kit.Space(2)).MinHeight(0).Children(func() {
-			if kit.Disclosure(c, &d.shown, locales.ReportShow()) {
-				ui.Scroll(c).MaxHeight(200).MinHeight(0).Padding(kit.Space(3)).Radius(kit.RadiusField).Border(1, p.Line).Children(func() {
-					kit.Caption(c, k.Feedback(d.what)).Selectable()
+			if kit.Disclosure(c, &d.shown, locales.FeedbackShow()) {
+				ui.Scroll(c).MaxHeight(200).MinHeight(kit.Space(16)).Padding(kit.Space(3)).Radius(kit.RadiusField).Border(1, p.Line).Children(func() {
+					kit.Caption(c, k.Feedback(kind, d.what)).Selectable()
 				})
 			}
 		})
 		kit.DialogActions(c, func() {
-			if kit.Button(c, kit.Plain, kit.Small, assets.External, locales.ReportOnGitHub()).Clicked() {
-				c.OpenURL(k.IssueURL(d.what))
+			if kit.Button(c, kit.Plain, kit.Small, assets.External, locales.FeedbackOnGitHub()).Clicked() {
+				c.OpenURL(k.IssueURL(kind, d.what))
 			}
 			ui.Spacer(c)
-			label, icon := locales.ReportCopy(), assets.Copy
+			label, icon := locales.FeedbackCopy(), assets.Copy
 			if left := d.copied.Add(1500 * time.Millisecond).Sub(c.Now()); left > 0 {
 				label, icon = locales.Copied(), assets.Check
 				c.After(left)
 			}
 			if kit.Button(c, kit.Primary, kit.Small, icon, label).Clicked() {
-				c.Services().WriteClipboard(k.Feedback(d.what))
+				c.Services().WriteClipboard(k.Feedback(kind, d.what))
 				d.copied = c.Now()
 			}
 		}).Margin(kit.Space(2), 0, 0).Shrink(0)
 	})
 }
 
-// reportFacts is what goes with a report, on sand under title: each fact's name in a column of its
+// feedbackFacts is what goes with a report, on sand under title: each fact's name in a column of its
 // own, its value beside it, wrapping as a long model's name does.
-func reportFacts(c *ui.Context, title string, facts []kit.Fact) ui.Element {
+func feedbackFacts(c *ui.Context, title string, facts []kit.Fact) ui.Element {
 	p := kit.Colors(c)
 	return ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Radius(kit.RadiusField).Background(p.Sand).Children(func() {
 		ui.Text(c, title).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.Ink)

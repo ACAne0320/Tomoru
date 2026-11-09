@@ -6,15 +6,17 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
 ## Issues
 
-- **Bugs**: Settings › About › Report a problem starts one. Copy for an AI agent, paste it into
-  one such as Claude Code or Codex, and it goes through the logs with you, looks for the same
-  issue, and opens it once you say yes; Open on GitHub starts the form with your version, system
-  and engines. By hand, say your platform and Tomoru version, the engines chosen for recognition
-  and translation, what you did, what you expected and what happened. Logs help: Settings ›
-  About › Show logs. Look through them before attaching them: they may hold the names of apps you
-  were listening to.
+Settings › About › Feedback & ideas starts either kind: choose Problem or Idea and say what
+happened or what you'd like. Copy for an AI agent, paste it into one such as Claude Code or Codex,
+and it works it into an issue with you, looks for the same one, and opens it once you say yes; Open
+on GitHub opens the matching form, started with what you wrote.
+
+- **Bugs**: say your platform and Tomoru version, the engines chosen for recognition and
+  translation, what you did, what you expected and what happened (the app fills in the first
+  three). Logs help: Settings › About › Show logs. Look through them before attaching them: they
+  may hold the names of apps you were listening to.
 - **Ideas**: say what you were watching and what got in the way, more than the solution you have
-  in mind.
+  in mind. No logs or steps needed.
 - **Security issues**: don't open an issue; see [SECURITY](SECURITY.md).
 
 ## Pull requests

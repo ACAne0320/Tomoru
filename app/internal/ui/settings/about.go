@@ -13,7 +13,7 @@ import (
 )
 
 // about is the app: its icon, name and what it does; its version and checking for updates, the
-// guide again, the logs and reporting a problem, as rows of a card; its license and what it is
+// guide again, the logs and feedback, a problem or an idea, as rows of a card; its license and what it is
 // made with.
 func (s *Settings) about(c *ui.Context) {
 	p := kit.Colors(c)
@@ -45,8 +45,8 @@ func (s *Settings) about(c *ui.Context) {
 				}
 			})
 		}
-		kit.SettingRow(c, 3, locales.ReportProblem(), locales.ReportHint(), func() {
-			if kit.Button(c, kit.Plain, kit.Small, nil, locales.ReportOpen()).Clicked() {
+		kit.SettingRow(c, 3, locales.Feedback(), locales.FeedbackHint(), func() {
+			if kit.Button(c, kit.Plain, kit.Small, nil, locales.FeedbackOpen()).Clicked() {
 				s.feedback.open = true
 			}
 		})

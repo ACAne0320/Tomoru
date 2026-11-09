@@ -118,6 +118,7 @@ func TestGallery(t *testing.T) {
 		{"report-open", MinHeight, func() { // at the window's least height
 			s.feedback = feedbackEdit{open: true, shown: true, what: "Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"}
 		}},
+		{"report-idea", Height, func() { s.feedback = feedbackEdit{open: true, kind: 1} }},
 		{"report-narrow", Height, func() { // an API of one's own, its model's long name of no spaces
 			s.feedback.shown, mt = false, k.Prefs.MT
 			k.Prefs.Endpoints = append(k.Prefs.Endpoints, prefs.Endpoint{ID: "long", Name: "OpenRouter", Model: "qwen/qwen3-235b-a22b-instruct-2507:free-tier-preview-build-20261109"})

@@ -1139,25 +1139,25 @@ func TestModelsFolder(t *testing.T) {
 	}
 }
 
-// TestReportProblem copies the user's words with the app's setup for an agent, and opens the issue
-// form started with them.
-func TestReportProblem(t *testing.T) {
+// TestFeedback copies the user's words with the app's setup for an agent, and opens the issue form
+// started with them: the bug form for a problem, the idea form once Idea is chosen.
+func TestFeedback(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() uint64 { return 24 << 30 }
 	})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "about"
 	tt := ui.NewTester(s.View, Width, Height)
-	if err := tt.Click(locales.ReportOpen()); err != nil {
+	if err := tt.Click(locales.FeedbackOpen()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !tt.HasText(locales.ReportIntro()) {
+	if !tt.HasText(locales.FeedbackIntroProblem()) {
 		t.Fatalf("no dialog: %q", tt.Texts())
 	}
 	// The summary names the version and system, and says what stays out; the memory only the text
 	// copied says.
-	for _, want := range []string{"Tomoru 0.1.4", "macOS 26.6.2", locales.ReportPrivate()} {
+	for _, want := range []string{"Tomoru 0.1.4", "macOS 26.6.2", locales.FeedbackPrivate()} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
@@ -1166,16 +1166,37 @@ func TestReportProblem(t *testing.T) {
 		t.Errorf("the summary shows the memory: %q", texts)
 	}
 	tt.Type("Subtitles stopped")
-	if err := tt.Click(locales.ReportCopy()); err != nil {
+	if err := tt.Click(locales.FeedbackCopy()); err != nil {
 		t.Fatal(err)
 	}
 	if got := tt.Clipboard(); !strings.Contains(got, "Subtitles stopped") || !strings.Contains(got, "24 GB memory") || !strings.Contains(got, "## Steps") || !tt.HasText(locales.Copied()) {
 		t.Errorf("copied %q, %q", got, tt.Texts())
 	}
-	if err := tt.Click(locales.ReportOnGitHub()); err != nil {
+	if err := tt.Click(locales.FeedbackOnGitHub()); err != nil {
 		t.Fatal(err)
 	}
-	if got := tt.OpenedURLs(); len(got) != 1 || !strings.HasPrefix(got[0], core.Repo+"/issues/new?") || !strings.Contains(got[0], "what=Subtitles+stopped") {
+	if got := tt.OpenedURLs(); len(got) != 1 || !strings.HasPrefix(got[0], core.Repo+"/issues/new?") || !strings.Contains(got[0], "what=Subtitles+stopped") || !strings.Contains(got[0], "bug_report.yml") {
+		t.Errorf("opened %q", got)
+	}
+	// An idea: what it says, what is copied and the form opened change; the words stay.
+	if err := tt.Click(locales.FeedbackIdea()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Advance(2 * time.Second) // "Copied" goes back to the copy button's label
+	tt.Frame()
+	if !tt.HasText(locales.FeedbackIntroIdea()) || tt.HasText(locales.FeedbackIntroProblem()) {
+		t.Errorf("idea's intro: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.FeedbackCopy()); err != nil {
+		t.Fatal(err)
+	}
+	if got := tt.Clipboard(); !strings.Contains(got, "## What I'd like\n\nSubtitles stopped") || strings.Contains(got, "Logs: in") {
+		t.Errorf("idea copied %q", got)
+	}
+	if err := tt.Click(locales.FeedbackOnGitHub()); err != nil {
+		t.Fatal(err)
+	}
+	if got := tt.OpenedURLs(); len(got) != 2 || !strings.Contains(got[1], "template=feature_request.yml") || !strings.Contains(got[1], "problem=Subtitles+stopped") {
 		t.Errorf("opened %q", got)
 	}
 }
