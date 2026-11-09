@@ -25,7 +25,7 @@ func feedbackCore(edit func(*prefs.Prefs)) *Core {
 
 func TestFeedbackSaysTheSetupWithoutSecrets(t *testing.T) {
 	c := feedbackCore(nil)
-	got := c.Feedback("  Subtitles stopped after ten minutes.  ")
+	got := c.Feedback(FeedbackProblem, "  Subtitles stopped after ten minutes.  ")
 	for _, want := range []string{
 		"Subtitles stopped after ten minutes.\n",
 		"Tomoru 0.1.5 on macOS 26.1 (",
@@ -36,7 +36,10 @@ func TestFeedbackSaysTheSetupWithoutSecrets(t *testing.T) {
 		"a proxy of my own (socks5)",
 		"Logs: in /Users/me/Library/Logs/Tomoru",
 		Repo + "/security/advisories/new",
+		"Read the logs above",
 		"gh issue create --repo ACAne0320/Tomoru",
+		"template=bug_report.yml",
+		"don't guess a cause",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
@@ -51,7 +54,7 @@ func TestFeedbackSaysTheSetupWithoutSecrets(t *testing.T) {
 
 func TestFeedbackAsksWhenNothingIsWritten(t *testing.T) {
 	c := feedbackCore(func(p *prefs.Prefs) { p.ASR, p.NoProxy = "", true })
-	got := c.Feedback(" ")
+	got := c.Feedback(FeedbackProblem, " ")
 	for _, want := range []string{"(Not written yet: ask me.)", "none chosen → own API", "direct, no proxy", "Listening to: one app"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
@@ -62,7 +65,7 @@ func TestFeedbackAsksWhenNothingIsWritten(t *testing.T) {
 func TestIssueURLStartsTheBugForm(t *testing.T) {
 	c := feedbackCore(nil)
 	long := strings.Repeat("字", 3000)
-	addr := c.IssueURL(long)
+	addr := c.IssueURL(FeedbackProblem, long)
 	if len(addr) > maxIssueURL {
 		t.Errorf("the address is %d bytes, more than %d", len(addr), maxIssueURL)
 	}
@@ -83,11 +86,45 @@ func TestIssueURLStartsTheBugForm(t *testing.T) {
 	if w := q.Get("what"); len(w) < 1000 || !strings.HasPrefix(long, w) {
 		t.Errorf("what is cut to %d bytes, or not from the start", len(w))
 	}
-	if q := must(url.Parse(c.IssueURL("Subtitles stopped"))).Query(); q.Get("what") != "Subtitles stopped" {
+	if q := must(url.Parse(c.IssueURL(FeedbackProblem, "Subtitles stopped"))).Query(); q.Get("what") != "Subtitles stopped" {
 		t.Errorf("short words cut: %q", q.Get("what"))
 	}
-	if q := must(url.Parse(c.IssueURL(""))).Query(); q.Has("what") {
+	if q := must(url.Parse(c.IssueURL(FeedbackProblem, ""))).Query(); q.Has("what") {
 		t.Errorf("empty words still fill the form: %v", q)
+	}
+}
+
+// TestFeedbackIdea asks for an idea's need and its worth, reads no logs and asks no steps to make
+// it happen, and is sent as the idea form has it.
+func TestFeedbackIdea(t *testing.T) {
+	c := feedbackCore(nil)
+	got := c.Feedback(FeedbackIdea, "Save an episode's subtitles as SRT")
+	for _, want := range []string{
+		"I have an idea for it",
+		"## What I'd like\n\nSave an episode's subtitles as SRT\n",
+		"Tomoru 0.1.5 on macOS 26.1 (",
+		"why it matters to me",
+		"Don't ask me for steps to reproduce it.",
+		"Don't read the logs",
+		"Don't write an idea up as a bug",
+		"\"What were you watching, and what got in the way?\" and \"What would help\"",
+		"--state all --search",
+		"send it only once I say yes",
+		"template=feature_request.yml",
+		"don't guess a cause",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+	for _, gone := range []string{"Logs: in", "/security/advisories", "Read the logs above", "What I saw", "bug report form"} {
+		if strings.Contains(got, gone) {
+			t.Errorf("%q in an idea:\n%s", gone, got)
+		}
+	}
+	q := must(url.Parse(c.IssueURL(FeedbackIdea, "Save an episode's subtitles as SRT"))).Query()
+	if q.Get("template") != "feature_request.yml" || q.Get("problem") != "Save an episode's subtitles as SRT" || q.Has("what") || q.Has("version") {
+		t.Errorf("idea form %v", q)
 	}
 }
 

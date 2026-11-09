@@ -10,9 +10,9 @@ import (
 	"tomoru/internal/prefs"
 )
 
-// Reporting a problem: what the app says of itself, for an AI agent on the user's computer to
-// turn into an issue with them, or for the issue form to start from. No API key, subtitle,
-// recording or name of what is heard goes in it.
+// Feedback, a problem or an idea: what the app says of itself, for an AI agent on the user's
+// computer to turn into an issue with them, or for the issue form to start from. No API key,
+// subtitle, recording or name of what is heard goes in it.
 
 // Repo is the app's repository, where issues are reported.
 const Repo = "https://github.com/ACAne0320/Tomoru"
@@ -40,16 +40,31 @@ func (c *Core) setup() (version, system, engines string) {
 	return
 }
 
-// Feedback is the prompt to give an AI agent, the user's words what in it: the app's setup, where
-// the logs are, and how to make an issue of it with the user.
-func (c *Core) Feedback(what string) string {
+// FeedbackKind is what the user tells: a problem, or an idea, which the repository's issue forms
+// take apart (bug_report.yml, feature_request.yml).
+type FeedbackKind int
+
+const (
+	FeedbackProblem FeedbackKind = iota // something doesn't work as it should
+	FeedbackIdea                        // something Tomoru could do, or do better
+)
+
+// Feedback is the prompt to give an AI agent, the user's words what in it: the app's setup, and
+// how to make an issue of it with the user: a problem with the logs, an idea without them.
+func (c *Core) Feedback(kind FeedbackKind, what string) string {
 	p := &c.Prefs
 	version, system, engines := c.setup()
 	var b strings.Builder
 	line := func(f string, a ...any) { fmt.Fprintf(&b, f+"\n", a...) }
-	line("I use Tomoru, a desktop app that shows live translated subtitles (%s), and I want to report a problem with it as a GitHub issue. Help me, as these steps say.", Repo)
-	line("")
-	line("## What I saw")
+	if kind == FeedbackIdea {
+		line("I use Tomoru, a desktop app that shows live translated subtitles (%s), and I have an idea for it that I want to suggest as a GitHub issue. Help me, as these steps say.", Repo)
+		line("")
+		line("## What I'd like")
+	} else {
+		line("I use Tomoru, a desktop app that shows live translated subtitles (%s), and I want to report a problem with it as a GitHub issue. Help me, as these steps say.", Repo)
+		line("")
+		line("## What I saw")
+	}
 	line("")
 	if what = strings.TrimSpace(what); what == "" {
 		what = "(Not written yet: ask me.)"
@@ -68,20 +83,25 @@ func (c *Core) Feedback(what string) string {
 	line("- Scene: %s", choose(p.Scene == "", "general", "one of my own"))
 	line("- Translate while spoken: %s; history: %s", onOff(p.Draft), onOff(p.History))
 	line("- Network: %s", proxyName(p))
-	if c.deps.LogPath != "" {
-		line("- Logs: in %s", filepath.Dir(c.deps.LogPath))
+	steps := ideaSteps
+	if kind == FeedbackProblem {
+		steps = problemSteps
+		if c.deps.LogPath != "" {
+			line("- Logs: in %s", filepath.Dir(c.deps.LogPath))
+		}
 	}
 	line("")
 	line("## Steps")
 	line("")
-	for _, s := range feedbackSteps {
+	for _, s := range steps {
 		line("%s", s)
 	}
+	line("%s", "Write only what I told you and what you read: don't guess a cause or say something was looked into that wasn't. Don't change Tomoru's code, its settings or any other file of mine, and don't open a pull request: this is only an issue.")
 	return b.String()
 }
 
-// feedbackSteps is the guide the agent follows.
-var feedbackSteps = []string{
+// problemSteps is the guide to report a problem: what happened, the logs, how to see it again.
+var problemSteps = []string{
 	"1. Talk with me in the language I write in, and write the issue in it too. Ask only what you still need, a question or two at a time: what I was watching and in which app or site, what I did just before, what I expected and what happened instead, whether it happens again, and about when it last happened.",
 	"2. If it is a security problem (an API key leaving the system's keychain, or audio, screenshots or subtitles sent somewhere I didn't choose), stop: tell me to report it privately at " + Repo + "/security/advisories/new, not in an issue.",
 	"3. Read the logs above, only reading. Lines start with the local time; look near when it happened, and keep the few lines (a few dozen at most) that bear on the problem. tomoru.log has the app and its engine, tomoru.1.log the lines before it, llama-server.log the on-device models.",
@@ -89,19 +109,33 @@ var feedbackSteps = []string{
 	"5. Don't open other files of Tomoru: settings.json, scenes.json, stats.json and history/ hold my settings, names and subtitles. Don't record audio or the screen. If a subtitle line matters, ask me to paste the lines I choose, and show me exactly how they will appear in the issue.",
 	"6. Write steps someone else can follow to see it happen, with what I expected and what happened.",
 	"7. Look for the same issue, open or closed: `gh issue list --repo ACAne0320/Tomoru --state all --search \"<words>\"` if the GitHub CLI is installed and signed in, else " + Repo + "/issues. If one matches, show it to me and ask whether to add what is new there as a comment instead.",
-	"8. Draft the issue: a short title, and a body with these parts: Tomoru version, Platform, OS version and computer, Engines, What happened (with the steps), Logs (the redacted lines, in a code block). Show me the whole title and body, change what I ask, and send it only once I say yes.",
-	"9. Send it with `gh issue create --repo ACAne0320/Tomoru --title \"...\" --body-file -`, the body on its standard input, then give me its link. Without the GitHub CLI, give me the title and body to paste at " + Repo + "/issues/new.",
-	"Don't change Tomoru's code, its settings or any other file of mine: this is only a report.",
+	"8. Draft the issue, as the repository's bug report form asks: a short title, and a body with these parts: Tomoru version, Platform, OS version and computer, Engines, What happened (with the steps), Logs (the redacted lines, in a code block; leave it out if none bear on it). Show me the whole title and body, change what I ask, and send it only once I say yes.",
+	"9. Send it with `gh issue create --repo ACAne0320/Tomoru --title \"...\" --body-file -`, the body on its standard input, then give me its link. Without the GitHub CLI, give me the title and body to paste at " + Repo + "/issues/new?template=bug_report.yml.",
 }
 
-// IssueURL is the issue form, started with the user's words what and the app's setup: what one
-// fills in without an agent.
-func (c *Core) IssueURL(what string) string {
-	version, system, engines := c.setup()
-	q := url.Values{"template": {"bug_report.yml"}, "version": {version}, "os": {system}, "engines": {engines}}
+// ideaSteps is the guide to suggest an idea: what one was doing, what got in the way, what would
+// help; no logs, nor steps to make something happen.
+var ideaSteps = []string{
+	"1. Talk with me in the language I write in, and write the issue in it too. Ask only what you still need, a question or two at a time: what I was watching or doing, what got in the way or what I miss, what I'd like Tomoru to do, and why it matters to me (how often it comes up, what I do instead now). Don't ask me for steps to reproduce it.",
+	"2. Don't read the logs or any file of Tomoru's: an idea needs none. My setup above is there if it bears on the idea; leave it out if not.",
+	"3. If it turns out something doesn't work as it should, rather than something missing, say so and tell me to report it as a problem instead (Settings > About > Feedback & ideas > Problem). Don't write an idea up as a bug, nor a bug as an idea.",
+	"4. Look for the same idea, open or closed: `gh issue list --repo ACAne0320/Tomoru --state all --search \"<words>\"` if the GitHub CLI is installed and signed in, else " + Repo + "/issues. If one matches, show it to me and ask whether to add what is new there as a comment instead.",
+	"5. Draft the issue, as the repository's idea form asks: a short title, and a body with two parts: \"What were you watching, and what got in the way?\" and \"What would help\", in my words, the need before any solution. Show me the whole title and body, change what I ask, and send it only once I say yes.",
+	"6. Send it with `gh issue create --repo ACAne0320/Tomoru --title \"...\" --body-file -`, the body on its standard input, then give me its link. Without the GitHub CLI, give me the title and body to paste at " + Repo + "/issues/new?template=feature_request.yml.",
+}
+
+// IssueURL is the repository's form for kind, started with the user's words what, and for a
+// problem the app's setup: what one fills in without an agent. An idea's words go in what got in
+// the way, the form's first part.
+func (c *Core) IssueURL(kind FeedbackKind, what string) string {
+	q, field := url.Values{"template": {"feature_request.yml"}}, "problem"
+	if kind == FeedbackProblem {
+		version, system, engines := c.setup()
+		q, field = url.Values{"template": {"bug_report.yml"}, "version": {version}, "os": {system}, "engines": {engines}}, "what"
+	}
 	u := Repo + "/issues/new?" + q.Encode()
 	what = strings.TrimSpace(what)
-	room := max(maxIssueURL-len(u)-len("&what="), 0)
+	room := max(maxIssueURL-len(u)-len("&"+field+"="), 0)
 	for len(url.QueryEscape(what)) > room {
 		r := []rune(what)
 		what = string(r[:len(r)*room/len(url.QueryEscape(what))])
@@ -109,7 +143,7 @@ func (c *Core) IssueURL(what string) string {
 	if what == "" {
 		return u
 	}
-	q.Set("what", what)
+	q.Set(field, what)
 	return Repo + "/issues/new?" + q.Encode()
 }
 

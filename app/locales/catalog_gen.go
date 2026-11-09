@@ -6857,212 +6857,292 @@ func (msgs Messages) ModelAndAddress() string {
 	return Catalog.Format(msgs.locale, "modelAndAddress", nil)
 }
 
-// ReportProblem says "Report a problem"
+// Feedback says "Feedback & ideas"
 // in the language the app shows.
 //
-// About: the row that reports a problem, and the title of its dialog.
-func ReportProblem() string { return In(i18n.Locale()).ReportProblem() }
+// About: the row giving feedback, a problem or an idea, and the title of
+// its dialog.
+func Feedback() string { return In(i18n.Locale()).Feedback() }
 
-// ReportProblem says "Report a problem"
+// Feedback says "Feedback & ideas"
 // in the language of msgs.
 //
-// About: the row that reports a problem, and the title of its dialog.
-func (msgs Messages) ReportProblem() string {
-	return Catalog.Format(msgs.locale, "reportProblem", nil)
+// About: the row giving feedback, a problem or an idea, and the title of
+// its dialog.
+func (msgs Messages) Feedback() string {
+	return Catalog.Format(msgs.locale, "feedback", nil)
 }
 
-// ReportHint says "With an AI agent, or on GitHub"
+// FeedbackHint says "A problem or an idea, with an AI agent or on GitHub"
 // in the language the app shows.
 //
-// About: the note under Report a problem.
-func ReportHint() string { return In(i18n.Locale()).ReportHint() }
+// About: the note under Feedback & ideas.
+func FeedbackHint() string { return In(i18n.Locale()).FeedbackHint() }
 
-// ReportHint says "With an AI agent, or on GitHub"
+// FeedbackHint says "A problem or an idea, with an AI agent or on GitHub"
 // in the language of msgs.
 //
-// About: the note under Report a problem.
-func (msgs Messages) ReportHint() string {
-	return Catalog.Format(msgs.locale, "reportHint", nil)
+// About: the note under Feedback & ideas.
+func (msgs Messages) FeedbackHint() string {
+	return Catalog.Format(msgs.locale, "feedbackHint", nil)
 }
 
-// ReportOpen says "Report…"
+// FeedbackKind says "Kind of feedback"
 // in the language the app shows.
 //
-// About: the button that opens the dialog reporting a problem.
-func ReportOpen() string { return In(i18n.Locale()).ReportOpen() }
+// The feedback dialog: the name of its choice between Problem and Idea, for
+// screen readers.
+func FeedbackKind() string { return In(i18n.Locale()).FeedbackKind() }
 
-// ReportOpen says "Report…"
+// FeedbackKind says "Kind of feedback"
 // in the language of msgs.
 //
-// About: the button that opens the dialog reporting a problem.
-func (msgs Messages) ReportOpen() string {
-	return Catalog.Format(msgs.locale, "reportOpen", nil)
+// The feedback dialog: the name of its choice between Problem and Idea, for
+// screen readers.
+func (msgs Messages) FeedbackKind() string {
+	return Catalog.Format(msgs.locale, "feedbackKind", nil)
 }
 
-// ReportIntro says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// FeedbackProblem says "Problem"
 // in the language the app shows.
 //
-// The dialog reporting a problem: under its title.
-func ReportIntro() string { return In(i18n.Locale()).ReportIntro() }
+// The feedback dialog: the segment for something that doesn't work as it
+// should.
+func FeedbackProblem() string { return In(i18n.Locale()).FeedbackProblem() }
 
-// ReportIntro says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// FeedbackProblem says "Problem"
 // in the language of msgs.
 //
-// The dialog reporting a problem: under its title.
-func (msgs Messages) ReportIntro() string {
-	return Catalog.Format(msgs.locale, "reportIntro", nil)
+// The feedback dialog: the segment for something that doesn't work as it
+// should.
+func (msgs Messages) FeedbackProblem() string {
+	return Catalog.Format(msgs.locale, "feedbackProblem", nil)
 }
 
-// ReportPlaceholder says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// FeedbackIdea says "Idea"
 // in the language the app shows.
 //
-// The dialog reporting a problem: the example in its empty text box.
-func ReportPlaceholder() string { return In(i18n.Locale()).ReportPlaceholder() }
+// The feedback dialog: the segment for something Tomoru could do, or do
+// better.
+func FeedbackIdea() string { return In(i18n.Locale()).FeedbackIdea() }
 
-// ReportPlaceholder says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// FeedbackIdea says "Idea"
 // in the language of msgs.
 //
-// The dialog reporting a problem: the example in its empty text box.
-func (msgs Messages) ReportPlaceholder() string {
-	return Catalog.Format(msgs.locale, "reportPlaceholder", nil)
+// The feedback dialog: the segment for something Tomoru could do, or do
+// better.
+func (msgs Messages) FeedbackIdea() string {
+	return Catalog.Format(msgs.locale, "feedbackIdea", nil)
 }
 
-// ReportSummary says "Copied with it"
+// FeedbackOpen says "Send feedback…"
+// in the language the app shows.
+//
+// About: the button that opens the feedback dialog.
+func FeedbackOpen() string { return In(i18n.Locale()).FeedbackOpen() }
+
+// FeedbackOpen says "Send feedback…"
+// in the language of msgs.
+//
+// About: the button that opens the feedback dialog.
+func (msgs Messages) FeedbackOpen() string {
+	return Catalog.Format(msgs.locale, "feedbackOpen", nil)
+}
+
+// FeedbackIntroProblem says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// in the language the app shows.
+//
+// The feedback dialog with Problem chosen: under its title.
+func FeedbackIntroProblem() string { return In(i18n.Locale()).FeedbackIntroProblem() }
+
+// FeedbackIntroProblem says "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with …"
+// in the language of msgs.
+//
+// The feedback dialog with Problem chosen: under its title.
+func (msgs Messages) FeedbackIntroProblem() string {
+	return Catalog.Format(msgs.locale, "feedbackIntroProblem", nil)
+}
+
+// FeedbackIntroIdea says "Say what you'd like Tomoru to do, copy it and paste it into an AI agent like Claude Code or Codex: it shapes it into …"
+// in the language the app shows.
+//
+// The feedback dialog with Idea chosen: under its title.
+func FeedbackIntroIdea() string { return In(i18n.Locale()).FeedbackIntroIdea() }
+
+// FeedbackIntroIdea says "Say what you'd like Tomoru to do, copy it and paste it into an AI agent like Claude Code or Codex: it shapes it into …"
+// in the language of msgs.
+//
+// The feedback dialog with Idea chosen: under its title.
+func (msgs Messages) FeedbackIntroIdea() string {
+	return Catalog.Format(msgs.locale, "feedbackIntroIdea", nil)
+}
+
+// FeedbackPlaceholderProblem says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// in the language the app shows.
+//
+// The feedback dialog with Problem chosen: the example in its empty text
+// box.
+func FeedbackPlaceholderProblem() string { return In(i18n.Locale()).FeedbackPlaceholderProblem() }
+
+// FeedbackPlaceholderProblem says "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"
+// in the language of msgs.
+//
+// The feedback dialog with Problem chosen: the example in its empty text
+// box.
+func (msgs Messages) FeedbackPlaceholderProblem() string {
+	return Catalog.Format(msgs.locale, "feedbackPlaceholderProblem", nil)
+}
+
+// FeedbackPlaceholderIdea says "e.g. Watching Frieren, I'd like to save an episode's subtitles as an SRT file"
+// in the language the app shows.
+//
+// The feedback dialog with Idea chosen: the example in its empty text box.
+func FeedbackPlaceholderIdea() string { return In(i18n.Locale()).FeedbackPlaceholderIdea() }
+
+// FeedbackPlaceholderIdea says "e.g. Watching Frieren, I'd like to save an episode's subtitles as an SRT file"
+// in the language of msgs.
+//
+// The feedback dialog with Idea chosen: the example in its empty text box.
+func (msgs Messages) FeedbackPlaceholderIdea() string {
+	return Catalog.Format(msgs.locale, "feedbackPlaceholderIdea", nil)
+}
+
+// FeedbackSummary says "Copied with it"
 // in the language the app shows.
 //
 // The dialog reporting a problem: the title over what goes with the user's
 // words.
-func ReportSummary() string { return In(i18n.Locale()).ReportSummary() }
+func FeedbackSummary() string { return In(i18n.Locale()).FeedbackSummary() }
 
-// ReportSummary says "Copied with it"
+// FeedbackSummary says "Copied with it"
 // in the language of msgs.
 //
 // The dialog reporting a problem: the title over what goes with the user's
 // words.
-func (msgs Messages) ReportSummary() string {
-	return Catalog.Format(msgs.locale, "reportSummary", nil)
+func (msgs Messages) FeedbackSummary() string {
+	return Catalog.Format(msgs.locale, "feedbackSummary", nil)
 }
 
-// ReportVersion says "Version"
+// FeedbackVersion says "Version"
 // in the language the app shows.
 //
 // The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
-func ReportVersion() string { return In(i18n.Locale()).ReportVersion() }
+func FeedbackVersion() string { return In(i18n.Locale()).FeedbackVersion() }
 
-// ReportVersion says "Version"
+// FeedbackVersion says "Version"
 // in the language of msgs.
 //
 // The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
-func (msgs Messages) ReportVersion() string {
-	return Catalog.Format(msgs.locale, "reportVersion", nil)
+func (msgs Messages) FeedbackVersion() string {
+	return Catalog.Format(msgs.locale, "feedbackVersion", nil)
 }
 
-// ReportSystem says "System"
+// FeedbackSystem says "System"
 // in the language the app shows.
 //
 // The dialog reporting a problem: the system's name and version, beside
 // "macOS 26.1".
-func ReportSystem() string { return In(i18n.Locale()).ReportSystem() }
+func FeedbackSystem() string { return In(i18n.Locale()).FeedbackSystem() }
 
-// ReportSystem says "System"
+// FeedbackSystem says "System"
 // in the language of msgs.
 //
 // The dialog reporting a problem: the system's name and version, beside
 // "macOS 26.1".
-func (msgs Messages) ReportSystem() string {
-	return Catalog.Format(msgs.locale, "reportSystem", nil)
+func (msgs Messages) FeedbackSystem() string {
+	return Catalog.Format(msgs.locale, "feedbackSystem", nil)
 }
 
-// ReportEngines says "Engines"
+// FeedbackEngines says "Engines"
 // in the language the app shows.
 //
 // The dialog reporting a problem: recognition and translation, beside
 // "Apple → Index-Translate cloud".
-func ReportEngines() string { return In(i18n.Locale()).ReportEngines() }
+func FeedbackEngines() string { return In(i18n.Locale()).FeedbackEngines() }
 
-// ReportEngines says "Engines"
+// FeedbackEngines says "Engines"
 // in the language of msgs.
 //
 // The dialog reporting a problem: recognition and translation, beside
 // "Apple → Index-Translate cloud".
-func (msgs Messages) ReportEngines() string {
-	return Catalog.Format(msgs.locale, "reportEngines", nil)
+func (msgs Messages) FeedbackEngines() string {
+	return Catalog.Format(msgs.locale, "feedbackEngines", nil)
 }
 
-// ReportLangs says "Languages"
+// FeedbackLangs says "Languages"
 // in the language the app shows.
 //
 // The dialog reporting a problem: the languages translated, beside
 // "Japanese → Chinese".
-func ReportLangs() string { return In(i18n.Locale()).ReportLangs() }
+func FeedbackLangs() string { return In(i18n.Locale()).FeedbackLangs() }
 
-// ReportLangs says "Languages"
+// FeedbackLangs says "Languages"
 // in the language of msgs.
 //
 // The dialog reporting a problem: the languages translated, beside
 // "Japanese → Chinese".
-func (msgs Messages) ReportLangs() string {
-	return Catalog.Format(msgs.locale, "reportLangs", nil)
+func (msgs Messages) FeedbackLangs() string {
+	return Catalog.Format(msgs.locale, "feedbackLangs", nil)
 }
 
-// ReportPrivate says "No API keys, subtitles or recordings"
+// FeedbackPrivate says "No API keys, subtitles or recordings"
 // in the language the app shows.
 //
 // The dialog reporting a problem: beside a lock, under what goes with the
 // user's words.
-func ReportPrivate() string { return In(i18n.Locale()).ReportPrivate() }
+func FeedbackPrivate() string { return In(i18n.Locale()).FeedbackPrivate() }
 
-// ReportPrivate says "No API keys, subtitles or recordings"
+// FeedbackPrivate says "No API keys, subtitles or recordings"
 // in the language of msgs.
 //
 // The dialog reporting a problem: beside a lock, under what goes with the
 // user's words.
-func (msgs Messages) ReportPrivate() string {
-	return Catalog.Format(msgs.locale, "reportPrivate", nil)
+func (msgs Messages) FeedbackPrivate() string {
+	return Catalog.Format(msgs.locale, "feedbackPrivate", nil)
 }
 
-// ReportShow says "What is copied"
+// FeedbackShow says "What is copied"
 // in the language the app shows.
 //
 // The dialog reporting a problem: a fold showing the whole text copied.
-func ReportShow() string { return In(i18n.Locale()).ReportShow() }
+func FeedbackShow() string { return In(i18n.Locale()).FeedbackShow() }
 
-// ReportShow says "What is copied"
+// FeedbackShow says "What is copied"
 // in the language of msgs.
 //
 // The dialog reporting a problem: a fold showing the whole text copied.
-func (msgs Messages) ReportShow() string {
-	return Catalog.Format(msgs.locale, "reportShow", nil)
+func (msgs Messages) FeedbackShow() string {
+	return Catalog.Format(msgs.locale, "feedbackShow", nil)
 }
 
-// ReportOnGitHub says "Open on GitHub"
+// FeedbackOnGitHub says "Open on GitHub"
 // in the language the app shows.
 //
 // The dialog reporting a problem: opens GitHub's issue form, started with
 // what the user wrote and the app's setup.
-func ReportOnGitHub() string { return In(i18n.Locale()).ReportOnGitHub() }
+func FeedbackOnGitHub() string { return In(i18n.Locale()).FeedbackOnGitHub() }
 
-// ReportOnGitHub says "Open on GitHub"
+// FeedbackOnGitHub says "Open on GitHub"
 // in the language of msgs.
 //
 // The dialog reporting a problem: opens GitHub's issue form, started with
 // what the user wrote and the app's setup.
-func (msgs Messages) ReportOnGitHub() string {
-	return Catalog.Format(msgs.locale, "reportOnGitHub", nil)
+func (msgs Messages) FeedbackOnGitHub() string {
+	return Catalog.Format(msgs.locale, "feedbackOnGitHub", nil)
 }
 
-// ReportCopy says "Copy for an AI agent"
+// FeedbackCopy says "Copy for an AI agent"
 // in the language the app shows.
 //
 // The dialog reporting a problem: copies the user's words with the app's
 // setup and a guide for an AI agent.
-func ReportCopy() string { return In(i18n.Locale()).ReportCopy() }
+func FeedbackCopy() string { return In(i18n.Locale()).FeedbackCopy() }
 
-// ReportCopy says "Copy for an AI agent"
+// FeedbackCopy says "Copy for an AI agent"
 // in the language of msgs.
 //
 // The dialog reporting a problem: copies the user's words with the app's
 // setup and a guide for an AI agent.
-func (msgs Messages) ReportCopy() string {
-	return Catalog.Format(msgs.locale, "reportCopy", nil)
+func (msgs Messages) FeedbackCopy() string {
+	return Catalog.Format(msgs.locale, "feedbackCopy", nil)
 }

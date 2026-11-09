@@ -2435,60 +2435,80 @@
   "@modelAndAddress": {
     "description": "A fold under a cloud service's API key, in the settings: opens its model and address fields, which most leave as they are."
   },
-  "reportProblem": "Report a problem",
-  "@reportProblem": {
-    "description": "About: the row that reports a problem, and the title of its dialog."
+  "feedback": "Feedback & ideas",
+  "@feedback": {
+    "description": "About: the row giving feedback, a problem or an idea, and the title of its dialog."
   },
-  "reportHint": "With an AI agent, or on GitHub",
-  "@reportHint": {
-    "description": "About: the note under Report a problem."
+  "feedbackHint": "A problem or an idea, with an AI agent or on GitHub",
+  "@feedbackHint": {
+    "description": "About: the note under Feedback & ideas."
   },
-  "reportOpen": "Report…",
-  "@reportOpen": {
-    "description": "About: the button that opens the dialog reporting a problem."
+  "feedbackKind": "Kind of feedback",
+  "@feedbackKind": {
+    "description": "The feedback dialog: the name of its choice between Problem and Idea, for screen readers."
   },
-  "reportIntro": "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with you, and opens the issue on GitHub once you say yes.",
-  "@reportIntro": {
-    "description": "The dialog reporting a problem: under its title."
+  "feedbackProblem": "Problem",
+  "@feedbackProblem": {
+    "description": "The feedback dialog: the segment for something that doesn't work as it should."
   },
-  "reportPlaceholder": "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes",
-  "@reportPlaceholder": {
-    "description": "The dialog reporting a problem: the example in its empty text box."
+  "feedbackIdea": "Idea",
+  "@feedbackIdea": {
+    "description": "The feedback dialog: the segment for something Tomoru could do, or do better."
   },
-  "reportSummary": "Copied with it",
-  "@reportSummary": {
+  "feedbackOpen": "Send feedback…",
+  "@feedbackOpen": {
+    "description": "About: the button that opens the feedback dialog."
+  },
+  "feedbackIntroProblem": "Say what went wrong, copy it and paste it into an AI agent like Claude Code or Codex: it looks through the logs with you, and opens the issue on GitHub once you say yes.",
+  "@feedbackIntroProblem": {
+    "description": "The feedback dialog with Problem chosen: under its title."
+  },
+  "feedbackIntroIdea": "Say what you'd like Tomoru to do, copy it and paste it into an AI agent like Claude Code or Codex: it shapes it into a suggestion with you, and opens the issue on GitHub once you say yes.",
+  "@feedbackIntroIdea": {
+    "description": "The feedback dialog with Idea chosen: under its title."
+  },
+  "feedbackPlaceholderProblem": "e.g. Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes",
+  "@feedbackPlaceholderProblem": {
+    "description": "The feedback dialog with Problem chosen: the example in its empty text box."
+  },
+  "feedbackPlaceholderIdea": "e.g. Watching Frieren, I'd like to save an episode's subtitles as an SRT file",
+  "@feedbackPlaceholderIdea": {
+    "description": "The feedback dialog with Idea chosen: the example in its empty text box."
+  },
+  "feedbackSummary": "Copied with it",
+  "@feedbackSummary": {
     "description": "The dialog reporting a problem: the title over what goes with the user's words."
   },
-  "reportVersion": "Version",
-  "@reportVersion": {
+  "feedbackVersion": "Version",
+  "@feedbackVersion": {
     "description": "The dialog reporting a problem: the app's version, beside \"Tomoru 0.1.4\"."
   },
-  "reportSystem": "System",
-  "@reportSystem": {
+  "feedbackSystem": "System",
+  "@feedbackSystem": {
     "description": "The dialog reporting a problem: the system's name and version, beside \"macOS 26.1\"."
   },
-  "reportEngines": "Engines",
-  "@reportEngines": {
+  "feedbackEngines": "Engines",
+  "@feedbackEngines": {
     "description": "The dialog reporting a problem: recognition and translation, beside \"Apple → Index-Translate cloud\"."
   },
-  "reportLangs": "Languages",
-  "@reportLangs": {
+  "feedbackLangs": "Languages",
+  "@feedbackLangs": {
     "description": "The dialog reporting a problem: the languages translated, beside \"Japanese → Chinese\"."
   },
-  "reportPrivate": "No API keys, subtitles or recordings",
-  "@reportPrivate": {
+  "feedbackPrivate": "No API keys, subtitles or recordings",
+  "@feedbackPrivate": {
     "description": "The dialog reporting a problem: beside a lock, under what goes with the user's words."
   },
-  "reportShow": "What is copied",
-  "@reportShow": {
+  "feedbackShow": "What is copied",
+  "@feedbackShow": {
     "description": "The dialog reporting a problem: a fold showing the whole text copied."
   },
-  "reportOnGitHub": "Open on GitHub",
-  "@reportOnGitHub": {
+  "feedbackOnGitHub": "Open on GitHub",
+  "@feedbackOnGitHub": {
     "description": "The dialog reporting a problem: opens GitHub's issue form, started with what the user wrote and the app's setup."
   },
-  "reportCopy": "Copy for an AI agent",
-  "@reportCopy": {
+  "feedbackCopy": "Copy for an AI agent",
+  "@feedbackCopy": {
     "description": "The dialog reporting a problem: copies the user's words with the app's setup and a guide for an AI agent."
   }
 }
