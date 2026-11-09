@@ -39,6 +39,17 @@ or remove it, once it ships.
 | 12 | Copy | "Engine not recorded" names an implementation detail of old data. | "Earlier versions", or fold it into a faint "Other" row. |
 | 13 | Product | "Keep subtitles" is off by default, for privacy, so Recent, Learn names and learning a scene's names never show for most users. | Keep the default; offer the switch where it pays, in a scene's empty names list, saying it lets names be learned. |
 
+## Found while translating live
+
+Seen in the real app, translating an English video with burned-in bilingual subtitles in
+QuickTime Player into Chinese.
+
+| # | Area | Problem | Change | Where |
+|---|---|---|---|---|
+| 14 | Hierarchy | At their default place, the subtitles land on the video's own burned-in subtitles, and the two stacks can't be read. Moving them is an icon in the panel's footer, found only by hovering. | Say once, as the subtitles first show, that they can be dragged, and where; or start them a little higher than where videos put theirs. Measure on a few videos with burned-in subtitles before choosing. | `overlay/`, the guide's last step |
+| 15 | Feedback | When the engine dies by a signal (a crash, or killed), the panel and the subtitles say "Translation stopped: signal: killed", not that the engine quit. `errExited` covers only an engine that exits without an error; the `*exec.ExitError` falls through to `StatusStopped`. Try again shows and works. | Treat an `*exec.ExitError` from the engine as the engine quitting (`ErrEngineExited`), in `ErrorText` and `ErrorFix`. | `core/session_controller.go`, `shared/names.go` |
+| 16 | Hierarchy | The panel's state line is cut once the count has two digits: "Listened today 0:39 · 11 lin…". | Give the line the room the Start button leaves, or drop the unit's word for a shorter form ("11 lines" to "11"), and test it at 340 wide with three-digit counts. | `panel/panel.go` `state` |
+
 ## What was not verified
 
 The pages were judged from the galleries the tests render (`TOMORU_GALLERY=<dir> go test
@@ -51,7 +62,10 @@ The pages were judged from the galleries the tests render (`TOMORU_GALLERY=<dir>
   the UI does not let one choose it without a key), Start in the panel and Start translating on
   Home both show the message and Open Speech & translation, and either click opens Settings on
   that page, showing Qwen ASR. Home also showed findings 2 and 7 as a new user sees them.
+- Translating an English video in QuickTime Player into Chinese, with QuickTime in front: the
+  subtitles come in and translate live (finding 14). Killing the engine stopped translating, and
+  the panel showed Try again (with finding 15's message); Try again started a new engine and
+  translating went on.
 
-Not driven in the real app: Open System Settings (it needs the audio permission refused) and Try
-again (it needs an engine to fail while translating). Nothing was translated live, so the subtitle
-overlay itself, with another app in front, was not looked at. Windows was not checked.
+Not driven in the real app: Open System Settings, which needs the audio permission refused.
+Windows was not checked.
