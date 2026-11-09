@@ -40,3 +40,4 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 - Never commit or push unless asked.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org): `type(scope): summary` in English, scope a package or directory (`asr`, `ui/settings`, `engine/windows`, `site`), body saying why.
 - Never commit secrets, API keys or recordings of copyrighted media.
+- Merge pull requests by squashing (`gh pr merge --squash`), with the PR's title, so `main` gets one commit for each.
