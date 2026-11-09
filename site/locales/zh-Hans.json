@@ -58,6 +58,7 @@
       "q": "录屏或直播推流时，字幕会被录进去吗？",
       "a": "可以在设置里打开「录屏时隐藏字幕」，字幕就只给你自己看。"
     },
+    "more": "安装或权限遇到问题，看<a href=\"/help/install/\">安装与权限</a>。想让识别和翻译都在本机运行，看<a href=\"/help/offline/\">本机离线模型</a>。",
     "eyebrow": "常见问题",
     "title": "常见问题"
   },
@@ -369,7 +370,10 @@
   },
   "footer": {
     "tagline": "把电脑播放的声音变成双语字幕。",
+    "madeBy": "由 <a href=\"https://acane.dev/\" rel=\"author\">诗浓（ACAne0320）</a>制作。",
     "product": "产品",
+    "helpInstall": "安装与权限",
+    "helpOffline": "本机离线模型",
     "changelog": "更新记录",
     "openSource": "开源",
     "contributing": "参与贡献",
@@ -382,7 +386,10 @@
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING_zh.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY_zh.md",
-    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md"
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md",
+    "helpInstall": "/help/install/",
+    "helpOffline": "/help/offline/",
+    "helpLang": "zh-Hans"
   },
   "notFound": {
     "title": "找不到这一页 | Tomoru",

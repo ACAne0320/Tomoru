@@ -58,6 +58,7 @@
       "q": "螢幕錄影或直播串流時，字幕會被錄進去嗎？",
       "a": "可以在設定中開啟「錄影時隱藏字幕」，字幕就只會顯示給你自己看。"
     },
+    "more": "安裝或權限遇到問題，看<a href=\"/help/install/\" hreflang=\"zh-Hans\">安裝與權限</a>。想讓辨識和翻譯都在本機執行，看<a href=\"/help/offline/\" hreflang=\"zh-Hans\">本機離線模型</a>。這兩頁目前只有簡體中文和英文。",
     "eyebrow": "常見問題",
     "title": "常見問題"
   },
@@ -369,7 +370,10 @@
   },
   "footer": {
     "tagline": "把電腦播放的聲音變成雙語字幕。",
+    "madeBy": "由 <a href=\"https://acane.dev/\" rel=\"author\">诗浓（ACAne0320）</a>製作。",
     "product": "產品",
+    "helpInstall": "安裝與權限（簡體中文）",
+    "helpOffline": "本機離線模型（簡體中文）",
     "changelog": "更新記錄",
     "openSource": "開源",
     "contributing": "參與貢獻",
@@ -382,7 +386,10 @@
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING_zh.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY_zh.md",
-    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md"
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md",
+    "helpInstall": "/help/install/",
+    "helpOffline": "/help/offline/",
+    "helpLang": "zh-Hans"
   },
   "notFound": {
     "title": "找不到此頁面 | Tomoru",

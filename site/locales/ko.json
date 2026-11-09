@@ -58,6 +58,7 @@
       "q": "화면 녹화나 방송 송출 시 자막이 함께 녹화되나요?",
       "a": "설정에서 ‘화면 녹화에서 자막 숨기기’를 켜면 자막이 본인에게만 보이도록 설정할 수 있습니다."
     },
+    "more": "설치나 권한 문제는 <a href=\"/en/help/install/\" hreflang=\"en\">Install and permissions</a>를, 인식과 번역을 모두 이 컴퓨터에서 실행하려면 <a href=\"/en/help/offline/\" hreflang=\"en\">On-device models</a>를 참고하세요(두 페이지 모두 영어입니다).",
     "eyebrow": "자주 묻는 질문",
     "title": "자주 묻는 질문"
   },
@@ -369,7 +370,10 @@
   },
   "footer": {
     "tagline": "컴퓨터에서 재생되는 소리를 이중 언어 자막으로 바꿉니다.",
+    "madeBy": "만든 사람: <a href=\"https://acane.dev/\" rel=\"author\">诗浓 (ACAne0320)</a>",
     "product": "제품",
+    "helpInstall": "설치와 권한(영어)",
+    "helpOffline": "온디바이스 모델(영어)",
     "changelog": "변경 기록",
     "openSource": "오픈소스",
     "contributing": "기여하기",
@@ -382,7 +386,10 @@
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
-    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md"
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
+    "helpInstall": "/en/help/install/",
+    "helpOffline": "/en/help/offline/",
+    "helpLang": "en"
   },
   "notFound": {
     "title": "페이지를 찾을 수 없습니다 | Tomoru",

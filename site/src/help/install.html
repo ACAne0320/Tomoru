@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="{{$lang}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.documentElement.classList.add('js')</script>
+
+  <!-- 帮助页：文字取自 locales/help/，只在有这份文字的语言里生成，见 site/README_zh.md -->
+  <title>{{help.install.meta.title|plain}}</title>
+  <meta name="description" content="{{help.install.meta.description|plain}}">
+  <link rel="canonical" href="{{$url}}">
+  {{$alternates}}
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#1b1949">
+  <meta name="color-scheme" content="light">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Tomoru">
+  <meta property="og:locale" content="{{$og}}">
+  <meta property="og:title" content="{{help.install.meta.title|plain}}">
+  <meta property="og:description" content="{{help.install.meta.description|plain}}">
+  <meta property="og:url" content="{{$url}}">
+  <meta property="og:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "{{$url}}#article",
+        "headline": {{help.install.title|json}},
+        "description": {{help.install.meta.description|json}},
+        "inLanguage": "{{$lang}}",
+        "url": "{{$url}}",
+        "mainEntityOfPage": "{{$url}}",
+        "about": { "@id": "https://tomoru.acane.dev/#app" },
+        "isPartOf": { "@id": "https://tomoru.acane.dev/#website" },
+        "author": { "@id": "https://acane.dev/#person" },
+        "publisher": { "@id": "https://acane.dev/#person" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Tomoru", "item": "{{$homeUrl}}" },
+          { "@type": "ListItem", "position": 2, "name": {{help.install.title|json}}, "item": "{{$url}}" }
+        ]
+      },
+      {{>person.json}}
+    ]
+  }
+  </script>
+</head>
+<body>
+  {{>icons.html}}
+
+  {{>header.html}}
+
+  <main id="main">
+    <section class="night doc-hero" aria-labelledby="doc-title">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="wrap narrow">
+        <nav class="crumbs" aria-label="{{help.common.crumbLabel|plain}}"><a href="{{$home}}">Tomoru</a><span aria-hidden="true">›</span><span aria-current="page">{{help.install.title}}</span></nav>
+        <h1 id="doc-title">{{help.install.title}}</h1>
+        <p class="lead">{{help.install.lead}}</p>
+      </div>
+    </section>
+
+    <div class="section paper doc-body">
+      <article class="wrap narrow doc">
+        <nav class="toc" aria-labelledby="toc-title">
+          <h2 id="toc-title">{{help.common.toc}}</h2>
+          <ol>
+            <li><a href="#requirements">{{help.install.requirements.title}}</a></li>
+            <li><a href="#install">{{help.install.download.title}}</a></li>
+            <li><a href="#blocked">{{help.install.blocked.title}}</a></li>
+            <li><a href="#permissions">{{help.install.permissions.title}}</a></li>
+            <li><a href="#trouble">{{help.install.trouble.title}}</a></li>
+          </ol>
+        </nav>
+
+        <section id="requirements"><h2>{{help.install.requirements.title}}</h2>{{help.install.requirements.body}}</section>
+        <section id="install">
+          <h2>{{help.install.download.title}}</h2>
+          {{help.install.download.body}}
+          <div class="cmd">
+            <span class="cmd-os">macOS</span>
+            <code>curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh</code>
+            <button class="copy" type="button" data-copy aria-label="{{start.copyMac|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
+          </div>
+          <div class="cmd">
+            <span class="cmd-os">Windows</span>
+            <code>irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | iex</code>
+            <button class="copy" type="button" data-copy aria-label="{{start.copyWindows|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
+          </div>
+        </section>
+        <section id="blocked"><h2>{{help.install.blocked.title}}</h2>{{help.install.blocked.body}}</section>
+        <section id="permissions"><h2>{{help.install.permissions.title}}</h2>{{help.install.permissions.body}}</section>
+        <section id="trouble"><h2>{{help.install.trouble.title}}</h2>{{help.install.trouble.body}}</section>
+
+        <aside class="doc-more">
+          <h2>{{help.common.moreTitle}}</h2>
+          <p>{{help.common.more}}</p>
+          <p>{{help.common.see}}<a href="{{$home}}help/offline/">{{help.offline.title}}</a> · <a href="{{$home}}#faq">{{nav.faq}}</a></p>
+        </aside>
+      </article>
+    </div>
+  </main>
+
+  {{>footer.html}}
+
+  <script type="application/json" id="strings">{{js|json}}</script>
+  <script src="/main.js" defer></script>
+</body>
+</html>

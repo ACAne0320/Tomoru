@@ -4,8 +4,8 @@
 
 <https://tomoru.acane.dev>，用 Cloudflare Workers 的静态资源托管，下载由 `worker.js` 处理。
 
-- `src/`：页面模板。
-- `locales/`：页面文字，每种语言一个文件，`zh-Hans.json` 是源。
+- `src/`：页面模板；`src/partials/`：各页共用的片段（页头、页脚、图标、作者的 JSON-LD）。
+- `locales/`：页面文字，每种语言一个文件，`zh-Hans.json` 是源。`locales/help/` 以同样方式放帮助页的文字。
 - `public/`：样式、脚本、图片等静态文件。`build.mjs` 把页面和 `sitemap.xml` 写到这里，不进仓库。
 - `build.mjs`：按语言生成页面，不依赖任何包。`wrangler dev` 和 `wrangler deploy` 之前，Wrangler 会先运行它。
 
@@ -13,7 +13,9 @@
 
 ## 页面
 
-页面里的 `{{key}}` 取自对应语言的文件，可以含 HTML；`{{key|plain}}` 是去掉标签的纯文本，用在属性和标题里；`{{key|json}}` 是 JSON，用在脚本里。`{{$name}}` 由 `build.mjs` 按语言生成：`$lang`、`$url`、`$home`、hreflang 链接和语言菜单。`main.js` 的文字从页面的 `#strings` 读（`js` 这一组）。
+页面里的 `{{key}}` 取自对应语言的文件，可以含 HTML；`{{key|plain}}` 是去掉标签的纯文本，用在属性和标题里；`{{key|json}}` 是 JSON，用在脚本里。`{{$name}}` 由 `build.mjs` 按页面和语言生成：`$lang`、`$url`、`$home`、`$homeUrl`、hreflang 链接和语言菜单。`{{>name}}` 放入 `src/partials/name`。`main.js` 的文字从页面的 `#strings` 读（`js` 这一组）。
+
+页面列在 `build.mjs` 里。帮助页 `/help/install/` 和 `/help/offline/` 还要用 `locales/help/<语言>.json`，放在 `help` 键下，只在这个文件完整的语言里生成，目前是简体中文和英文；它们的 hreflang、语言菜单和 sitemap 也只列这些语言。帮助页的内容跟着 app 走：app 改了模型、大小、设置项名称或权限时，对照代码一起改。
 
 ## 下载
 
@@ -25,4 +27,4 @@
 
 简体中文在 `/`；繁体中文、英文、日文、韩文在 `/zh-hant/`、`/en/`、`/ja/`、`/ko/`。每种语言的文件和 `zh-Hans.json` 键完全相同。`null` 表示还没翻译：还有 `null` 的语言不会生成，也就不上线、不出现在语言菜单里。缺键、多出不认识的键、有键没有页面用到，都会让生成失败。
 
-改文字时，已上线的每种语言都要一起改。加新语言要改 `build.mjs` 里的列表和 `.gitignore`。
+改文字时，已上线的每种语言都要一起改；改帮助页文字时，有帮助页的每种语言都要一起改。加新语言要改 `build.mjs` 里的列表和 `.gitignore`，放在单独目录里的新页面也要加进 `.gitignore`。
