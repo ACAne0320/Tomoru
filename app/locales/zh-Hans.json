@@ -464,5 +464,14 @@
   "sizeQuicker": "更快",
   "sizeMoreAccurate": "更准",
   "runsHere": "这台电脑跑得动",
-  "modelAndAddress": "模型和服务地址"
+  "modelAndAddress": "模型和服务地址",
+  "reportProblem": "报告问题",
+  "reportHint": "借助 AI Agent，或直接在 GitHub 上",
+  "reportOpen": "报告…",
+  "reportIntro": "写下哪里不对，复制后粘贴给 Claude Code、Codex 这样的 AI Agent：它会和你一起看日志，你同意后再在 GitHub 上提交 issue。",
+  "reportPlaceholder": "例如：在 B 站看《葬送的芙莉莲》，十分钟后字幕就不动了",
+  "reportIncluded": "一并复制：{setup}。不含 API 密钥、字幕和录音。",
+  "reportShow": "查看复制的内容",
+  "reportOnGitHub": "在 GitHub 上填写",
+  "reportCopy": "复制给 AI Agent"
 }

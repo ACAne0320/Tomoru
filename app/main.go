@@ -92,7 +92,7 @@ func main() {
 		deps := core.Deps{Context: ctx, Post: post,
 			Proxy: proxy.Set, SystemProxy: func() string { return proxy.System("https://api.openai.com") },
 			EnginePath: func() (string, error) { return engine.Path(roots...) },
-			ASRPath:    func() (string, error) { return engine.ASRPath(roots...) }, PrefsPath: path, ScenesPath: scenesPath, HistoryDir: historyDir, StatsPath: statsPath, LogPath: logPath, Login: mygo.App, Secrets: mygo.Secrets,
+			ASRPath:    func() (string, error) { return engine.ASRPath(roots...) }, PrefsPath: path, ScenesPath: scenesPath, HistoryDir: historyDir, StatsPath: statsPath, LogPath: logPath, Version: mygo.App.Version(), OS: osVersion(), Login: mygo.App, Secrets: mygo.Secrets,
 			Network: func() (bool, bool) { s := mygo.Network.Status(); return s.Online, s.Metered },
 			Select:  capture.Selector(func() (string, error) { return engine.Path(roots...) })}
 		// The local models: downloaded into the user's data, or the folder they were moved to, run by

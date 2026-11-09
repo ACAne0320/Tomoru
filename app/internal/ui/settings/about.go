@@ -13,7 +13,8 @@ import (
 )
 
 // about is the app: its icon, name and what it does; its version and checking for updates, the
-// guide again, and the logs, as rows of a card; its license and what it is made with.
+// guide again, the logs and reporting a problem, as rows of a card; its license and what it is
+// made with.
 func (s *Settings) about(c *ui.Context) {
 	p := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Center).Children(func() {
@@ -44,7 +45,13 @@ func (s *Settings) about(c *ui.Context) {
 				}
 			})
 		}
+		kit.SettingRow(c, 3, locales.ReportProblem(), locales.ReportHint(), func() {
+			if kit.Button(c, kit.Plain, kit.Small, nil, locales.ReportOpen()).Clicked() {
+				s.feedback.open = true
+			}
+		})
 	})
+	s.feedbackDialog(c)
 	kit.SandCard(c).Gap(kit.Space(2)).Children(func() {
 		ui.Text(c, locales.AboutLicense()).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.Ink)
 		kit.Caption(c, locales.AboutCredits())
