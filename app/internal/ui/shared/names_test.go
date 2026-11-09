@@ -2,6 +2,7 @@ package shared
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/egoist/mygo/i18n"
 
 	"tomoru/internal/asr/batch"
+	"tomoru/internal/asr/openai"
 	"tomoru/internal/core"
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
@@ -72,6 +74,26 @@ func TestErrorText(t *testing.T) {
 	} {
 		if got := ErrorText(err); got != want {
 			t.Errorf("%v: %q, want %q", err, got, want)
+		}
+	}
+}
+
+// TestErrorFix sends an engine's error to Speech & translation, a permission off to System
+// Settings, and the rest to trying again.
+func TestErrorFix(t *testing.T) {
+	for err, want := range map[error]Fix{
+		core.ErrMTCloudKey:                          FixEngines,
+		fmt.Errorf("start: %w", core.ErrNoASR):      FixEngines,
+		openai.ErrAuth:                              FixEngines,
+		batch.ErrBehind:                             FixEngines,
+		&engine.Error{Code: "unsupported-locale"}:   FixEngines,
+		&engine.Error{Code: "no-permission"}:        FixAccess,
+		&engine.Error{Code: "capture-failed"}:       FixRetry,
+		core.LocalError{Err: errors.New("crashed")}: FixRetry,
+		errors.New("network"):                       FixRetry,
+	} {
+		if got := ErrorFix(err); got != want {
+			t.Errorf("%v: %d, want %d", err, got, want)
 		}
 	}
 }

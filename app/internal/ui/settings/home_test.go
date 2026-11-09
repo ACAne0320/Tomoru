@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"errors"
 	"math"
 	"strings"
 	"testing"
@@ -50,6 +51,26 @@ func TestHome(t *testing.T) {
 	}
 	if err := tt.Click(locales.HomeOpenStats()); err != nil || s.Tab != "stats" {
 		t.Errorf("statistics: %v, tab %q", err, s.Tab)
+	}
+}
+
+// TestHomeError says why translating stopped, with the action that resolves it: an engine to set
+// up opens Speech & translation; anything else tries again.
+func TestHomeError(t *testing.T) {
+	k := coretest.New()
+	k.Err = core.ErrMTCloudKey
+	s := New(k, &coretest.Nav{})
+	tt := ui.NewTester(s.View, Width, Height)
+	if !tt.HasText(locales.ErrMtCloudKey()) {
+		t.Errorf("no error: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.OpenEngines()); err != nil || s.Tab != "engines" {
+		t.Errorf("open engines: %v, tab %q", err, s.Tab)
+	}
+	s.Tab, k.Err = "home", errors.New("network")
+	tt.Frame()
+	if err := tt.Click(locales.Retry()); err != nil || !k.Started {
+		t.Errorf("retry: %v, started %v", err, k.Started)
 	}
 }
 

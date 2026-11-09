@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo/i18n"
+	"github.com/egoist/mygo/ui"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
@@ -18,6 +19,8 @@ import (
 	"tomoru/internal/lang"
 	"tomoru/internal/models"
 	"tomoru/internal/scene"
+	"tomoru/internal/ui/assets"
+	"tomoru/internal/ui/kit"
 	"tomoru/locales"
 )
 
@@ -214,6 +217,51 @@ func ErrorText(err error) string {
 		return locales.ErrCapture()
 	}
 	return locales.StatusStopped(e.Message)
+}
+
+// Fix is what resolves an error translating stopped on: the one action beside what ErrorText says.
+type Fix int
+
+const (
+	// FixRetry starts again: what failed may not fail twice.
+	FixRetry Fix = iota
+	// FixEngines chooses or sets up an engine, in Settings › Speech & translation.
+	FixEngines
+	// FixAccess lets the app hear the system, in System Settings.
+	FixAccess
+)
+
+// ErrorFix is what resolves err.
+func ErrorFix(err error) Fix {
+	var e *engine.Error
+	switch {
+	case core.IsExited(err):
+		return FixRetry
+	case errors.Is(err, core.ErrModelMissing), errors.Is(err, core.ErrASRMissing), errors.Is(err, core.ErrNoASR),
+		errors.Is(err, core.ErrASRCloudKey), errors.Is(err, core.ErrMTCloudKey), errors.Is(err, core.ErrNoEndpoint),
+		errors.Is(err, qwencloud.ErrAuth), errors.Is(err, openai.ErrAuth), errors.Is(err, batch.ErrBehind):
+		return FixEngines
+	case errors.As(err, &e) && e.Code == "no-permission":
+		return FixAccess
+	case errors.As(err, &e) && e.Code == "unsupported-locale": // another recognizer hears it
+		return FixEngines
+	}
+	return FixRetry
+}
+
+// FixButton is the button by an error translating stopped on, which does what resolves it:
+// engines shows Settings' Speech & translation page.
+func FixButton(c *ui.Context, k *core.Core, err error, engines func()) {
+	icon, label, do := assets.Reset, locales.Retry(), k.Start
+	switch ErrorFix(err) {
+	case FixEngines:
+		icon, label, do = assets.Languages, locales.OpenEngines(), engines
+	case FixAccess:
+		icon, label, do = assets.Settings, locales.OpenSystemSettings(), kit.OpenScreenSettings
+	}
+	if kit.Button(c, kit.Plain, kit.Small, icon, label).Clicked() {
+		do()
+	}
 }
 
 // asrCloudError says why a cloud recognition service failed, or "" for an error not its own.

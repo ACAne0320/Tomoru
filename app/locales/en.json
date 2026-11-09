@@ -621,7 +621,7 @@
   },
   "openSystemSettings": "Open System Settings",
   "@openSystemSettings": {
-    "description": "Button of the first-run guide."
+    "description": "Button of the first-run guide; on the home page and menu bar panel, by the error saying the app may not hear the system."
   },
   "guidePermissionTitle": "Let Tomoru hear your computer",
   "@guidePermissionTitle": {
@@ -711,7 +711,7 @@
   "@guideEnginesLater": {
     "description": "Under the title of the guide's recognition and translation steps."
   },
-  "guideMtLater": "Start with the cloud. An on-device model downloads in the background meanwhile and takes over once it's done.",
+  "guideMtLater": "Start with the cloud. Or download an on-device model now: it downloads in the background and takes over once it's done.",
   "@guideMtLater": {
     "description": "The guide's translation step, under its title: the cloud first; a local model downloads meanwhile without blocking the guide."
   },
@@ -1097,7 +1097,7 @@
   },
   "retry": "Try again",
   "@retry": {
-    "description": "Guide, try step: starts translating again after it failed."
+    "description": "Guide's try step, home page and menu bar panel: starts translating again after it failed."
   },
   "modelReadyInUse": "{name} is downloaded and now in use",
   "@modelReadyInUse": {
@@ -2078,6 +2078,10 @@
   "homeOpenStats": "Open Statistics",
   "@homeOpenStats": {
     "description": "Home page: the button by the lines by day that goes to the statistics page."
+  },
+  "openEngines": "Open Speech & translation",
+  "@openEngines": {
+    "description": "Home page and menu bar panel: the button by an error that goes to the Speech & translation page, where it is fixed. Name the page as the sidebar does."
   },
   "statRun": "Listening time",
   "@statRun": {
