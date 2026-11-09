@@ -1142,7 +1142,9 @@ func TestModelsFolder(t *testing.T) {
 // TestReportProblem copies the user's words with the app's setup for an agent, and opens the issue
 // form started with them.
 func TestReportProblem(t *testing.T) {
-	k := coretest.New()
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() uint64 { return 24 << 30 }
+	})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "about"
 	tt := ui.NewTester(s.View, Width, Height)
@@ -1153,11 +1155,21 @@ func TestReportProblem(t *testing.T) {
 	if !tt.HasText(locales.ReportIntro()) {
 		t.Fatalf("no dialog: %q", tt.Texts())
 	}
+	// The summary names the version and system, and says what stays out; the memory only the text
+	// copied says.
+	for _, want := range []string{"Tomoru 0.1.4", "macOS 26.6.2", locales.ReportPrivate()} {
+		if !tt.HasText(want) {
+			t.Errorf("no %q in %q", want, tt.Texts())
+		}
+	}
+	if texts := strings.Join(tt.Texts(), "\n"); strings.Contains(texts, "GB memory") {
+		t.Errorf("the summary shows the memory: %q", texts)
+	}
 	tt.Type("Subtitles stopped")
 	if err := tt.Click(locales.ReportCopy()); err != nil {
 		t.Fatal(err)
 	}
-	if got := tt.Clipboard(); !strings.Contains(got, "Subtitles stopped") || !strings.Contains(got, "## Steps") || !tt.HasText(locales.Copied()) {
+	if got := tt.Clipboard(); !strings.Contains(got, "Subtitles stopped") || !strings.Contains(got, "24 GB memory") || !strings.Contains(got, "## Steps") || !tt.HasText(locales.Copied()) {
 		t.Errorf("copied %q, %q", got, tt.Texts())
 	}
 	if err := tt.Click(locales.ReportOnGitHub()); err != nil {

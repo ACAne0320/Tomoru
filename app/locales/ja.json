@@ -470,7 +470,12 @@
   "reportOpen": "報告…",
   "reportIntro": "うまくいかなかったことを書いてコピーし、Claude Code や Codex などの AI エージェントに貼り付けてください。一緒にログを確認し、あなたが了承してから GitHub に issue を作成します。",
   "reportPlaceholder": "例：dアニメストアで『葬送のフリーレン』を見ていたら、10 分ほどで字幕が止まった",
-  "reportIncluded": "一緒にコピーされるもの：{setup}。API キー、字幕、録音は含みません。",
+  "reportSummary": "一緒にコピーされる情報",
+  "reportVersion": "バージョン",
+  "reportSystem": "システム",
+  "reportEngines": "エンジン",
+  "reportLangs": "言語",
+  "reportPrivate": "API キー、字幕、録音は含みません",
   "reportShow": "コピーされる内容",
   "reportOnGitHub": "GitHub で開く",
   "reportCopy": "AI エージェント用にコピー"

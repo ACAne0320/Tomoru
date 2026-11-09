@@ -36,6 +36,7 @@ func TestGallery(t *testing.T) {
 		d.HistoryDir = t.TempDir()
 		d.GPU, d.Memory = func() uint64 { return 8 << 30 }, func() uint64 { return 16 << 30 }
 		d.StatsPath = stats
+		d.Version, d.OS = "0.1.4", "macOS 26.6.2"
 		d.Models = &coretest.Models{St: map[string]models.Status{
 			"sensevoice-small": {State: models.Ready},
 			"local-2b":         {State: models.Ready},
@@ -72,6 +73,7 @@ func TestGallery(t *testing.T) {
 	s := New(k, &coretest.Nav{})
 	tt := ui.NewTester(s.View, Width, Height)
 	tt.SetScale(2)
+	var mt string // the translation engine before the report's own
 	// Each picture: its name, a height the whole page fits in, and what it shows, after the last.
 	for _, shot := range []struct {
 		name   string
@@ -112,10 +114,19 @@ func TestGallery(t *testing.T) {
 		{"stats", 1900, func() { k.History, s.Tab = records, "stats" }},
 		{"general", 1000, func() { s.Tab = "general" }},
 		{"about", Height, func() { s.Tab = "about" }},
-		{"report", Height, func() {
-			s.feedback = feedbackEdit{open: true, shown: true, what: "在 B 站看《葬送的芙莉莲》，十分钟后字幕就不动了"}
+		{"report", Height, func() { s.feedback = feedbackEdit{open: true} }},
+		{"report-open", MinHeight, func() { // at the window's least height
+			s.feedback = feedbackEdit{open: true, shown: true, what: "Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"}
 		}},
-		{"scene-new", Height, func() { s.feedback.open = false; s.Tab, s.sceneEdit.scene = "scenes", k.AddScene("") }},
+		{"report-narrow", Height, func() { // an API of one's own, its model's long name of no spaces
+			s.feedback.shown, mt = false, k.Prefs.MT
+			k.Prefs.Endpoints = append(k.Prefs.Endpoints, prefs.Endpoint{ID: "long", Name: "OpenRouter", Model: "qwen/qwen3-235b-a22b-instruct-2507:free-tier-preview-build-20261109"})
+			k.Prefs.MT = "custom:long"
+		}},
+		{"scene-new", Height, func() {
+			s.feedback.open, k.Prefs.MT = false, mt
+			s.Tab, s.sceneEdit.scene = "scenes", k.AddScene("")
+		}},
 		{"home-error", 1000, func() { s.Tab, k.Err = "home", core.ErrMTCloudKey }},
 		{"home-running", 1000, func() {
 			s.Tab, k.Err, k.Running = "home", nil, true
