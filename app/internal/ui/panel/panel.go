@@ -111,11 +111,17 @@ func (p *Panel) state() string {
 	return fmt.Sprintf("%s %s · %d %s", label, kit.Clock(run), lines, locales.UnitLines())
 }
 
-// body is the scene and its languages, and what it hears.
+// body is why translating stopped, if it did, with the action that resolves it under it, for want
+// of room beside it; the scene and its languages, and what it hears.
 func (p *Panel) body(c *ui.Context) {
 	k := p.core
 	if err := shared.ErrorText(k.Err); err != "" {
-		ui.Text(c, err).FontSize(kit.TextCaption).TextColor(kit.Colors(c).Danger).MaxLines(3)
+		ui.Column(c).Gap(kit.Space(2)).Children(func() {
+			ui.Text(c, err).FontSize(kit.TextCaption).TextColor(kit.Colors(c).Danger).MaxLines(3)
+			ui.Row(c).Children(func() {
+				shared.FixButton(c, k, k.Err, func() { p.nav.ShowSettingsPage("engines") })
+			})
+		})
 	}
 	kit.ListCard(c).Children(func() {
 		// The scene, and under it, with no rule between, its languages: the scene keeps them.

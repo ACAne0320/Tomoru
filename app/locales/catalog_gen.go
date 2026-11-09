@@ -1924,13 +1924,15 @@ func (msgs Messages) Allow() string {
 // OpenSystemSettings says "Open System Settings"
 // in the language the app shows.
 //
-// Button of the first-run guide.
+// Button of the first-run guide; on the home page and menu bar panel, by
+// the error saying the app may not hear the system.
 func OpenSystemSettings() string { return In(i18n.Locale()).OpenSystemSettings() }
 
 // OpenSystemSettings says "Open System Settings"
 // in the language of msgs.
 //
-// Button of the first-run guide.
+// Button of the first-run guide; on the home page and menu bar panel, by
+// the error saying the app may not hear the system.
 func (msgs Messages) OpenSystemSettings() string {
 	return Catalog.Format(msgs.locale, "openSystemSettings", nil)
 }
@@ -2169,14 +2171,14 @@ func (msgs Messages) GuideEnginesLater() string {
 	return Catalog.Format(msgs.locale, "guideEnginesLater", nil)
 }
 
-// GuideMtLater says "Start with the cloud. An on-device model downloads in the background meanwhile and takes over once it's done."
+// GuideMtLater says "Start with the cloud. Or download an on-device model now: it downloads in the background and takes over once it's done."
 // in the language the app shows.
 //
 // The guide's translation step, under its title: the cloud first; a local
 // model downloads meanwhile without blocking the guide.
 func GuideMtLater() string { return In(i18n.Locale()).GuideMtLater() }
 
-// GuideMtLater says "Start with the cloud. An on-device model downloads in the background meanwhile and takes over once it's done."
+// GuideMtLater says "Start with the cloud. Or download an on-device model now: it downloads in the background and takes over once it's done."
 // in the language of msgs.
 //
 // The guide's translation step, under its title: the cloud first; a local
@@ -3102,13 +3104,15 @@ func (msgs Messages) Done() string {
 // Retry says "Try again"
 // in the language the app shows.
 //
-// Guide, try step: starts translating again after it failed.
+// Guide's try step, home page and menu bar panel: starts translating again
+// after it failed.
 func Retry() string { return In(i18n.Locale()).Retry() }
 
 // Retry says "Try again"
 // in the language of msgs.
 //
-// Guide, try step: starts translating again after it failed.
+// Guide's try step, home page and menu bar panel: starts translating again
+// after it failed.
 func (msgs Messages) Retry() string {
 	return Catalog.Format(msgs.locale, "retry", nil)
 }
@@ -5883,6 +5887,24 @@ func HomeOpenStats() string { return In(i18n.Locale()).HomeOpenStats() }
 // page.
 func (msgs Messages) HomeOpenStats() string {
 	return Catalog.Format(msgs.locale, "homeOpenStats", nil)
+}
+
+// OpenEngines says "Open Speech & translation"
+// in the language the app shows.
+//
+// Home page and menu bar panel: the button by an error that goes to the
+// Speech & translation page, where it is fixed. Name the page as the
+// sidebar does.
+func OpenEngines() string { return In(i18n.Locale()).OpenEngines() }
+
+// OpenEngines says "Open Speech & translation"
+// in the language of msgs.
+//
+// Home page and menu bar panel: the button by an error that goes to the
+// Speech & translation page, where it is fixed. Name the page as the
+// sidebar does.
+func (msgs Messages) OpenEngines() string {
+	return Catalog.Format(msgs.locale, "openEngines", nil)
 }
 
 // StatRun says "Listening time"

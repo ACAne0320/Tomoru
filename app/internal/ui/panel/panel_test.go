@@ -10,6 +10,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"tomoru/internal/core"
 	"tomoru/internal/core/coretest"
 	"tomoru/internal/live"
 	"tomoru/internal/ui/shared"
@@ -49,15 +50,46 @@ func TestPanel(t *testing.T) {
 	}
 }
 
-// TestMeasure measures the panel as tall as it fits itself, with an error over it, which makes it
-// taller than Height.
+// TestMeasure measures the panel as tall as it fits itself, with an error over it and its action,
+// which make it taller than Height.
 func TestMeasure(t *testing.T) {
 	nav := &coretest.Nav{}
 	k := coretest.New()
 	k.Err = errors.New("the engine stopped")
-	ui.NewTester(New(k, nav).View, Width, Height+50).Frame()
-	if h := Measure(k, nav); h != nav.PanelHeight || h == Height {
+	tt := ui.NewTester(New(k, nav).View, Width, 2*Height)
+	tt.Frame()
+	h := Measure(k, nav)
+	if h != nav.PanelHeight || h == Height {
 		t.Errorf("measures %d, fits %d", h, nav.PanelHeight)
+	}
+	tt.SetSize(Width, h)
+	gallery(t, tt, "panel-error")
+}
+
+// TestPanelError says why translating stopped, with the action that resolves it under it: an
+// engine to set up opens Speech & translation; anything else tries again.
+func TestPanelError(t *testing.T) {
+	nav := &coretest.Nav{}
+	k := coretest.New()
+	k.Err = core.ErrMTCloudKey
+	tt := ui.NewTester(New(k, nav).View, Width, 2*Height)
+	if !tt.HasText(locales.ErrMtCloudKey()) {
+		t.Errorf("no error: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.OpenEngines()); err != nil || !slices.Equal(nav.Went, []string{"settings engines"}) {
+		t.Errorf("open engines: %v, went %q", err, nav.Went)
+	}
+	tt.SetSize(Width, Measure(k, nav))
+	tt.Frame()
+	gallery(t, tt, "panel-error-engines")
+	// All of it fits: the icons at its foot show.
+	if err := tt.Click(locales.OpenTomoru()); err != nil {
+		t.Error(err)
+	}
+	k.Err = errors.New("network")
+	tt.Frame()
+	if err := tt.Click(locales.Retry()); err != nil || !k.Started {
+		t.Errorf("retry: %v, started %v", err, k.Started)
 	}
 }
 

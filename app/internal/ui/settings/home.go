@@ -49,8 +49,12 @@ func (s *Settings) home(c *ui.Context) {
 		if why := homeState(s); why != "" {
 			ui.Text(c, why).FontSize(kit.TextControl).TextColor(p.InkMuted).MaxLines(3)
 		}
+		// Why it stopped, and the one action that resolves it.
 		if err := shared.ErrorText(k.Err); err != "" {
-			ui.Text(c, err).FontSize(kit.TextControl).TextColor(p.Danger).MaxLines(3)
+			ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, err).FontSize(kit.TextControl).TextColor(p.Danger).MaxLines(3).Grow(1)
+				shared.FixButton(c, k, k.Err, func() { s.Tab = "engines" })
+			})
 		}
 	})
 	homeStats(c, s)

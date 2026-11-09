@@ -113,6 +113,7 @@ func TestGallery(t *testing.T) {
 		{"general", 1000, func() { s.Tab = "general" }},
 		{"about", Height, func() { s.Tab = "about" }},
 		{"scene-new", Height, func() { s.Tab, s.sceneEdit.scene = "scenes", k.AddScene("") }},
+		{"home-error", 1000, func() { s.Tab, k.Err = "home", core.ErrMTCloudKey }},
 		{"home-running", 1000, func() {
 			s.Tab, k.Err, k.Running = "home", nil, true
 			k.State = live.State{Phase: "listening", Stats: live.Stats{Lines: 412}}
