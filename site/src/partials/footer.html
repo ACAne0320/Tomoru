@@ -1,0 +1,37 @@
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="{{$home}}"><img src="/assets/icon-128.webp" width="32" height="32" alt=""><span class="brand-word">Tomoru</span></a>
+        <p>{{footer.tagline}}</p>
+        <p>{{footer.madeBy}}</p>
+      </div>
+      <nav aria-label="{{footer.product|plain}}">
+        <h2>{{footer.product}}</h2>
+        <a href="{{$home}}#features">{{nav.features}}</a>
+        <a href="{{$home}}#privacy">{{nav.privacy}}</a>
+        <a href="https://github.com/ACAne0320/Tomoru/releases">{{nav.download}}</a>
+        <a href="{{links.helpInstall}}" hreflang="{{links.helpLang}}">{{footer.helpInstall}}</a>
+        <a href="{{links.helpOffline}}" hreflang="{{links.helpLang}}">{{footer.helpOffline}}</a>
+        <a href="https://github.com/ACAne0320/Tomoru/blob/main/app/CHANGELOG.md">{{footer.changelog}}</a>
+      </nav>
+      <nav aria-label="{{footer.openSource|plain}}">
+        <h2>{{footer.openSource}}</h2>
+        <a href="https://github.com/ACAne0320/Tomoru">GitHub</a>
+        <a href="{{links.contributing}}">{{footer.contributing}}</a>
+        <a href="{{links.security}}">{{footer.security}}</a>
+        <a href="https://github.com/ACAne0320/Tomoru/issues">{{footer.issues}}</a>
+      </nav>
+      <nav aria-label="{{footer.thanks|plain}}">
+        <h2>{{footer.thanks}}</h2>
+        <a href="https://github.com/egoist/mygo">MyGo</a>
+        <a href="https://github.com/bilibili/Index-Translate">Index-Translate</a>
+        <a href="https://github.com/Tencent-Hunyuan/Hy-MT2">Hy-MT2</a>
+        <a href="https://github.com/QwenAudio/SenseVoice">SenseVoice</a>
+        <a href="https://github.com/QwenLM/Qwen3-ASR">Qwen-ASR</a>
+        <a href="{{links.licenses}}">{{footer.licenses}}</a>
+      </nav>
+    </div>
+    <div class="wrap footer-legal">
+      <p>{{footer.legal}}</p>
+    </div>
+  </footer>

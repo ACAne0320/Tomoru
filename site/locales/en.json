@@ -58,6 +58,7 @@
       "q": "Will subtitles show up in screen recordings or live streams?",
       "a": "You can turn on “Hide subtitles from screen recording” in Settings so subtitles stay visible only to you."
     },
+    "more": "Trouble installing or with permissions? See <a href=\"/en/help/install/\">Install and permissions</a>. To run recognition and translation on your computer, see <a href=\"/en/help/offline/\">On-device models</a>.",
     "eyebrow": "FAQ",
     "title": "Frequently Asked Questions"
   },
@@ -369,7 +370,10 @@
   },
   "footer": {
     "tagline": "Turns computer audio into live bilingual subtitles.",
+    "madeBy": "Made by <a href=\"https://acane.dev/\" rel=\"author\">诗浓 (ACAne0320)</a>.",
     "product": "Product",
+    "helpInstall": "Install and permissions",
+    "helpOffline": "On-device models",
     "changelog": "Changelog",
     "openSource": "Open Source",
     "contributing": "Contributing",
@@ -382,7 +386,10 @@
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
-    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md"
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
+    "helpInstall": "/en/help/install/",
+    "helpOffline": "/en/help/offline/",
+    "helpLang": "en"
   },
   "notFound": {
     "title": "Page Not Found | Tomoru",

@@ -1,0 +1,24 @@
+  <a class="skip" href="#main">{{header.skip}}</a>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="{{$home}}" aria-label="{{header.homeLabel|plain}}">
+        <img src="/assets/icon-128.webp" width="32" height="32" alt="">
+        <span class="brand-word">Tomoru</span>
+      </a>
+      <nav class="nav" aria-label="{{header.navLabel|plain}}">
+        <a href="{{$home}}#features">{{nav.features}}</a>
+        <a href="{{$home}}#how">{{nav.how}}</a>
+        <a href="{{$home}}#privacy">{{nav.privacy}}</a>
+        <a href="{{$home}}#faq">{{nav.faq}}</a>
+      </nav>
+      <div class="header-actions">
+        <details class="lang-menu"{{$single}}>
+          <summary aria-label="{{header.language|plain}}"><svg class="icon"><use href="#i-languages"/></svg><span>{{$name}}</span></summary>
+          <ul>{{$menu}}</ul>
+        </details>
+        <a class="icon-link" href="https://github.com/ACAne0320/Tomoru" aria-label="{{header.githubLabel|plain}}"><svg class="icon"><use href="#i-github"/></svg></a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/ACAne0320/Tomoru/releases/latest" data-download>{{nav.download}}</a>
+      </div>
+    </div>
+  </header>

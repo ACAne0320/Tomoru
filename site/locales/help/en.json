@@ -1,0 +1,65 @@
+{
+  "common": {
+    "crumbLabel": "Breadcrumb",
+    "toc": "On this page",
+    "moreTitle": "Still stuck?",
+    "more": "Write it down in the app under Settings › About › Feedback &amp; ideas, or report it on <a href=\"https://github.com/ACAne0320/Tomoru/issues\">GitHub</a>.",
+    "see": "See also: "
+  },
+  "install": {
+    "meta": {
+      "title": "Install and permissions: requirements, first launch, audio recording | Tomoru",
+      "description": "Tomoru runs on macOS 26 (Apple silicon) and Windows 11 (x64). How to install it, what to do when macOS or SmartScreen blocks the first launch, which permissions it needs, and what to check when no subtitles show."
+    },
+    "title": "Install and permissions",
+    "lead": "Which systems Tomoru runs on, how to install it, what to do when the first launch is blocked, which permissions it needs, and what to check when no subtitles show.",
+    "requirements": {
+      "title": "Requirements",
+      "body": "<table><thead><tr><th>System</th><th>Needs</th></tr></thead><tbody><tr><td>macOS</td><td>macOS 26 or later, Apple silicon</td></tr><tr><td>Windows</td><td>Windows 11, x64</td></tr></tbody></table><p>Intel Macs and Windows 10 aren't supported, and there is no Linux version yet. The Windows version hears your computer through a system API that needs Windows build 20348 or later, which Windows 10 doesn't have.</p><p>Models that run on your computer need memory or video memory of their own: see <a href=\"/en/help/offline/\">On-device models</a>.</p>"
+    },
+    "download": {
+      "title": "Install",
+      "body": "<p>Download the installer for your system: <a href=\"/download/mac\">macOS (.dmg)</a> or <a href=\"/download/windows\">Windows (.exe)</a>. Every version is also on <a href=\"https://github.com/ACAne0320/Tomoru/releases\">GitHub Releases</a>. Once installed, the app updates itself.</p><p>Or install from a terminal with one line. The script downloads the latest version, checks it and installs it, in /Applications on a Mac. Installed this way, Tomoru opens the first time without being blocked.</p>"
+    },
+    "blocked": {
+      "title": "The first launch is blocked",
+      "body": "<p>Tomoru isn't notarized by Apple or signed for Windows yet, so when you install it from the installer, the first launch needs one extra step:</p><ul><li><strong>macOS</strong>: open Tomoru. When macOS says it can't verify it, open System Settings › Privacy &amp; Security, and click “Open Anyway” next to Tomoru.</li><li><strong>Windows</strong>: when SmartScreen warns, click “More info”, then “Run anyway”.</li></ul><p>Installing with the terminal command above skips this step.</p>"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "body": "<p>Tomoru listens only to what your computer plays. It doesn't use the microphone and needs no virtual audio device.</p><p><strong>macOS</strong>: the first-run guide asks you to let Tomoru record system audio. The permission is in System Settings › Privacy &amp; Security › Screen &amp; System Audio Recording, where Tomoru is listed under “System Audio Recording Only”. If you didn't allow it then, turn Tomoru on there and reopen Tomoru.</p><p>Translating text on screen (<kbd>⌥⇧S</kbd>) also needs Screen Recording, in the same place. It captures only the part you select. Without that feature, you don't need it.</p><p><strong>Windows</strong>: no permission to give.</p>"
+    },
+    "trouble": {
+      "title": "No subtitles show",
+      "body": "<ul><li>macOS says “Tomoru can't hear your Mac”: the audio recording permission is off. Turn it on as above, then reopen Tomoru.</li><li>When the sound comes from one app, only that app is translated. Listening to the browser, say, leaves the voices of a game without subtitles.</li><li>With Apple Speech, each language downloads its recognition the first time, in about 20 seconds.</li><li>“Speech recognition on this Mac doesn't support the spoken language”: in Settings › Speech &amp; translation, switch to an on-device model or cloud recognition.</li><li>A recognition or translation model isn't downloaded: download it in Settings › Speech &amp; translation; see <a href=\"/en/help/offline/\">On-device models</a>.</li></ul>"
+    }
+  },
+  "offline": {
+    "meta": {
+      "title": "On-device models: speech recognition and translation, sizes, memory and folder | Tomoru",
+      "description": "Tomoru can recognize speech and translate entirely on your computer. Which models you can download, how much disk, memory and video memory each needs, where they are kept, and what to do when downloads are slow."
+    },
+    "title": "On-device models",
+    "lead": "Speech recognition and translation can both run entirely on your computer, so sound and text never leave it. These are the models you can download, the space and memory they need, and where they are kept.",
+    "setup": {
+      "title": "Running everything on your computer",
+      "body": "<p>In Settings › Speech &amp; translation, choose on-device engines for both recognition and translation. A model starts downloading when you choose it, and works once it's in, with no connection needed to run.</p><p>On macOS, recognition uses Apple Speech by default, which also runs on your Mac. Windows has no system recognition, so pick an on-device model or cloud recognition there. Translation uses the free Index-Translate cloud by default: to stay offline, switch to one of the models below. Translating text on screen has an engine of its own to choose.</p><p>If you'd rather not download models, the cloud works too: translation is free in the cloud by default, and cloud recognition uses your own API key.</p>"
+    },
+    "asr": {
+      "title": "Speech recognition models",
+      "body": "<table><thead><tr><th>Model</th><th>Size</th><th>Runs on</th><th>Languages</th></tr></thead><tbody><tr><td>Apple Speech (macOS only)</td><td>Built in</td><td>Your Mac</td><td>As the system supports</td></tr><tr><td>SenseVoice Small</td><td>228 MB</td><td>CPU, no GPU needed</td><td>Chinese, English, Japanese, Korean, Cantonese</td></tr><tr><td>Qwen3-ASR 0.6B</td><td>972 MB</td><td>GPU. Mac: 2 GB of memory. Windows: 2 GB of video memory or more</td><td>30 languages</td></tr><tr><td>Qwen3-ASR 1.7B</td><td>2.3 GB</td><td>GPU. Mac: 4 GB of memory. Windows: 3 GB of video memory or more</td><td>30 languages</td></tr></tbody></table><p>SenseVoice runs on any computer. Qwen3-ASR needs a GPU: the 1.7B is more accurate, the 0.6B quicker. The first time Apple Speech hears a language, it downloads that language's recognition, in about 20 seconds.</p>"
+    },
+    "mt": {
+      "title": "Translation models",
+      "body": "<table><thead><tr><th>Model</th><th>Size</th><th>Mac memory / Windows video memory</th><th>Text on screen</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>Yes</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>Yes</td></tr><tr><td>Hy-MT2 1.8B</td><td>1.1 GB</td><td>8 GB / 4 GB</td><td>No</td></tr><tr><td>Hy-MT2 7B</td><td>4.3 GB</td><td>16 GB / 8 GB</td><td>No</td></tr></tbody></table><p>Larger is more accurate, smaller is quicker. A Mac's GPU shares its memory, so what counts there is memory; on Windows the model runs on the graphics card, so what counts is its video memory. These are estimates, and the app tells you when your computer has too little.</p>"
+    },
+    "where": {
+      "title": "Where models are kept",
+      "body": "<p>By default:</p><ul><li>macOS: <code>~/Library/Application Support/Tomoru/models</code></li><li>Windows: <code>%LOCALAPPDATA%\\Tomoru\\models</code></li></ul><p>Short on disk space? In Settings › Speech &amp; translation › Model folder, click “Change…” and pick another folder, an external drive, say. Tomoru makes a “Tomoru Models” folder there and moves the downloaded models into it. Models you no longer use can be deleted on the same page, and download again when you want them back.</p>"
+    },
+    "download": {
+      "title": "Slow or failed downloads",
+      "body": "<ul><li>When the system language is Chinese, models come from ModelScope first, otherwise from Hugging Face first. If one can't be reached, the other is tried.</li><li>To use a proxy, set it in Settings › Preferences › Use a proxy. Cloud recognition and translation, and model downloads, go through it. Models running on your computer don't.</li><li>A stopped download can be continued. Once downloaded, files are checked, and a damaged one is deleted: download it again.</li></ul>"
+    }
+  }
+}

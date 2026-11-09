@@ -58,6 +58,7 @@
       "q": "画面収録や配信に字幕は映り込みますか？",
       "a": "設定で『画面収録で字幕を隠す』をオンにしておけば、自分だけに字幕が見えるようになります。"
     },
+    "more": "インストールや権限で困ったときは<a href=\"/en/help/install/\" hreflang=\"en\">Install and permissions</a>を、認識と翻訳をすべてこのパソコンで動かしたいときは<a href=\"/en/help/offline/\" hreflang=\"en\">On-device models</a>をご覧ください（どちらも英語のページです）。",
     "eyebrow": "よくある質問",
     "title": "よくある質問"
   },
@@ -368,7 +369,10 @@
   },
   "footer": {
     "tagline": "PCで流れる音を、二言語の字幕に。",
+    "madeBy": "制作：<a href=\"https://acane.dev/\" rel=\"author\">诗浓（ACAne0320）</a>",
     "product": "製品",
+    "helpInstall": "インストールと権限（英語）",
+    "helpOffline": "オンデバイスのモデル（英語）",
     "changelog": "更新履歴",
     "openSource": "オープンソース",
     "contributing": "コントリビューション",
@@ -381,7 +385,10 @@
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
-    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md"
+    "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
+    "helpInstall": "/en/help/install/",
+    "helpOffline": "/en/help/offline/",
+    "helpLang": "en"
   },
   "notFound": {
     "title": "ページが見つかりません | Tomoru",

@@ -1,0 +1,65 @@
+{
+  "common": {
+    "crumbLabel": "位置",
+    "toc": "本页内容",
+    "moreTitle": "还有问题？",
+    "more": "在 app 的 设置 › 关于 › 反馈与建议 里写下来，或者直接在 <a href=\"https://github.com/ACAne0320/Tomoru/issues\">GitHub</a> 上反馈。",
+    "see": "另见："
+  },
+  "install": {
+    "meta": {
+      "title": "安装与权限：系统要求、首次打开被拦、录音权限 | Tomoru",
+      "description": "Tomoru 支持 macOS 26（Apple 芯片）和 Windows 11（x64）。怎么安装，第一次打开被 macOS 或 SmartScreen 拦下怎么办，要开哪些权限，字幕不出来时先查什么。"
+    },
+    "title": "安装与权限",
+    "lead": "支持哪些系统，怎么安装，第一次打开被拦下怎么办，要开哪些权限，以及字幕不出来时先查什么。",
+    "requirements": {
+      "title": "系统要求",
+      "body": "<table><thead><tr><th>系统</th><th>要求</th></tr></thead><tbody><tr><td>macOS</td><td>macOS 26 或更新，Apple 芯片</td></tr><tr><td>Windows</td><td>Windows 11，x64</td></tr></tbody></table><p>Intel 芯片的 Mac 和 Windows 10 不支持，Linux 还没有版本。Windows 版听电脑声音用的系统接口需要 Windows build 20348 或更新，Windows 10 没有它。</p><p>在本机运行模型对内存或显存另有要求，见<a href=\"/help/offline/\">本机离线模型</a>。</p>"
+    },
+    "download": {
+      "title": "安装",
+      "body": "<p>下载对应系统的安装包：<a href=\"/download/mac\">macOS（.dmg）</a>或 <a href=\"/download/windows\">Windows（.exe）</a>。所有版本也可以在 <a href=\"https://github.com/ACAne0320/Tomoru/releases\">GitHub Releases</a> 下载。装好之后，app 会自己更新。</p><p>也可以在终端里用一行命令安装。脚本会下载最新版本，校验后安装，Mac 上装进「应用程序」文件夹。这样装的，第一次打开不会被系统拦下。</p>"
+    },
+    "blocked": {
+      "title": "第一次打开被拦下",
+      "body": "<p>Tomoru 还没有经过 Apple 公证，Windows 版也还没有签名，所以用安装包安装时，第一次打开要多一步：</p><ul><li><strong>macOS</strong>：打开 Tomoru，系统提示无法验证它时，打开「系统设置 › 隐私与安全性」，点 Tomoru 旁边的「仍要打开」。</li><li><strong>Windows</strong>：SmartScreen 警告时，点「更多信息」，再点「仍要运行」。</li></ul><p>用上面的终端命令安装的，不会遇到这一步。</p>"
+    },
+    "permissions": {
+      "title": "权限",
+      "body": "<p>Tomoru 只听电脑播放的声音，不用麦克风，也不需要装虚拟声卡。</p><p><strong>macOS</strong>：首次使用的引导会请你允许 Tomoru 录制系统声音。这项权限在「系统设置 › 隐私与安全性 › 录屏与系统录音」里，Tomoru 列在「仅系统录音」下面。当时没有允许的话，在那里打开 Tomoru 的开关，再重新打开 Tomoru。</p><p>框选翻译屏幕上的文字（<kbd>⌥⇧S</kbd>）另外需要录屏权限，也在「录屏与系统录音」里。它只截你框住的那一块，不用这个功能就不必打开。</p><p><strong>Windows</strong>：不需要授予任何权限。</p>"
+    },
+    "trouble": {
+      "title": "字幕没有出来",
+      "body": "<ul><li>macOS 提示「Tomoru 听不到电脑的声音」：录制系统声音的权限没有打开，按上一节打开后重新打开 Tomoru。</li><li>音源选了某个应用时，只翻译那个应用的声音。比如只听浏览器，游戏里的语音就不会出字幕。</li><li>用 Apple 语音识别时，每种语言第一次要下载识别资源，大约 20 秒。</li><li>提示「这台 Mac 的语音识别不支持这种语言」：在 设置 › 识别与翻译 里换成本机模型或云端识别。</li><li>提示识别或翻译模型还没下载：在 设置 › 识别与翻译 里下载，见<a href=\"/help/offline/\">本机离线模型</a>。</li></ul>"
+    }
+  },
+  "offline": {
+    "meta": {
+      "title": "本机离线模型：语音识别和翻译的大小、内存与存放位置 | Tomoru",
+      "description": "Tomoru 的语音识别和翻译都可以只在你的电脑上运行。可下载的本机模型有哪些，各要多少空间、内存和显存，存在哪里，下载慢时怎么办。"
+    },
+    "title": "本机离线模型",
+    "lead": "语音识别和翻译都可以只在你的电脑上运行，声音和文字不离开电脑。下面是可以下载的模型，它们要多少空间和内存，存在哪里。",
+    "setup": {
+      "title": "怎样全部在本机运行",
+      "body": "<p>在 设置 › 识别与翻译 里，把语音识别和翻译都选成本机的引擎。本机模型在选中时开始下载，下载完就能用，运行时不用联网。</p><p>macOS 上，语音识别默认用系统自带的 Apple 语音识别，它也在本机运行。Windows 没有系统自带的识别，要选一个本机模型或云端识别。翻译默认用免费的云端 Index-Translate，要离线就换成下面的本机模型。框选翻译屏幕文字用的引擎单独选择。</p><p>不想下载模型，也可以都用云端：翻译默认就是免费的云端，云端识别要用你自己的 API key。</p>"
+    },
+    "asr": {
+      "title": "语音识别模型",
+      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>运行在</th><th>语言</th></tr></thead><tbody><tr><td>Apple 语音识别（仅 macOS）</td><td>系统自带</td><td>本机</td><td>由系统决定</td></tr><tr><td>SenseVoice Small</td><td>228 MB</td><td>CPU，无需显卡</td><td>中文、英语、日语、韩语、粤语</td></tr><tr><td>Qwen3-ASR 0.6B</td><td>972 MB</td><td>显卡。Mac 需要 2 GB 内存，Windows 推荐 2 GB 以上显存</td><td>30 种语言</td></tr><tr><td>Qwen3-ASR 1.7B</td><td>2.3 GB</td><td>显卡。Mac 需要 4 GB 内存，Windows 推荐 3 GB 以上显存</td><td>30 种语言</td></tr></tbody></table><p>SenseVoice 在任何电脑上都能跑。Qwen3-ASR 要用显卡：1.7B 更准，0.6B 更快。Apple 语音识别第一次用一种语言时，要先下载这种语言的识别资源，大约 20 秒。</p>"
+    },
+    "mt": {
+      "title": "翻译模型",
+      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>Mac 内存 / Windows 显存</th><th>翻译屏幕文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>能</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>能</td></tr><tr><td>Hy-MT2 1.8B</td><td>1.1 GB</td><td>8 GB / 4 GB</td><td>不能</td></tr><tr><td>Hy-MT2 7B</td><td>4.3 GB</td><td>16 GB / 8 GB</td><td>不能</td></tr></tbody></table><p>大的更准，小的更快。Mac 的显卡和系统共用内存，所以看内存；Windows 上模型在显卡上运行，看显卡的显存。这些是估算值，电脑不够时 app 会提示。</p>"
+    },
+    "where": {
+      "title": "模型存在哪里",
+      "body": "<p>默认位置：</p><ul><li>macOS：<code>~/Library/Application Support/Tomoru/models</code></li><li>Windows：<code>%LOCALAPPDATA%\\Tomoru\\models</code></li></ul><p>磁盘空间不够时，在 设置 › 识别与翻译 › 模型文件夹 里点「更改…」，选另一个文件夹，比如外接硬盘。Tomoru 会在那里建一个「Tomoru Models」文件夹，把已下载的模型搬过去。不用的模型可以在同一页删除，要再用时重新下载。</p>"
+    },
+    "download": {
+      "title": "下载慢或下载失败",
+      "body": "<ul><li>系统语言是中文时，模型优先从 ModelScope 下载，否则优先从 Hugging Face 下载。一个来源连不上时会换另一个。</li><li>需要代理的话，在 设置 › 偏好设置 › 使用代理 里填写。云端识别、翻译和模型下载都会经过代理，本机模型运行时不经过。</li><li>下载中断后可以接着下。下载完会校验文件，损坏的会删掉，重新下载即可。</li></ul>"
+    }
+  }
+}
