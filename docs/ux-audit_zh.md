@@ -34,4 +34,9 @@
 
 ## 未验证的部分
 
-各页面是根据测试渲染出的 gallery 判断的（`TOMORU_GALLERY=<dir> go test ./internal/ui/settings ./internal/ui/guide ./internal/ui/panel -run 'Gallery|Panel'`，中文加 `TOMORU_GALLERY_LOCALE=zh-Hans`）。用 `verify-tomoru` 启动过真实 app，能看到引导的第一步。但终端没有辅助功能权限，什么都点不了，所以面板、设置、引导第一步之后的内容，以及上面说的错误按钮，都没有在真实 app 里操作过。也没有实际翻译过，所以没看过把别的 app 放在前面时的悬浮字幕本身。Windows 没有检查。
+各页面先根据测试渲染的 gallery 判断（`TOMORU_GALLERY=<dir> go test ./internal/ui/settings ./internal/ui/guide ./internal/ui/panel -run 'Gallery|Panel'`，中文加 `TOMORU_GALLERY_LOCALE=zh-Hans`），再用 `verify-tomoru` 在真实 app 里核对：
+
+- 引导的翻译步骤显示的是新文案；云端卡片在列表底部被截断（第 6 项）。
+- 选了云端识别但没有 API key 时（在 `settings.json` 里构造，相当于 key 丢失；界面上没有 key 是选不了它的）：在面板点 Start、在首页点"开始翻译"，都会显示错误信息和"打开识别与翻译"按钮，点任意一个都会打开设置的这一页，并显示 Qwen ASR。首页也在真实 app 里以新用户的状态出现了第 2、7 项问题。
+
+没有在真实 app 里操作过的：打开系统设置（需要拒绝录音权限才会出现）和重试（需要翻译过程中引擎出错）。也没有实际翻译过，所以没看过把别的 app 放在前面时的悬浮字幕本身。Windows 没有检查。

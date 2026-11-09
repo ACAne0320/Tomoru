@@ -43,8 +43,15 @@ or remove it, once it ships.
 
 The pages were judged from the galleries the tests render (`TOMORU_GALLERY=<dir> go test
 ./internal/ui/settings ./internal/ui/guide ./internal/ui/panel -run 'Gallery|Panel'`, with
-`TOMORU_GALLERY_LOCALE=zh-Hans` for Chinese). The real app was launched with `verify-tomoru` and
-showed the guide's first step, but the terminal had no Accessibility permission, so nothing could
-be clicked: the panel, Settings, the guide past its first step, and the error buttons above were
-not driven in the real app. Nothing was translated live, so the subtitle overlay itself, with
-another app in front, was not looked at. Windows was not checked.
+`TOMORU_GALLERY_LOCALE=zh-Hans` for Chinese), then checked in the real app with `verify-tomoru`:
+
+- The guide's translation step shows the new sentence; the Cloud card is cut at the list's bottom
+  (finding 6).
+- With cloud recognition chosen and no API key (set up in `settings.json`, as when a key is lost;
+  the UI does not let one choose it without a key), Start in the panel and Start translating on
+  Home both show the message and Open Speech & translation, and either click opens Settings on
+  that page, showing Qwen ASR. Home also showed findings 2 and 7 as a new user sees them.
+
+Not driven in the real app: Open System Settings (it needs the audio permission refused) and Try
+again (it needs an engine to fail while translating). Nothing was translated live, so the subtitle
+overlay itself, with another app in front, was not looked at. Windows was not checked.
