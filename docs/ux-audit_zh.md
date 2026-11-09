@@ -38,9 +38,8 @@
 
 | # | 方面 | 问题 | 改法 | 位置 |
 |---|---|---|---|---|
-| 14 | 视觉层级 | 字幕默认位置正好压在视频自带的硬字幕上，两层字幕叠在一起都看不清。挪动字幕的入口是面板底部的一个图标，只有悬停才知道是什么。 | 字幕第一次出现时提示一次可以拖动、拖到哪里；或者默认位置比一般视频的字幕略高。先在几个带硬字幕的视频上量过再定。 | `overlay/`、引导最后一步 |
-| 15 | 反馈 | 引擎被信号终止（崩溃或被 kill）时，面板和字幕显示的是 "Translation stopped: signal: killed"，而不是"引擎意外退出"。`errExited` 只覆盖引擎没有报错就退出的情况，`*exec.ExitError` 会落到 `StatusStopped`。"重试"按钮会出现，也能用。 | 在 `ErrorText` 和 `ErrorFix` 里，把引擎的 `*exec.ExitError` 当作引擎退出（`ErrEngineExited`）处理。 | `core/session_controller.go`、`shared/names.go` |
-| 16 | 视觉层级 | 句数到两位数时，面板的状态行就被截断："Listened today 0:39 · 11 lin…"。 | 把 Start 按钮剩下的空间都给这一行，或者用更短的写法（"11 lines" 改成 "11"），并在 340 宽、三位数句数下测一遍。 | `panel/panel.go` 的 `state` |
+| 14 | 反馈 | 引擎被信号终止（崩溃或被 kill）时，面板和字幕显示的是 "Translation stopped: signal: killed"，而不是"引擎意外退出"。`errExited` 只覆盖引擎没有报错就退出的情况，`*exec.ExitError` 会落到 `StatusStopped`。"重试"按钮会出现，也能用。 | 在 `ErrorText` 和 `ErrorFix` 里，把引擎的 `*exec.ExitError` 当作引擎退出（`ErrEngineExited`）处理。 | `core/session_controller.go`、`shared/names.go` |
+| 15 | 视觉层级 | 句数到两位数时，面板的状态行就被截断："Listened today 0:39 · 11 lin…"。 | 把 Start 按钮剩下的空间都给这一行，或者用更短的写法（"11 lines" 改成 "11"），并在 340 宽、三位数句数下测一遍。 | `panel/panel.go` 的 `state` |
 
 ## 未验证的部分
 
@@ -48,6 +47,6 @@
 
 - 引导的翻译步骤显示的是新文案；云端卡片在列表底部被截断（第 6 项）。
 - 选了云端识别但没有 API key 时（在 `settings.json` 里构造，相当于 key 丢失；界面上没有 key 是选不了它的）：在面板点 Start、在首页点"开始翻译"，都会显示错误信息和"打开识别与翻译"按钮，点任意一个都会打开设置的这一页，并显示 Qwen ASR。首页也在真实 app 里以新用户的状态出现了第 2、7 项问题。
-- 把 QuickTime Player 里的英语视频翻译成中文，QuickTime 在最前面：字幕实时出现并翻译（第 14 项）。杀掉引擎后翻译停止，面板出现"重试"（错误文案见第 15 项）；点"重试"后启动了新的引擎，翻译继续。
+- 把 QuickTime Player 里的英语视频翻译成中文，QuickTime 在最前面：字幕实时出现并翻译。杀掉引擎后翻译停止，面板出现"重试"（错误文案见第 14 项）；点"重试"后启动了新的引擎，翻译继续。
 
 没有在真实 app 里操作过的：打开系统设置（需要拒绝录音权限才会出现）。Windows 没有检查。

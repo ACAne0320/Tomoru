@@ -46,9 +46,8 @@ QuickTime Player into Chinese.
 
 | # | Area | Problem | Change | Where |
 |---|---|---|---|---|
-| 14 | Hierarchy | At their default place, the subtitles land on the video's own burned-in subtitles, and the two stacks can't be read. Moving them is an icon in the panel's footer, found only by hovering. | Say once, as the subtitles first show, that they can be dragged, and where; or start them a little higher than where videos put theirs. Measure on a few videos with burned-in subtitles before choosing. | `overlay/`, the guide's last step |
-| 15 | Feedback | When the engine dies by a signal (a crash, or killed), the panel and the subtitles say "Translation stopped: signal: killed", not that the engine quit. `errExited` covers only an engine that exits without an error; the `*exec.ExitError` falls through to `StatusStopped`. Try again shows and works. | Treat an `*exec.ExitError` from the engine as the engine quitting (`ErrEngineExited`), in `ErrorText` and `ErrorFix`. | `core/session_controller.go`, `shared/names.go` |
-| 16 | Hierarchy | The panel's state line is cut once the count has two digits: "Listened today 0:39 · 11 lin…". | Give the line the room the Start button leaves, or drop the unit's word for a shorter form ("11 lines" to "11"), and test it at 340 wide with three-digit counts. | `panel/panel.go` `state` |
+| 14 | Feedback | When the engine dies by a signal (a crash, or killed), the panel and the subtitles say "Translation stopped: signal: killed", not that the engine quit. `errExited` covers only an engine that exits without an error; the `*exec.ExitError` falls through to `StatusStopped`. Try again shows and works. | Treat an `*exec.ExitError` from the engine as the engine quitting (`ErrEngineExited`), in `ErrorText` and `ErrorFix`. | `core/session_controller.go`, `shared/names.go` |
+| 15 | Hierarchy | The panel's state line is cut once the count has two digits: "Listened today 0:39 · 11 lin…". | Give the line the room the Start button leaves, or drop the unit's word for a shorter form ("11 lines" to "11"), and test it at 340 wide with three-digit counts. | `panel/panel.go` `state` |
 
 ## What was not verified
 
@@ -63,8 +62,8 @@ The pages were judged from the galleries the tests render (`TOMORU_GALLERY=<dir>
   Home both show the message and Open Speech & translation, and either click opens Settings on
   that page, showing Qwen ASR. Home also showed findings 2 and 7 as a new user sees them.
 - Translating an English video in QuickTime Player into Chinese, with QuickTime in front: the
-  subtitles come in and translate live (finding 14). Killing the engine stopped translating, and
-  the panel showed Try again (with finding 15's message); Try again started a new engine and
+  subtitles come in and translate live. Killing the engine stopped translating, and
+  the panel showed Try again (with finding 14's message); Try again started a new engine and
   translating went on.
 
 Not driven in the real app: Open System Settings, which needs the audio permission refused.
