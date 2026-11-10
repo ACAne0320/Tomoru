@@ -7010,15 +7010,13 @@ func (msgs Messages) FeedbackPlaceholderIdea() string {
 // FeedbackSummary says "Copied with it"
 // in the language the app shows.
 //
-// The dialog reporting a problem: the title over what goes with the user's
-// words.
+// The feedback dialog: the title over what goes with the user's words.
 func FeedbackSummary() string { return In(i18n.Locale()).FeedbackSummary() }
 
 // FeedbackSummary says "Copied with it"
 // in the language of msgs.
 //
-// The dialog reporting a problem: the title over what goes with the user's
-// words.
+// The feedback dialog: the title over what goes with the user's words.
 func (msgs Messages) FeedbackSummary() string {
 	return Catalog.Format(msgs.locale, "feedbackSummary", nil)
 }
@@ -7026,13 +7024,13 @@ func (msgs Messages) FeedbackSummary() string {
 // FeedbackVersion says "Version"
 // in the language the app shows.
 //
-// The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
+// The feedback dialog: the app's version, beside "Tomoru 0.1.4".
 func FeedbackVersion() string { return In(i18n.Locale()).FeedbackVersion() }
 
 // FeedbackVersion says "Version"
 // in the language of msgs.
 //
-// The dialog reporting a problem: the app's version, beside "Tomoru 0.1.4".
+// The feedback dialog: the app's version, beside "Tomoru 0.1.4".
 func (msgs Messages) FeedbackVersion() string {
 	return Catalog.Format(msgs.locale, "feedbackVersion", nil)
 }
@@ -7040,15 +7038,13 @@ func (msgs Messages) FeedbackVersion() string {
 // FeedbackSystem says "System"
 // in the language the app shows.
 //
-// The dialog reporting a problem: the system's name and version, beside
-// "macOS 26.1".
+// The feedback dialog: the system's name and version, beside "macOS 26.1".
 func FeedbackSystem() string { return In(i18n.Locale()).FeedbackSystem() }
 
 // FeedbackSystem says "System"
 // in the language of msgs.
 //
-// The dialog reporting a problem: the system's name and version, beside
-// "macOS 26.1".
+// The feedback dialog: the system's name and version, beside "macOS 26.1".
 func (msgs Messages) FeedbackSystem() string {
 	return Catalog.Format(msgs.locale, "feedbackSystem", nil)
 }
@@ -7056,15 +7052,15 @@ func (msgs Messages) FeedbackSystem() string {
 // FeedbackEngines says "Engines"
 // in the language the app shows.
 //
-// The dialog reporting a problem: recognition and translation, beside
-// "Apple → Index-Translate cloud".
+// The feedback dialog: recognition and translation, beside "Apple →
+// Index-Translate cloud".
 func FeedbackEngines() string { return In(i18n.Locale()).FeedbackEngines() }
 
 // FeedbackEngines says "Engines"
 // in the language of msgs.
 //
-// The dialog reporting a problem: recognition and translation, beside
-// "Apple → Index-Translate cloud".
+// The feedback dialog: recognition and translation, beside "Apple →
+// Index-Translate cloud".
 func (msgs Messages) FeedbackEngines() string {
 	return Catalog.Format(msgs.locale, "feedbackEngines", nil)
 }
@@ -7072,15 +7068,15 @@ func (msgs Messages) FeedbackEngines() string {
 // FeedbackLangs says "Languages"
 // in the language the app shows.
 //
-// The dialog reporting a problem: the languages translated, beside
-// "Japanese → Chinese".
+// The feedback dialog: the languages translated, beside "Japanese →
+// Chinese".
 func FeedbackLangs() string { return In(i18n.Locale()).FeedbackLangs() }
 
 // FeedbackLangs says "Languages"
 // in the language of msgs.
 //
-// The dialog reporting a problem: the languages translated, beside
-// "Japanese → Chinese".
+// The feedback dialog: the languages translated, beside "Japanese →
+// Chinese".
 func (msgs Messages) FeedbackLangs() string {
 	return Catalog.Format(msgs.locale, "feedbackLangs", nil)
 }
@@ -7088,15 +7084,15 @@ func (msgs Messages) FeedbackLangs() string {
 // FeedbackPrivate says "No API keys, subtitles or recordings"
 // in the language the app shows.
 //
-// The dialog reporting a problem: beside a lock, under what goes with the
-// user's words.
+// The feedback dialog: beside a lock, under what goes with the user's
+// words.
 func FeedbackPrivate() string { return In(i18n.Locale()).FeedbackPrivate() }
 
 // FeedbackPrivate says "No API keys, subtitles or recordings"
 // in the language of msgs.
 //
-// The dialog reporting a problem: beside a lock, under what goes with the
-// user's words.
+// The feedback dialog: beside a lock, under what goes with the user's
+// words.
 func (msgs Messages) FeedbackPrivate() string {
 	return Catalog.Format(msgs.locale, "feedbackPrivate", nil)
 }
@@ -7104,13 +7100,13 @@ func (msgs Messages) FeedbackPrivate() string {
 // FeedbackShow says "What is copied"
 // in the language the app shows.
 //
-// The dialog reporting a problem: a fold showing the whole text copied.
+// The feedback dialog: a fold showing the whole text copied.
 func FeedbackShow() string { return In(i18n.Locale()).FeedbackShow() }
 
 // FeedbackShow says "What is copied"
 // in the language of msgs.
 //
-// The dialog reporting a problem: a fold showing the whole text copied.
+// The feedback dialog: a fold showing the whole text copied.
 func (msgs Messages) FeedbackShow() string {
 	return Catalog.Format(msgs.locale, "feedbackShow", nil)
 }
@@ -7118,15 +7114,15 @@ func (msgs Messages) FeedbackShow() string {
 // FeedbackOnGitHub says "Open on GitHub"
 // in the language the app shows.
 //
-// The dialog reporting a problem: opens GitHub's issue form, started with
-// what the user wrote and the app's setup.
+// The feedback dialog: opens GitHub's issue form, started with what the
+// user wrote and the app's setup.
 func FeedbackOnGitHub() string { return In(i18n.Locale()).FeedbackOnGitHub() }
 
 // FeedbackOnGitHub says "Open on GitHub"
 // in the language of msgs.
 //
-// The dialog reporting a problem: opens GitHub's issue form, started with
-// what the user wrote and the app's setup.
+// The feedback dialog: opens GitHub's issue form, started with what the
+// user wrote and the app's setup.
 func (msgs Messages) FeedbackOnGitHub() string {
 	return Catalog.Format(msgs.locale, "feedbackOnGitHub", nil)
 }
@@ -7134,15 +7130,15 @@ func (msgs Messages) FeedbackOnGitHub() string {
 // FeedbackCopy says "Copy for an AI agent"
 // in the language the app shows.
 //
-// The dialog reporting a problem: copies the user's words with the app's
-// setup and a guide for an AI agent.
+// The feedback dialog: copies the user's words with the app's setup and a
+// guide for an AI agent.
 func FeedbackCopy() string { return In(i18n.Locale()).FeedbackCopy() }
 
 // FeedbackCopy says "Copy for an AI agent"
 // in the language of msgs.
 //
-// The dialog reporting a problem: copies the user's words with the app's
-// setup and a guide for an AI agent.
+// The feedback dialog: copies the user's words with the app's setup and a
+// guide for an AI agent.
 func (msgs Messages) FeedbackCopy() string {
 	return Catalog.Format(msgs.locale, "feedbackCopy", nil)
 }

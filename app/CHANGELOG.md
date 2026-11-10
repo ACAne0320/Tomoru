@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.1.5
+
+Feedback can start in the app now: a problem or an idea, handed to an AI agent that turns it into
+an issue with you, or to GitHub's form. An error on Home or the panel comes with the button that
+fixes it.
+
+### New
+
+- Settings › About › Feedback & ideas: choose Problem or Idea and say what happened or what you'd
+  like. Copy for an AI agent, paste it into one such as Claude Code or Codex, and it goes through
+  the logs with you (for a problem) or shapes the idea, looks for the same issue, and opens it
+  once you say yes; or open GitHub's form, started with what you wrote. What is copied shows
+  first, and has no API keys, subtitles or recordings. ([#14](https://github.com/ACAne0320/Tomoru/pull/14), [#15](https://github.com/ACAne0320/Tomoru/pull/15), [#16](https://github.com/ACAne0320/Tomoru/pull/16))
+
+### Improved
+
+- An error on Home and on the menu bar panel has the button that fixes it: Speech & translation,
+  System Settings, or Try again. ([#8](https://github.com/ACAne0320/Tomoru/pull/8))
+- Home swaps the languages from between them and names the sound picker "Sound from", as the panel
+  does. ([#13](https://github.com/ACAne0320/Tomoru/pull/13))
+- A guide step taller than its room fades at its foot, so it reads as going on. ([#13](https://github.com/ACAne0320/Tomoru/pull/13))
+
+### Fixed
+
+- The panel's numbers keep their unit and plural ("1 line"), and are no longer cut in English,
+  Japanese and Korean once they reach two digits. ([#13](https://github.com/ACAne0320/Tomoru/pull/13))
+- A recognition engine ended by the system says it quit, not "signal: killed". ([#13](https://github.com/ACAne0320/Tomoru/pull/13))
+- The guide no longer says in English and Korean that an on-device model downloads by itself: it
+  downloads once chosen. ([#8](https://github.com/ACAne0320/Tomoru/pull/8))
+
 ## 0.1.4
 
 Hy-MT2 joins Index-Translate, on your device and on Tencent Cloud, and Speech & translation is
