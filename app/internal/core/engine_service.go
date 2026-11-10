@@ -307,7 +307,15 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 		}
 		return fail(ErrNoEndpoint), id
 	}
-	return func(context.Context) (*translate.Endpoint, error) { return imageCloud(), nil }, "cloud"
+	size, ok := CloudSizeByID(id)
+	if !ok {
+		size, _ = CloudSizeByID("cloud")
+	}
+	return func(context.Context) (*translate.Endpoint, error) {
+		e := imageCloud()
+		e.Model = size.Model
+		return e, nil
+	}, size.ID
 }
 
 func (s *EngineService) endpoint(e prefs.Endpoint, key string) *translate.Endpoint {

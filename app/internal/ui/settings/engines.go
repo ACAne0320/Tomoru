@@ -69,8 +69,9 @@ func (s *Settings) show(kind core.Kind, family string) {
 	}
 }
 
-// pictures is the group of translating pictures: its engine, of those that read pictures, the
-// cloud's and those on this computer, then the user's APIs; and its shortcut.
+// pictures is the group of translating pictures: its engine, of those that read pictures, under
+// where they run, as the engines' list has them: the cloud's sizes and the user's APIs, then those
+// on this computer, each named without where; and its shortcut.
 func (s *Settings) pictures(c *ui.Context) {
 	k := s.core
 	id := k.Preferences().ImageMT
@@ -83,12 +84,29 @@ func (s *Settings) pictures(c *ui.Context) {
 			kit.Control(c, func() {
 				kit.Picker(c, shared.EngineName(chosen), func(m *ui.Menu) {
 					all := k.ImageEngines()
-					for i, e := range all {
-						if e.Endpoint != nil && i > 0 && all[i-1].Endpoint == nil {
-							m.Separator()
+					for _, cloud := range []bool{true, false} {
+						head := locales.TagLocal()
+						if cloud {
+							head = locales.TagCloud()
 						}
-						if m.Item(shared.EngineName(e)).Checked(e.ID == id).Chosen() {
-							k.SetImageEngine(e.ID)
+						for _, e := range all {
+							if e.Cloud != cloud {
+								continue
+							}
+							if head != "" {
+								if !cloud {
+									m.Separator()
+								}
+								m.Item(head).Disabled(true)
+								head = ""
+							}
+							name := shared.EngineName(e)
+							if size, ok := core.CloudSizeByID(e.ID); ok {
+								name = "Index-Translate " + size.Label
+							}
+							if m.Item(name).Checked(e.ID == id).Chosen() {
+								k.SetImageEngine(e.ID)
+							}
 						}
 					}
 				}).Grow(1).Shrink(1).MinWidth(0).Label(locales.ImageEngine())

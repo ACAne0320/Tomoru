@@ -63,8 +63,8 @@ doesn't appear in the capture.
 Pictures have an engine of their own (`Preferences.ImageMT`), apart from the subtitles'
 (`Preferences.MT`): some engines read no pictures, as most text-only APIs a user adds. It is
 always an explicit choice, in Speech & translation › Picture translation, from a menu of the
-engines that read pictures now (`Core.ImageEngines`): Index-Translate 35B in the cloud (its 9B and 2B there read text alone; the
-default), the local models with a vision projector once downloaded (Index-Translate 2B and 9B; Hy-MT2 has none, nor has its service on Tencent Cloud), and the user's APIs but those whose test found
+engines that read pictures now (`Core.ImageEngines`), under Cloud and On device as in the engines' list: Index-Translate in the cloud in each size, 2B, 9B and 35B (35B the
+default; the service's model list says only 35B reads pictures, but each does, 2026-11-10), the local models with a vision projector once downloaded (Index-Translate 2B and 9B; Hy-MT2 has none, nor has its service on Tencent Cloud), and the user's APIs but those whose test found
 they read none and those prompted as Hy-MT2, a model that reads none (`Format.ReadsPictures`). The picture's shortcut is in that group too, as in Preferences.
 
 - **Settings from before**: an empty `ImageMT` is set once, at launch, from `MT` where that reads
@@ -88,7 +88,7 @@ they read none and those prompted as Hy-MT2, a model that reads none (`Format.Re
 
 | Engine | Images |
 |---|---|
-| Index-Translate in the cloud | as before. Its first words come in about 2 s; when they haven't in 10 s, the picture is asked again, once, on a new connection (`Endpoint.ImageWait`): through a proxy, a connection to it at times takes a picture and answers nothing until the server closes it minutes later, and HTTP/2 would send the picture again on that one (2026-11-01). If that one doesn't answer either, the card says so as the subtitles do |
+| Index-Translate in the cloud | as before. Its first words come in about 2 s; when they haven't in 10 s, the picture is asked again, once, on a new connection, alongside the first, and whichever answers first is read (`Endpoint.ImageWait`): through a proxy, a connection to it at times takes a picture and answers nothing until the server closes it minutes later, and HTTP/2 would send the picture again on that one (2026-11-01); and for some minutes at a time it starts every picture after 9 to 30 s, as late for one asked again, so the first is not dropped (2026-11-10). With no words from either in a minute (six times the wait), the card says so as the subtitles do |
 | A local model (2B / 9B) | read by llama-server with the model's vision projector, `--mmproj` (Q8_0: 345 MB for 2B, 592 MB for 9B, from the same repositories). It is one of the model's files (`models.Model.Vision`), downloaded and deleted with it, so a local model always reads images. llama-server loads it only for the first image (`Server.EnsureVision`): it costs 430 MB more memory for 2B, 680 MB for 9B, which subtitles alone needn't take. A server translating subtitles starts again with it on the same port, so the session's translator keeps its URL (the first image takes about 2 s, the next 0.6 s), and keeps it. If no session translates with a local model, llama-server, started for an image, stops when the card closes |
 | A local model while another translates the subtitles | fails with `ErrModelBusy`, which the card says: llama-server runs one model at a time, and starting the other would stop the subtitles' |
 | An API of the user's | sent the image; if it fails (it may read no images), the card says so, with the API's error: no other engine is asked, as the picture goes only where the user chose |

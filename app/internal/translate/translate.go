@@ -108,8 +108,8 @@ type Endpoint struct {
 	Model  string
 	APIKey string
 	Format *Format // nil for Chat
-	// Llama sends llama.cpp's own parameters (prompt caching, no thinking), which Index-Translate's
-	// cloud and llama-server take and other services may refuse.
+	// Llama sends llama.cpp's own parameters (prompt caching, no thinking), which llama-server
+	// takes and other services may refuse.
 	Llama  bool
 	Client *http.Client
 	// The waits of a live translation, which is no use late, and holds up the lines after it.
@@ -124,7 +124,8 @@ type Endpoint struct {
 	// ImageSide is the longest side, in pixels, of a picture sent (image.go); 0 is MaxSide.
 	ImageSide int
 	// ImageWait is for the first words of a picture's translation (image.go): past it, the picture
-	// is asked again, once, on a connection of its own. 0 waits a minute in all.
+	// is asked again, once, alongside, on a connection of its own; past six times it, given up.
+	// 0 asks once.
 	ImageWait time.Duration
 
 	// plain is set once the server refused the parameters it may not know (those that turn a chat
@@ -154,8 +155,10 @@ const (
 // or so (2026-10-26: 0.5 s typically, 1.2 s at most with 4 requests at a time), or, now and then
 // (half the requests, some hours), after 6 s, if at all, and once after 30 s; a whole line within
 // 1.5 s. It closes a connection unused for 40 to 60 s, and a new one takes 0.4 to 0.5 s more.
+// It runs on vLLM, which answers without thinking unasked and refuses llama.cpp's cache_prompt
+// with 400 (2026-11-10).
 func Cloud() *Endpoint {
-	return &Endpoint{URL: CloudURL, Model: CloudModel, Format: Index, Llama: true,
+	return &Endpoint{URL: CloudURL, Model: CloudModel, Format: Index,
 		FirstWait: 2 * time.Second, Gap: 2 * time.Second, Timeout: 8 * time.Second, Parallel: 3, WarmIdle: 30 * time.Second,
 		ImageWait: 10 * time.Second}
 }

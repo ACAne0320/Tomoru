@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -85,11 +86,11 @@ func TestImageEngineMenu(t *testing.T) {
 		}
 		return out
 	}
-	if got, want := ids(), []string{"cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
+	if got, want := ids(), []string{"cloud-2b", "cloud-9b", "cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("nothing downloaded: %q, want %q", got, want)
 	}
 	m.ready["local-2b"], m.ready["sensevoice-small"], m.ready["hy-mt2-1.8b"] = true, true, true
-	if got, want := ids(), []string{"cloud", "local-2b", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
+	if got, want := ids(), []string{"local-2b", "cloud-2b", "cloud-9b", "cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("2B downloaded: %q, want %q", got, want)
 	}
 	c.SetImageEngine("custom:sees")
@@ -103,8 +104,12 @@ func TestImageEngineMenu(t *testing.T) {
 // keeps llama-server: another chosen for pictures says so, and closing the card leaves it.
 func TestImageEngineOnly(t *testing.T) {
 	var cloudAsked atomic.Int32
+	var model atomic.Value // the cloud's size asked
 	cloud := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cloudAsked.Add(1)
+		var body struct{ Model string }
+		json.NewDecoder(r.Body).Decode(&body)
+		model.Store(body.Model)
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"云端\"}}]}\n\n")
 	}))
 	defer cloud.Close()
@@ -136,6 +141,16 @@ func TestImageEngineOnly(t *testing.T) {
 	if c.Image.Via != "cloud" || c.Image.Text != "云端" || len(srv.ensured) != 0 {
 		t.Errorf("the subtitles' engine is not the pictures': %+v, served %q", c.Image, srv.ensured)
 	}
+	if model.Load() != translate.CloudModel {
+		t.Errorf("the cloud asked for %v", model.Load())
+	}
+	c.SetImageEngine("cloud-9b") // a smaller size of the cloud's reads pictures too
+	c.TranslateImage(pic)
+	done()
+	if c.Image.Via != "cloud-9b" || model.Load() != "Index-Translate-9B" {
+		t.Errorf("pictures with the cloud's 9B: %+v, asked for %v", c.Image, model.Load())
+	}
+	c.SetImageEngine("cloud")
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "key")
 	c.SetImageEngine(prefs.CustomPrefix + id)

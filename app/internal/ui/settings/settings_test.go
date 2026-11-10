@@ -696,21 +696,21 @@ func TestImageEngine(t *testing.T) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	// Its picker, at the end of its row: the list above names the cloud too.
+	// Its picker, at the end of its row: the engines under where they run, as the list above has them.
 	row, ok := tt.Find(locales.ImageEngine())
 	if !ok {
 		t.Fatalf("no picture's engine: %q", tt.Texts())
 	}
 	tt.ClickAt(Width-kit.Space(8)-kit.Space(5)-kit.Space(10), row.Y+row.H/2)
-	if got, want := tt.Menu(), []string{shared.CloudName, "Index-Translate 2B", "-", "Qwen-VL"}; !slices.Equal(got, want) {
+	if got, want := tt.Menu(), []string{locales.TagCloud(), "Index-Translate 2B", "Index-Translate 9B", "Index-Translate 35B", "Qwen-VL", "-", locales.TagLocal(), "Index-Translate 2B"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
-	tt.Frame() // the menu's frame has ended
-	if err := tt.ChooseMenuItem("Index-Translate 2B"); err != nil {
+	tt.Frame()                                                      // the menu's frame has ended
+	if err := tt.ChooseMenuItem("Index-Translate 9B"); err != nil { // the cloud's: no 9B is downloaded
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if k.Prefs.ImageMT != "local-2b" {
+	if k.Prefs.ImageMT != "cloud-9b" {
 		t.Errorf("pictures with %q, texts %q", k.Prefs.ImageMT, tt.Texts())
 	}
 }

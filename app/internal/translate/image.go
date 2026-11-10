@@ -10,9 +10,11 @@ import (
 	"image"
 	"image/png"
 	"log"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/image/draw"
@@ -30,6 +32,10 @@ const MaxSide = 2048
 // with words lost, Korean garbled and Chinese said twice (2026-10-30, the guide's sample); twice
 // as large, right.
 const MinSide = 1000
+
+// imageTimeout is a picture's request in all, unless Endpoint.Client says: started a minute late,
+// a long translation streams in for half a minute more.
+const imageTimeout = 2 * time.Minute
 
 // errLooping is a model saying a line over and over, which it would until it ran out of tokens.
 var errLooping = errors.New("translate: the model repeats itself")
@@ -54,41 +60,96 @@ func (e *Endpoint) TranslateImage(ctx context.Context, pic []byte, tgt string, t
 	}
 	body := e.request([]message{{"user", parts}}, 0, 2048)
 	s, err := e.readImage(ctx, body, onDelta)
-	if errors.Is(err, ErrStalled) {
-		// Through a proxy, one connection in five to the cloud took a picture and answered
-		// nothing, not even a ping, until the server closed it minutes later; HTTP/2 sent each
-		// picture asked again on it (2026-11-01). Its first words come in 2 s, 7.5 s at most.
-		log.Printf("translate: no words in %v, asking again on a new connection", e.ImageWait)
-		c := e.anew(time.Minute)
-		defer c.CloseIdleConnections()
-		// The one stalled goes too, for the pictures after: idle once its request is done with.
-		defer cmp.Or(e.Client, &http.Client{}).CloseIdleConnections()
-		s, err = e.readImage(context.WithValue(ctx, clientKey{}, c), body, onDelta)
-	}
 	return Dedupe(s), err
 }
 
-// readImage reads a picture's translation, given up as ErrStalled when its first words have not
-// come within e.ImageWait.
+// readImage reads a picture's translation. When its first words have not come within
+// e.ImageWait, the picture is asked again, once, on a connection of its own, without dropping the
+// first request, which may yet answer first: the request that sends words first is read, and the
+// other dropped. With no words from either within six times e.ImageWait, a minute for the cloud,
+// it is given up as ErrStalled. Both happen with the cloud: through a proxy, one connection in
+// five took a picture and answered nothing until the server closed it minutes later, and HTTP/2
+// sent the picture asked again on it (2026-11-01); and, for some minutes at a time, it starts
+// each picture after 9 to 30 s, as late for one asked again (2026-11-10). 0 asks once.
 func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
+	if e.ImageWait <= 0 {
+		return e.readOne(ctx, body, onDelta)
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	type result struct {
+		n   int32
+		out string
+		err error
+	}
+	var read atomic.Int32 // the request read, from 1; 0 until one sends words, -1 when given up
+	results := make(chan result, 2)
+	ask := func(ctx context.Context, n int32, body map[string]any) {
+		go func() {
+			out, err := e.readOne(ctx, body, func(s string) {
+				if (read.CompareAndSwap(0, n) || read.Load() == n) && onDelta != nil {
+					onDelta(s)
+				}
+			})
+			results <- result{n, out, err}
+		}()
+	}
+	var fresh *http.Client // the connection asked again on
+	pending := 1
+	defer func() {
+		cancel() // the request not read
+		for ; pending > 0; pending-- {
+			<-results
+		}
+		if fresh != nil {
+			fresh.CloseIdleConnections()
+			// The one stalled goes too, for the pictures after: idle once its request is done with.
+			cmp.Or(e.Client, &http.Client{}).CloseIdleConnections()
+		}
+	}()
+	body2 := maps.Clone(body) // the first request's changes when a server refuses a parameter
+	ask(ctx, 1, body)
+	again := time.NewTimer(e.ImageWait)
+	defer again.Stop()
+	giveUp := time.NewTimer(6 * e.ImageWait)
+	defer giveUp.Stop()
+	for {
+		select {
+		case <-again.C:
+			if read.Load() == 0 {
+				log.Printf("translate: no words in %v, asking again on a new connection", e.ImageWait)
+				fresh = e.anew(imageTimeout)
+				ask(context.WithValue(ctx, clientKey{}, fresh), 2, body2)
+				pending++
+			}
+		case <-giveUp.C:
+			if read.CompareAndSwap(0, -1) {
+				return "", ErrStalled
+			}
+		case res := <-results:
+			pending--
+			if n := read.Load(); n == res.n || n == 0 && pending == 0 {
+				// The one read; or, failed without words, with no other to wait for: one that failed
+				// before ImageWait failed fast, as asking again would.
+				return res.out, res.err
+			}
+		}
+	}
+}
+
+// readOne reads a picture's translation from one request. A line the model keeps repeating ends it
+// there.
+func (e *Endpoint) readOne(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
-	wait := time.AfterFunc(cmp.Or(e.ImageWait, time.Minute), func() { cancel(ErrStalled) })
-	defer wait.Stop()
-	s, _, err := e.complete(ctx, body, time.Minute, func(s string) {
-		wait.Stop()
+	s, _, err := e.complete(ctx, body, imageTimeout, func(s string) {
 		if looping(s) {
 			cancel(errLooping)
 		} else if onDelta != nil {
 			onDelta(Dedupe(s))
 		}
 	})
-	switch cause := context.Cause(ctx); {
-	case err == nil:
-	case errors.Is(cause, errLooping):
+	if err != nil && errors.Is(context.Cause(ctx), errLooping) {
 		err = nil
-	case errors.Is(cause, ErrStalled):
-		err = ErrStalled
 	}
 	return s, err
 }
