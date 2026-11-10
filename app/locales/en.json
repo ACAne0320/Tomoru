@@ -2477,38 +2477,38 @@
   },
   "feedbackSummary": "Copied with it",
   "@feedbackSummary": {
-    "description": "The dialog reporting a problem: the title over what goes with the user's words."
+    "description": "The feedback dialog: the title over what goes with the user's words."
   },
   "feedbackVersion": "Version",
   "@feedbackVersion": {
-    "description": "The dialog reporting a problem: the app's version, beside \"Tomoru 0.1.4\"."
+    "description": "The feedback dialog: the app's version, beside \"Tomoru 0.1.4\"."
   },
   "feedbackSystem": "System",
   "@feedbackSystem": {
-    "description": "The dialog reporting a problem: the system's name and version, beside \"macOS 26.1\"."
+    "description": "The feedback dialog: the system's name and version, beside \"macOS 26.1\"."
   },
   "feedbackEngines": "Engines",
   "@feedbackEngines": {
-    "description": "The dialog reporting a problem: recognition and translation, beside \"Apple → Index-Translate cloud\"."
+    "description": "The feedback dialog: recognition and translation, beside \"Apple → Index-Translate cloud\"."
   },
   "feedbackLangs": "Languages",
   "@feedbackLangs": {
-    "description": "The dialog reporting a problem: the languages translated, beside \"Japanese → Chinese\"."
+    "description": "The feedback dialog: the languages translated, beside \"Japanese → Chinese\"."
   },
   "feedbackPrivate": "No API keys, subtitles or recordings",
   "@feedbackPrivate": {
-    "description": "The dialog reporting a problem: beside a lock, under what goes with the user's words."
+    "description": "The feedback dialog: beside a lock, under what goes with the user's words."
   },
   "feedbackShow": "What is copied",
   "@feedbackShow": {
-    "description": "The dialog reporting a problem: a fold showing the whole text copied."
+    "description": "The feedback dialog: a fold showing the whole text copied."
   },
   "feedbackOnGitHub": "Open on GitHub",
   "@feedbackOnGitHub": {
-    "description": "The dialog reporting a problem: opens GitHub's issue form, started with what the user wrote and the app's setup."
+    "description": "The feedback dialog: opens GitHub's issue form, started with what the user wrote and the app's setup."
   },
   "feedbackCopy": "Copy for an AI agent",
   "@feedbackCopy": {
-    "description": "The dialog reporting a problem: copies the user's words with the app's setup and a guide for an AI agent."
+    "description": "The feedback dialog: copies the user's words with the app's setup and a guide for an AI agent."
   }
 }
