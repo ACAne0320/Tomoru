@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.6
+
+Index-Translate's cloud works again. Its service changed on November 10, and since then every
+cloud translation in Tomoru 0.1.5 and earlier failed, subtitles and pictures alike. Pictures can
+go to the cloud's 9B and 2B now too.
+
+### Improved
+
+- The cloud's 9B and 2B translate pictures too: choose one in Speech & translation › Picture
+  translation. That menu lists its engines under Cloud and On device, so the cloud's 9B and the
+  one on your device are told apart. ([#21](https://github.com/ACAne0320/Tomoru/pull/21))
+
+### Fixed
+
+- Translating with Index-Translate in the cloud failed with "400 Bad Request" since the service
+  changed on November 10: Tomoru sent it a setting it now refuses.
+  ([#21](https://github.com/ACAne0320/Tomoru/pull/21))
+- A picture sent to the cloud no longer fails when the service is slow to start: it waits up to a
+  minute for the first words, where it gave up after 20 s.
+  ([#21](https://github.com/ACAne0320/Tomoru/pull/21))
+
 ## 0.1.5
 
 Feedback can start in the app now: a problem or an idea, handed to an AI agent that turns it into
