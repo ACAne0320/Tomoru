@@ -2,6 +2,12 @@ name: Bug report / 问题报告
 description: Something doesn't work as it should. / 有地方不对劲。
 labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Have an AI agent such as Claude Code or Codex?** In Tomoru (versions after 0.1.4), go to Settings › About › Feedback & ideas, choose Problem and Copy for an AI agent, then paste it into the agent: it goes through the logs with you, redacts them, and opens the issue once you say yes. Otherwise, fill in the form below.
+
+        **有 Claude Code、Codex 这样的 AI Agent？** 在 Tomoru（0.1.4 之后的版本）的 设置 › 关于 › 反馈与建议 里选「问题」，点「复制给 AI Agent」，粘贴给它：它会和你一起看日志、脱敏，你同意后再提交 issue。没有的话，填写下面的表单即可。
   - type: input
     id: version
     attributes:

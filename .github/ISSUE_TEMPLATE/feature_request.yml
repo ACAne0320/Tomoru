@@ -2,6 +2,12 @@ name: Idea / 想法
 description: Something Tomoru could do better. / Tomoru 可以做得更好的地方。
 labels: [enhancement]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Have an AI agent such as Claude Code or Codex?** In Tomoru (versions after 0.1.4), go to Settings › About › Feedback & ideas, choose Idea and Copy for an AI agent, then paste it into the agent: it shapes the idea with you, looks for the same one, and opens the issue once you say yes. Otherwise, fill in the form below.
+
+        **有 Claude Code、Codex 这样的 AI Agent？** 在 Tomoru（0.1.4 之后的版本）的 设置 › 关于 › 反馈与建议 里选「建议」，点「复制给 AI Agent」，粘贴给它：它会和你一起整理想法、查有没有相同的，你同意后再提交 issue。没有的话，填写下面的表单即可。
   - type: textarea
     id: problem
     attributes:
