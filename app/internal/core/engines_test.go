@@ -340,7 +340,7 @@ func TestCloudSizes(t *testing.T) {
 			pictures = append(pictures, e.ID)
 		}
 	}
-	if !slices.Equal(pictures, []string{"cloud"}) {
+	if !slices.Equal(pictures, []string{"cloud-2b", "cloud-9b", "cloud"}) {
 		t.Errorf("for pictures %q", pictures)
 	}
 }

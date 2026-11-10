@@ -24,8 +24,9 @@ const (
 type CloudSize struct{ ID, Label, Model string }
 
 // CloudSizes are Index-Translate's cloud, the smallest first, as a model's sizes are: 35B-A3B,
-// "cloud", the default, which alone reads pictures; and 9B and 2B, which read text alone and,
-// measured, translated closer to the human subtitles and sooner (bench/README.md).
+// "cloud", the default; and 9B and 2B, which, measured, translated closer to the human subtitles
+// and sooner (bench/README.md). Each reads pictures too, though the service's model list says
+// only 35B does (2026-11-10).
 var CloudSizes = []CloudSize{
 	{ID: "cloud-2b", Label: "2B", Model: "Index-Translate-2B"},
 	{ID: "cloud-9b", Label: "9B", Model: "Index-Translate-9B"},

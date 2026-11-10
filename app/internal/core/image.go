@@ -17,11 +17,11 @@ import (
 // the user selects, when the app may capture the screen, else the one on the clipboard. Neither it
 // nor its translation is kept.
 
-// imageCloud is Index-Translate's cloud, which translates pictures when chosen for them. Tests
-// replace it.
+// imageCloud is Index-Translate's cloud, which translates pictures, in the size chosen for them.
+// Tests replace it.
 var imageCloud = translate.Cloud
 
-// readsPictures tells whether translation engine id reads pictures: the cloud, a local model with
+// readsPictures tells whether translation engine id reads pictures: the cloud's sizes, a local model with
 // its vision projector, an endpoint of a format that reads them not found to read none.
 func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
@@ -35,7 +35,8 @@ func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 		}
 		return false
 	}
-	return id == "cloud"
+	_, cloud := CloudSizeByID(id)
+	return cloud
 }
 
 // imageEngineFrom is the engine for pictures of one who translates the subtitles with engine id:
@@ -47,17 +48,13 @@ func imageEngineFrom(id string, endpoints []prefs.Endpoint) string {
 	return "cloud"
 }
 
-// ImageEngines are the engines to choose for pictures, those that can read them now: the cloud,
-// the local models downloaded, and the user's APIs but those found to read none, or prompted as
-// a model that reads none.
+// ImageEngines are the engines to choose for pictures, those that can read them now, in the order
+// of Engines: the local models downloaded, the cloud's sizes, and the user's APIs but those found
+// to read none, or prompted as a model that reads none.
 func (c *Core) ImageEngines() []Engine {
 	var es []Engine
 	for _, e := range c.Engines(MT) {
-		switch {
-		case !readsPictures(e.ID, c.Prefs.Endpoints) || e.Model != nil && c.ModelStatus(e.ID).State != models.Ready:
-		case e.ID == "cloud":
-			es = append([]Engine{e}, es...)
-		default:
+		if readsPictures(e.ID, c.Prefs.Endpoints) && (e.Model == nil || c.ModelStatus(e.ID).State == models.Ready) {
 			es = append(es, e)
 		}
 	}

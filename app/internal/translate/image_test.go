@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -246,5 +248,26 @@ func TestImageStalled(t *testing.T) {
 	_, err = e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
 	if c = seen(); !errors.Is(err, ErrStalled) || len(c) != 2 {
 		t.Errorf("%v, asked %d times", err, len(c))
+	}
+}
+
+// TestImageSlow reads a picture whose first words come past ImageWait, asked again meanwhile: the
+// first request is not dropped, as the cloud, slow, is as slow for one asked again.
+func TestImageSlow(t *testing.T) {
+	var asked atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body) // read, the request's end is seen when the client drops it
+		if asked.Add(1) > 1 {
+			<-r.Context().Done()
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"慢\"}}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer srv.Close()
+	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, Client: srv.Client(), ImageWait: 50 * time.Millisecond}
+	out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
+	if err != nil || out != "慢" || asked.Load() != 2 {
+		t.Errorf("%q %v, asked %d times", out, err, asked.Load())
 	}
 }
