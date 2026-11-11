@@ -109,7 +109,9 @@ func TestGallery(t *testing.T) {
 		}},
 		{"engines-add-narrow", 1900, func() {}}, // at the window's least width
 		{"scenes", Height, func() { s.closeAPI(); s.Tab = "scenes" }},
+		{"scenes-narrow", MinHeight, func() {}},
 		{"history", Height, func() { s.Tab = "history" }},
+		{"history-narrow", MinHeight, func() {}},
 		{"history-empty", Height, func() { k.History = core.HistoryView{Loaded: true} }},
 		{"stats", 1900, func() { k.History, s.Tab = records, "stats" }},
 		{"general", 1000, func() { s.Tab = "general" }},
