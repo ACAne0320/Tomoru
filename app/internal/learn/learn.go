@@ -88,7 +88,10 @@ func user(c Context, lines []Line) string {
 	}
 	b.WriteString("\n")
 	for _, l := range lines {
-		fmt.Fprintf(&b, "原文：%s\n译文：%s\n", l.Src, l.Tgt)
+		fmt.Fprintf(&b, "原文：%s\n", l.Src)
+		if l.Tgt != "" { // none where the subtitles showed the original only, or it failed
+			fmt.Fprintf(&b, "译文：%s\n", l.Tgt)
+		}
 	}
 	return b.String()
 }

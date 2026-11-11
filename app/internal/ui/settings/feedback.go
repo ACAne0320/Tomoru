@@ -43,11 +43,15 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 		ui.Column(c).Gap(kit.Space(2)).Shrink(0).Children(func() {
 			app, system := k.Versions()
 			pr := k.Preferences()
+			engines := engineName(k, core.ASR, pr.ASR) + " → " + engineName(k, core.MT, pr.MT)
+			if !pr.Translates() {
+				engines = engineName(k, core.ASR, pr.ASR) + " · " + locales.DisplaySrc()
+			}
 			feedbackFacts(c, locales.FeedbackSummary(), []kit.Fact{
 				{Label: locales.FeedbackVersion(), Value: "Tomoru " + app},
 				{Label: locales.FeedbackSystem(), Value: system},
-				{Label: locales.FeedbackEngines(), Value: engineName(k, core.ASR, pr.ASR) + " → " + engineName(k, core.MT, pr.MT)},
-				{Label: locales.FeedbackLangs(), Value: shared.Langs(pr.Src, pr.Tgt)},
+				{Label: locales.FeedbackEngines(), Value: engines},
+				{Label: locales.FeedbackLangs(), Value: shared.LangsOf(pr)},
 			})
 			kit.ResultMark(c, assets.Lock, locales.FeedbackPrivate(), true)
 		})

@@ -42,7 +42,7 @@ func TestToday(t *testing.T) {
 	now = now.Add(30 * time.Second)
 	f.sessions[1].report(live.State{Phase: "stopped", Stats: live.Stats{Lines: 1, Speech: 5, Chars: 10}})
 	f.flush(t, 1)
-	want := Today{Day: "2026-10-20", Counts: usage.Counts{Run: 120, Lines: 4, Speech: 25, Chars: 50}}
+	want := Today{Day: "2026-10-20", Counts: usage.Counts{Run: 120, Lines: 4, Speech: 25, Chars: 50}, Translated: 4}
 	if got := c.TodayStats(); got != want {
 		t.Errorf("today %+v, want %+v", got, want)
 	}

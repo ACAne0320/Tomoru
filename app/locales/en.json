@@ -309,6 +309,14 @@
   "@displayTgt": {
     "description": "The subtitles show the translation alone."
   },
+  "displaySrc": "Original only",
+  "@displaySrc": {
+    "description": "The subtitles show the original alone, and nothing is translated."
+  },
+  "displaySrcDesc": "Nothing is translated.",
+  "@displaySrcDesc": {
+    "description": "Under what the subtitles show, with the original only."
+  },
   "shownLabel": "Sentences at once",
   "@shownLabel": {
     "description": "Label of how many sentences show at once."
@@ -513,7 +521,7 @@
       }
     }
   },
-  "noticeStatus": "{status} · {from} → {to}",
+  "noticeStatus": "{status} · {langs}",
   "@noticeStatus": {
     "description": "Where the subtitles show, while translating gets ready.",
     "placeholders": {
@@ -521,27 +529,19 @@
         "type": "String",
         "example": "Getting ready to listen…"
       },
-      "from": {
+      "langs": {
         "type": "String",
-        "example": "Japanese"
-      },
-      "to": {
-        "type": "String",
-        "example": "English"
+        "example": "Japanese → English"
       }
     }
   },
-  "noticeListening": "Listening · {from} → {to} · {keys} to stop",
+  "noticeListening": "Listening · {langs} · {keys} to stop",
   "@noticeListening": {
     "description": "Where the subtitles show, for a few seconds after listening starts.",
     "placeholders": {
-      "from": {
+      "langs": {
         "type": "String",
-        "example": "Japanese"
-      },
-      "to": {
-        "type": "String",
-        "example": "English"
+        "example": "Japanese → English"
       },
       "keys": {
         "type": "String",
@@ -1444,6 +1444,10 @@
   "statLines": "Translated",
   "@statLines": {
     "description": "A number of the home page: the sentences translated."
+  },
+  "statHeard": "Heard",
+  "@statHeard": {
+    "description": "A number of the home page, in place of statLines while the subtitles show the original only: the sentences heard."
   },
   "unitLines": "lines",
   "@unitLines": {

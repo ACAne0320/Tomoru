@@ -85,16 +85,16 @@ func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 // styleText is the sizes and the order of the two lines, and their colors: a scheme, or with
 // custom, colors of one's own, which styleColors sets under the cards.
 func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs, custom bool) {
-	// With the translation only, the original's size and the order do nothing: they stay, greyed.
-	tgtOnly := p.Display == 1
+	// With one of the two only, the other's size and the order do nothing: they stay, greyed.
+	tgtOnly, srcOnly := p.Display == prefs.DisplayTgt, p.Display == prefs.DisplaySrc
 	size := func(i int, label string, off bool, v *float64, lo, hi float64) {
 		kit.SettingRowOff(c, i, label, "", off, func() {
 			kit.Control(c, func() { kit.Slider(c, v, lo, hi, label).Grow(1) })
 		})
 	}
 	size(0, locales.SrcSize(), tgtOnly, &p.SrcSize, 14, 36)
-	size(1, locales.TgtSize(), false, &p.TgtSize, 18, 48)
-	kit.SettingRowOff(c, 2, locales.OrderLabel(), "", tgtOnly, func() {
+	size(1, locales.TgtSize(), srcOnly, &p.TgtSize, 18, 48)
+	kit.SettingRowOff(c, 2, locales.OrderLabel(), "", tgtOnly || srcOnly, func() {
 		kit.Control(c, func() {
 			order := 0
 			if p.TgtFirst {
@@ -135,8 +135,12 @@ func styleColors(c *ui.Context, p *prefs.Prefs) {
 
 // styleShow is what shows, how many sentences, when they go, and whether recordings show them.
 func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
-	kit.SettingRow(c, 0, locales.DisplayLabel(), "", func() {
-		kit.Segmented(c, &p.Display, locales.DisplayBoth(), locales.DisplayTgt()).Label(locales.DisplayLabel())
+	desc := ""
+	if !p.Translates() {
+		desc = locales.DisplaySrcDesc()
+	}
+	kit.SettingRow(c, 0, locales.DisplayLabel(), desc, func() {
+		kit.Segmented(c, &p.Display, locales.DisplayBoth(), locales.DisplayTgt(), locales.DisplaySrc()).Label(locales.DisplayLabel())
 	})
 	kit.SettingRow(c, 1, locales.ShownLabel(), "", func() {
 		kit.Stepper(c, &p.Shown, 1, prefs.MaxShown, locales.ShownFewer(), locales.ShownMore())

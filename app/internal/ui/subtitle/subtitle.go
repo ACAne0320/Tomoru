@@ -65,7 +65,7 @@ type Entry struct {
 // Visible is what shows of st, oldest first, like scrolling lyrics: the lines since the
 // subtitles last went, and what is being said. With one sentence at a time the previous
 // translation stays while the next sentence is recognized, dimmed: it is not that sentence's
-// translation.
+// translation. With the original alone, no entry has a translation.
 func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	n := int(p.Shown)
 	var all []Entry
@@ -75,6 +75,8 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		}
 		e := Entry{Key: l.ID, Src: l.Src, Tgt: l.Tgt, Swaps: l.Draft != ""}
 		switch {
+		case p.Display == prefs.DisplaySrc:
+			e.Tgt, e.Swaps = "", false
 		case l.Draft != "" && !l.Done:
 			// A translation streaming in starts shorter than the draft it replaces: keep the draft
 			// until the translation is done, rather than going back to a few words.
@@ -82,18 +84,22 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		case l.Err != nil:
 			e.Tgt, e.DimTgt = Failure(l.Err), true
 		}
-		if p.Display == 0 || e.Tgt != "" {
+		if p.Display != prefs.DisplayTgt || e.Tgt != "" {
 			all = append(all, e)
 		}
 	}
-	if st.Pending != "" && (p.Display == 0 || st.Draft != "") {
+	draft := st.Draft
+	if p.Display == prefs.DisplaySrc {
+		draft = ""
+	}
+	if st.Pending != "" && (p.Display != prefs.DisplayTgt || draft != "") {
 		next := 1
 		if k := len(st.Lines); k > 0 {
 			next = st.Lines[k-1].ID + 1
 		}
-		all = append(all, Entry{Key: next, Src: st.Pending, Pending: true, Tgt: st.Draft, Draft: st.Draft != "", Swaps: st.Draft != ""})
+		all = append(all, Entry{Key: next, Src: st.Pending, Pending: true, Tgt: draft, Draft: draft != "", Swaps: draft != ""})
 	}
-	if k := len(all); p.Display == 0 && n == 1 && k >= 2 && all[k-1].Tgt == "" && all[k-2].Tgt != "" {
+	if k := len(all); p.Display == prefs.DisplayBoth && n == 1 && k >= 2 && all[k-1].Tgt == "" && all[k-2].Tgt != "" {
 		cur, prev := all[k-1], all[k-2]
 		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Draft: prev.Draft, Swaps: true}}
 	}
@@ -161,12 +167,16 @@ func Rolling(p prefs.Prefs, now time.Time) ([]Entry, time.Duration) {
 
 const lineHeight = 1.35 // of the font size, about
 
-// SlotHeight is the height of a sentence of two lines of source and two of translation, scaled by
-// k: the least the overlay's block is, so that the pointer finds it the same size empty.
+// SlotHeight is the height of a sentence of two lines of source and two of translation, of those
+// shown, scaled by k: the least the overlay's block is, so that the pointer finds it the same size
+// empty.
 func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 	h := float32(p.SrcSize*2+p.TgtSize*2)*lineHeight*k + 2*k
-	if p.Display == 1 {
+	switch p.Display {
+	case prefs.DisplayTgt:
 		h = float32(p.TgtSize*2) * lineHeight * k
+	case prefs.DisplaySrc:
+		h = float32(p.SrcSize*2) * lineHeight * k
 	}
 	if boxed && p.Style == 0 {
 		h += 12 * k // the caption band's padding
@@ -246,11 +256,14 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 			}
 			lines.Children(func() {
 				src := func() {
-					if e.Src == "" || p.Display != 0 {
+					if e.Src == "" || p.Display == prefs.DisplayTgt {
 						return
 					}
 					text, col := e.Src, hex(p.SrcColor, ui.RGBA(255, 255, 255, 1))
 					n := 2
+					if p.Display == prefs.DisplaySrc && age == 0 {
+						n = 3 // the newest, as its translation would have
+					}
 					if e.Pending {
 						// Still being recognized: one line that rolls, as live captions do, rather
 						// than a second line opening and filling word by word.
@@ -260,7 +273,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					line(c, p, text, float32(p.SrcSize)*k, col, n)
 				}
 				tgt := func() {
-					if e.Tgt == "" {
+					if e.Tgt == "" || p.Display == prefs.DisplaySrc {
 						return
 					}
 					n := 2

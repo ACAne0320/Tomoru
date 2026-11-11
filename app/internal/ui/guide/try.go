@@ -89,6 +89,9 @@ func (g *Guide) tryStep(c *ui.Context, showing bool) {
 		g.try.translated = g.try.translated || l.Tgt != "" && l.Err == nil || l.Draft != ""
 	}
 	g.try.translated = g.try.translated || st.Draft != ""
+	if !k.Preferences().Translates() { // the original only, as chosen before the guide ran again
+		g.try.translated = g.try.recognized
+	}
 	g.flowing(now, subtitle.Visible(st, max(k.Since, g.try.after+1), k.Preferences()))
 	if g.try.recognized && !recognized {
 		g.try.recognizedAt = now

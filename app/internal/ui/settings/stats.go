@@ -41,10 +41,11 @@ var statsSpans = [...]int{7, 30, 0}
 // monthly is the most days the chart of all of them shows a bar each of: more, it shows months.
 const monthly = 45
 
-// statsKind is a kind of engine the page shows the use of, as Screen Time shows apps': what an
-// engine of it is, the value the chart stacks and the list ranks by, how it says that value, and
-// what else an engine did.
+// statsKind is a kind of engine the page shows the use of, as Screen Time shows apps': the uses it
+// has, what an engine of it is, the value the chart stacks and the list ranks by, how it says that
+// value, and what else an engine did.
 type statsKind struct {
+	has      func(usage.Use) bool
 	id       func(usage.Use) string
 	value    func(usage.Counts) float64
 	tick     func(float64) string // a value on the chart's axis
@@ -55,6 +56,8 @@ type statsKind struct {
 // statsKinds are recognition, by the hours it listened, and translation, by the lines.
 var statsKinds = [...]statsKind{
 	{
+		// Pictures are translated with no recognizer: no recognizer's row.
+		has:      func(u usage.Use) bool { return u.ASR != "" || u.Run > 0 },
 		id:       func(u usage.Use) string { return u.ASR },
 		value:    func(n usage.Counts) float64 { return n.Run / 3600 },
 		tick:     func(v float64) string { return locales.Hours(kit.Number(v)) },
@@ -62,6 +65,8 @@ var statsKinds = [...]statsKind{
 		describe: asrUse,
 	},
 	{
+		// Subtitles of the original only had no translator.
+		has:      func(u usage.Use) bool { return !u.Untranslated },
 		id:       func(u usage.Use) string { return u.MT },
 		value:    func(n usage.Counts) float64 { return float64(n.Lines) },
 		tick:     func(v float64) string { return locales.HistoryLines(int(v)) },
@@ -92,19 +97,21 @@ func (s *Settings) stats(c *ui.Context) {
 	}
 	now := time.Now()
 	buckets, byMonth := statsBuckets(ledger, statsSpans[e.span], now)
-	var total usage.Counts
+	kind := statsKinds[e.kind]
+	all := func(usage.Use) bool { return true }
+	// The latencies are of all; the rest of the uses of the kind.
+	var total, kindTotal usage.Counts
 	var uses []usage.Use
 	for _, b := range buckets {
 		for _, d := range b.days {
 			total.Add(d.Total())
+			kindTotal.Add(d.TotalOf(kind.has))
 			uses = append(uses, d.Uses...)
 		}
 	}
-	before, compared := statsBefore(ledger, statsSpans[e.span], now)
-	kind := statsKinds[e.kind]
-	if e.kind == 0 { // pictures were translated with no recognizer: no recognizer's row
-		uses = slices.DeleteFunc(uses, func(u usage.Use) bool { return u.ASR == "" && u.Run == 0 })
-	}
+	before, compared := statsBefore(ledger, statsSpans[e.span], now, all)
+	kindBefore, _ := statsBefore(ledger, statsSpans[e.span], now, kind.has)
+	uses = slices.DeleteFunc(uses, func(u usage.Use) bool { return !kind.has(u) })
 	engines := byEngine(uses, kind.id, kind.value)
 	colors := engineColors(p, engines, kind.id)
 	index := map[string]int{}
@@ -118,9 +125,9 @@ func (s *Settings) stats(c *ui.Context) {
 	}, func(c *ui.Context) ui.Element { return kit.Card(c).Gap(0) }, func() {
 		var was *usage.Counts
 		if compared {
-			was = &before
+			was = &kindBefore
 		}
-		statsTotal(c, e.kind, total, statsDays(ledger, statsSpans[e.span], now), was, statsSpans[e.span]).Margin(0, 0, kit.Space(4), 0)
+		statsTotal(c, e.kind, kindTotal, statsDays(ledger, statsSpans[e.span], now), was, statsSpans[e.span]).Margin(0, 0, kit.Space(4), 0)
 		ens := make([]engineUse, len(engines))
 		for j, u := range engines {
 			ens[j] = kind.describe(u)
@@ -134,7 +141,9 @@ func (s *Settings) stats(c *ui.Context) {
 			sums := make([]float64, len(engines))
 			for _, d := range b.days {
 				for _, u := range d.Uses {
-					sums[index[kind.id(u)]] += kind.value(u.Counts)
+					if kind.has(u) {
+						sums[index[kind.id(u)]] += kind.value(u.Counts)
+					}
 				}
 			}
 			bar := kit.Bar{Label: b.label}
@@ -264,7 +273,7 @@ func change(now, then float64) string {
 
 // statsBefore are the numbers of the span days before the last span days: for comparing, if
 // anything was done then; nothing for all of them, span 0.
-func statsBefore(l usage.Ledger, span int, now time.Time) (sum usage.Counts, ok bool) {
+func statsBefore(l usage.Ledger, span int, now time.Time, has func(usage.Use) bool) (sum usage.Counts, ok bool) {
 	if span == 0 {
 		return sum, false
 	}
@@ -275,7 +284,7 @@ func statsBefore(l usage.Ledger, span int, now time.Time) (sum usage.Counts, ok 
 		if err != nil || t.Before(from) || t.After(to) {
 			continue
 		}
-		sum.Add(d.Total())
+		sum.Add(d.TotalOf(has))
 		ok = true
 	}
 	return sum, ok

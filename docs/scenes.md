@@ -137,7 +137,8 @@ The list and contents are read in the background.
   reliance on `response_format`: the JSON is cut out of the reply.
 - **Retranslating**: only sentences the glossary matches are retranslated, the rest stay; the
   original is rewritten with the glossary and translated with the entries, with the current
-  translation engine, and written back to the file.
+  translation engine, and written back to the file. A session whose subtitles showed the original
+  only just has its names written right: nothing is translated, and no engine is needed for it.
 
 ## Later, maybe
 

@@ -83,6 +83,7 @@ func TestGallery(t *testing.T) {
 		{"home", 1000, func() { s.Tab = "home" }},
 		{"subtitles", 1300, func() { s.Tab = "subtitles" }},
 		{"subtitles-tgt-only", 1300, func() { k.Prefs.Display = 1 }},
+		{"subtitles-src-only", 1300, func() { k.Prefs.Display = prefs.DisplaySrc }},
 		{"subtitles-custom", 1500, func() { k.Prefs.Display, k.Prefs.SrcColor, k.Prefs.TgtColor = 0, "#ffec8c", "#7fdbff" }},
 		{"engines", 1900, func() {
 			s.Tab, s.shown[core.ASR], s.shown[core.MT] = "engines", "Qwen3-ASR", "Index-Translate"

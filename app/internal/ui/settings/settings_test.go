@@ -1026,6 +1026,28 @@ func TestOrder(t *testing.T) {
 	}
 }
 
+// TestOriginalOnly shows the original alone, which says nothing is translated, and greys what
+// only the translation has.
+func TestOriginalOnly(t *testing.T) {
+	k := coretest.New()
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	if err := tt.Click(locales.DisplaySrc()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if k.Prefs.Display != prefs.DisplaySrc || k.Prefs.Translates() || !tt.HasText(locales.DisplaySrcDesc()) {
+		t.Errorf("display %d, texts %q", k.Prefs.Display, tt.Texts())
+	}
+	if err := tt.Click(locales.OrderTgtFirst()); err != nil {
+		t.Fatal(err)
+	}
+	if k.Prefs.TgtFirst {
+		t.Error("the order changed with the original only")
+	}
+}
+
 // TestSizeOff drags the original's size, which a click on its slider changes, and with the
 // translation only, does not.
 func TestSizeOff(t *testing.T) {

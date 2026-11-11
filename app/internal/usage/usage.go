@@ -170,6 +170,9 @@ type Engines struct {
 	MT       string `json:"mt"`
 	MTName   string `json:"mtName,omitempty"`  // an endpoint's name
 	MTModel  string `json:"mtModel,omitempty"` // an endpoint's model
+	// Untranslated is subtitles that showed the original alone: no translator, MT "", and their
+	// lines not translated.
+	Untranslated bool `json:"untranslated,omitempty"`
 }
 
 // Use is what translating did with some engines.
@@ -185,10 +188,15 @@ type Day struct {
 }
 
 // Total is the day's counts, whatever the engines.
-func (d Day) Total() Counts {
+func (d Day) Total() Counts { return d.TotalOf(func(Use) bool { return true }) }
+
+// TotalOf is the day's counts of the uses has keeps.
+func (d Day) TotalOf(has func(Use) bool) Counts {
 	var c Counts
 	for _, u := range d.Uses {
-		c.Add(u.Counts)
+		if has(u) {
+			c.Add(u.Counts)
+		}
 	}
 	return c
 }

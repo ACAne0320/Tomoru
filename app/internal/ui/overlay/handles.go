@@ -170,7 +170,7 @@ func (o *Overlay) sceneMenu(c *ui.Context) {
 	}
 	b.Children(func() {
 		ui.Text(c, name).FontSize(13).Bold().MaxLines(1).MaxWidth(160)
-		ui.Text(c, shared.Langs(pr.Src, pr.Tgt)+" ▾").FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
+		ui.Text(c, shared.LangsOf(pr)+" ▾").FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
 	})
 	b.Menu(shared.SceneMenu(k, true, func() { o.nav.ShowSettingsPage("scenes") }))
 }

@@ -79,7 +79,9 @@ than "file does not exist" are reported to the caller.
 Nothing that keeps a full record may infer from it whether a sentence has finished.
 
 `Config.OnLine` receives every `LineEvent`: committed, progress and completed. Every committed ID
-gets exactly one final result, including when translation falls behind or is cancelled. Callbacks
+gets exactly one final result, including when translation falls behind or is cancelled. With no
+translator (`Config.Translator` nil: the subtitles show the original only) it is final as it is
+committed, with no translation and no error, and nothing is drafted, queued or warmed. Callbacks
 are dispatched in order and must return quickly. A newer ID may finish first, when the queue
 overflows or sentences are translated at once (`Config.Parallel`, the cloud's three): consumers
 that write an ordered record sort by ID and wait for the sentence before.

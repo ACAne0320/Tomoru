@@ -158,6 +158,7 @@ func TestStats(t *testing.T) {
 // TestStatsBefore sums the days of the period before, and only those, to compare with; and says
 // how much more or less.
 func TestStatsBefore(t *testing.T) {
+	all := func(usage.Use) bool { return true }
 	now := time.Date(2026, 10, 21, 20, 0, 0, 0, time.Local)
 	var l usage.Ledger
 	l.Add("2026-10-21", usage.Engines{}, usage.Counts{Lines: 1}) // this week
@@ -165,13 +166,13 @@ func TestStatsBefore(t *testing.T) {
 	l.Add("2026-10-14", usage.Engines{}, usage.Counts{Lines: 4}) // the week before: its last day
 	l.Add("2026-10-08", usage.Engines{}, usage.Counts{Lines: 8}) // its first day
 	l.Add("2026-10-07", usage.Engines{}, usage.Counts{Lines: 16})
-	if sum, ok := statsBefore(l, 7, now); !ok || sum.Lines != 12 {
+	if sum, ok := statsBefore(l, 7, now, all); !ok || sum.Lines != 12 {
 		t.Errorf("the week before: %d lines, %v", sum.Lines, ok)
 	}
-	if _, ok := statsBefore(l, 0, now); ok {
+	if _, ok := statsBefore(l, 0, now, all); ok {
 		t.Error("before all of them")
 	}
-	if _, ok := statsBefore(l, 30, now.AddDate(0, 0, -14)); ok {
+	if _, ok := statsBefore(l, 30, now.AddDate(0, 0, -14), all); ok {
 		t.Error("before the first day")
 	}
 	for _, c := range []struct {
@@ -280,5 +281,31 @@ func TestStatsImages(t *testing.T) {
 	tt.Frame()
 	if !hasTextContaining(tt, locales.ImageTitle()+" "+locales.UseImages(4)) || !tt.HasText(locales.UseImages(4)) || tt.HasText(locales.EngineUnknown()) {
 		t.Errorf("texts %q", tt.Texts())
+	}
+}
+
+// TestStatsUntranslated counts subtitles of the original only as listening, and not as lines
+// translated, nor as a translator of no name.
+func TestStatsUntranslated(t *testing.T) {
+	now := time.Now()
+	var l usage.Ledger
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "cloud"}, usage.Counts{Run: 3600, Lines: 120, Chars: 1500})
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", Untranslated: true}, usage.Counts{Run: 1800, Lines: 50})
+	s := New(statsCore(t, l), &coretest.Nav{})
+	s.Tab = "stats"
+	tt := ui.NewTester(s.View, Width, 1400)
+	if err := tt.Click(locales.EnginesAsr()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText("1.5") || !tt.HasText(locales.EngineApple()) {
+		t.Errorf("listening: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.EnginesMt()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(kit.Count(120)) || tt.HasText(kit.Count(170)) || tt.HasText(locales.EngineUnknown()) {
+		t.Errorf("translation: %q", tt.Texts())
 	}
 }

@@ -1,5 +1,5 @@
 // Package live is a translating session: the engine's results go through the segmenter, and each
-// segment through the translator, into the lines the subtitles show.
+// segment through the translator, if there is one, into the lines the subtitles show.
 package live
 
 import (
@@ -26,7 +26,7 @@ type Line struct {
 	// Heard is Src as recognized, when the glossary wrote a name in it right.
 	Heard string
 	Tgt   string
-	Done  bool  // translation finished, failed, was skipped, or was canceled
+	Done  bool  // translation finished, failed, was skipped, or was canceled; or none was to be done
 	Err   error // why it has no translation: the translator's error, ErrBehind or context.Canceled
 	// Draft is the translation of the sentence while it was being spoken. A translation streaming
 	// in starts shorter than the draft it replaces, so the draft shows until Done.
@@ -91,10 +91,12 @@ type Config struct {
 	FinalsEnd bool
 	// Hint tells a recognizer in the engine when to make its result final, as each of the engine's
 	// events comes (asr.Spec's Hint): Apple's. Nil for none.
-	Hint       func(engine.Event) (through float64, ok bool)
-	Src, Tgt   string // languages, of lang.All
-	App        string // the app to hear, "" for the whole system
-	File       string // a recording to hear instead, at its pace, for benchmarks
+	Hint     func(engine.Event) (through float64, ok bool)
+	Src, Tgt string // languages, of lang.All
+	App      string // the app to hear, "" for the whole system
+	File     string // a recording to hear instead, at its pace, for benchmarks
+	// Translator translates each sentence. Nil translates nothing: the session only recognizes, and
+	// each sentence is done as it is committed.
 	Translator translate.Translator
 	// Parallel is how many sentences may be translated at once, of those waiting; 0 is one. Each
 	// streams into its line, whatever the order they finish in.
@@ -340,12 +342,14 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 			st.Stats.InTokens, st.Stats.OutTokens = st.Stats.InTokens+u.In, st.Stats.OutTokens+u.Out
 		})
 	})
-	for range max(1, cfg.Parallel) {
-		s.workers.Add(1)
-		go func() {
-			defer s.workers.Done()
-			s.translateLoop()
-		}()
+	if cfg.Translator != nil {
+		for range max(1, cfg.Parallel) {
+			s.workers.Add(1)
+			go func() {
+				defer s.workers.Done()
+				s.translateLoop()
+			}()
+		}
 	}
 	s.warm()
 	go s.reportLoop()
@@ -497,13 +501,19 @@ func (s *Session) handle(ev engine.Event) {
 			}
 			s.active[q.ID] = activeLine{Line: q.Line, metadata: metadata}
 			s.emitLine(LineCommitted, q.Line, metadata)
-			select {
-			case s.queue <- q:
-				s.waitEnd(q.seq)
-			default: // translation is far behind: this line goes without
-				q.Done, q.Err = true, ErrBehind
+			if s.cfg.Translator == nil { // nothing to translate it with: it is done
+				q.Done = true
 				delete(s.active, q.ID)
 				s.emitLine(LineCompleted, q.Line, metadata)
+			} else {
+				select {
+				case s.queue <- q:
+					s.waitEnd(q.seq)
+				default: // translation is far behind: this line goes without
+					q.Done, q.Err = true, ErrBehind
+					delete(s.active, q.ID)
+					s.emitLine(LineCompleted, q.Line, metadata)
+				}
 			}
 			st.Lines = append(st.Lines, q.Line)
 			st.Stats.Lines++
@@ -538,7 +548,7 @@ func draftStep(code string) int {
 // maybeDraft starts translating the pending text when it has grown by a few words since the last
 // draft, one at a time and not more often than every 0.6 s. It runs under s.mu.
 func (s *Session) maybeDraft(st *State) {
-	if !s.cfg.Draft || s.ctx.Err() != nil {
+	if !s.cfg.Draft || s.cfg.Translator == nil || s.ctx.Err() != nil {
 		return
 	}
 	n := segment.Letters(st.Pending)

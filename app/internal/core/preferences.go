@@ -50,7 +50,7 @@ func (c *Core) UpdatePrefs(edit func(*prefs.Prefs)) {
 	if !next.History && before.History {
 		c.closeHistory()
 	}
-	if next.Src != before.Src || next.Tgt != before.Tgt || next.Source != before.Source || next.Draft != before.Draft || next.ASR != before.ASR || next.MT != before.MT {
+	if next.Src != before.Src || next.Tgt != before.Tgt || next.Source != before.Source || next.Draft != before.Draft || next.ASR != before.ASR || next.MT != before.MT || next.Translates() != before.Translates() {
 		c.RestartIfRunning()
 	}
 	if sceneID != before.Scene {

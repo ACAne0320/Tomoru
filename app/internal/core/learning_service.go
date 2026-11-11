@@ -221,8 +221,8 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 	r.Terms = cloneTerms(r.Terms)
 	s.Retranslating = Retranslating{Running: true}
 	defer s.notify()
-	if r.Err != nil || r.Ready == nil {
-		s.Retranslating = Retranslating{Finished: true, Err: r.Err}
+	if r.Err == nil && r.Ready == nil { // the scene is gone
+		s.Retranslating = Retranslating{Finished: true}
 		return
 	}
 	op := newLearningOperation(s.work.ctx)
@@ -230,14 +230,6 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 	glossary := scene.NewGlossary(r.Terms)
 	s.work.Go(func() {
 		defer op.cancel()
-		tr, err := r.Ready(op.ctx)
-		if op.ctx.Err() != nil {
-			return
-		}
-		if err != nil {
-			s.postRetranslating(op, func(v *Retranslating) { v.Running, v.Finished, v.Err = false, true, err })
-			return
-		}
 		type session struct {
 			path    string
 			head    history.Head
@@ -245,7 +237,7 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 		}
 		var sessions []session
 		var failed error
-		total := 0
+		total, translates := 0, false
 		for _, path := range r.Paths {
 			if op.ctx.Err() != nil {
 				return
@@ -257,11 +249,28 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 				continue
 			}
 			for _, entry := range entries {
-				if _, terms := glossary.Apply(heard(entry)); len(terms) > 0 {
+				if fix(glossary, entry, head) {
 					total++
+					translates = translates || !head.Untranslated
 				}
 			}
 			sessions = append(sessions, session{path: path, head: head, entries: entries})
+		}
+		// A session that showed the original alone only takes the names written right: the
+		// translator gets ready only for those translated.
+		var tr translate.Translator
+		if translates {
+			err := r.Err
+			if err == nil {
+				tr, err = r.Ready(op.ctx)
+			}
+			if op.ctx.Err() != nil {
+				return
+			}
+			if err != nil {
+				s.postRetranslating(op, func(v *Retranslating) { v.Running, v.Finished, v.Err = false, true, err })
+				return
+			}
 		}
 		s.postRetranslating(op, func(v *Retranslating) { v.Total = total })
 		written := 0
@@ -271,16 +280,20 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 				if op.ctx.Err() != nil {
 					return
 				}
-				raw := heard(entry)
-				src, terms := glossary.Apply(raw)
-				if len(terms) == 0 {
+				if !fix(glossary, entry, session.head) {
 					continue
 				}
-				out, err := tr.Translate(op.ctx, translate.Request{Src: session.head.Src, Tgt: session.head.Tgt, Text: src, Terms: terms}, nil)
+				raw := heard(entry)
+				src, terms := glossary.Apply(raw)
+				var out string
+				var err error
+				if !session.head.Untranslated {
+					out, err = tr.Translate(op.ctx, translate.Request{Src: session.head.Src, Tgt: session.head.Tgt, Text: src, Terms: terms}, nil)
+				}
 				if op.ctx.Err() != nil {
 					return
 				}
-				if err == nil && out != "" {
+				if err == nil && (out != "" || session.head.Untranslated) {
 					x := &session.entries[i]
 					x.Src, x.Tgt, x.Err, x.Heard = src, out, "", ""
 					if src != raw {
@@ -354,6 +367,16 @@ func chunk(entries []history.Entry) [][]learn.Line {
 		out = append(out, current)
 	}
 	return out
+}
+
+// fix tells whether the glossary changes a line of a session: its translation, or, where nothing
+// was translated, the names written in it.
+func fix(g *scene.Glossary, entry history.Entry, head history.Head) bool {
+	src, terms := g.Apply(heard(entry))
+	if head.Untranslated {
+		return src != entry.Src
+	}
+	return len(terms) > 0
 }
 
 func heard(entry history.Entry) string {

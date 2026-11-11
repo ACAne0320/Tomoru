@@ -28,6 +28,14 @@ const DefaultShortcut = "Alt+Shift+T"
 // DefaultImageShortcut is the shortcut that translates a picture at first: Option-Shift-S.
 const DefaultImageShortcut = "Alt+Shift+S"
 
+// What the subtitles show (Prefs.Display): the original and its translation, the translation
+// alone, or the original alone, which nothing translates.
+const (
+	DisplayBoth = iota
+	DisplayTgt
+	DisplaySrc
+)
+
 // Prefs are the settings.
 type Prefs struct {
 	Onboarded        bool
@@ -35,7 +43,7 @@ type Prefs struct {
 	Src, Tgt         string  // language codes, of lang.All
 	Source           string  // the app to hear, by bundle ID; "" for all the system's sound
 	SourceName       string  // its name, to show while it is not running
-	Display          int     // 0: source and translation, 1: translation only
+	Display          int     // DisplayBoth, DisplayTgt or DisplaySrc
 	TgtFirst         bool    // the translation above the source
 	Shown            float64 // sentences shown at once, MaxShown at most
 	Style            int     // 0: on a dark box (closed captions), 1: immersive, the text alone
@@ -133,6 +141,9 @@ type ASRCloud struct {
 	Key   bool
 }
 
+// Translates tells whether the subtitles are translated: not when they show the original alone.
+func (p Prefs) Translates() bool { return p.Display != DisplaySrc }
+
 // APIs are the cloud services the user set up, of both kinds.
 func (p *Prefs) APIs() []Service { return slices.Concat(p.ASRAPIs, p.MTAPIs) }
 
@@ -226,6 +237,9 @@ func (p *Prefs) Normalize(d Prefs) { p.fix(d) }
 
 func (p *Prefs) fix(d Prefs) {
 	p.Shown = min(max(p.Shown, 1), MaxShown)
+	if p.Display < DisplayBoth || p.Display > DisplaySrc {
+		p.Display = d.Display
+	}
 	if !lang.Known(p.Src) || !lang.Known(p.Tgt) || p.Src == p.Tgt {
 		p.Src, p.Tgt = d.Src, d.Tgt
 	}

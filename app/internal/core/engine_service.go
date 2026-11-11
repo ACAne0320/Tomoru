@@ -223,7 +223,9 @@ func (s *EngineService) testAPI(test string, a prefs.Service, key string) {
 	}, nil)
 }
 
-func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis []prefs.Service) (func(context.Context) (translate.Translator, error), bool, error) {
+// translator says how to get the translator of engine id ready, as Core.translator does. One that
+// runs no local model gives llama-server's memory back, unless keepServer: a picture uses it.
+func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis []prefs.Service, keepServer bool) (func(context.Context) (translate.Translator, error), bool, error) {
 	if m, ok := models.ByID(id); ok {
 		if s.models != nil && s.models.Moving().Active {
 			return nil, true, ErrModelsMoving
@@ -240,11 +242,7 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis [
 			return tr, nil
 		}, true, nil
 	}
-	stop := func() {
-		if s.server != nil {
-			s.server.Stop()
-		}
-	}
+	stop := func() { s.freeServer(keepServer) }
 	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
@@ -269,6 +267,22 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis [
 		tr.Model = size.Model
 	}
 	return func(context.Context) (translate.Translator, error) { stop(); return tr, nil }, false, nil
+}
+
+// noTranslator is how the subtitles get ready when they show the original alone: with no
+// translator, and llama-server's memory back unless keepServer, as translator does.
+func (s *EngineService) noTranslator(keepServer bool) func(context.Context) (translate.Translator, error) {
+	return func(context.Context) (translate.Translator, error) {
+		s.freeServer(keepServer)
+		return nil, nil
+	}
+}
+
+// freeServer stops llama-server, which gives its memory back, unless keep.
+func (s *EngineService) freeServer(keep bool) {
+	if s.server != nil && !keep {
+		s.server.Stop()
+	}
 }
 
 // imageEndpoint says how to get the endpoint that translates pictures with engine id ready, as

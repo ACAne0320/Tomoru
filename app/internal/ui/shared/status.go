@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
+	"tomoru/internal/prefs"
 	"tomoru/internal/ui/kit"
 	"tomoru/locales"
 )
@@ -73,6 +74,15 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 // Langs is a pair of languages as menus show them: 日语 → 中文.
 func Langs(src, tgt string) string { return LangName(src) + " → " + LangName(tgt) }
 
+// LangsOf is the languages of the subtitles as p has them: the spoken one alone when they show
+// the original only.
+func LangsOf(p prefs.Prefs) string {
+	if !p.Translates() {
+		return LangName(p.Src)
+	}
+	return Langs(p.Src, p.Tgt)
+}
+
 // CurrentSceneName is the name of the scene in use.
 func CurrentSceneName(k *core.Core) string {
 	if sc, ok := k.SceneByID(k.Preferences().Scene); ok {
@@ -91,7 +101,7 @@ func SceneMenu(k *core.Core, languages bool, manage func()) func(m *ui.Menu) {
 		for _, sc := range k.SceneList() {
 			label := SceneName(sc)
 			if sc.ID == p.Scene {
-				label += " · " + Langs(p.Src, p.Tgt)
+				label += " · " + LangsOf(p)
 			} else if sc.Src != "" && sc.Tgt != "" {
 				label += " · " + Langs(sc.Src, sc.Tgt)
 			}
@@ -102,8 +112,8 @@ func SceneMenu(k *core.Core, languages bool, manage func()) func(m *ui.Menu) {
 		if languages {
 			m.Separator()
 			m.Submenu(locales.SpokenLanguage(), kit.Choices(p.Src, LangChoices(k.SourceLangs()), LangName, k.SetSrc))
-			m.Submenu(locales.TranslateInto(), kit.Choices(p.Tgt, LangChoices(k.TargetLangs()), LangName, k.SetTgt))
-			if m.Item(locales.SwapLanguages()).Disabled(!k.CanSwap()).Chosen() {
+			m.Submenu(locales.TranslateInto(), kit.Choices(p.Tgt, LangChoices(k.TargetLangs()), LangName, k.SetTgt)).Disabled(!p.Translates())
+			if m.Item(locales.SwapLanguages()).Disabled(!k.CanSwap() || !p.Translates()).Chosen() {
 				k.Swap()
 			}
 		}

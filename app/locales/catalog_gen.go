@@ -1069,6 +1069,34 @@ func (msgs Messages) DisplayTgt() string {
 	return Catalog.Format(msgs.locale, "displayTgt", nil)
 }
 
+// DisplaySrc says "Original only"
+// in the language the app shows.
+//
+// The subtitles show the original alone, and nothing is translated.
+func DisplaySrc() string { return In(i18n.Locale()).DisplaySrc() }
+
+// DisplaySrc says "Original only"
+// in the language of msgs.
+//
+// The subtitles show the original alone, and nothing is translated.
+func (msgs Messages) DisplaySrc() string {
+	return Catalog.Format(msgs.locale, "displaySrc", nil)
+}
+
+// DisplaySrcDesc says "Nothing is translated."
+// in the language the app shows.
+//
+// Under what the subtitles show, with the original only.
+func DisplaySrcDesc() string { return In(i18n.Locale()).DisplaySrcDesc() }
+
+// DisplaySrcDesc says "Nothing is translated."
+// in the language of msgs.
+//
+// Under what the subtitles show, with the original only.
+func (msgs Messages) DisplaySrcDesc() string {
+	return Catalog.Format(msgs.locale, "displaySrcDesc", nil)
+}
+
 // ShownLabel says "Sentences at once"
 // in the language the app shows.
 //
@@ -1705,36 +1733,36 @@ func (msgs Messages) NoticePaused(keys string) string {
 	return Catalog.Format(msgs.locale, "noticePaused", map[string]any{"keys": keys})
 }
 
-// NoticeStatus says "{status} · {from} → {to}"
+// NoticeStatus says "{status} · {langs}"
 // in the language the app shows.
 //
 // Where the subtitles show, while translating gets ready.
-func NoticeStatus(status string, from string, to string) string {
-	return In(i18n.Locale()).NoticeStatus(status, from, to)
+func NoticeStatus(status string, langs string) string {
+	return In(i18n.Locale()).NoticeStatus(status, langs)
 }
 
-// NoticeStatus says "{status} · {from} → {to}"
+// NoticeStatus says "{status} · {langs}"
 // in the language of msgs.
 //
 // Where the subtitles show, while translating gets ready.
-func (msgs Messages) NoticeStatus(status string, from string, to string) string {
-	return Catalog.Format(msgs.locale, "noticeStatus", map[string]any{"status": status, "from": from, "to": to})
+func (msgs Messages) NoticeStatus(status string, langs string) string {
+	return Catalog.Format(msgs.locale, "noticeStatus", map[string]any{"status": status, "langs": langs})
 }
 
-// NoticeListening says "Listening · {from} → {to} · {keys} to stop"
+// NoticeListening says "Listening · {langs} · {keys} to stop"
 // in the language the app shows.
 //
 // Where the subtitles show, for a few seconds after listening starts.
-func NoticeListening(from string, to string, keys string) string {
-	return In(i18n.Locale()).NoticeListening(from, to, keys)
+func NoticeListening(langs string, keys string) string {
+	return In(i18n.Locale()).NoticeListening(langs, keys)
 }
 
-// NoticeListening says "Listening · {from} → {to} · {keys} to stop"
+// NoticeListening says "Listening · {langs} · {keys} to stop"
 // in the language of msgs.
 //
 // Where the subtitles show, for a few seconds after listening starts.
-func (msgs Messages) NoticeListening(from string, to string, keys string) string {
-	return Catalog.Format(msgs.locale, "noticeListening", map[string]any{"from": from, "to": to, "keys": keys})
+func (msgs Messages) NoticeListening(langs string, keys string) string {
+	return Catalog.Format(msgs.locale, "noticeListening", map[string]any{"langs": langs, "keys": keys})
 }
 
 // NoticeReady says "Tomoru is ready · press {keys} to translate"
@@ -4103,6 +4131,22 @@ func StatLines() string { return In(i18n.Locale()).StatLines() }
 // A number of the home page: the sentences translated.
 func (msgs Messages) StatLines() string {
 	return Catalog.Format(msgs.locale, "statLines", nil)
+}
+
+// StatHeard says "Heard"
+// in the language the app shows.
+//
+// A number of the home page, in place of statLines while the subtitles show
+// the original only: the sentences heard.
+func StatHeard() string { return In(i18n.Locale()).StatHeard() }
+
+// StatHeard says "Heard"
+// in the language of msgs.
+//
+// A number of the home page, in place of statLines while the subtitles show
+// the original only: the sentences heard.
+func (msgs Messages) StatHeard() string {
+	return Catalog.Format(msgs.locale, "statHeard", nil)
 }
 
 // UnitLines says "lines"
