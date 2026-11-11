@@ -50,8 +50,8 @@ func (s *Settings) scenes(c *ui.Context) {
 			then = func() { e.scene, e.adding = k.AddScene(""), false }
 		}
 	})
-	ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Wrap().Children(func() {
-		ui.Column(c).Grow(1).Basis(260).MaxWidth(280).Gap(kit.CardGap).Children(func() {
+	ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Children(func() {
+		ui.Column(c).Grow(1).Basis(0).MinWidth(0).MaxWidth(280).Gap(kit.CardGap).Children(func() {
 			list := k.SceneList()
 			items := make([]kit.ListItem, len(list))
 			for i, sc := range list {
@@ -81,7 +81,7 @@ func (s *Settings) scenes(c *ui.Context) {
 			}
 		})
 		sc, _ := k.SceneByID(e.scene)
-		kit.Card(c).Grow(999).Basis(440).MinWidth(0).Gap(kit.Space(4)).Children(func() {
+		kit.Card(c).Grow(2).Basis(0).MinWidth(0).Gap(kit.Space(4)).Children(func() {
 			if f := s.sceneDetail(c, sc); f != nil {
 				then = f
 			}
@@ -153,9 +153,9 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 			current := k.Preferences()
 			src, tgt, setSrc, setTgt = current.Src, current.Tgt, k.SetSrc, k.SetTgt
 		}
-		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SourceLangs()), shared.LangName, setSrc)).Label(locales.SpokenLanguage())
+		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SourceLangs()), shared.LangName, setSrc)).Label(locales.SpokenLanguage()).Shrink(1)
 		ui.Icon(c, assets.Arrow).FontSize(kit.TextBody).TextColor(p.InkWarm)
-		kit.Picker(c, shared.LangName(tgt), kit.Choices(tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, setTgt)).Label(locales.TranslateInto())
+		kit.Picker(c, shared.LangName(tgt), kit.Choices(tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, setTgt)).Label(locales.TranslateInto()).Shrink(1)
 	})
 	if id != "" {
 		ui.Column(c).Gap(kit.Space(2)).Children(func() {

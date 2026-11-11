@@ -106,9 +106,9 @@ func (s *Settings) history(c *ui.Context) {
 		if k.History.Shown != e.record {
 			k.ShowHistory(e.record)
 		}
-		ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Wrap().Children(func() {
+		ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Children(func() {
 			s.records(c, shown)
-			kit.Card(c).Grow(999).Basis(420).MinWidth(0).Children(func() {
+			kit.Card(c).Grow(3).Basis(0).MinWidth(0).Children(func() {
 				s.record(c, shown[at])
 			})
 		})
@@ -128,7 +128,7 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 			items[i].Head, last = d, d
 		}
 	}
-	kit.OptionsCard(c).Grow(1).Basis(300).MaxWidth(320).Children(func() {
+	kit.OptionsCard(c).Grow(2).Basis(0).MinWidth(0).MaxWidth(320).Children(func() {
 		if i := kit.List(c, items); i >= 0 {
 			e.record = shown[i].Path
 		}
