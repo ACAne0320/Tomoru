@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.7
+
+Subtitles can show the original alone, for streams in a language you already understand: nothing
+is translated then. Scenes and History keep their details in sight in a narrow window.
+
+### New
+
+- Subtitle style › Show › Original only: the subtitles show what is said, and nothing is
+  translated. No request goes out and no translation model loads, so it starts even with no
+  translation engine set up. Home, the menu bar panel and the subtitles say "Start subtitles"
+  and "Showing subtitles" then, not translating. ([#25](https://github.com/ACAne0320/Tomoru/pull/25))
+
+### Improved
+
+- History lists sessions of the original only by the language spoken, and writes the names right
+  in them without translating. Statistics count their lines as heard, not translated.
+  ([#25](https://github.com/ACAne0320/Tomoru/pull/25))
+- Starting subtitles no longer stops a picture being translated on your device.
+  ([#25](https://github.com/ACAne0320/Tomoru/pull/25))
+- A session stopped by an error says "Stopped", not "Translation stopped".
+  ([#25](https://github.com/ACAne0320/Tomoru/pull/25))
+
+### Fixed
+
+- In a narrow window, Scenes and History put a scene's or a session's details under the list, out
+  of sight. They stay side by side now. ([#26](https://github.com/ACAne0320/Tomoru/pull/26))
+
 ## 0.1.6
 
 Index-Translate's cloud works again. Its service changed on November 10, and since then every
