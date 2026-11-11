@@ -17,9 +17,9 @@
   "@statusNoPermission": {
     "description": "Where the subtitles show, when the System Audio Recording permission is off. Name the settings as System Settings does in the language."
   },
-  "statusStopped": "Translation stopped: {reason}",
+  "statusStopped": "Stopped: {reason}",
   "@statusStopped": {
-    "description": "Where the subtitles show, when translating stopped on an error.",
+    "description": "Where the subtitles show, when they stopped on an error, translated or not.",
     "placeholders": {
       "reason": {
         "type": "String",
@@ -126,6 +126,10 @@
   "autoStart": "Start translating when Tomoru opens",
   "@autoStart": {
     "description": "A setting's name."
+  },
+  "autoStartSubtitles": "Start subtitles when Tomoru opens",
+  "@autoStartSubtitles": {
+    "description": "autoStart, while the subtitles show the original only."
   },
   "hideFromCapture": "Hide subtitles from screen recording",
   "@hideFromCapture": {
@@ -309,6 +313,10 @@
   "@displayTgt": {
     "description": "The subtitles show the translation alone."
   },
+  "displaySrc": "Original only",
+  "@displaySrc": {
+    "description": "The subtitles show the original alone, and nothing is translated."
+  },
   "shownLabel": "Sentences at once",
   "@shownLabel": {
     "description": "Label of how many sentences show at once."
@@ -477,9 +485,17 @@
   "@pause": {
     "description": "Tooltip of the subtitles' toolbar."
   },
+  "pauseSubtitles": "Pause",
+  "@pauseSubtitles": {
+    "description": "The overlay's pause button, while the subtitles show the original only."
+  },
   "startTranslating": "Start translating",
   "@startTranslating": {
     "description": "Button, and tooltip of the subtitles' toolbar."
+  },
+  "startSubtitles": "Start subtitles",
+  "@startSubtitles": {
+    "description": "The button that starts, in place of startTranslating, while the subtitles show the original only."
   },
   "lockTooltip": "Lock: only the text stays, and clicks go through",
   "@lockTooltip": {
@@ -513,7 +529,7 @@
       }
     }
   },
-  "noticeStatus": "{status} · {from} → {to}",
+  "noticeStatus": "{status} · {langs}",
   "@noticeStatus": {
     "description": "Where the subtitles show, while translating gets ready.",
     "placeholders": {
@@ -521,27 +537,19 @@
         "type": "String",
         "example": "Getting ready to listen…"
       },
-      "from": {
+      "langs": {
         "type": "String",
-        "example": "Japanese"
-      },
-      "to": {
-        "type": "String",
-        "example": "English"
+        "example": "Japanese → English"
       }
     }
   },
-  "noticeListening": "Listening · {from} → {to} · {keys} to stop",
+  "noticeListening": "Listening · {langs} · {keys} to stop",
   "@noticeListening": {
     "description": "Where the subtitles show, for a few seconds after listening starts.",
     "placeholders": {
-      "from": {
+      "langs": {
         "type": "String",
-        "example": "Japanese"
-      },
-      "to": {
-        "type": "String",
-        "example": "English"
+        "example": "Japanese → English"
       },
       "keys": {
         "type": "String",
@@ -559,9 +567,29 @@
       }
     }
   },
+  "noticeReadySubtitles": "Tomoru is ready · press {keys} for subtitles",
+  "@noticeReadySubtitles": {
+    "description": "noticeReady, while the subtitles show the original only.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
   "noticeStopped": "Stopped translating · {keys} to start again",
   "@noticeStopped": {
     "description": "Where the subtitles show, for a few seconds after translating stops.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "noticeStoppedSubtitles": "Stopped subtitles · {keys} to start again",
+  "@noticeStoppedSubtitles": {
+    "description": "noticeStopped, while the subtitles show the original only.",
     "placeholders": {
       "keys": {
         "type": "String",
@@ -576,6 +604,16 @@
   "sampleNoteIdle": "Sample subtitles · press {keys} to translate",
   "@sampleNoteIdle": {
     "description": "Over sample subtitles, while not translating.",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "⌥⇧T"
+      }
+    }
+  },
+  "sampleNoteIdleSubtitles": "Sample subtitles · press {keys} to start",
+  "@sampleNoteIdleSubtitles": {
+    "description": "sampleNoteIdle, while the subtitles show the original only.",
     "placeholders": {
       "keys": {
         "type": "String",
@@ -1421,13 +1459,25 @@
   "@homeTranslating": {
     "description": "The home page's title while translating."
   },
+  "homeSubtitling": "Showing subtitles",
+  "@homeSubtitling": {
+    "description": "The title while the subtitles show the original only, in place of homeTranslating."
+  },
   "homeIdle": "Not translating",
   "@homeIdle": {
     "description": "The home page's title while not translating."
   },
+  "homeSubtitlesOff": "Subtitles off",
+  "@homeSubtitlesOff": {
+    "description": "The title while not running and the subtitles show the original only, in place of homeIdle."
+  },
   "stopTranslating": "Stop translating",
   "@stopTranslating": {
     "description": "The home page's button while translating."
+  },
+  "stopSubtitles": "Stop subtitles",
+  "@stopSubtitles": {
+    "description": "The button that stops, in place of stopTranslating, while the subtitles show the original only."
   },
   "homeStats": "Numbers",
   "@homeStats": {
@@ -1444,6 +1494,10 @@
   "statLines": "Translated",
   "@statLines": {
     "description": "A number of the home page: the sentences translated."
+  },
+  "statHeard": "Heard",
+  "@statHeard": {
+    "description": "A number of the home page, in place of statLines while the subtitles show the original only: the sentences heard."
   },
   "unitLines": "lines",
   "@unitLines": {

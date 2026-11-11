@@ -11,6 +11,7 @@ import (
 	"tomoru/internal/core/coretest"
 	"tomoru/internal/engine"
 	"tomoru/internal/live"
+	"tomoru/internal/prefs"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
 	"tomoru/locales"
@@ -58,10 +59,22 @@ func TestNotice(t *testing.T) {
 	}
 	k.Start()
 	tt.Frame()
-	if !tt.HasText(locales.NoticeStatus(locales.StatusPreparing(), shared.LangName("ja"), shared.LangName("zh"))) {
+	if !tt.HasText(locales.NoticeStatus(locales.StatusPreparing(), shared.Langs("ja", "zh"))) {
 		t.Errorf("starting: %q", tt.Texts())
 	}
+	// With the original only, there is no language translated into to name.
+	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
+	tt.Frame()
+	if !tt.HasText(locales.NoticeStatus(locales.StatusPreparing(), shared.LangName("ja"))) {
+		t.Errorf("starting with the original only: %q", tt.Texts())
+	}
 	k.Stop()
+	k.NoteAt = time.Now()
+	tt.Frame()
+	if !tt.HasText(locales.NoticeStoppedSubtitles(keys)) {
+		t.Errorf("stopped with the original only: %q", tt.Texts())
+	}
+	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplayBoth })
 	k.Err = &engine.Error{Code: "no-permission"}
 	tt.Frame()
 	if !tt.HasText(locales.NoticeRetry(locales.StatusNoPermission(), keys)) {

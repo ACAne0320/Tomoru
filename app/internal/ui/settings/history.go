@@ -140,7 +140,11 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 // runs out.
 func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at string) kit.ListItem {
 	p := kit.Colors(c)
-	meta := []string{shared.LangName(r.Head.Src) + " → " + shared.LangName(r.Head.Tgt), locales.HistoryLines(r.Lines)}
+	langs := shared.Langs(r.Head.Src, r.Head.Tgt)
+	if r.Head.Untranslated {
+		langs = shared.LangName(r.Head.Src)
+	}
+	meta := []string{langs, locales.HistoryLines(r.Lines)}
 	if r.Head.App != "" {
 		meta = append(meta, r.Head.App)
 	}
@@ -189,32 +193,42 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 		for i, l := range lines {
 			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Padding(kit.Space(3), 0).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(func() {
 				ui.Text(c, l.At.Format("15:04:05")).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(56).Shrink(0)
-				ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() { line(c, l, terms) })
+				ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() { line(c, l, terms, r.Head.Untranslated) })
 			})
 		}
 	})
 }
 
 // line is a line kept: as heard, the names the glossary corrected marked, as terms, the scene's,
-// tell them; its translation; and what recognition heard of those names.
-func line(c *ui.Context, l history.Entry, terms []scene.Term) {
+// tell them; its translation; and what recognition heard of those names. Of a session untranslated,
+// the line as heard is all there is, and shows as a translation would.
+func line(c *ui.Context, l history.Entry, terms []scene.Term, untranslated bool) {
 	p := kit.Colors(c)
+	src := ui.Span{Size: kit.TextControl, Color: p.InkMuted}
+	if untranslated {
+		src = ui.Span{Size: kit.TextBody, Weight: kit.WeightMedium, Color: p.Ink}
+	}
 	var was []string
 	if l.Heard != "" && l.Heard != l.Src {
 		var marks []mark
 		marks, was = corrections(l.Src, l.Heard, terms)
 		spans := make([]ui.Span, len(marks))
 		for i, m := range marks {
-			spans[i] = ui.Span{Text: m.text, Size: kit.TextControl, Color: p.InkMuted}
+			spans[i] = src
+			spans[i].Text = m.text
 			if m.fixed {
 				spans[i].Weight, spans[i].Color, spans[i].Background, spans[i].Radius = kit.WeightBold, p.LanternText, p.LanternTint, kit.RadiusMark
 			}
 		}
 		ui.RichText(c, spans...)
 	} else {
-		ui.Text(c, l.Src).FontSize(kit.TextControl).TextColor(p.InkMuted)
+		t := ui.Text(c, l.Src).FontSize(src.Size).TextColor(src.Color)
+		if untranslated {
+			t.FontWeight(kit.WeightMedium)
+		}
 	}
 	switch {
+	case untranslated:
 	case l.Tgt != "":
 		ui.Text(c, l.Tgt).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.Ink)
 	case l.Err == live.ErrBehind.Error():

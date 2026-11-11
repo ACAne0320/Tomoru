@@ -21,7 +21,8 @@ func (c *Core) Toggle() {
 }
 
 // Start starts translating with the settings as they are. The translator gets ready first: a
-// local model loads in a few seconds, in the background.
+// local model loads in a few seconds, in the background. With the original alone there is none to
+// get ready, and no translation engine is asked for, nor needs setting up.
 func (c *Core) Start() {
 	if c.closed || c.work.ctx.Err() != nil {
 		return
@@ -45,10 +46,13 @@ func (c *Core) Start() {
 		c.SessionController.start(sessionRequest{Err: err})
 		return
 	}
-	ready, local, err := c.translator(c.Prefs.MT)
+	ready, local := c.EngineService.noTranslator(c.ImageService.usesServer()), false
+	if p.Translates() {
+		ready, local, err = c.translator(c.Prefs.MT)
+	}
 	c.syncHistoryPolicy()
 	record := c.HistoryService.begin()
-	cfg := live.Config{Now: c.now, Engine: bin, Recognize: recognize, Src: p.Src, Tgt: p.Tgt, App: p.Source, Draft: p.Draft, Terms: c.applyTerms}
+	cfg := live.Config{Now: c.now, Engine: bin, Recognize: recognize, Src: p.Src, Tgt: p.Tgt, App: p.Source, Draft: p.Draft && p.Translates(), Terms: c.applyTerms}
 	if spec, ok := asr.ByID(p.ASR); ok {
 		cfg.VolatileSentences, cfg.FinalsEnd = spec.VolatileSentences, spec.FinalsEnd
 		if spec.Hint != nil {
@@ -215,8 +219,8 @@ func (c *Core) Pause() {
 
 func (c *Core) stop() bool { return c.SessionController.stop() }
 
-// RestartIfRunning restarts translating, which takes its languages, source and drafting as it
-// starts.
+// RestartIfRunning restarts translating, which takes its languages, source, drafting and whether
+// it translates as it starts.
 func (c *Core) RestartIfRunning() {
 	if c.Running {
 		c.Start()

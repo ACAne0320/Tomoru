@@ -80,7 +80,7 @@ func (c *Core) fitImageEngine() {
 
 // serving is the local model llama-server runs for the subtitles, "" for none.
 func (c *Core) serving() string {
-	if _, local := models.ByID(c.Prefs.MT); local && c.Running {
+	if _, local := models.ByID(c.Prefs.MT); local && c.Running && c.Prefs.Translates() {
 		return c.Prefs.MT
 	}
 	return ""
@@ -238,6 +238,13 @@ func (s *ImageService) CloseImage() {
 	}
 	s.Image = ImageView{run: s.Image.run + 1}
 	s.changed()
+}
+
+// usesServer tells whether the picture shown is translated with a local model, on llama-server:
+// translating the subtitles otherwise must not stop it.
+func (s *ImageService) usesServer() bool {
+	_, local := models.ByID(s.Image.Via)
+	return local && s.Image.PNG != nil
 }
 
 func (s *ImageService) stopImage() {

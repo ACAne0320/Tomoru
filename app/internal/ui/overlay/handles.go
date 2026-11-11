@@ -116,10 +116,10 @@ func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element 
 		o.barW = capsule.Bounds().W
 		capsule.Children(func() {
 			if k.Running {
-				if icon(assets.Pause, locales.Pause()).Clicked() {
+				if icon(assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
 					k.Pause()
 				}
-			} else if icon(assets.Play, locales.StartTranslating()).Clicked() {
+			} else if icon(assets.Play, shared.StartText(k.Preferences())).Clicked() {
 				k.Start()
 			}
 			divider()
@@ -170,7 +170,7 @@ func (o *Overlay) sceneMenu(c *ui.Context) {
 	}
 	b.Children(func() {
 		ui.Text(c, name).FontSize(13).Bold().MaxLines(1).MaxWidth(160)
-		ui.Text(c, shared.Langs(pr.Src, pr.Tgt)+" ▾").FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
+		ui.Text(c, shared.LangsOf(pr)+" ▾").FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
 	})
 	b.Menu(shared.SceneMenu(k, true, func() { o.nav.ShowSettingsPage("scenes") }))
 }

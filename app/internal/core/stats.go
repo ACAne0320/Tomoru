@@ -15,6 +15,7 @@ import (
 type Today struct {
 	Day string // the local date, 2006-01-02
 	usage.Counts
+	Translated int // the lines translated, of Lines: not those of subtitles of the original only
 }
 
 // loadStats reads the numbers kept, of every day.
@@ -41,7 +42,14 @@ func (c *Core) RunFor() time.Duration {
 func (c *Core) TodayStats() Today {
 	now := c.now()
 	day := usage.DayOf(now)
-	return Today{Day: day, Counts: c.usageAt(now).Day(day)}
+	l := c.usageAt(now)
+	t := Today{Day: day, Counts: l.Day(day)}
+	for _, d := range l.Days {
+		if d.Day == day {
+			t.Translated = d.TotalOf(func(u usage.Use) bool { return !u.Untranslated }).Lines
+		}
+	}
+	return t
 }
 
 // Usage is a detached copy of the saved days and the current session's daily usage.
@@ -69,7 +77,7 @@ func (c *Core) addRunUsage(l *usage.Ledger, now time.Time) {
 }
 
 // engines are the engines of p, as the numbers keep them: with an endpoint's name and model, and
-// a cloud service's model, as they are now.
+// a cloud service's model, as they are now; with the original alone, no translator.
 func engines(p prefs.Prefs) usage.Engines {
 	e := usage.Engines{ASR: p.ASR, MT: p.MT}
 	if s, ok := asr.ByID(p.ASR); ok && s.Cloud {
@@ -91,6 +99,9 @@ func engines(p prefs.Prefs) usage.Engines {
 			a = &prefs.Service{}
 		}
 		e.MTModel = s.endpoint(*a).Model
+	}
+	if !p.Translates() {
+		e = usage.Engines{ASR: e.ASR, ASRModel: e.ASRModel, Untranslated: true}
 	}
 	return e
 }

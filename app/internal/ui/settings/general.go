@@ -45,7 +45,11 @@ func (s *Settings) general(c *ui.Context) {
 			kit.SettingRow(c, 1, locales.UiLanguage(), "", func() { s.uiLanguage(c) })
 		}).Grow(1).Basis(basis)
 		kit.Group(c, locales.PrefsStart(), nil, kit.RowsCard, func() {
-			kit.SettingRow(c, 0, locales.AutoStart(), "", func() { kit.Switch(c, &draft.AutoStart, locales.AutoStart()) })
+			label := locales.AutoStart()
+			if !draft.Translates() {
+				label = locales.AutoStartSubtitles()
+			}
+			kit.SettingRow(c, 0, label, "", func() { kit.Switch(c, &draft.AutoStart, label) })
 			kit.SettingRow(c, 1, locales.OpenAtLogin(), k.LoginErr, func() {
 				login := k.AtLogin
 				if kit.Switch(c, &login, locales.OpenAtLogin()).Changed() {

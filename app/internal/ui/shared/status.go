@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
+	"tomoru/internal/prefs"
 	"tomoru/internal/ui/kit"
 	"tomoru/locales"
 )
@@ -73,6 +74,55 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 // Langs is a pair of languages as menus show them: 日语 → 中文.
 func Langs(src, tgt string) string { return LangName(src) + " → " + LangName(tgt) }
 
+// LangsOf is the languages of the subtitles as p has them: the spoken one alone when they show
+// the original only.
+func LangsOf(p prefs.Prefs) string {
+	if !p.Translates() {
+		return LangName(p.Src)
+	}
+	return Langs(p.Src, p.Tgt)
+}
+
+// The words of starting and stopping follow what runs: translating, or, with the original only,
+// subtitles alone.
+
+// Title is what the app is doing, as it runs or not.
+func Title(p prefs.Prefs, running bool) string {
+	switch {
+	case running && p.Translates():
+		return locales.HomeTranslating()
+	case running:
+		return locales.HomeSubtitling()
+	case p.Translates():
+		return locales.HomeIdle()
+	}
+	return locales.HomeSubtitlesOff()
+}
+
+// StartText is the action that starts.
+func StartText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.StartTranslating()
+	}
+	return locales.StartSubtitles()
+}
+
+// StopText is the action that stops.
+func StopText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.StopTranslating()
+	}
+	return locales.StopSubtitles()
+}
+
+// PauseText is the action that pauses, from the subtitles.
+func PauseText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.Pause()
+	}
+	return locales.PauseSubtitles()
+}
+
 // CurrentSceneName is the name of the scene in use.
 func CurrentSceneName(k *core.Core) string {
 	if sc, ok := k.SceneByID(k.Preferences().Scene); ok {
@@ -91,7 +141,7 @@ func SceneMenu(k *core.Core, languages bool, manage func()) func(m *ui.Menu) {
 		for _, sc := range k.SceneList() {
 			label := SceneName(sc)
 			if sc.ID == p.Scene {
-				label += " · " + Langs(p.Src, p.Tgt)
+				label += " · " + LangsOf(p)
 			} else if sc.Src != "" && sc.Tgt != "" {
 				label += " · " + Langs(sc.Src, sc.Tgt)
 			}
@@ -102,8 +152,8 @@ func SceneMenu(k *core.Core, languages bool, manage func()) func(m *ui.Menu) {
 		if languages {
 			m.Separator()
 			m.Submenu(locales.SpokenLanguage(), kit.Choices(p.Src, LangChoices(k.SourceLangs()), LangName, k.SetSrc))
-			m.Submenu(locales.TranslateInto(), kit.Choices(p.Tgt, LangChoices(k.TargetLangs()), LangName, k.SetTgt))
-			if m.Item(locales.SwapLanguages()).Disabled(!k.CanSwap()).Chosen() {
+			m.Submenu(locales.TranslateInto(), kit.Choices(p.Tgt, LangChoices(k.TargetLangs()), LangName, k.SetTgt)).Disabled(!p.Translates())
+			if m.Item(locales.SwapLanguages()).Disabled(!k.CanSwap() || !p.Translates()).Chosen() {
 				k.Swap()
 			}
 		}

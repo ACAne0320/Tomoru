@@ -63,7 +63,7 @@ func (c *Core) translator(id string) (ready func(context.Context) (translate.Tra
 	if tr := c.deps.Translator; tr != nil {
 		return func(context.Context) (translate.Translator, error) { return tr, nil }, false, nil
 	}
-	return c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs)
+	return c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs, c.ImageService.usesServer())
 }
 
 func keyName(id string) string { return "endpoint-key:" + id }

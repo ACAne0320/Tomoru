@@ -29,17 +29,13 @@ func (s *Settings) home(c *ui.Context) {
 	}
 	ui.Column(c).Gap(kit.Space(4)).Children(func() {
 		ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Start).Children(func() {
-			title := locales.HomeIdle()
-			if k.Running {
-				title = locales.HomeTranslating()
-			}
-			ui.Text(c, title).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(2)
+			ui.Text(c, shared.Title(k.Preferences(), k.Running)).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(2)
 			ui.Column(c).AlignItems(ui.End).Gap(kit.Space(2)).Children(func() {
 				if k.Running {
-					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Stop, locales.StopTranslating()).Clicked() {
+					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Stop, shared.StopText(k.Preferences())).Clicked() {
 						k.Stop()
 					}
-				} else if kit.Button(c, kit.Primary, kit.Large, assets.Play, locales.StartTranslating()).Clicked() {
+				} else if kit.Button(c, kit.Primary, kit.Large, assets.Play, shared.StartText(k.Preferences())).Clicked() {
 					k.Start()
 				}
 				ui.Text(c, locales.ShortcutHint(kit.ShortcutText(k.Preferences().Shortcut))).FontSize(kit.TextCaption).TextColor(p.InkMuted)
@@ -83,14 +79,17 @@ func homeState(s *Settings) string {
 func homeStats(c *ui.Context, s *Settings) {
 	k := s.core
 	run, st := k.RunFor(), k.State.Stats
-	label := locales.StatRunning()
+	label, lines, linesLabel := locales.StatRunning(), st.Lines, locales.StatLines()
+	if k.Running && !k.Preferences().Translates() {
+		linesLabel = locales.StatHeard() // the original only: nothing translated
+	}
 	if !k.Running {
 		today := k.TodayStats()
-		run, st, label = time.Duration(today.Run*float64(time.Second)), today.Counts, locales.StatToday()
+		run, st, label, lines = time.Duration(today.Run*float64(time.Second)), today.Counts, locales.StatToday(), today.Translated
 	}
 	kit.StatStrip(c, locales.HomeStats(), []kit.Stat{
 		{Label: label, Value: kit.Clock(run)},
-		{Label: locales.StatLines(), Value: strconv.Itoa(st.Lines), Unit: locales.UnitLines()},
+		{Label: linesLabel, Value: strconv.Itoa(lines), Unit: locales.UnitLines()},
 		{Label: locales.StatSpeech(), Value: fmt.Sprintf("%.1f", st.Speech/60), Unit: locales.UnitMinutes()},
 		{Label: locales.StatChars(), Value: strconv.Itoa(st.Chars), Unit: locales.UnitChars()},
 	})
@@ -183,10 +182,11 @@ func homeLine(c *ui.Context, s *Settings) {
 			kit.Picker(c, shared.CurrentSceneName(k), shared.SceneMenu(k, false, func() { s.Open("scenes") })).Label(locales.Scene())
 			kit.Picker(c, shared.LangName(k.Preferences().Src), kit.Choices(k.Preferences().Src, shared.LangChoices(k.SourceLangs()), shared.LangName, k.SetSrc)).Label(locales.SpokenLanguage())
 			// From one to the other, which swaps them, as in the panel.
-			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap()).Clicked() {
+			off := !k.Preferences().Translates() // the original only: nothing is translated into it
+			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap() || off).Clicked() {
 				k.Swap()
 			}
-			kit.Picker(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto())
+			kit.Off(c, kit.Picker(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto()), off)
 		})
 	})
 }

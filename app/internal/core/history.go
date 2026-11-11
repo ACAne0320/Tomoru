@@ -26,7 +26,7 @@ func (c *Core) HistoryOn() bool { return c.deps.HistoryDir != "" }
 
 func (c *Core) syncHistoryPolicy() {
 	sc := c.Scene()
-	head := history.Head{Scene: sc.ID, Name: sc.Name, Src: c.Prefs.Src, Tgt: c.Prefs.Tgt}
+	head := history.Head{Scene: sc.ID, Name: sc.Name, Src: c.Prefs.Src, Tgt: c.Prefs.Tgt, Untranslated: !c.Prefs.Translates()}
 	if c.Prefs.Source != "" {
 		head.App = c.Prefs.SourceName
 	}

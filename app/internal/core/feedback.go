@@ -37,6 +37,9 @@ func (c *Core) setup() (version, system, engines string) {
 		system += fmt.Sprintf(", %d GB GPU memory", g>>30)
 	}
 	engines = fmt.Sprintf("%s → %s, %s → %s", asrName(p), mtName(p, p.MT), p.Src, p.Tgt)
+	if !p.Translates() {
+		engines = fmt.Sprintf("%s, %s, the original only", asrName(p), p.Src)
+	}
 	return
 }
 

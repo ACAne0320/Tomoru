@@ -97,16 +97,18 @@ func (msgs Messages) StatusNoPermission() string {
 	return Catalog.Format(msgs.locale, "statusNoPermission", nil)
 }
 
-// StatusStopped says "Translation stopped: {reason}"
+// StatusStopped says "Stopped: {reason}"
 // in the language the app shows.
 //
-// Where the subtitles show, when translating stopped on an error.
+// Where the subtitles show, when they stopped on an error, translated or
+// not.
 func StatusStopped(reason string) string { return In(i18n.Locale()).StatusStopped(reason) }
 
-// StatusStopped says "Translation stopped: {reason}"
+// StatusStopped says "Stopped: {reason}"
 // in the language of msgs.
 //
-// Where the subtitles show, when translating stopped on an error.
+// Where the subtitles show, when they stopped on an error, translated or
+// not.
 func (msgs Messages) StatusStopped(reason string) string {
 	return Catalog.Format(msgs.locale, "statusStopped", map[string]any{"reason": reason})
 }
@@ -433,6 +435,20 @@ func AutoStart() string { return In(i18n.Locale()).AutoStart() }
 // A setting's name.
 func (msgs Messages) AutoStart() string {
 	return Catalog.Format(msgs.locale, "autoStart", nil)
+}
+
+// AutoStartSubtitles says "Start subtitles when Tomoru opens"
+// in the language the app shows.
+//
+// autoStart, while the subtitles show the original only.
+func AutoStartSubtitles() string { return In(i18n.Locale()).AutoStartSubtitles() }
+
+// AutoStartSubtitles says "Start subtitles when Tomoru opens"
+// in the language of msgs.
+//
+// autoStart, while the subtitles show the original only.
+func (msgs Messages) AutoStartSubtitles() string {
+	return Catalog.Format(msgs.locale, "autoStartSubtitles", nil)
 }
 
 // HideFromCapture says "Hide subtitles from screen recording"
@@ -1069,6 +1085,20 @@ func (msgs Messages) DisplayTgt() string {
 	return Catalog.Format(msgs.locale, "displayTgt", nil)
 }
 
+// DisplaySrc says "Original only"
+// in the language the app shows.
+//
+// The subtitles show the original alone, and nothing is translated.
+func DisplaySrc() string { return In(i18n.Locale()).DisplaySrc() }
+
+// DisplaySrc says "Original only"
+// in the language of msgs.
+//
+// The subtitles show the original alone, and nothing is translated.
+func (msgs Messages) DisplaySrc() string {
+	return Catalog.Format(msgs.locale, "displaySrc", nil)
+}
+
 // ShownLabel says "Sentences at once"
 // in the language the app shows.
 //
@@ -1633,6 +1663,20 @@ func (msgs Messages) Pause() string {
 	return Catalog.Format(msgs.locale, "pause", nil)
 }
 
+// PauseSubtitles says "Pause"
+// in the language the app shows.
+//
+// The overlay's pause button, while the subtitles show the original only.
+func PauseSubtitles() string { return In(i18n.Locale()).PauseSubtitles() }
+
+// PauseSubtitles says "Pause"
+// in the language of msgs.
+//
+// The overlay's pause button, while the subtitles show the original only.
+func (msgs Messages) PauseSubtitles() string {
+	return Catalog.Format(msgs.locale, "pauseSubtitles", nil)
+}
+
 // StartTranslating says "Start translating"
 // in the language the app shows.
 //
@@ -1645,6 +1689,22 @@ func StartTranslating() string { return In(i18n.Locale()).StartTranslating() }
 // Button, and tooltip of the subtitles' toolbar.
 func (msgs Messages) StartTranslating() string {
 	return Catalog.Format(msgs.locale, "startTranslating", nil)
+}
+
+// StartSubtitles says "Start subtitles"
+// in the language the app shows.
+//
+// The button that starts, in place of startTranslating, while the subtitles
+// show the original only.
+func StartSubtitles() string { return In(i18n.Locale()).StartSubtitles() }
+
+// StartSubtitles says "Start subtitles"
+// in the language of msgs.
+//
+// The button that starts, in place of startTranslating, while the subtitles
+// show the original only.
+func (msgs Messages) StartSubtitles() string {
+	return Catalog.Format(msgs.locale, "startSubtitles", nil)
 }
 
 // LockTooltip says "Lock: only the text stays, and clicks go through"
@@ -1705,36 +1765,36 @@ func (msgs Messages) NoticePaused(keys string) string {
 	return Catalog.Format(msgs.locale, "noticePaused", map[string]any{"keys": keys})
 }
 
-// NoticeStatus says "{status} · {from} → {to}"
+// NoticeStatus says "{status} · {langs}"
 // in the language the app shows.
 //
 // Where the subtitles show, while translating gets ready.
-func NoticeStatus(status string, from string, to string) string {
-	return In(i18n.Locale()).NoticeStatus(status, from, to)
+func NoticeStatus(status string, langs string) string {
+	return In(i18n.Locale()).NoticeStatus(status, langs)
 }
 
-// NoticeStatus says "{status} · {from} → {to}"
+// NoticeStatus says "{status} · {langs}"
 // in the language of msgs.
 //
 // Where the subtitles show, while translating gets ready.
-func (msgs Messages) NoticeStatus(status string, from string, to string) string {
-	return Catalog.Format(msgs.locale, "noticeStatus", map[string]any{"status": status, "from": from, "to": to})
+func (msgs Messages) NoticeStatus(status string, langs string) string {
+	return Catalog.Format(msgs.locale, "noticeStatus", map[string]any{"status": status, "langs": langs})
 }
 
-// NoticeListening says "Listening · {from} → {to} · {keys} to stop"
+// NoticeListening says "Listening · {langs} · {keys} to stop"
 // in the language the app shows.
 //
 // Where the subtitles show, for a few seconds after listening starts.
-func NoticeListening(from string, to string, keys string) string {
-	return In(i18n.Locale()).NoticeListening(from, to, keys)
+func NoticeListening(langs string, keys string) string {
+	return In(i18n.Locale()).NoticeListening(langs, keys)
 }
 
-// NoticeListening says "Listening · {from} → {to} · {keys} to stop"
+// NoticeListening says "Listening · {langs} · {keys} to stop"
 // in the language of msgs.
 //
 // Where the subtitles show, for a few seconds after listening starts.
-func (msgs Messages) NoticeListening(from string, to string, keys string) string {
-	return Catalog.Format(msgs.locale, "noticeListening", map[string]any{"from": from, "to": to, "keys": keys})
+func (msgs Messages) NoticeListening(langs string, keys string) string {
+	return Catalog.Format(msgs.locale, "noticeListening", map[string]any{"langs": langs, "keys": keys})
 }
 
 // NoticeReady says "Tomoru is ready · press {keys} to translate"
@@ -1753,6 +1813,20 @@ func (msgs Messages) NoticeReady(keys string) string {
 	return Catalog.Format(msgs.locale, "noticeReady", map[string]any{"keys": keys})
 }
 
+// NoticeReadySubtitles says "Tomoru is ready · press {keys} for subtitles"
+// in the language the app shows.
+//
+// noticeReady, while the subtitles show the original only.
+func NoticeReadySubtitles(keys string) string { return In(i18n.Locale()).NoticeReadySubtitles(keys) }
+
+// NoticeReadySubtitles says "Tomoru is ready · press {keys} for subtitles"
+// in the language of msgs.
+//
+// noticeReady, while the subtitles show the original only.
+func (msgs Messages) NoticeReadySubtitles(keys string) string {
+	return Catalog.Format(msgs.locale, "noticeReadySubtitles", map[string]any{"keys": keys})
+}
+
 // NoticeStopped says "Stopped translating · {keys} to start again"
 // in the language the app shows.
 //
@@ -1765,6 +1839,22 @@ func NoticeStopped(keys string) string { return In(i18n.Locale()).NoticeStopped(
 // Where the subtitles show, for a few seconds after translating stops.
 func (msgs Messages) NoticeStopped(keys string) string {
 	return Catalog.Format(msgs.locale, "noticeStopped", map[string]any{"keys": keys})
+}
+
+// NoticeStoppedSubtitles says "Stopped subtitles · {keys} to start again"
+// in the language the app shows.
+//
+// noticeStopped, while the subtitles show the original only.
+func NoticeStoppedSubtitles(keys string) string {
+	return In(i18n.Locale()).NoticeStoppedSubtitles(keys)
+}
+
+// NoticeStoppedSubtitles says "Stopped subtitles · {keys} to start again"
+// in the language of msgs.
+//
+// noticeStopped, while the subtitles show the original only.
+func (msgs Messages) NoticeStoppedSubtitles(keys string) string {
+	return Catalog.Format(msgs.locale, "noticeStoppedSubtitles", map[string]any{"keys": keys})
 }
 
 // SampleNoteRunning says "Sample subtitles · when someone speaks, subtitles show here"
@@ -1793,6 +1883,22 @@ func SampleNoteIdle(keys string) string { return In(i18n.Locale()).SampleNoteIdl
 // Over sample subtitles, while not translating.
 func (msgs Messages) SampleNoteIdle(keys string) string {
 	return Catalog.Format(msgs.locale, "sampleNoteIdle", map[string]any{"keys": keys})
+}
+
+// SampleNoteIdleSubtitles says "Sample subtitles · press {keys} to start"
+// in the language the app shows.
+//
+// sampleNoteIdle, while the subtitles show the original only.
+func SampleNoteIdleSubtitles(keys string) string {
+	return In(i18n.Locale()).SampleNoteIdleSubtitles(keys)
+}
+
+// SampleNoteIdleSubtitles says "Sample subtitles · press {keys} to start"
+// in the language of msgs.
+//
+// sampleNoteIdle, while the subtitles show the original only.
+func (msgs Messages) SampleNoteIdleSubtitles(keys string) string {
+	return Catalog.Format(msgs.locale, "sampleNoteIdleSubtitles", map[string]any{"keys": keys})
 }
 
 // ErrUnsupportedLocale says "Speech recognition on this Mac doesn't support the spoken language."
@@ -4019,6 +4125,22 @@ func (msgs Messages) HomeTranslating() string {
 	return Catalog.Format(msgs.locale, "homeTranslating", nil)
 }
 
+// HomeSubtitling says "Showing subtitles"
+// in the language the app shows.
+//
+// The title while the subtitles show the original only, in place of
+// homeTranslating.
+func HomeSubtitling() string { return In(i18n.Locale()).HomeSubtitling() }
+
+// HomeSubtitling says "Showing subtitles"
+// in the language of msgs.
+//
+// The title while the subtitles show the original only, in place of
+// homeTranslating.
+func (msgs Messages) HomeSubtitling() string {
+	return Catalog.Format(msgs.locale, "homeSubtitling", nil)
+}
+
 // HomeIdle says "Not translating"
 // in the language the app shows.
 //
@@ -4033,6 +4155,22 @@ func (msgs Messages) HomeIdle() string {
 	return Catalog.Format(msgs.locale, "homeIdle", nil)
 }
 
+// HomeSubtitlesOff says "Subtitles off"
+// in the language the app shows.
+//
+// The title while not running and the subtitles show the original only, in
+// place of homeIdle.
+func HomeSubtitlesOff() string { return In(i18n.Locale()).HomeSubtitlesOff() }
+
+// HomeSubtitlesOff says "Subtitles off"
+// in the language of msgs.
+//
+// The title while not running and the subtitles show the original only, in
+// place of homeIdle.
+func (msgs Messages) HomeSubtitlesOff() string {
+	return Catalog.Format(msgs.locale, "homeSubtitlesOff", nil)
+}
+
 // StopTranslating says "Stop translating"
 // in the language the app shows.
 //
@@ -4045,6 +4183,22 @@ func StopTranslating() string { return In(i18n.Locale()).StopTranslating() }
 // The home page's button while translating.
 func (msgs Messages) StopTranslating() string {
 	return Catalog.Format(msgs.locale, "stopTranslating", nil)
+}
+
+// StopSubtitles says "Stop subtitles"
+// in the language the app shows.
+//
+// The button that stops, in place of stopTranslating, while the subtitles
+// show the original only.
+func StopSubtitles() string { return In(i18n.Locale()).StopSubtitles() }
+
+// StopSubtitles says "Stop subtitles"
+// in the language of msgs.
+//
+// The button that stops, in place of stopTranslating, while the subtitles
+// show the original only.
+func (msgs Messages) StopSubtitles() string {
+	return Catalog.Format(msgs.locale, "stopSubtitles", nil)
 }
 
 // HomeStats says "Numbers"
@@ -4103,6 +4257,22 @@ func StatLines() string { return In(i18n.Locale()).StatLines() }
 // A number of the home page: the sentences translated.
 func (msgs Messages) StatLines() string {
 	return Catalog.Format(msgs.locale, "statLines", nil)
+}
+
+// StatHeard says "Heard"
+// in the language the app shows.
+//
+// A number of the home page, in place of statLines while the subtitles show
+// the original only: the sentences heard.
+func StatHeard() string { return In(i18n.Locale()).StatHeard() }
+
+// StatHeard says "Heard"
+// in the language of msgs.
+//
+// A number of the home page, in place of statLines while the subtitles show
+// the original only: the sentences heard.
+func (msgs Messages) StatHeard() string {
+	return Catalog.Format(msgs.locale, "statHeard", nil)
 }
 
 // UnitLines says "lines"

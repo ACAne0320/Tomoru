@@ -27,6 +27,9 @@ type Head struct {
 	Tgt   string    `json:"tgt"`
 	Start time.Time `json:"start"`
 	App   string    `json:"app,omitempty"` // the app heard, "" for all the system's sound
+	// Untranslated is a session whose subtitles showed the original alone: its lines have no
+	// translation, and Tgt is only the language it would have translated into.
+	Untranslated bool `json:"untranslated,omitempty"`
 }
 
 // Entry is a line of a session.

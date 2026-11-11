@@ -54,9 +54,44 @@ func TestVisible(t *testing.T) {
 	}
 
 	// Translation only: what has no translation yet does not show.
-	p.Shown, p.Display = 3, 1
+	p.Shown, p.Display = 3, prefs.DisplayTgt
 	if got := Visible(live.State{Pending: "x", Lines: []live.Line{{ID: 1, Src: "a"}}}, 0, p); len(got) != 0 {
 		t.Errorf("translation only: %+v", got)
+	}
+
+	// The original only: every line as heard, and what is being said, with no translation, draft
+	// or failure, one at a time too.
+	p.Display = prefs.DisplaySrc
+	st.Draft = "评论也"
+	got = Visible(st, 0, p)
+	if len(got) != 3 || got[0].Src != "b" || got[2].Src != "コメントも" || !got[2].Pending {
+		t.Fatalf("the original only: %+v", got)
+	}
+	for _, e := range got {
+		if e.Tgt != "" || e.Draft || e.DimTgt || e.Swaps {
+			t.Errorf("the original only: %+v", e)
+		}
+	}
+	p.Shown = 1
+	if got := Visible(st, 0, p); len(got) != 1 || got[0].Src != "コメントも" || got[0].Tgt != "" {
+		t.Errorf("the original only, one at a time: %+v", got)
+	}
+}
+
+// TestOriginalOnly draws the original alone, at its size, and leaves the overlay room for it.
+func TestOriginalOnly(t *testing.T) {
+	p := prefs.Default("en")
+	p.Display = prefs.DisplaySrc
+	tt := ui.NewTester(func(c *ui.Context) {
+		Draw(c, []Entry{{Key: 1, Src: "こんばんは", Tgt: "晚上好"}}, p, 1, 600, NoBlock)
+	}, 640, 300)
+	if _, ok := tt.Find("こんばんは"); !ok || tt.HasText("晚上好") {
+		t.Errorf("texts %q", tt.Texts())
+	}
+	both := p
+	both.Display = prefs.DisplayBoth
+	if h, all := SlotHeight(p, 1, false), SlotHeight(both, 1, false); h <= 0 || h >= all {
+		t.Errorf("slot %v, with the translation %v", h, all)
 	}
 }
 

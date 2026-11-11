@@ -98,6 +98,61 @@ func TestReplay(t *testing.T) {
 	}
 }
 
+// TestNoTranslator plays the recording through a session with no translator: each sentence shows
+// as it is heard, and is done as it is committed, once; nothing is drafted, and no translation is
+// counted.
+func TestNoTranslator(t *testing.T) {
+	var got lifecycleLog
+	drafted := false
+	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Draft: true, OnLine: got.onLine}, func(st State) {
+		got.onState(st)
+		got.mu.Lock()
+		drafted = drafted || st.Draft != ""
+		got.mu.Unlock()
+	})
+	s.proc = &finalizes{}
+	f, err := os.Open("../segment/testdata/ja-engine.jsonl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	sc.Buffer(nil, 1<<20)
+	for sc.Scan() {
+		var ev engine.Event
+		if err := json.Unmarshal(sc.Bytes(), &ev); err != nil {
+			t.Fatal(err)
+		}
+		if ev.Type != "hello" {
+			s.handle(ev)
+		}
+	}
+	want := []string{"みなさん、こんばんは。", "今日は新しいゲームを最後までクリアしたいと思います。", "コメントもどんどん書いてくださいね。"}
+	waitFor(t, &got.mu, func() bool { return got.completed() == len(want) })
+	s.Stop()
+	s.Wait()
+	checkLifecycle(t, got.events, len(want))
+	for _, e := range got.events {
+		if e.Kind == LineProgress || e.Kind == LineCompleted && (e.Line.Tgt != "" || e.Line.Err != nil || e.Line.Draft != "") {
+			t.Errorf("event %+v", e)
+		}
+	}
+	st := got.state
+	if len(st.Lines) != len(want) {
+		t.Fatalf("lines %+v", st.Lines)
+	}
+	for i, l := range st.Lines {
+		if l.Src != want[i] || !l.Done || l.Tgt != "" || l.Err != nil {
+			t.Errorf("line %d: %+v", i, l)
+		}
+	}
+	lat := st.Stats.Latency
+	if drafted || st.Stats.Lines != len(want) || st.Stats.Chars != 0 || st.Stats.Failed != 0 ||
+		lat.FirstTranslation.N != 0 || lat.Translation.N != 0 || lat.EndToEnd.N != 0 || lat.Queue.N != 0 {
+		t.Errorf("drafted %v, stats %+v", drafted, st.Stats)
+	}
+}
+
 // TestDraft checks that pending text is drafted as it grows, and that a sentence keeps the
 // draft of it when it is committed.
 func TestDraft(t *testing.T) {

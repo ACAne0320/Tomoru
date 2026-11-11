@@ -71,11 +71,7 @@ func (p *Panel) head(c *ui.Context) {
 	pal := kit.Colors(c)
 	kit.Sticker(c, 56, 36, k.Running) // awake while translating, as the menu bar icon
 	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
-		title := locales.HomeIdle()
-		if k.Running {
-			title = locales.HomeTranslating()
-		}
-		ui.Text(c, title).FontSize(kit.TextSection).FontWeight(kit.WeightHeavy).TextColor(pal.NightTitle).MaxLines(1)
+		ui.Text(c, shared.Title(k.Preferences(), k.Running)).FontSize(kit.TextSection).FontWeight(kit.WeightHeavy).TextColor(pal.NightTitle).MaxLines(1)
 		// Under it, what it waits for, or the numbers: a line, or two in a wordy language, broken
 		// only between the time and the count, never inside one.
 		ui.Row(c).Wrap().GapX(kit.Space(1)).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(pal.NightText).Children(func() {
@@ -134,10 +130,12 @@ func (p *Panel) body(c *ui.Context) {
 		p.scene(c)
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Padding(kit.Space(2), kit.Space(3), kit.Space(3)).Children(func() {
 			kit.PickerField(c, shared.LangName(k.Preferences().Src), kit.Choices(k.Preferences().Src, shared.LangChoices(k.SourceLangs()), shared.LangName, k.SetSrc)).Label(locales.SpokenLanguage()).Grow(1).Basis(0)
-			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap()).Clicked() {
+			// With the original only, nothing is translated into the target: it stays, greyed.
+			off := !k.Preferences().Translates()
+			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap() || off).Clicked() {
 				k.Swap()
 			}
-			kit.PickerField(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto()).Grow(1).Basis(0)
+			kit.Off(c, kit.PickerField(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto()).Grow(1).Basis(0), off)
 		})
 		k.ListApps()
 		c.After(core.ListEvery) // the apps playing change

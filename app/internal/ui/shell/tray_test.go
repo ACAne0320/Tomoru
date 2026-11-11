@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo"
 
 	"tomoru/internal/core/coretest"
+	"tomoru/internal/prefs"
 	"tomoru/locales"
 )
 
@@ -36,5 +37,14 @@ func TestTrayMenu(t *testing.T) {
 	k.Running = true
 	if got := s.trayMenu().Items()[0].Label; got != locales.StopTranslating() {
 		t.Errorf("translating: %q", got)
+	}
+	// With the original only, it starts and stops subtitles.
+	k.Prefs.Display = prefs.DisplaySrc
+	if got := s.trayMenu().Items()[0].Label; got != locales.StopSubtitles() {
+		t.Errorf("subtitles: %q", got)
+	}
+	k.Running = false
+	if got := s.trayMenu().Items()[0].Label; got != locales.StartSubtitles() {
+		t.Errorf("subtitles stopped: %q", got)
 	}
 }
