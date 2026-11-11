@@ -116,10 +116,10 @@ func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element 
 		o.barW = capsule.Bounds().W
 		capsule.Children(func() {
 			if k.Running {
-				if icon(assets.Pause, locales.Pause()).Clicked() {
+				if icon(assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
 					k.Pause()
 				}
-			} else if icon(assets.Play, locales.StartTranslating()).Clicked() {
+			} else if icon(assets.Play, shared.StartText(k.Preferences())).Clicked() {
 				k.Start()
 			}
 			divider()

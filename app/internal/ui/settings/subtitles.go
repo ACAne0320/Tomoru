@@ -135,11 +135,7 @@ func styleColors(c *ui.Context, p *prefs.Prefs) {
 
 // styleShow is what shows, how many sentences, when they go, and whether recordings show them.
 func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
-	desc := ""
-	if !p.Translates() {
-		desc = locales.DisplaySrcDesc()
-	}
-	kit.SettingRow(c, 0, locales.DisplayLabel(), desc, func() {
+	kit.SettingRow(c, 0, locales.DisplayLabel(), "", func() {
 		kit.Segmented(c, &p.Display, locales.DisplayBoth(), locales.DisplayTgt(), locales.DisplaySrc()).Label(locales.DisplayLabel())
 	})
 	kit.SettingRow(c, 1, locales.ShownLabel(), "", func() {

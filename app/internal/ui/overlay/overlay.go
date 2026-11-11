@@ -319,8 +319,14 @@ func (o *Overlay) notice(c *ui.Context) string {
 	case recent && k.Running:
 		return locales.NoticeListening(langs, keys)
 	case recent && !k.Started:
+		if !k.Preferences().Translates() {
+			return locales.NoticeReadySubtitles(keys)
+		}
 		return locales.NoticeReady(keys)
 	case recent:
+		if !k.Preferences().Translates() {
+			return locales.NoticeStoppedSubtitles(keys)
+		}
 		return locales.NoticeStopped(keys)
 	}
 	return ""
@@ -330,7 +336,11 @@ func (o *Overlay) sampleNote() string {
 	if o.core.Running {
 		return locales.SampleNoteRunning()
 	}
-	return locales.SampleNoteIdle(kit.ShortcutText(o.core.Preferences().Shortcut))
+	keys := kit.ShortcutText(o.core.Preferences().Shortcut)
+	if !o.core.Preferences().Translates() {
+		return locales.SampleNoteIdleSubtitles(keys)
+	}
+	return locales.SampleNoteIdle(keys)
 }
 
 func pill(c *ui.Context, s string) ui.Element {

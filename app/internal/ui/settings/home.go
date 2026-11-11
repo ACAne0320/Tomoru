@@ -29,17 +29,13 @@ func (s *Settings) home(c *ui.Context) {
 	}
 	ui.Column(c).Gap(kit.Space(4)).Children(func() {
 		ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Start).Children(func() {
-			title := locales.HomeIdle()
-			if k.Running {
-				title = locales.HomeTranslating()
-			}
-			ui.Text(c, title).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(2)
+			ui.Text(c, shared.Title(k.Preferences(), k.Running)).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(2)
 			ui.Column(c).AlignItems(ui.End).Gap(kit.Space(2)).Children(func() {
 				if k.Running {
-					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Stop, locales.StopTranslating()).Clicked() {
+					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Stop, shared.StopText(k.Preferences())).Clicked() {
 						k.Stop()
 					}
-				} else if kit.Button(c, kit.Primary, kit.Large, assets.Play, locales.StartTranslating()).Clicked() {
+				} else if kit.Button(c, kit.Primary, kit.Large, assets.Play, shared.StartText(k.Preferences())).Clicked() {
 					k.Start()
 				}
 				ui.Text(c, locales.ShortcutHint(kit.ShortcutText(k.Preferences().Shortcut))).FontSize(kit.TextCaption).TextColor(p.InkMuted)

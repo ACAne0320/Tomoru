@@ -1026,8 +1026,8 @@ func TestOrder(t *testing.T) {
 	}
 }
 
-// TestOriginalOnly shows the original alone, which says nothing is translated, and greys what
-// only the translation has.
+// TestOriginalOnly shows the original alone, greys what only the translation has, and names
+// starting and stopping for subtitles, not translating.
 func TestOriginalOnly(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -1037,7 +1037,7 @@ func TestOriginalOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if k.Prefs.Display != prefs.DisplaySrc || k.Prefs.Translates() || !tt.HasText(locales.DisplaySrcDesc()) {
+	if k.Prefs.Display != prefs.DisplaySrc || k.Prefs.Translates() {
 		t.Errorf("display %d, texts %q", k.Prefs.Display, tt.Texts())
 	}
 	if err := tt.Click(locales.OrderTgtFirst()); err != nil {
@@ -1045,6 +1045,24 @@ func TestOriginalOnly(t *testing.T) {
 	}
 	if k.Prefs.TgtFirst {
 		t.Error("the order changed with the original only")
+	}
+	s.Tab = "home"
+	tt.Frame()
+	if !tt.HasText(locales.HomeSubtitlesOff()) || tt.HasText(locales.HomeIdle()) {
+		t.Errorf("home's title: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.StartSubtitles()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !k.Running || !tt.HasText(locales.HomeSubtitling()) || !tt.HasText(locales.StopSubtitles()) {
+		t.Errorf("running %v: %q", k.Running, tt.Texts())
+	}
+	k.Stop()
+	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplayBoth })
+	tt.Frame()
+	if !tt.HasText(locales.HomeIdle()) || !tt.HasText(locales.StartTranslating()) {
+		t.Errorf("translating again: %q", tt.Texts())
 	}
 }
 

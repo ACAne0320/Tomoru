@@ -103,3 +103,16 @@ func TestASRCloud(t *testing.T) {
 		t.Errorf("%+v", p.ASRAPIs)
 	}
 }
+
+// TestDisplay keeps the original only, which translates nothing, and sets a choice it does not
+// know back to both.
+func TestDisplay(t *testing.T) {
+	for in, want := range map[string]int{`{"Display":2}`: DisplaySrc, `{"Display":1}`: DisplayTgt, `{"Display":7}`: DisplayBoth, `{"Display":-1}`: DisplayBoth} {
+		path := filepath.Join(t.TempDir(), "settings.json")
+		os.WriteFile(path, []byte(in), 0o644)
+		p, err := Load(path, "en")
+		if err != nil || p.Display != want || p.Translates() != (want != DisplaySrc) {
+			t.Errorf("%s: display %d, translates %v, %v", in, p.Display, p.Translates(), err)
+		}
+	}
+}

@@ -3,6 +3,7 @@ package shell
 import (
 	"github.com/egoist/mygo"
 
+	"tomoru/internal/ui/shared"
 	"tomoru/locales"
 )
 
@@ -12,10 +13,10 @@ import (
 // system's shortcuts having them first.
 func (s *Shell) trayMenu() *mygo.Menu {
 	k := s.core
-	toggle := &mygo.MenuItem{Label: locales.StartTranslating(), Accelerator: k.Preferences().Shortcut,
+	toggle := &mygo.MenuItem{Label: shared.StartText(k.Preferences()), Accelerator: k.Preferences().Shortcut,
 		Click: func(*mygo.MenuItem, *mygo.Window) { k.Toggle() }}
 	if k.Running {
-		toggle.Label = locales.StopTranslating()
+		toggle.Label = shared.StopText(k.Preferences())
 	}
 	return mygo.NewMenu([]*mygo.MenuItem{
 		toggle,

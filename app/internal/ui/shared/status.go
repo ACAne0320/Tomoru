@@ -83,6 +83,46 @@ func LangsOf(p prefs.Prefs) string {
 	return Langs(p.Src, p.Tgt)
 }
 
+// The words of starting and stopping follow what runs: translating, or, with the original only,
+// subtitles alone.
+
+// Title is what the app is doing, as it runs or not.
+func Title(p prefs.Prefs, running bool) string {
+	switch {
+	case running && p.Translates():
+		return locales.HomeTranslating()
+	case running:
+		return locales.HomeSubtitling()
+	case p.Translates():
+		return locales.HomeIdle()
+	}
+	return locales.HomeSubtitlesOff()
+}
+
+// StartText is the action that starts.
+func StartText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.StartTranslating()
+	}
+	return locales.StartSubtitles()
+}
+
+// StopText is the action that stops.
+func StopText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.StopTranslating()
+	}
+	return locales.StopSubtitles()
+}
+
+// PauseText is the action that pauses, from the subtitles.
+func PauseText(p prefs.Prefs) string {
+	if p.Translates() {
+		return locales.Pause()
+	}
+	return locales.PauseSubtitles()
+}
+
 // CurrentSceneName is the name of the scene in use.
 func CurrentSceneName(k *core.Core) string {
 	if sc, ok := k.SceneByID(k.Preferences().Scene); ok {

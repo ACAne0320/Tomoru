@@ -71,11 +71,7 @@ func (p *Panel) head(c *ui.Context) {
 	pal := kit.Colors(c)
 	kit.Sticker(c, 56, 36, k.Running) // awake while translating, as the menu bar icon
 	ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
-		title := locales.HomeIdle()
-		if k.Running {
-			title = locales.HomeTranslating()
-		}
-		ui.Text(c, title).FontSize(kit.TextSection).FontWeight(kit.WeightHeavy).TextColor(pal.NightTitle).MaxLines(1)
+		ui.Text(c, shared.Title(k.Preferences(), k.Running)).FontSize(kit.TextSection).FontWeight(kit.WeightHeavy).TextColor(pal.NightTitle).MaxLines(1)
 		// Under it, what it waits for, or the numbers: a line, or two in a wordy language, broken
 		// only between the time and the count, never inside one.
 		ui.Row(c).Wrap().GapX(kit.Space(1)).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(pal.NightText).Children(func() {
