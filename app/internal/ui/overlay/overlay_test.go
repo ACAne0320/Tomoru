@@ -2,6 +2,7 @@ package overlay
 
 import (
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -208,5 +209,48 @@ func TestSceneMenu(t *testing.T) {
 	}
 	if len(k.SceneList()) != before+1 || k.Prefs.Scene != k.SceneList()[before].ID || nav.Went[len(nav.Went)-1] != "settings scenes" {
 		t.Errorf("scenes %d, in use %q, went %q", len(k.SceneList()), k.Prefs.Scene, nav.Went)
+	}
+}
+
+// TestUnlock shows the lock above locked subtitles while the pointer rests on them, the lock alone
+// to take clicks, and nothing else of hovering.
+func TestUnlock(t *testing.T) {
+	k := coretest.New()
+	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
+	k.Running, k.Updated = true, time.Now()
+	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	k.Prefs.Locked = true
+	tt := ui.NewTester(o.View, 1000, 600)
+	o.hover = true // left from before locking
+	tt.Frame()
+	tt.Advance(time.Second)
+	if _, ok := tt.Find(locales.UnlockSubtitles()); ok || tt.HasText(locales.DragHint()) || o.lock.W != 0 {
+		t.Fatalf("locked, not rested on: %q, lock %v", tt.Texts(), o.lock)
+	}
+	o.peek = true
+	tt.Frame()
+	tt.Advance(time.Second) // the lock fades in
+	r, ok := tt.Find(locales.UnlockSubtitles())
+	if !ok || o.lock.W == 0 || o.lock.W > 60 || r.X < o.lock.X || r.X+r.W > o.lock.X+o.lock.W {
+		t.Fatalf("the lock %v, at %v", o.lock, r)
+	}
+	if o.lock.Y < o.block.Y || o.lock.Y+o.lock.H > o.block.Y+o.block.H {
+		t.Errorf("the lock %v, out of the block %v the pointer keeps it shown in", o.lock, o.block)
+	}
+	if _, ok := tt.Find(locales.LockTooltip()); ok {
+		t.Errorf("the toolbar shows, locked")
+	}
+	// More subtitles come, the text taller: the lock stays where it is, under the pointer.
+	lock := o.lock
+	k.State.Lines = append(k.State.Lines,
+		live.Line{ID: 2, Src: "It is a long sentence that goes on.", Tgt: "这是一句很长、还在继续的话。", Done: true},
+		live.Line{ID: 3, Src: strings.Repeat("And it goes on and on, ", 6) + "the end.", Tgt: "还有一句。", Done: true})
+	k.Updated = time.Now()
+	for range 5 {
+		tt.Frame()
+		tt.Advance(100 * time.Millisecond)
+	}
+	if !tt.HasText("还有一句。") || o.lock != lock {
+		t.Errorf("more subtitles: the lock %v moved from %v, %q", o.lock, lock, tt.Texts())
 	}
 }

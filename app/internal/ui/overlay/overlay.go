@@ -1,6 +1,7 @@
 // Package overlay is the subtitle overlay: a transparent window over the screen, which lets clicks
 // through, showing the subtitles at the bottom. Hovered and unlocked, the subtitle area can be
-// moved and resized, and shows a toolbar; locked, only the text shows.
+// moved and resized, and shows a toolbar; locked, only the text shows, and the lock to unlock it
+// while the pointer rests there.
 package overlay
 
 import (
@@ -40,9 +41,11 @@ type Overlay struct {
 	adjusting atomic.Bool // the frame shows: the pointer need not rest to grab it
 	mu        sync.Mutex  // guards block, which the pointer watcher reads
 	block     ui.Rect     // the subtitle block in the overlay, with its toolbar, as last laid out
+	lock      ui.Rect     // the lock above the locked block while it shows, as last laid out
 
 	adjust  time.Time // the block shows its frame, to be moved, until then
 	hover   bool
+	peek    bool      // locked, the pointer rests on the block: the lock shows to unlock it
 	hoverH  float32   // the block's height while hovered, fixed when it showed
 	toast   time.Time // the "locked" note shows until then
 	sample  time.Time // sample subtitles show until then
@@ -144,6 +147,7 @@ func (o *Overlay) SetLocked(v bool) {
 		o.win.SetIgnoreMouseEvents(true)
 		o.toast = time.Now().Add(2600 * time.Millisecond)
 	} else {
+		o.peek = false
 		o.StartAdjust()
 	}
 	o.Redraw()
@@ -194,7 +198,7 @@ var (
 func (o *Overlay) View(c *ui.Context) {
 	k, p := o.core, o.core.Preferences()
 	c.Root().Background(ui.Transparent)
-	hover := o.hover && !p.Locked
+	hover, peek := o.hover && !p.Locked, o.peek && p.Locked
 	entries := subtitle.Visible(k.State, k.Since, p)
 	idle := time.Since(k.Updated)
 	hideAfter := k.HideAfter()
@@ -229,14 +233,15 @@ func (o *Overlay) View(c *ui.Context) {
 		h = max(h, min(wh-bottom-o.textTop+8, wh-bottom-26)) // the oldest may be cut off at the top
 	}
 	// Hovered, the block keeps the height it took when it showed, so that the toolbar above it
-	// stays under the pointer: the text goes on rolling up, cut off at its top edge.
+	// stays under the pointer: the text goes on rolling up, cut off at its top edge. Locked, so
+	// does the lock, over the text rolling on.
 	switch {
-	case !hover:
+	case !hover && !peek:
 		o.hoverH, o.barW = 0, 0
 	case o.hoverH == 0:
 		o.hoverH = h
 	}
-	if hover {
+	if hover || peek {
 		h = o.hoverH
 	}
 	var hit ui.Rect // what the pointer finds: the block, and the toolbar above it while hovered
@@ -301,16 +306,23 @@ func (o *Overlay) View(c *ui.Context) {
 		// The toolbar is built while it is gone too, unseen: a menu of it may still be open, and
 		// the item chosen from it comes in a frame that builds its button. The scene menu reaches
 		// below the block, where the pointer leaving it ends the hover before the choice.
+		var bar, lock ui.Rect
 		if !p.Locked {
-			if r := o.toolbar(c, barBottom, hover).Bounds(); hover && r.H > 0 {
-				hit.H += hit.Y - r.Y
-				hit.Y = r.Y
+			if r := o.toolbar(c, barBottom, hover).Bounds(); hover {
+				bar = r
 			}
+		} else if r := o.unlock(c, barBottom, peek).Bounds(); peek {
+			// The lock alone takes clicks, not the row it is centered in.
+			bar, lock = r, ui.Rect{X: r.X + (r.W-o.barW)/2, Y: r.Y, W: o.barW, H: r.H}
+		}
+		if bar.H > 0 {
+			hit.H += hit.Y - bar.Y
+			hit.Y = bar.Y
 		}
 		if until := time.Until(o.toast); until > 0 {
 			c.After(until)
 			ui.Row(c).Absolute().Left(0).Right(0).Bottom(bottom + h + 12).Justify(ui.Center).Transition(fades).Children(func() {
-				pill(c, shared.OnWindows(locales.LockedToast(), locales.LockedToastWin()))
+				pill(c, locales.LockedToast())
 			})
 		}
 		// The glass under them, where they are this frame, not where they were laid out in the
@@ -320,12 +332,12 @@ func (o *Overlay) View(c *ui.Context) {
 		if hover || adjusting {
 			glass = append(glass, pane{ui.Rect{X: left, Y: wh - bottom - h, W: width, H: h}, 14})
 		}
-		if hover && o.barW > 0 {
+		if (hover || peek) && o.barW > 0 {
 			glass = append(glass, pane{ui.Rect{X: left + (width-o.barW)/2, Y: wh - barBottom - toolbarH, W: o.barW, H: toolbarH}, toolbarH / 2})
 		}
 		o.glass.set(o.win, wh, glass...)
 		o.mu.Lock()
-		o.block = hit
+		o.block, o.lock = hit, lock
 		o.mu.Unlock()
 	})
 }

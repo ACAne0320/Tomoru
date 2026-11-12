@@ -1635,13 +1635,13 @@ func (msgs Messages) ResizeWidth() string {
 	return Catalog.Format(msgs.locale, "resizeWidth", nil)
 }
 
-// LockedToast says "Locked. To move them again, unlock them from the menu bar or settings."
+// LockedToast says "Locked. To move them again, rest the pointer on them and click the lock."
 // in the language the app shows.
 //
 // Over the subtitles, once locked.
 func LockedToast() string { return In(i18n.Locale()).LockedToast() }
 
-// LockedToast says "Locked. To move them again, unlock them from the menu bar or settings."
+// LockedToast says "Locked. To move them again, rest the pointer on them and click the lock."
 // in the language of msgs.
 //
 // Over the subtitles, once locked.
@@ -6631,20 +6631,6 @@ func ShortcutNeedsModifierWin() string { return In(i18n.Locale()).ShortcutNeedsM
 // Shortcut field, on Windows: a key alone cannot be a global shortcut.
 func (msgs Messages) ShortcutNeedsModifierWin() string {
 	return Catalog.Format(msgs.locale, "shortcutNeedsModifierWin", nil)
-}
-
-// LockedToastWin says "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
-// in the language the app shows.
-//
-// Over the subtitles, on Windows, once they are locked in place.
-func LockedToastWin() string { return In(i18n.Locale()).LockedToastWin() }
-
-// LockedToastWin says "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings."
-// in the language of msgs.
-//
-// Over the subtitles, on Windows, once they are locked in place.
-func (msgs Messages) LockedToastWin() string {
-	return Catalog.Format(msgs.locale, "lockedToastWin", nil)
 }
 
 // SampleNoVoiceWin says "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings …"
