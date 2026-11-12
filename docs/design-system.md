@@ -367,6 +367,9 @@ The toolbar: pause or start; the scene with its languages, a menu of the scenes 
 languages), the spoken and translation languages as submenus, swap, New scene… (made, switched to, and shown on the Scenes page to be named) and Manage scenes… (the Scenes page, at the scene in use); lock,
 and the panel. The scene comes before the languages: while watching, one switches what one
 watches more than its languages. Text size is set in Subtitle style, not here.
+Locked, the subtitles let clicks through and show no toolbar; resting the pointer on them shows
+the lock alone in its place, which unlocks them. Only the lock takes clicks, and it goes again
+after a few seconds of a still pointer, so a pointer left over a video wakes nothing.
 
 ## Wording
 

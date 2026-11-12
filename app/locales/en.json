@@ -477,7 +477,7 @@
   "@resizeWidth": {
     "description": "For assistive technology: a handle that resizes the subtitle area."
   },
-  "lockedToast": "Locked. To move them again, unlock them from the menu bar or settings.",
+  "lockedToast": "Locked. To move them again, rest the pointer on them and click the lock.",
   "@lockedToast": {
     "description": "Over the subtitles, once locked."
   },
@@ -2366,10 +2366,6 @@
   "shortcutNeedsModifierWin": "Include Ctrl, Alt or Win",
   "@shortcutNeedsModifierWin": {
     "description": "Shortcut field, on Windows: a key alone cannot be a global shortcut."
-  },
-  "lockedToastWin": "Locked. To move them again, click Tomoru's icon in the taskbar to unlock them, or unlock them in settings.",
-  "@lockedToastWin": {
-    "description": "Over the subtitles, on Windows, once they are locked in place."
   },
   "sampleNoVoiceWin": "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings › Time & language › Speech.",
   "@sampleNoVoiceWin": {

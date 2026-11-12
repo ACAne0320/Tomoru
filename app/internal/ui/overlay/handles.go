@@ -17,11 +17,14 @@ import (
 // watchPointer turns click-through off while the pointer rests on the unlocked subtitle block, so
 // it can be hovered and dragged: a window that lets clicks through hears no pointer at all.
 // Passing by does nothing: the pointer has to stay still on the block for a moment, and the block
-// has to show something (subtitles, or its frame while adjusting). It runs on a goroutine of its
-// own.
+// has to show something (subtitles, or its frame while adjusting). Locked, resting there shows the
+// lock above the block, which alone takes clicks, and only while the pointer is on it; it goes
+// again once the pointer stays still for a while, so that a pointer left over a video shows
+// nothing, and shows only after the pointer has left the block it was locked from. It runs on a
+// goroutine of its own.
 func (o *Overlay) watchPointer() {
-	const dwell, still, linger = 400 * time.Millisecond, 8, 500 * time.Millisecond
-	hover := false
+	const dwell, still, linger, peekFor = 400 * time.Millisecond, 8, 500 * time.Millisecond, 3 * time.Second
+	hover, peek, through, armed := false, false, true, false
 	var left, restAt time.Time
 	var restP mygo.Point
 	ticker := time.NewTicker(50 * time.Millisecond)
@@ -33,9 +36,10 @@ func (o *Overlay) watchPointer() {
 		case <-ticker.C:
 		}
 		p := mygo.Screen.CursorScreenPoint()
-		b := o.blockRect(o.win.Bounds())
-		can := !o.locked.Load() && (hover || o.grabbable.Load())
-		in := can && p.X >= b.X && p.X < b.X+b.Width && p.Y >= b.Y && p.Y < b.Y+b.Height
+		b, lock := o.blockRect(o.win.Bounds())
+		locked := o.locked.Load()
+		over := within(p, b)
+		in := over && (hover || peek || o.grabbable.Load())
 		switch {
 		case !in:
 			restAt = time.Time{}
@@ -44,31 +48,47 @@ func (o *Overlay) watchPointer() {
 		}
 		if in {
 			left = time.Time{}
-		} else if hover && left.IsZero() {
+		} else if (hover || peek) && left.IsZero() {
 			left = time.Now()
 		}
-		rested := time.Since(restAt) >= dwell || o.adjusting.Load()
-		h := (in && (hover || rested)) || (hover && can && time.Since(left) < linger)
-		if h != hover {
-			hover = h
+		rested := time.Since(restAt) >= dwell
+		h, pk, onLock := false, false, false
+		if locked {
+			armed = armed || !over
+			onLock = peek && within(p, lock)
+			pk = armed && (in && (peek || rested) && (onLock || time.Since(restAt) < dwell+peekFor) ||
+				peek && !in && time.Since(left) < linger)
+		} else {
+			armed = false
+			h = (in && (hover || rested || o.adjusting.Load())) || (hover && time.Since(left) < linger)
+		}
+		th := !h && !(pk && onLock)
+		if h != hover || pk != peek || th != through {
+			hover, peek, through = h, pk, th
 			o.win.Update(func() {
 				if o.core.Context().Err() != nil {
 					return
 				}
-				o.hover = h
-				o.win.SetIgnoreMouseEvents(!h)
+				o.hover, o.peek = h, pk
+				o.win.SetIgnoreMouseEvents(th)
 			})
 		}
 	}
 }
 
+func within(p mygo.Point, r mygo.Rectangle) bool {
+	return p.X >= r.X && p.X < r.X+r.Width && p.Y >= r.Y && p.Y < r.Y+r.Height
+}
+
 // blockRect is the subtitle block on screen, within the overlay's bounds b: where the pointer
-// finds it.
-func (o *Overlay) blockRect(b mygo.Rectangle) mygo.Rectangle {
+// finds it; and the lock shown above it while locked.
+func (o *Overlay) blockRect(b mygo.Rectangle) (block, lock mygo.Rectangle) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	r := o.block
-	return mygo.Rectangle{X: b.X + int(r.X), Y: b.Y + int(r.Y), Width: int(r.W), Height: int(r.H)}
+	at := func(r ui.Rect) mygo.Rectangle {
+		return mygo.Rectangle{X: b.X + int(r.X), Y: b.Y + int(r.Y), Width: int(r.W), Height: int(r.H)}
+	}
+	return at(o.block), at(o.lock)
 }
 
 // toolbarH is the toolbar's height.
@@ -80,17 +100,42 @@ const toolbarH = 36
 // stays, unseen, for the menu of its scene.
 func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element {
 	k := o.core
-	// Round, lit on hover: the capsule is their background.
-	icon := func(svg *ui.SVG, label string) ui.Element {
-		b := ui.ButtonBase(c).Label(label).Tooltip(label).Size(28, 28).Radius(14).
-			Justify(ui.Center).AlignItems(ui.Center).TextColor(ui.RGBA(255, 255, 255, .78))
-		if b.Hovered() {
-			b = b.Background(ui.RGBA(255, 255, 255, .16)).TextColor(ui.RGBA(255, 255, 255, 1))
-		}
-		return b.Children(func() { ui.Icon(c, svg).FontSize(16) })
-	}
 	divider := func() { ui.Box(c).Width(1).Height(16).Margin(0, 4).Background(ui.RGBA(255, 255, 255, .16)) }
-	bar := ui.Row(c.Key("toolbar")).Absolute().Left(0).Right(0).Bottom(bottom).Justify(ui.Center)
+	return o.capsule(c, "toolbar", bottom, shown, func() {
+		if k.Running {
+			if barIcon(c, assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
+				k.Pause()
+			}
+		} else if barIcon(c, assets.Play, shared.StartText(k.Preferences())).Clicked() {
+			k.Start()
+		}
+		divider()
+		o.sceneMenu(c)
+		divider()
+		if barIcon(c, assets.Lock, locales.LockTooltip()).Clicked() {
+			o.SetLocked(true)
+		}
+		if b := barIcon(c, assets.Settings, locales.Settings()); b.Clicked() {
+			r := b.Bounds()
+			o.nav.OpenPanel(&mygo.Rectangle{X: int(r.X), Y: int(r.Y), Width: int(r.W), Height: int(r.H)})
+		}
+	})
+}
+
+// unlock is the lock that shows above the locked subtitle block, where the toolbar would, while
+// the pointer rests on the block: shut, as the panel's while locked, and unlocking them.
+func (o *Overlay) unlock(c *ui.Context, bottom float32, shown bool) ui.Element {
+	return o.capsule(c, "unlock", bottom, shown, func() {
+		if barIcon(c, assets.Lock, locales.UnlockSubtitles()).Clicked() {
+			o.SetLocked(false)
+		}
+	})
+}
+
+// capsule is the toolbar's capsule, centered over the subtitle block, its bottom bottom up from the
+// overlay's, holding what children adds. Not shown, it fades out.
+func (o *Overlay) capsule(c *ui.Context, key string, bottom float32, shown bool, children func()) ui.Element {
+	bar := ui.Row(c.Key(key)).Absolute().Left(0).Right(0).Bottom(bottom).Justify(ui.Center)
 	target := float32(0)
 	if shown {
 		target = 1
@@ -108,32 +153,24 @@ func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element 
 		capsule := ui.Row(c).Height(toolbarH).Padding(0, 4).Gap(2).AlignItems(ui.Center).Radius(toolbarH/2).
 			Border(1, ui.RGBA(255, 255, 255, .12))
 		if hasGlass() {
-			bg := hoverShade(k.Preferences())
+			bg := hoverShade(o.core.Preferences())
 			capsule.Background(ui.RGBA(bg.R, bg.G, bg.B, float32(bg.A)/255+.12))
 		} else {
 			capsule.Background(ui.RGBA(24, 24, 28, .72)).Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, .28))
 		}
 		o.barW = capsule.Bounds().W
-		capsule.Children(func() {
-			if k.Running {
-				if icon(assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
-					k.Pause()
-				}
-			} else if icon(assets.Play, shared.StartText(k.Preferences())).Clicked() {
-				k.Start()
-			}
-			divider()
-			o.sceneMenu(c)
-			divider()
-			if icon(assets.Lock, locales.LockTooltip()).Clicked() {
-				o.SetLocked(true)
-			}
-			if b := icon(assets.Settings, locales.Settings()); b.Clicked() {
-				r := b.Bounds()
-				o.nav.OpenPanel(&mygo.Rectangle{X: int(r.X), Y: int(r.Y), Width: int(r.W), Height: int(r.H)})
-			}
-		})
+		capsule.Children(children)
 	})
+}
+
+// barIcon is a button of the capsule: round, lit on hover, the capsule its background.
+func barIcon(c *ui.Context, svg *ui.SVG, label string) ui.Element {
+	b := ui.ButtonBase(c).Label(label).Tooltip(label).Size(28, 28).Radius(14).
+		Justify(ui.Center).AlignItems(ui.Center).TextColor(ui.RGBA(255, 255, 255, .78))
+	if b.Hovered() {
+		b = b.Background(ui.RGBA(255, 255, 255, .16)).TextColor(ui.RGBA(255, 255, 255, 1))
+	}
+	return b.Children(func() { ui.Icon(c, svg).FontSize(16) })
 }
 
 // handles are the side handles that resize the subtitle area: faint, lit when the pointer comes
