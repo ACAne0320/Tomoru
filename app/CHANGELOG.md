@@ -1,12 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.1.9
+
+Teams calls on Windows now produce subtitles with **All system sound** selected. The call must
+play through the Windows default playback device; selecting Teams alone still cannot capture
+its call audio on affected systems.
 
 ### Fixed
 
 - On Windows, all system audio captures the default playback device, including Teams call
   audio, and reconnects when the default output changes. Apps routed to other outputs are
   not captured in this mode. Selected-app capture still uses process loopback.
+  ([#37](https://github.com/ACAne0320/Tomoru/pull/37))
 
 ## 0.1.8
 
