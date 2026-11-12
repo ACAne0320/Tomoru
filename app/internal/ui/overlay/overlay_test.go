@@ -220,6 +220,7 @@ func TestUnlock(t *testing.T) {
 	k.Running, k.Updated = true, time.Now()
 	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
 	k.Prefs.Locked = true
+	k.Prefs.KeepShown = true // not hidden after a while: a slow machine takes seconds to get there
 	tt := ui.NewTester(o.View, 1000, 600)
 	o.hover = true // left from before locking
 	tt.Frame()
@@ -245,7 +246,6 @@ func TestUnlock(t *testing.T) {
 	k.State.Lines = append(k.State.Lines,
 		live.Line{ID: 2, Src: "It is a long sentence that goes on.", Tgt: "这是一句很长、还在继续的话。", Done: true},
 		live.Line{ID: 3, Src: strings.Repeat("And it goes on and on, ", 6) + "the end.", Tgt: "还有一句。", Done: true})
-	k.Updated = time.Now()
 	for range 5 {
 		tt.Frame()
 		tt.Advance(100 * time.Millisecond)
