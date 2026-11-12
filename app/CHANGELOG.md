@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.8
+
+Locked subtitles can be unlocked right where they are, and subtitles can go onto another screen.
+Settings no longer keeps the processor busy while it is open, and stopping frees the memory of the
+models on your device.
+
+### New
+
+- Locked subtitles show a lock when the pointer rests on them: click it to unlock them. Clicks on
+  the rest of the subtitles still go through to what is under them, and the lock goes again after
+  a few seconds of a still pointer. ([#35](https://github.com/ACAne0320/Tomoru/pull/35))
+- Subtitles can be dragged onto another screen, and stay there after relaunching. When that screen
+  is unplugged, they go to the main one, and come back when it is plugged in again.
+  ([#32](https://github.com/ACAne0320/Tomoru/pull/32))
+
+### Improved
+
+- Stopping or pausing frees the models on your device, which held gigabytes of memory until
+  Tomoru quit. Starting again loads them in a few seconds.
+  ([#30](https://github.com/ACAne0320/Tomoru/pull/30))
+
+### Fixed
+
+- Settings › Home kept the processor busy (25–35% while idle) as long as it was open.
+  ([#30](https://github.com/ACAne0320/Tomoru/pull/30))
+- After plugging a screen in or out, or changing its resolution, the subtitles stayed where they
+  were until Tomoru was relaunched. ([#32](https://github.com/ACAne0320/Tomoru/pull/32))
+
 ## 0.1.7
 
 Subtitles can show the original alone, for streams in a language you already understand: nothing
