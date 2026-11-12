@@ -458,6 +458,47 @@ func TestServedModel(t *testing.T) {
 	}
 }
 
+// TestStopFreesModels: stopping or pausing stops the local models' servers, which give their
+// memory back, but translation's while a picture is translated on it; restarting keeps them.
+func TestStopFreesModels(t *testing.T) {
+	c, f, m, srv, _ := engineCore(t)
+	asrSrv := &fakeServer{}
+	c.deps.ASRServer = asrSrv
+	c.EngineService.asrServer = asrSrv
+	m.ready["qwen3-asr-1.7b"], m.ready["local-2b"] = true, true
+	c.Choose(ASR, "qwen3-asr-1.7b")
+	c.SetEngine("local-2b")
+	stops := func() (int, int) {
+		srv.mu.Lock()
+		defer srv.mu.Unlock()
+		asrSrv.mu.Lock()
+		defer asrSrv.mu.Unlock()
+		return srv.stops, asrSrv.stops
+	}
+	c.Start()
+	f.flush(t, 1)
+	mt, asr := stops()
+	c.RestartIfRunning() // as when the languages change
+	f.flush(t, 1)
+	if m2, a2 := stops(); m2 != mt || a2 != asr {
+		t.Errorf("restarting stopped the servers: translation %d, recognition %d times", m2-mt, a2-asr)
+	}
+
+	c.Stop()
+	if m2, a2 := stops(); m2 == mt || a2 == asr {
+		t.Errorf("stopped, the servers run on: translation stopped %d, recognition %d times", m2-mt, a2-asr)
+	}
+
+	c.Start()
+	f.flush(t, 1)
+	c.Image = ImageView{PNG: []byte{1}, Via: "local-2b"}
+	mt, asr = stops()
+	c.Pause()
+	if m2, a2 := stops(); m2 != mt || a2 == asr {
+		t.Errorf("paused with a picture on translation's server: translation %d, recognition %d times", m2-mt, a2-asr)
+	}
+}
+
 // TestRecommended recommends one engine of each kind: a family's size to recommend where the GPU
 // has the memory it needs, Qwen3-ASR from 3 GB, Index-Translate 9B from 8 GB; else the cloud's
 // translation, and no recognition.

@@ -203,21 +203,36 @@ func (c *Core) Shutdown() {
 	c.SavePrefs()
 }
 
-// Stop stops translating.
+// Stop stops translating, and the local models with it.
 func (c *Core) Stop() {
 	if c.stop() {
+		c.freeModels()
 		c.changed()
 	}
 }
 
-// Pause stops translating from the subtitles, which then offer to go on.
+// Pause stops translating from the subtitles, which then offer to go on, and the local models with
+// it.
 func (c *Core) Pause() {
-	c.stop()
+	if c.stop() {
+		c.freeModels()
+	}
 	c.Paused = true
 	c.changed()
 }
 
 func (c *Core) stop() bool { return c.SessionController.stop() }
+
+// freeModels stops the local models' llama-servers, which give their memory back (8.6 GB for
+// Qwen3-ASR 1.7B and Index-Translate 9B), but for a picture's translation on one: starting again
+// loads them in 1 to 3 s from the system's file cache. Restarting, as when the languages change,
+// keeps them.
+func (c *Core) freeModels() {
+	c.EngineService.freeServer(c.ImageService.usesServer())
+	if c.deps.ASRServer != nil {
+		c.deps.ASRServer.Stop()
+	}
+}
 
 // RestartIfRunning restarts translating, which takes its languages, source, drafting and whether
 // it translates as it starts.

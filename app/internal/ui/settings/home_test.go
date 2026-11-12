@@ -231,6 +231,29 @@ func TestStatsDay(t *testing.T) {
 
 // TestHomeRecent shows the sessions kept last once there are any, and no empty card before: as
 // at first, with the subtitles not kept.
+// TestHomeRecentListsOnce lists the sessions kept once, not again each frame: a listing done
+// draws the page again, which listed them again, and so on, at the display's rate.
+func TestHomeRecentListsOnce(t *testing.T) {
+	posted := make(chan func(), 64)
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.HistoryDir = t.TempDir()
+		d.Post = func(fn func()) { posted <- fn }
+	})
+	tt := ui.NewTester(New(k, &coretest.Nav{}).View, Width, 1000)
+	for !k.History.Loaded {
+		select {
+		case fn := <-posted:
+			fn()
+		case <-time.After(5 * time.Second):
+			t.Fatal("never listed")
+		}
+	}
+	tt.Frame()
+	if k.History.Loading {
+		t.Error("listed again in the next frame")
+	}
+}
+
 func TestHomeRecent(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) { d.HistoryDir = t.TempDir() })
 	k.History = core.HistoryView{Loaded: true}
