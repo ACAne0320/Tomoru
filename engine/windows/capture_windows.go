@@ -8,7 +8,6 @@ import "C"
 import (
 	"fmt"
 	"log"
-	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -17,8 +16,8 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// systemSource hears what the computer plays: everything but the engine itself, or app alone, a
-// program's file name, with its helpers (a browser's audio process is a child of the browser). An
+// systemSource hears the default playback device, or app alone, a program's file name, with
+// its helpers (a browser's audio process is a child of the browser). An
 // app that is not running yet is heard once it starts, and again once it starts again.
 func systemSource(app string) Source { return &loopback{app: strings.ToLower(app)} }
 
@@ -31,14 +30,14 @@ var formats = []struct{ rate, channels int }{{rate, 1}, {48000, 2}}
 func (l *loopback) Start(feed func([]int16)) error {
 	if l.app == "" {
 		opened := make(chan error, 1)
-		go func() {
+		go func(opened chan error) {
 			// Should capture stop, as when the audio service restarts, it starts again.
 			for {
-				l.run(uint32(os.Getpid()), false, feed, opened, nil)
+				l.run(0, feed, opened, nil)
 				time.Sleep(time.Second)
 				opened = make(chan error, 1)
 			}
-		}()
+		}(opened)
 		return <-opened
 	}
 	go func() {
@@ -49,7 +48,7 @@ func (l *loopback) Start(feed func([]int16)) error {
 				continue
 			}
 			opened := make(chan error, 1)
-			l.run(pid, true, feed, opened, func() bool {
+			l.run(pid, feed, opened, func() bool {
 				ev, _ := windows.WaitForSingleObject(proc, 0)
 				return ev == windows.WAIT_OBJECT_0
 			})
@@ -63,29 +62,29 @@ func (l *loopback) Start(feed func([]int16)) error {
 	return nil
 }
 
-// run captures the tree of pid, or everything but it, until ended says so (never, when nil),
+// run captures the default playback device (pid 0) or a process tree until it changes or ends,
 // telling opened whether it started.
-func (l *loopback) run(pid uint32, include bool, feed func([]int16), opened chan<- error, ended func() bool) {
+func (l *loopback) run(pid uint32, feed func([]int16), opened chan<- error, ended func() bool) {
 	runtime.LockOSThread() // COM's objects, on the thread that made them
 	defer runtime.UnlockOSThread()
 	var c *C.tc_capture
 	var hr C.long = -1
 	var f struct{ rate, channels int }
+	what := "default playback device"
+	if pid != 0 {
+		what = fmt.Sprintf("%s (%d)", l.app, pid)
+	}
 	for _, f = range formats {
-		if hr = C.tc_open(C.ulong(pid), boolInt(include), C.int(f.rate), C.int(f.channels), &c); hr >= 0 {
+		if hr = C.tc_open(C.ulong(pid), C.int(f.rate), C.int(f.channels), &c); hr >= 0 {
 			break
 		}
 		log.Printf("capture at %d Hz, %d channels: %v", f.rate, f.channels, hresult(hr))
 	}
 	if hr < 0 {
-		opened <- fmt.Errorf("process loopback: %v", hresult(hr))
+		opened <- fmt.Errorf("capture %s: %v", what, hresult(hr))
 		return
 	}
 	defer C.tc_close(c)
-	what := "everything but the engine"
-	if include {
-		what = fmt.Sprintf("%s (%d)", l.app, pid)
-	}
 	log.Printf("capturing %s at %d Hz, %d channels", what, f.rate, f.channels)
 	opened <- nil
 
@@ -112,8 +111,18 @@ func (l *loopback) run(pid uint32, include bool, feed func([]int16), opened chan
 			log.Printf("capture: %.1f s of audio, peak %.4f", float64(frames)/rate, float64(peak)/32768)
 			frames, peak, report = 0, 0, time.Now()
 		}
-		if ended != nil && time.Since(check) >= time.Second {
-			if ended() {
+		if time.Since(check) >= time.Second {
+			if pid == 0 {
+				if hr := C.tc_default_changed(c); hr != 0 {
+					if hr < 0 {
+						log.Printf("default playback device unavailable: %v", hresult(hr))
+					} else {
+						log.Print("default playback device changed")
+					}
+					return
+				}
+			}
+			if ended != nil && ended() {
 				log.Printf("%s ended", l.app)
 				return
 			}
@@ -189,13 +198,6 @@ func processes() map[uint32]process {
 		out[e.ProcessID] = process{exe: windows.UTF16ToString(e.ExeFile[:]), parent: e.ParentProcessID}
 	}
 	return out
-}
-
-func boolInt(b bool) C.int {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 // hresult is an HRESULT, as an error that says it.

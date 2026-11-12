@@ -39,7 +39,7 @@ scripts/setup.sh windows-amd64   # tomoru-engine.exe、tomoru-asr.exe、人声�
 cd app && go tool mygo build -platform windows/amd64
 ```
 
-产物在 `app/build/windows-amd64/`（`Tomoru.exe` 与旁边的 `bin/`、`vad/`、`licenses/`），另有安装包 `tomoru-setup-<version>-amd64.exe`：在 Windows 上 MyGo 第一次会自己下载 NSIS；在 Mac 上要先装 NSIS（`brew install makensis`）。Windows 支持范围为 Windows 11 x64；进程环回 API 要求 [Windows build 20348 或更新](https://learn.microsoft.com/en-us/windows/win32/api/audioclientactivationparams/ns-audioclientactivationparams-audioclient_activation_params)，因此不支持 Windows 10。
+产物在 `app/build/windows-amd64/`（`Tomoru.exe` 与旁边的 `bin/`、`vad/`、`licenses/`），另有安装包 `tomoru-setup-<version>-amd64.exe`：在 Windows 上 MyGo 第一次会自己下载 NSIS；在 Mac 上要先装 NSIS（`brew install makensis`）。Windows 支持范围为 Windows 11 x64。「全部系统声音」用设备环回捕获默认播放设备，默认设备变化后会重新连接；单独输出到其他设备的应用不在捕获范围内。指定应用仍用进程环回，可能漏掉通信音频；遇到这种情况，把应用输出设为系统默认播放设备，并选择「全部系统声音」。进程环回 API 要求 [Windows build 20348 或更新](https://learn.microsoft.com/en-us/windows/win32/api/audioclientactivationparams/ns-audioclientactivationparams-audioclient_activation_params)，因此不支持 Windows 10。
 
 构建脚本把程序放到 `app/resources/<os>-<arch>/bin/`。用户下载的模型放在用户数据目录，或用户在设置里选的文件夹中的「Tomoru Models」文件夹（选了就把模型移过去）；无需为了单元测试下载它们。目录及协议分别见 [架构说明](architecture_zh.md) 和 [引擎协议](engine-protocol_zh.md)。
 

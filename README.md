@@ -85,6 +85,9 @@ irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | i
 ## Privacy
 
 - Tomoru listens to what your computer plays, not your microphone.
+- On Windows, all system audio hears the default playback device and follows output changes.
+  For Teams or other calls that are silent in app capture, use all system audio and set the
+  call's speaker to that same device.
 - Where your audio and text go depends on the engines you pick: local recognition and local
   translation stay on your computer. Cloud recognition sends audio to that cloud service.
 - The subtitle history is off by default. Turn it on to keep what was heard and translated; the

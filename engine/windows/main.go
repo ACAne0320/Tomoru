@@ -1,4 +1,4 @@
-// tomoru-engine: Tomoru's Windows engine. It hears what the computer plays with WASAPI's process
+// tomoru-engine: Tomoru's Windows engine. It hears what the computer plays with WASAPI's
 // loopback, and speaks docs/engine-protocol.md on stdin and stdout. It hears only: Windows has no
 // recognizer for apps to use, so tomoru-asr or the cloud recognizes what it hears.
 //

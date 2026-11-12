@@ -6,11 +6,13 @@
 #include <stdint.h>
 #include <wchar.h>
 
-// Capture: WASAPI's process loopback, of one process tree or of every process but one's.
+// Capture: WASAPI loopback of the default output or one process tree.
 typedef struct tc_capture tc_capture;
-// tc_open starts capturing the tree of pid (include), or everything but it, as 16-bit PCM of
-// rate and channels.
-long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture **out);
+// tc_open captures the default playback device when pid is 0, otherwise that process tree,
+// as 16-bit PCM of rate and channels. Open, read and close on the same COM thread.
+long tc_open(unsigned long pid, int rate, int channels, tc_capture **out);
+// tc_default_changed checks an endpoint capture: 0 if still default, 1 if changed, or an HRESULT.
+long tc_default_changed(tc_capture *c);
 // tc_read waits up to ms for what was heard and copies up to cap samples of it into buf, whole
 // frames: their count, 0 for none, or a negative HRESULT.
 long tc_read(tc_capture *c, int16_t *buf, int cap, int ms);

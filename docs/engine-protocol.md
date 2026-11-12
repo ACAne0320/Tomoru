@@ -15,7 +15,7 @@ every platform. The app runs the engine as a child process and talks to it in JS
 
 The macOS engine is `engine/mac` (Swift: Core Audio tap + SpeechAnalyzer), built as
 `tomoru-engine` into `app/resources/darwin-arm64/bin/`. The Windows engine is `engine/windows`
-(Go, its calls into Windows in C: WASAPI's process loopback, SAPI, and a window of its own to select
+(Go, its calls into Windows in C: WASAPI's endpoint and process loopback, SAPI, and a window of its own to select
 a part of the screen), built as `tomoru-engine.exe` into `app/resources/windows-amd64/bin/` by
 `scripts/build-engine-windows.sh`. Windows has no speech recognition for apps, so it only hears:
 `listen` needs `--asr none`, and `prepare` fails with `unsupported-locale`.

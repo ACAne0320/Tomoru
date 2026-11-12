@@ -9,7 +9,7 @@
 - **stdin** 承载 app 发来的命令，每行一个 JSON 对象。stdin 关闭时引擎退出，所以即使 app 崩溃，引擎也不会比它活得久。
 - 每个对象都有 `type`。双方都忽略不认识的类型和字段，所以任何一方都可以加字段而不破坏另一方。
 
-macOS 引擎是 `engine/mac`（Swift：Core Audio tap + SpeechAnalyzer），构建为 `tomoru-engine`，放进 `app/resources/darwin-arm64/bin/`。Windows 引擎是 `engine/windows`（Go，调用 Windows 的部分用 C：WASAPI 进程环回、SAPI，以及自己的框选窗口），由 `scripts/build-engine-windows.sh` 构建为 `tomoru-engine.exe`，放进 `app/resources/windows-amd64/bin/`。Windows 没有给应用用的语音识别，所以它只收听：`listen` 必须带 `--asr none`，`prepare` 以 `unsupported-locale` 失败。
+macOS 引擎是 `engine/mac`（Swift：Core Audio tap + SpeechAnalyzer），构建为 `tomoru-engine`，放进 `app/resources/darwin-arm64/bin/`。Windows 引擎是 `engine/windows`（Go，调用 Windows 的部分用 C：WASAPI 设备与进程环回、SAPI，以及自己的框选窗口），由 `scripts/build-engine-windows.sh` 构建为 `tomoru-engine.exe`，放进 `app/resources/windows-amd64/bin/`。Windows 没有给应用用的语音识别，所以它只收听：`listen` 必须带 `--asr none`，`prepare` 以 `unsupported-locale` 失败。
 
 用下载的模型识别不属于平台：app 按引擎的 `voice` 事件，把平台引擎用 `listen --asr none` 听到的音频切成一段段语音，由 `tomoru-asr`（`engine/asr`，Go + sherpa-onnx，各平台相同）逐段解码（见下文「tomoru-asr」和[识别适配层](recognition_zh.md)）。app 用和自己会识别的引擎相同的事件报告识别结果。云端识别（`app/internal/asr/qwencloud`，阿里云百炼的 Qwen ASR）在 app 里接收同样的 `audio`，用同样的事件报告。
 

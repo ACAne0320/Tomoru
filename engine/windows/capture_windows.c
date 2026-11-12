@@ -1,5 +1,4 @@
-// Capture: WASAPI's process loopback (build 20348+; Tomoru supports Windows 11), which hears one process tree,
-// or every process but one's, whatever output they play to.
+// Capture: WASAPI endpoint loopback for the default output, or process loopback for one app.
 #define COBJMACROS
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -9,6 +8,8 @@
 
 #include "engine_windows.h"
 
+static const CLSID clsidEnumerator = {0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2e}};
+static const IID iidEnumerator = {0xa95664d2, 0x9614, 0x4f35, {0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6}};
 static const IID iidUnknown = {0x00000000, 0x0000, 0x0000, {0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 static const IID iidAgileObject = {0x94ea2b94, 0xe9cc, 0x49e0, {0xc0, 0xff, 0xee, 0x64, 0xca, 0x8f, 0x5b, 0x90}};
 static const IID iidAudioClient = {0x1cb9ad4c, 0xdbfa, 0x4c32, {0xb1, 0x78, 0xc2, 0xf5, 0x68, 0xa7, 0x03, 0xb2}};
@@ -17,7 +18,7 @@ static const IID iidCompletionHandler = {0x41d949ab, 0x9862, 0x444a, {0x80, 0xf6
 
 // audioclientactivationparams.h, which mingw-w64 has not.
 enum { activationProcessLoopback = 1 };
-enum { loopbackInclude = 0, loopbackExclude = 1 };
+enum { loopbackInclude = 0 };
 typedef struct {
 	DWORD type;
 	DWORD pid;
@@ -70,14 +71,12 @@ struct tc_capture {
 	IAudioCaptureClient *capture;
 	HANDLE ready;
 	int channels;
+	int com_initialized;
+	IMMDeviceEnumerator *devices;
+	wchar_t *device_id;
 };
 
-long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture **out) {
-	*out = NULL;
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-		return hr;
-	}
+static HRESULT open_process(unsigned long pid, IAudioClient **client) {
 	handler *h = calloc(1, sizeof *h);
 	if (!h) {
 		return E_OUTOFMEMORY;
@@ -85,15 +84,20 @@ long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture 
 	h->iface.lpVtbl = &handlerVtbl;
 	h->refs = 1;
 	h->done = CreateEventW(NULL, TRUE, FALSE, NULL);
+	if (!h->done) {
+		HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+		handlerRelease(&h->iface);
+		return hr;
+	}
 
-	activationParams params = {activationProcessLoopback, pid, include ? loopbackInclude : loopbackExclude};
+	activationParams params = {activationProcessLoopback, pid, loopbackInclude};
 	PROPVARIANT pv;
 	PropVariantInit(&pv);
 	pv.vt = VT_BLOB;
 	pv.blob.cbSize = sizeof params;
 	pv.blob.pBlobData = (BYTE *)&params;
 	IActivateAudioInterfaceAsyncOperation *op = NULL;
-	hr = ActivateAudioInterfaceAsync(L"VAD\\Process_Loopback", &iidAudioClient, &pv, &h->iface, &op);
+	HRESULT hr = ActivateAudioInterfaceAsync(L"VAD\\Process_Loopback", &iidAudioClient, &pv, &h->iface, &op);
 	if (SUCCEEDED(hr) && WaitForSingleObject(h->done, 10000) != WAIT_OBJECT_0) {
 		hr = HRESULT_FROM_WIN32(ERROR_TIMEOUT);
 	}
@@ -109,14 +113,46 @@ long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture 
 		IActivateAudioInterfaceAsyncOperation_Release(op);
 	}
 	handlerRelease(&h->iface);
-	if (FAILED(hr)) {
-		return hr;
+	if (SUCCEEDED(hr)) {
+		hr = IUnknown_QueryInterface(unknown, &iidAudioClient, (void **)client);
 	}
+	if (unknown) {
+		IUnknown_Release(unknown);
+	}
+	return hr;
+}
 
+long tc_open(unsigned long pid, int rate, int channels, tc_capture **out) {
+	*out = NULL;
 	tc_capture *c = calloc(1, sizeof *c);
+	if (!c) {
+		return E_OUTOFMEMORY;
+	}
 	c->channels = channels;
-	hr = IUnknown_QueryInterface(unknown, &iidAudioClient, (void **)&c->client);
-	IUnknown_Release(unknown);
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	c->com_initialized = SUCCEEDED(hr);
+	if (hr == RPC_E_CHANGED_MODE) {
+		hr = S_OK;
+	}
+	if (SUCCEEDED(hr) && pid) {
+		hr = open_process(pid, &c->client);
+	} else if (SUCCEEDED(hr)) {
+		hr = CoCreateInstance(&clsidEnumerator, NULL, CLSCTX_ALL,
+			&iidEnumerator, (void **)&c->devices);
+		IMMDevice *device = NULL;
+		if (SUCCEEDED(hr)) {
+			hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(c->devices, eRender, eMultimedia, &device);
+		}
+		if (SUCCEEDED(hr)) {
+			hr = IMMDevice_GetId(device, &c->device_id);
+		}
+		if (SUCCEEDED(hr)) {
+			hr = IMMDevice_Activate(device, &iidAudioClient, CLSCTX_ALL, NULL, (void **)&c->client);
+		}
+		if (device) {
+			IMMDevice_Release(device);
+		}
+	}
 	if (SUCCEEDED(hr)) {
 		WAVEFORMATEX wf = {0};
 		wf.wFormatTag = WAVE_FORMAT_PCM;
@@ -132,7 +168,7 @@ long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture 
 	}
 	if (SUCCEEDED(hr)) {
 		c->ready = CreateEventW(NULL, FALSE, FALSE, NULL);
-		hr = IAudioClient_SetEventHandle(c->client, c->ready);
+		hr = c->ready ? IAudioClient_SetEventHandle(c->client, c->ready) : HRESULT_FROM_WIN32(GetLastError());
 	}
 	if (SUCCEEDED(hr)) {
 		hr = IAudioClient_GetService(c->client, &iidAudioCaptureClient, (void **)&c->capture);
@@ -146,6 +182,23 @@ long tc_open(unsigned long pid, int include, int rate, int channels, tc_capture 
 	}
 	*out = c;
 	return S_OK;
+}
+
+long tc_default_changed(tc_capture *c) {
+	IMMDevice *device = NULL;
+	wchar_t *id = NULL;
+	HRESULT hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(c->devices, eRender, eMultimedia, &device);
+	if (SUCCEEDED(hr)) {
+		hr = IMMDevice_GetId(device, &id);
+	}
+	if (SUCCEEDED(hr)) {
+		hr = wcscmp(c->device_id, id) != 0 ? S_FALSE : S_OK;
+	}
+	CoTaskMemFree(id);
+	if (device) {
+		IMMDevice_Release(device);
+	}
+	return hr;
 }
 
 long tc_read(tc_capture *c, int16_t *buf, int cap, int ms) {
@@ -197,6 +250,13 @@ void tc_close(tc_capture *c) {
 	}
 	if (c->ready) {
 		CloseHandle(c->ready);
+	}
+	CoTaskMemFree(c->device_id);
+	if (c->devices) {
+		IMMDeviceEnumerator_Release(c->devices);
+	}
+	if (c->com_initialized) {
+		CoUninitialize();
 	}
 	free(c);
 }

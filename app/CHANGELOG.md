@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- On Windows, all system audio captures the default playback device, including Teams call
+  audio, and reconnects when the default output changes. Apps routed to other outputs are
+  not captured in this mode. Selected-app capture still uses process loopback.
+
 ## 0.1.8
 
 Locked subtitles can be unlocked right where they are, and subtitles can go onto another screen.
