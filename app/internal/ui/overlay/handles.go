@@ -184,16 +184,16 @@ const (
 type resize struct {
 	kind         int
 	x0, y0       float32 // the pointer in the overlay as the drag began
-	bottom       int
 	areaX, areaW float64
+	// Moving, where the pointer held the block, on screen: from its center, and up from its bottom.
+	dx, dy int
 }
 
-// follow moves the subtitle area within the overlay, or resizes it around its center from a side
-// handle, after the pointer while h is held. Held, not pressed: a press ends as the pointer leaves
-// the element, which it does a narrow side handle at once, the handle following a frame behind.
-// The overlay does not move, so the pointer in it goes as on screen.
-// (Element.DragWindow hands the drag to AppKit, which ignored synthesized drags in testing;
-// following the pointer also keeps the area on screen.)
+// follow moves the subtitle area after the pointer while h is held, to the display the pointer
+// goes to, the overlay with it; or resizes it around its center from a side handle. Held, not
+// pressed: a press ends as the pointer leaves the element, which it does a narrow side handle at
+// once, the handle following a frame behind. (Element.DragWindow hands the drag to AppKit, which
+// ignored synthesized drags in testing; following the pointer also keeps the area on screen.)
 func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 	lx, ly, _ := h.PointerPosition()
 	if _, _, held := h.Dragged(); !held {
@@ -208,16 +208,24 @@ func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 	before := o.core.Preferences()
 	p := before.Clone()
 	defer func() { o.core.ApplyPreferences(before, p) }()
+	var at mygo.Point // the pointer on screen, which moving follows from display to display
+	if kind == moveArea {
+		at = mygo.Screen.CursorScreenPoint()
+	}
 	if o.resize == nil {
-		o.resize = &resize{kind: kind, x0: x, y0: y, bottom: o.blockBottom(), areaX: p.AreaX, areaW: p.AreaW}
+		o.resize = &resize{kind: kind, x0: x, y0: y, areaX: p.AreaX, areaW: p.AreaW,
+			dx: at.X - o.area.X - int(p.AreaX*float64(o.area.Width)), dy: o.blockBottom() - at.Y}
 	}
 	r := o.resize
 	dx := float64((x - r.x0) / ww)
 	switch kind {
 	case moveArea:
-		p.AreaX = r.areaX + dx
-		p.Bottom = r.bottom + int(y-r.y0)
-		p.Bottom = min(max(p.Bottom, o.area.Y+int(subtitle.SlotHeight(p, 1, true))+60), o.area.Y+o.area.Height) // on screen
+		if d := mygo.Screen.DisplayNearestPoint(at); d.ID != o.display.ID {
+			o.moveTo(d)
+			p.Screen = screenName(d)
+		}
+		p.AreaX = float64(at.X-r.dx-o.area.X) / float64(o.area.Width)
+		p.Bottom = o.onScreen(at.Y+r.dy) - o.display.Bounds.Y
 	case resizeLeft:
 		p.AreaW = min(.95, max(.3, r.areaW-2*dx))
 	case resizeRight:

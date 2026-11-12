@@ -116,6 +116,36 @@ func TestResize(t *testing.T) {
 	}
 }
 
+// TestDisplays puts the subtitles on the display they were moved to, by its name, or on the primary
+// one while it is not connected; their bottom edge is kept from their display's top.
+func TestDisplays(t *testing.T) {
+	built := mygo.Display{ID: 1, Label: "Built-in", Primary: true,
+		Bounds: mygo.Rectangle{Width: 1470, Height: 956}, WorkArea: mygo.Rectangle{Y: 33, Width: 1470, Height: 831}}
+	dell := mygo.Display{ID: 5, Label: "DELL U2720Q",
+		Bounds: mygo.Rectangle{X: -320, Y: -1080, Width: 1920, Height: 1080}, WorkArea: mygo.Rectangle{X: -320, Y: -1080, Width: 1920, Height: 1050}}
+	ds := []mygo.Display{built, dell}
+	for name, want := range map[string]int64{"": 1, "DELL U2720Q": 5, "LG UltraFine": 1} {
+		if d := displayNamed(ds, name); d.ID != want {
+			t.Errorf("%q: display %d, not %d", name, d.ID, want)
+		}
+	}
+	if screenName(built) != "" || screenName(dell) != "DELL U2720Q" {
+		t.Errorf("names %q, %q", screenName(built), screenName(dell))
+	}
+
+	k := coretest.New()
+	o := &Overlay{core: k, nav: &coretest.Nav{}}
+	o.moveTo(dell)
+	k.Prefs.Bottom = 900
+	if got := o.blockBottom(); got != -180 {
+		t.Errorf("900 down from the top of a display above: at %d, not -180", got)
+	}
+	o.moveTo(built)
+	if got := o.blockBottom(); got != 864 {
+		t.Errorf("below the work area: at %d, not its bottom, 864", got)
+	}
+}
+
 // TestSceneMenu switches the scene from the toolbar, which brings the scene's languages, changes
 // the scene's language from it, and goes to the scenes' page.
 func TestSceneMenu(t *testing.T) {

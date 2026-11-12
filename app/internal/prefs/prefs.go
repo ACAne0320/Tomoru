@@ -60,7 +60,8 @@ type Prefs struct {
 	// The subtitle area within the overlay, which spans the work area's width: its center and
 	// width, as fractions of that width.
 	AreaX, AreaW    float64
-	Bottom          int // the subtitle block's bottom edge on screen, 0 until moved: it grows upward
+	Bottom          int    // the subtitle block's bottom edge, down from its display's top; 0 until moved: it grows upward
+	Screen          string // the display the subtitles show on, by its name; "" for the primary one
 	HideFromCapture bool
 	Draft           bool   // translate sentences while they are spoken
 	AutoStart       bool   // start translating at launch: launching it is asking for subtitles

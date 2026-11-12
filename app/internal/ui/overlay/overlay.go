@@ -27,10 +27,11 @@ const below = 80
 
 // Overlay is the subtitle overlay. It is used on the main thread, but as noted.
 type Overlay struct {
-	core *core.Core
-	nav  shared.Nav
-	win  *mygo.Window
-	area mygo.Rectangle // the work area the overlay covers
+	core    *core.Core
+	nav     shared.Nav
+	win     *mygo.Window
+	display mygo.Display   // the display the overlay is on
+	area    mygo.Rectangle // its work area, which the overlay covers
 
 	locked atomic.Bool // Prefs.Locked, read by the pointer watcher
 	// grabbable tells the pointer watcher that the block shows something to grab: subtitles, or the
@@ -51,9 +52,11 @@ type Overlay struct {
 	barW    float32 // the width of the toolbar's capsule, as last laid out
 }
 
-// New makes the overlay's window, and shows it.
+// New makes the overlay's window, on the display the subtitles were put on, and shows it.
 func New(k *core.Core, nav shared.Nav) *Overlay {
-	o := &Overlay{core: k, nav: nav, area: mygo.Screen.PrimaryDisplay().WorkArea}
+	o := &Overlay{core: k, nav: nav}
+	o.display = displayNamed(mygo.Screen.Displays(), k.Preferences().Screen)
+	o.area = o.display.WorkArea
 	o.locked.Store(k.Preferences().Locked)
 	area := o.area
 	o.win = mygo.NewWindow(mygo.WindowOptions{
@@ -70,7 +73,51 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 	o.win.SetContentProtection(k.Preferences().HideFromCapture)
 	o.win.ShowInactive()
 	go o.watchPointer()
+	// A display plugged in or out, or its resolution changed: the subtitles go to theirs, or
+	// to the primary display while theirs is gone.
+	mygo.Screen.OnDisplaysChanged(func() {
+		o.win.Update(func() { o.moveTo(displayNamed(mygo.Screen.Displays(), o.core.Preferences().Screen)) })
+	})
 	return o
+}
+
+// displayNamed is the display of ds named name, or the primary one: the first, as
+// mygo.Screen.Displays lists them.
+func displayNamed(ds []mygo.Display, name string) mygo.Display {
+	for _, d := range ds {
+		if name != "" && d.Label == name {
+			return d
+		}
+	}
+	for _, d := range ds {
+		if d.Primary {
+			return d
+		}
+	}
+	if len(ds) > 0 {
+		return ds[0]
+	}
+	return mygo.Screen.PrimaryDisplay()
+}
+
+// screenName is how Prefs.Screen names d: "" for the primary display, which the subtitles follow
+// to whichever display becomes it.
+func screenName(d mygo.Display) string {
+	if d.Primary {
+		return ""
+	}
+	return d.Label
+}
+
+// moveTo puts the overlay over d's work area, unless it is there.
+func (o *Overlay) moveTo(d mygo.Display) {
+	if d.ID == o.display.ID && d.WorkArea == o.area {
+		return
+	}
+	o.display, o.area = d, d.WorkArea
+	if o.win != nil {
+		o.win.SetBounds(mygo.Rectangle{X: d.WorkArea.X, Y: d.WorkArea.Y, Width: d.WorkArea.Width, Height: d.WorkArea.Height + below})
+	}
 }
 
 // Window is the overlay's window.
@@ -119,9 +166,16 @@ func (o *Overlay) blockBottom() int {
 	area, p := o.area, o.core.Preferences()
 	y := area.Y + area.Height - 24
 	if p.Bottom != 0 {
-		y = p.Bottom
+		y = o.display.Bounds.Y + p.Bottom
 	}
-	return min(max(y, area.Y+int(subtitle.SlotHeight(p, 1, true))+60), area.Y+area.Height)
+	return o.onScreen(y)
+}
+
+// onScreen is the block's bottom edge y kept within the work area, with room for the block and its
+// toolbar above it.
+func (o *Overlay) onScreen(y int) int {
+	area := o.area
+	return min(max(y, area.Y+int(subtitle.SlotHeight(o.core.Preferences(), 1, true))+60), area.Y+area.Height)
 }
 
 var (
