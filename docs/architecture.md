@@ -27,7 +27,7 @@ see [ADR 001](adr/001-state-events-and-runtime-boundaries.md).
 | `app/internal/ui/{guide,settings,panel,overlay,imagecard}/` | The surfaces; they don't import each other, and share kit, shared and subtitle |
 | `app/cmd/tomoru-bench/` | The benchmark's command line, cases, session recording, reference subtitles and WAV handling, a file each |
 | `engine/mac/` | The Swift engine: audio capture and Apple's recognition |
-| `engine/windows/` | Its own Go module (cgo): Windows audio capture (WASAPI process loopback), voice detection, speaking and selecting a part of the screen; no recognition |
+| `engine/windows/` | Its own Go module (cgo): Windows audio capture (WASAPI endpoint loopback for the default playback device, process loopback for a selected app), voice detection, speaking and selecting a part of the screen; no recognition |
 | `engine/asr/` | Its own Go module: `tomoru-asr`, which decodes stretches of speech with a downloaded model |
 | `protocol/fixtures.json` | Wire fixtures shared by the three protocol implementations |
 | `bench/` | Cases, scoring and benchmark material; run output stays out of the source |

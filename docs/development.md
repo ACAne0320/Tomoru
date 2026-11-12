@@ -61,7 +61,11 @@ cd app && go tool mygo build -platform windows/amd64
 The output is in `app/build/windows-amd64/` (`Tomoru.exe` with `bin/`, `vad/` and `licenses/`
 beside it), and an installer, `tomoru-setup-<version>-amd64.exe`: on Windows MyGo downloads NSIS
 for it the first time; on a Mac it needs NSIS installed (`brew install makensis`). The supported
-Windows platform is Windows 11 x64. The process-loopback API requires
+Windows platform is Windows 11 x64. All system audio uses endpoint loopback on the default
+playback device and reconnects when that device changes. Apps routed to other outputs are not
+heard in this mode. A selected app still uses process loopback; communication audio may be
+missing there, so use all system audio with the app playing to the default output.
+The process-loopback API requires
 [Windows build 20348 or later](https://learn.microsoft.com/en-us/windows/win32/api/audioclientactivationparams/ns-audioclientactivationparams-audioclient_activation_params),
 so Windows 10 is not supported.
 

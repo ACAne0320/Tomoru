@@ -25,7 +25,7 @@
 | `app/internal/ui/{guide,settings,panel,overlay,imagecard}/` | 各界面；互不导入，复用 kit、shared 和 subtitle |
 | `app/cmd/tomoru-bench/` | 命令行组装、用例、会话记录、参考字幕和 WAV 处理，按文件分工 |
 | `engine/mac/` | Swift 音频采集与 Apple 识别引擎 |
-| `engine/windows/` | 独立 Go module（cgo）；Windows 音频采集（WASAPI 进程环回）、人声检测、朗读和框选截图；不识别 |
+| `engine/windows/` | 独立 Go module（cgo）；Windows 音频采集（默认播放设备用 WASAPI 设备环回，指定应用用进程环回）、人声检测、朗读和框选截图；不识别 |
 | `engine/asr/` | 独立 Go module；`tomoru-asr`，用下载的模型解码一段段语音 |
 | `protocol/fixtures.json` | 三个协议实现共用的 wire fixtures |
 | `bench/` | 用例、评分和评测材料；运行产物不进入源码 |
