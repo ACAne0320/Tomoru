@@ -198,7 +198,9 @@ func homeRecent(c *ui.Context, s *Settings) {
 	if !k.HistoryOn() {
 		return
 	}
-	k.LoadHistory()
+	if k.HistoryStale() {
+		k.LoadHistory()
+	}
 	recs := k.History.Records[:min(len(k.History.Records), 2)]
 	if len(recs) == 0 {
 		return
