@@ -33,8 +33,9 @@ your screen.
 > bilingual subtitles are Tomoru's.
 
 - **Subtitles for anything**: videos, streams, games, meetings. Listen to all of your computer's
-  sound, or just one app's (say, a stream in the browser while you play a game). Drag, resize and
-  lock the subtitles so clicks pass through, and hide them from screen recordings.
+  sound, or just one app's (say, a stream in the browser while you play a game). Drag the subtitles
+  anywhere, onto another screen too, resize and lock them so clicks pass through, and hide them
+  from screen recordings.
 - **On your computer or in the cloud, your call**: speech recognition and translation can both run
   fully offline on your computer, or use cloud services. Pick local, and your audio and text never
   leave your computer; pick the cloud, and data goes only to the service you chose.
