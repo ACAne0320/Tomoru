@@ -42,27 +42,22 @@ func Control(c *ui.Context, fn func()) ui.Element {
 // line, at the start; the control control builds at the end, centred on them. Rows after the
 // first, i above 0, have a rule above them. A row with no name is a note, desc, beside its control.
 func SettingRow(c *ui.Context, i int, label, desc string, control func()) ui.Element {
-	return settingRow(c, i, label, "", "", desc, false, control, nil)
+	return settingRow(c, i, label, desc, false, control, nil)
 }
 
 // SettingRowOff is a SettingRow that stays in its place, greyed, while off, as a setting that does
 // nothing for now: its name faint, its control disabled, which a kit control inside shows.
 func SettingRowOff(c *ui.Context, i int, label, desc string, off bool, control func()) ui.Element {
-	return settingRow(c, i, label, "", "", desc, off, control, nil)
-}
-
-// SettingRowLink is a SettingRow with a link in its label: link, a part of label, opens url.
-func SettingRowLink(c *ui.Context, i int, label, link, url, desc string, control func()) ui.Element {
-	return settingRow(c, i, label, link, url, desc, false, control, nil)
+	return settingRow(c, i, label, desc, off, control, nil)
 }
 
 // SettingRowUnder is a SettingRow with what under builds below its name, note and control, across
 // the row, as a move's progress: the row grows for it, its name and control staying where they are.
 func SettingRowUnder(c *ui.Context, i int, label, desc string, control, under func()) ui.Element {
-	return settingRow(c, i, label, "", "", desc, false, control, under)
+	return settingRow(c, i, label, desc, false, control, under)
 }
 
-func settingRow(c *ui.Context, i int, label, link, url, desc string, off bool, control, under func()) ui.Element {
+func settingRow(c *ui.Context, i int, label, desc string, off bool, control, under func()) ui.Element {
 	p := Colors(c)
 	h := float32(rowHeight)
 	if label != "" && desc != "" {
@@ -80,7 +75,7 @@ func settingRow(c *ui.Context, i int, label, link, url, desc string, off bool, c
 		ui.Row(c).Height(h).Gap(Space(3)).AlignItems(ui.Center).Children(func() {
 			ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
 				if label != "" {
-					Linked(c, label, link, url, TextBody, ink).MaxLines(1)
+					ui.Text(c, label).FontSize(TextBody).TextColor(ink).MaxLines(1)
 				}
 				if desc != "" {
 					ui.Text(c, desc).FontSize(TextCaption).TextColor(p.InkMuted).MaxLines(1).Tooltip(desc)

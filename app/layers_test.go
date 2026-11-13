@@ -208,3 +208,83 @@ func TestUIStateAccess(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// platformFiles are the production files that name the platform, by a build constraint or by
+// runtime.GOOS and GOARCH: the edges of docs/architecture.md, and the few places the domain asks.
+// A new one is a decision, made by changing this list.
+var platformFiles = []string{
+	"internal/asr/asr.go",
+	"internal/capture/capture_engine.go",
+	"internal/capture/capture_other.go",
+	"internal/core/feedback.go",
+	"internal/core/system.go",
+	"internal/history/history.go",
+	"internal/models/memory_darwin.go",
+	"internal/models/memory_other.go",
+	"internal/models/memory_windows.go",
+	"internal/models/models.go",
+	"internal/models/space_unix.go",
+	"internal/models/space_windows.go",
+	"internal/prefs/prefs.go",
+	"internal/resource/hide_other.go",
+	"internal/resource/hide_windows.go",
+	"internal/resource/resource.go",
+	"internal/ui/kit/shortcut.go",
+	"internal/ui/overlay/glass_darwin.go",
+	"internal/ui/overlay/glass_other.go",
+	"internal/ui/overlay/window_other.go",
+	"internal/ui/overlay/window_windows.go",
+	"internal/ui/shared/platform.go",
+	"internal/ui/shell/tray_other.go",
+	"internal/ui/shell/tray_windows.go",
+}
+
+func TestPlatformEdges(t *testing.T) {
+	var found []string
+	err := filepath.WalkDir("internal", func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		file, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ParseComments)
+		if err != nil {
+			return err
+		}
+		name := strings.TrimSuffix(filepath.Base(path), ".go")
+		named := slices.ContainsFunc([]string{"_darwin", "_windows", "_linux", "_arm64", "_amd64"}, func(suffix string) bool {
+			return strings.HasSuffix(name, suffix)
+		})
+		for _, group := range file.Comments {
+			for _, comment := range group.List {
+				named = named || comment.Pos() < file.Package && strings.HasPrefix(comment.Text, "//go:build")
+			}
+		}
+		ast.Inspect(file, func(node ast.Node) bool {
+			if field, ok := node.(*ast.SelectorExpr); ok && (field.Sel.Name == "GOOS" || field.Sel.Name == "GOARCH") {
+				if pkg, ok := field.X.(*ast.Ident); ok && pkg.Name == "runtime" {
+					named = true
+				}
+			}
+			return true
+		})
+		if named {
+			found = append(found, filepath.ToSlash(path))
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range found {
+		if !slices.Contains(platformFiles, path) {
+			t.Errorf("%s names the platform: keep that at the edges, or add the file to platformFiles", path)
+		}
+	}
+	for _, path := range platformFiles {
+		if !slices.Contains(found, path) {
+			t.Errorf("%s names no platform now: take it off platformFiles", path)
+		}
+	}
+}

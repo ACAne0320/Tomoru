@@ -16,8 +16,7 @@ func wavSeconds(path string) (float64, error) {
 		return 0, err
 	}
 	defer f.Close()
-	rate, bytesPerSec, size, _, err := wavData(f)
-	_ = rate
+	bytesPerSec, size, _, err := wavData(f)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", path, err)
 	}
@@ -31,7 +30,7 @@ func trimWav(src, dst string, sec float64) error {
 		return err
 	}
 	defer f.Close()
-	_, bytesPerSec, size, header, err := wavData(f)
+	bytesPerSec, size, header, err := wavData(f)
 	if err != nil {
 		return err
 	}
@@ -51,30 +50,30 @@ func trimWav(src, dst string, sec float64) error {
 	return err
 }
 
-// wavData reads a WAV file's chunks up to its data, leaving f there: its rate, bytes a second,
-// the data's size, and the header up to it.
-func wavData(f *os.File) (rate, bytesPerSec uint32, size int64, header []byte, err error) {
+// wavData reads a WAV file's chunks up to its data, leaving f there: its bytes a second, the
+// data's size, and the header up to it.
+func wavData(f *os.File) (bytesPerSec uint32, size int64, header []byte, err error) {
 	h := make([]byte, 12)
 	if _, err = io.ReadFull(f, h); err != nil || string(h[:4]) != "RIFF" || string(h[8:]) != "WAVE" {
-		return 0, 0, 0, nil, errors.New("not a WAV file")
+		return 0, 0, nil, errors.New("not a WAV file")
 	}
 	header = h
 	for {
 		ch := make([]byte, 8)
 		if _, err = io.ReadFull(f, ch); err != nil {
-			return 0, 0, 0, nil, err
+			return 0, 0, nil, err
 		}
 		n := binary.LittleEndian.Uint32(ch[4:])
 		header = append(header, ch...)
 		if string(ch[:4]) == "data" {
-			return rate, bytesPerSec, int64(n), header, nil
+			return bytesPerSec, int64(n), header, nil
 		}
 		body := make([]byte, n+n%2)
 		if _, err = io.ReadFull(f, body); err != nil {
-			return 0, 0, 0, nil, err
+			return 0, 0, nil, err
 		}
 		if string(ch[:4]) == "fmt " {
-			rate, bytesPerSec = binary.LittleEndian.Uint32(body[4:]), binary.LittleEndian.Uint32(body[8:])
+			bytesPerSec = binary.LittleEndian.Uint32(body[8:])
 		}
 		header = append(header, body...)
 	}

@@ -1,0 +1,28 @@
+# The linters scripts/check.sh runs on the three Go modules, for macOS and Windows.
+version: "2"
+linters:
+  default: none
+  enable:
+    - ineffassign
+    - revive
+    - staticcheck
+    - unparam
+    - unused
+  settings:
+    revive:
+      rules:
+        - name: time-equal
+    staticcheck:
+      checks: ["all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022", "-QF*"]
+  exclusions:
+    rules:
+      # A builder returns its element as the rest of kit does, used or not.
+      - path: internal/ui/
+        linters: [unparam]
+        text: 'ui\.Element\) is never used'
+      # A test's helper takes t and returns what some tests leave.
+      - path: _test\.go
+        linters: [unparam]
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

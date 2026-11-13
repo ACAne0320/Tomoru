@@ -192,7 +192,7 @@ func List(dir string) ([]Record, error) {
 // Read gives a session's lines.
 func Read(path string) ([]Entry, error) {
 	var es []Entry
-	_, _, err := scan(path, func(e Entry) { es = append(es, e) })
+	_, err := scan(path, func(e Entry) { es = append(es, e) })
 	return es, err
 }
 
@@ -228,38 +228,36 @@ func count(path string) (Head, int, error) {
 }
 
 // scan reads a session's file: its head, and its lines, each to each if it is not nil.
-func scan(path string, each func(Entry)) (Head, int, error) {
+func scan(path string, each func(Entry)) (Head, error) {
 	defer lock(path)()
 	return scanLocked(path, each)
 }
 
-func scanLocked(path string, each func(Entry)) (Head, int, error) {
+func scanLocked(path string, each func(Entry)) (Head, error) {
 	var head Head
 	f, err := os.Open(path)
 	if err != nil {
-		return head, 0, err
+		return head, err
 	}
 	defer f.Close()
 	sc := bufio.NewScanner(f)
 	sc.Buffer(nil, 1<<20)
 	if !sc.Scan() {
-		return head, 0, errors.New("history: an empty file")
+		return head, errors.New("history: an empty file")
 	}
 	if err := json.Unmarshal(sc.Bytes(), &head); err != nil || head.Start.IsZero() {
-		return head, 0, errors.New("history: not a session")
+		return head, errors.New("history: not a session")
 	}
-	n := 0
 	for sc.Scan() {
 		var e Entry
 		if json.Unmarshal(sc.Bytes(), &e) != nil {
 			continue // a line cut short as the app quit
 		}
-		n++
 		if each != nil {
 			each(e)
 		}
 	}
-	return head, n, sc.Err()
+	return head, sc.Err()
 }
 
 // Purge removes for good the sessions deleted under dir. The app does it once a launch, before
@@ -298,7 +296,7 @@ func Delete(paths []string) (undo func(), err error) {
 func Rewrite(path string, es []Entry) error {
 	defer lock(path)()
 	var now []Entry
-	head, _, err := scanLocked(path, func(e Entry) { now = append(now, e) })
+	head, err := scanLocked(path, func(e Entry) { now = append(now, e) })
 	if err != nil {
 		return err
 	}
@@ -342,6 +340,5 @@ func rename(from, to string) error {
 
 // ReadHead gives what a session was.
 func ReadHead(path string) (Head, error) {
-	head, _, err := scan(path, nil)
-	return head, err
+	return scan(path, nil)
 }

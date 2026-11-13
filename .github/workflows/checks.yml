@@ -45,6 +45,11 @@ jobs:
             app/go.sum
             engine/asr/go.sum
             engine/windows/go.sum
+      - name: Keep the linters check.sh builds
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/tomoru-tools
+          key: tomoru-tools-${{ runner.os }}-${{ hashFiles('scripts/check.sh') }}
       - run: scripts/check.sh go
 
   swift:
