@@ -89,8 +89,8 @@ Each takes the parts to run; with none it runs all this platform can (`ui` and `
 
 | | Part | What it runs |
 |---|---|---|
-| `check.sh` | `go` | The license inventory, `gofmt`, `go vet` of the app for macOS and Windows and of the engines for this platform and Windows (mingw-w64 needed: `brew install mingw-w64`, `apt install gcc-mingw-w64-x86-64`), and the app's layering and design rules |
-| | `swift` | A type check of the Swift engine |
+| `check.sh` | `go` | The license inventory, `gofmt`; `go vet`, the linters of `.golangci.yml` and functions nothing reaches (`deadcode`) of the app for macOS and Windows and of the engines for this platform and Windows (mingw-w64 needed: `brew install mingw-w64`, `apt install gcc-mingw-w64-x86-64`); and the app's layering, platform and design rules. The linters are pinned in the script and built the first time into `~/.cache/tomoru-tools` |
+| | `swift` | A type check of the Swift engine, warnings as errors |
 | `test.sh` | `go` | The tests of the three Go modules but the UI's and the `core/coretest` desktop adapter, the benchmark's included |
 | | `ui` | The app's UI tests |
 | | `swift` | The Swift protocol checker against `protocol/fixtures.json`, and `HearerContract.swift`, which feeds synthetic PCM to the production hearer to check the silence limit and continuous timestamps without starting capture or a model |
@@ -122,7 +122,7 @@ local ports. Tests use only local fake servers and need no external API by defau
 | Tier | What it covers | When |
 | --- | --- | --- |
 | Tests of affected packages | Current behavior, failure and cancellation paths | Every change |
-| `check.sh` | Formatting, vet for macOS and Windows, package boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
+| `check.sh` | Formatting, vet and lint for macOS and Windows, unused code, package and platform boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
 | `test.sh --race` | Domain rules, persistence, child processes, concurrency, the protocol implementations, the UI, the Swift contracts | Every code change; CI; the release gate |
 | Real audio and desktop acceptance | Permissions, real audio, shortcuts, subtitles across screens, quitting, packaged resources | Before a release, and when platform behavior changes |
 | A real Windows 11 x64 machine | `scripts/check.sh go` and `scripts/test.sh go` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Windows changes, before a release |
@@ -147,7 +147,8 @@ write screenshots with `TOMORU_GALLERY`, to review layouts by eye.
   (app, tomoru-asr, the Windows engine, Swift) and the protocol document together.
 - Platform differences stay at the edges (engines, `capture`, `resource.Hide`, the tray icon in
   `shell`); when only the wording differs on screen, use `shared.OnWindows`. Domain packages
-  never check the platform.
+  never check the platform. A file that names the platform joins `platformFiles` in
+  `app/layers_test.go`.
 
 Releasing and signing are in the [release guide](release.md). How to contribute is in
 [CONTRIBUTING](../CONTRIBUTING.md).

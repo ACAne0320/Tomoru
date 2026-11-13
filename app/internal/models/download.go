@@ -271,7 +271,7 @@ func (m *Manager) download(ctx context.Context, mod Model, j *job) error {
 		return err
 	}
 	done, _ := have(dir, mod)
-	m.set(j, func() { j.done = done })
+	m.set(func() { j.done = done })
 	if err := enoughSpace(dir, mod.Size-done); err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ func (m *Manager) downloadFile(ctx context.Context, mod Model, file File, j *job
 	if err := m.fetchFile(ctx, mod, file, part, j, before); err != nil {
 		return err
 	}
-	m.set(j, func() { j.state = Verifying })
+	m.set(func() { j.state = Verifying })
 	ok, err := checksum(ctx, part, file.SHA256)
 	if err != nil {
 		return err
@@ -308,7 +308,7 @@ func (m *Manager) downloadFile(ctx context.Context, mod Model, file File, j *job
 	if err := os.Rename(part, path); err != nil {
 		return err
 	}
-	m.set(j, func() { j.state = Downloading })
+	m.set(func() { j.state = Downloading })
 	return nil
 }
 
@@ -433,7 +433,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 			received.Add(int64(n))
 			if time.Since(told) > 250*time.Millisecond {
 				told = time.Now()
-				m.set(j, func() { j.done = before + have })
+				m.set(func() { j.done = before + have })
 			}
 		}
 		if rerr == io.EOF {
@@ -443,7 +443,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 			return have, requestError(rerr)
 		}
 	}
-	m.set(j, func() { j.done = before + have })
+	m.set(func() { j.done = before + have })
 	if have != size {
 		return have, fmt.Errorf("models: %s ended at %d of %d bytes", url, have, size)
 	}
@@ -451,7 +451,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 }
 
 // set changes a job's status, and tells.
-func (m *Manager) set(j *job, f func()) {
+func (m *Manager) set(f func()) {
 	m.mu.Lock()
 	f()
 	m.mu.Unlock()

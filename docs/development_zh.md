@@ -57,8 +57,8 @@ scripts/test.sh --race      # 开启 Go 的 race detector
 
 | | 部分 | 运行内容 |
 |---|---|---|
-| `check.sh` | `go` | 许可证清单、`gofmt`、app 针对 macOS 和 Windows 的 `go vet`、两个引擎针对本平台和 Windows 的 `go vet`（需要 mingw-w64：`brew install mingw-w64`，`apt install gcc-mingw-w64-x86-64`），以及 app 的分层和设计规则 |
-| | `swift` | Swift 引擎的类型检查 |
+| `check.sh` | `go` | 许可证清单、`gofmt`；app 针对 macOS 和 Windows、两个引擎针对本平台和 Windows 的 `go vet`、`.golangci.yml` 里的 linter 和没有调用方的函数（`deadcode`）（需要 mingw-w64：`brew install mingw-w64`，`apt install gcc-mingw-w64-x86-64`）；以及 app 的分层、平台和设计规则。linter 的版本写在脚本里，第一次运行时构建到 `~/.cache/tomoru-tools` |
+| | `swift` | Swift 引擎的类型检查，警告视为错误 |
 | `test.sh` | `go` | 三个 Go module 的测试，含 benchmark，不含 UI 和 `core/coretest` 桌面适配器 |
 | | `ui` | app 的 UI 测试 |
 | | `swift` | Swift 协议验证器（对照 `protocol/fixtures.json`），以及 `HearerContract.swift`：向生产收听器输入合成 PCM，验证静音限额和时间连续性，不启动采集或模型 |
@@ -84,7 +84,7 @@ go test ./...
 | 层级 | 作用 | 执行时机 |
 | --- | --- | --- |
 | 受影响包测试 | 验证当前行为、失败与取消路径 | 每次功能变更 |
-| `check.sh` | 格式、针对 macOS 和 Windows 的 vet、包边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
+| `check.sh` | 格式、针对 macOS 和 Windows 的 vet 和 lint、无用代码、包边界和平台边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
 | `test.sh --race` | 业务规则、持久化、子进程、并发、协议实现、UI、Swift 契约 | 每次代码变更、CI、发布门槛 |
 | 人工录音与桌面验收 | 权限、真实录音、快捷键、跨屏字幕、退出、打包资源 | 发布前及平台行为变更 |
 | Windows 11 x64 实机 | 在 MSYS2 里运行 `scripts/check.sh go` 和 `scripts/test.sh go`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 相关变更、发布前 |
@@ -99,6 +99,6 @@ go test ./...
 - 新增句子记录消费者订阅 `OnLine`，不能读取十行显示快照来猜完成状态。
 - 新增包族更新分层规则及规则测试；不要为了让测试通过放开整个上层依赖。
 - 协议变更同时修改共享 fixtures、四个实现（app、tomoru-asr、Windows 引擎、Swift）的契约检查和协议文档。
-- 平台差异放在边界（引擎、`capture`、`resource.Hide`、`shell` 的托盘图标）；界面上只有说法不同时用 `shared.OnWindows`，不在领域包里判断平台。
+- 平台差异放在边界（引擎、`capture`、`resource.Hide`、`shell` 的托盘图标）；界面上只有说法不同时用 `shared.OnWindows`，不在领域包里判断平台。提到平台的文件要加入 `app/layers_test.go` 的 `platformFiles`。
 
 发布步骤与签名要求见 [发布指南](release_zh.md)。贡献流程见 [贡献指南](../CONTRIBUTING_zh.md)。

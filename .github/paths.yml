@@ -17,6 +17,7 @@ licenses:
 ci:
   - scripts/check.sh
   - scripts/test.sh
+  - .golangci.yml
   - .github/paths.yml
   - .github/workflows/checks.yml
   - .github/workflows/tests.yml
