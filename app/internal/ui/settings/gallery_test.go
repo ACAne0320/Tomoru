@@ -85,6 +85,9 @@ func TestGallery(t *testing.T) {
 		{"subtitles-tgt-only", 1300, func() { k.Prefs.Display = 1 }},
 		{"subtitles-src-only", 1300, func() { k.Prefs.Display = prefs.DisplaySrc }},
 		{"subtitles-custom", 1500, func() { k.Prefs.Display, k.Prefs.SrcColor, k.Prefs.TgtColor = 0, "#ffec8c", "#7fdbff" }},
+		{"subtitles-fonts", Height, func() { s.openFonts() }},
+		{"subtitles-fonts-search", Height, func() { s.fonts.query = "song" }},
+		{"subtitles-font", 1500, func() { s.fonts.open, k.Prefs.Font = false, "Kaiti SC" }},
 		{"engines", 1900, func() {
 			s.Tab, s.shown[core.ASR], s.shown[core.MT] = "engines", "Qwen3-ASR", "Index-Translate"
 			k.SetEngine("local-2b")

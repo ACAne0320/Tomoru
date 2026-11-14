@@ -253,6 +253,18 @@
   "@fontRounded": {
     "description": "A font: rounded sans-serif."
   },
+  "fontMore": "More fonts",
+  "@fontMore": {
+    "description": "Menu item opening the list of the system's fonts; the app adds an ellipsis."
+  },
+  "fontSearch": "Search fonts",
+  "@fontSearch": {
+    "description": "Placeholder and label of the field that filters the system's fonts by name."
+  },
+  "fontNoMatch": "No fonts match",
+  "@fontNoMatch": {
+    "description": "Shown in the font list when no font's name has what was typed."
+  },
   "srcSize": "Original text size",
   "@srcSize": {
     "description": "Label of the size of the original text."

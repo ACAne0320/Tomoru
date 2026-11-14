@@ -40,6 +40,62 @@ func TestNativePreferenceMenusPersist(t *testing.T) {
 	}
 }
 
+// A family of the system's, found in the font list by a part of its name, is the subtitles' font
+// and the picker's; one not installed shows as the system's, which draws the subtitles then.
+func TestSystemFont(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	k := coretest.NewWith(func(d *core.Deps) { d.PrefsPath = path })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	families := ui.FontFamilies()
+	if len(families) < 2 {
+		t.Skip("no fonts to list")
+	}
+	family := families[len(families)/2].Name
+	if err := tt.Click(shared.FontName(k.Preferences().Font)); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.ChooseMenuItem(locales.FontMore() + "…"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Type(family)
+	tt.Frame()
+	if err := tt.Click(family); err != nil {
+		t.Fatalf("%s not listed: %q", family, tt.Texts())
+	}
+	if got := k.Preferences().Font; got != family {
+		t.Fatalf("font %q, want %q", got, family)
+	}
+	if saved, _ := prefs.Load(path, "en"); saved.Font != family {
+		t.Fatalf("saved font %q", saved.Font)
+	}
+	if tt.HasText(locales.FontSearch()) {
+		t.Error("the list stays open after choosing")
+	}
+	if _, ok := tt.Find(family); !ok {
+		t.Errorf("the picker doesn't show %s: %q", family, tt.Texts())
+	}
+
+	k.UpdatePrefs(func(p *prefs.Prefs) { p.Font = "Not A Font Tomoru Knows" })
+	tt.Frame()
+	if !tt.HasText(shared.FontName(prefs.Fonts[0])) || tt.HasText("Not A Font Tomoru Knows") {
+		t.Errorf("a font not installed shows: %q", tt.Texts())
+	}
+
+	if err := tt.Click(shared.FontName(prefs.Fonts[0])); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.ChooseMenuItem(locales.FontMore() + "…"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Type("zzzz no such font")
+	tt.Frame()
+	if !tt.HasText(locales.FontNoMatch()) {
+		t.Errorf("no match isn't said: %q", tt.Texts())
+	}
+}
+
 // Hiding the subtitles when no new ones come: how long first, which goes with it when turned off.
 func TestHideAfter(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")

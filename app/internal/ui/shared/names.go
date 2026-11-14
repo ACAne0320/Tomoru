@@ -60,15 +60,17 @@ func LangChoices(codes []string) []string {
 	return append(first, rest...)
 }
 
-// FontName is a font's name, by its key of prefs.Fonts.
-func FontName(key string) string {
-	switch key {
+// FontName is a font's name: a preset's of prefs.Fonts, by its key, or a family's own.
+func FontName(font string) string {
+	switch font {
+	case "system":
+		return locales.FontSystem()
 	case "serif":
 		return locales.FontSerif()
 	case "rounded":
 		return locales.FontRounded()
 	}
-	return locales.FontSystem()
+	return font
 }
 
 // CloudName is Index-Translate's cloud, 35B, as the app names it everywhere: by its model's size,

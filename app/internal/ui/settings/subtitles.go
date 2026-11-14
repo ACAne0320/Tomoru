@@ -52,6 +52,7 @@ func (s *Settings) subtitles(c *ui.Context) {
 		kit.Group(c, locales.SchemeCustom(), nil, kit.RowsCard, func() { styleColors(c, p) })
 	}
 	kit.Group(c, locales.StyleShow(), nil, kit.RowsCard, func() { s.styleShow(c, p) })
+	s.fontDialog(c)
 }
 
 // styleLook is the background, the edge, the alignment and the font.
@@ -76,8 +77,8 @@ func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	})
 	kit.SettingRow(c, 3, locales.FontLabel(), "", func() {
 		kit.Control(c, func() {
-			kit.Picker(c, shared.FontName(p.Font), kit.Choices(p.Font, prefs.Fonts, shared.FontName, func(f string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f }) })).
-				Grow(1).Shrink(1).MinWidth(0).Label(locales.FontLabel())
+			font := subtitleFont(p.Font)
+			kit.Picker(c, shared.FontName(font), s.fontMenu(font)).Grow(1).Shrink(1).MinWidth(0).Label(locales.FontLabel())
 		})
 	})
 }

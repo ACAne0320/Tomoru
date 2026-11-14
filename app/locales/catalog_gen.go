@@ -863,6 +863,52 @@ func (msgs Messages) FontRounded() string {
 	return Catalog.Format(msgs.locale, "fontRounded", nil)
 }
 
+// FontMore says "More fonts"
+// in the language the app shows.
+//
+// Menu item opening the list of the system's fonts; the app adds an
+// ellipsis.
+func FontMore() string { return In(i18n.Locale()).FontMore() }
+
+// FontMore says "More fonts"
+// in the language of msgs.
+//
+// Menu item opening the list of the system's fonts; the app adds an
+// ellipsis.
+func (msgs Messages) FontMore() string {
+	return Catalog.Format(msgs.locale, "fontMore", nil)
+}
+
+// FontSearch says "Search fonts"
+// in the language the app shows.
+//
+// Placeholder and label of the field that filters the system's fonts by
+// name.
+func FontSearch() string { return In(i18n.Locale()).FontSearch() }
+
+// FontSearch says "Search fonts"
+// in the language of msgs.
+//
+// Placeholder and label of the field that filters the system's fonts by
+// name.
+func (msgs Messages) FontSearch() string {
+	return Catalog.Format(msgs.locale, "fontSearch", nil)
+}
+
+// FontNoMatch says "No fonts match"
+// in the language the app shows.
+//
+// Shown in the font list when no font's name has what was typed.
+func FontNoMatch() string { return In(i18n.Locale()).FontNoMatch() }
+
+// FontNoMatch says "No fonts match"
+// in the language of msgs.
+//
+// Shown in the font list when no font's name has what was typed.
+func (msgs Messages) FontNoMatch() string {
+	return Catalog.Format(msgs.locale, "fontNoMatch", nil)
+}
+
 // SrcSize says "Original text size"
 // in the language the app shows.
 //

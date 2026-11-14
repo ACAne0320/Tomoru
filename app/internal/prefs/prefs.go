@@ -15,7 +15,8 @@ import (
 	"tomoru/internal/lang"
 )
 
-// Fonts are the subtitle fonts, by key; the UI names them and knows their families.
+// Fonts are the subtitle fonts to choose first, by key; the UI names them and knows their
+// families. The subtitles can also take a family of the system's, by its name.
 var Fonts = []string{"system", "serif", "rounded"}
 
 // MaxShown is the most sentences shown at once. Past what the screen holds, the oldest are cut
@@ -50,7 +51,7 @@ type Prefs struct {
 	Align            int     // 0: left, so that words come in at a fixed place, 1: centered
 	Edge             int     // around the text: 0 none, 1 outline, 2 drop shadow
 	EdgeColor        string
-	Font             string // a key of Fonts
+	Font             string // a key of Fonts, or a family's name
 	SrcSize, TgtSize float64
 	SrcColor         string
 	TgtColor         string
@@ -247,7 +248,7 @@ func (p *Prefs) fix(d Prefs) {
 	if !lang.Known(p.ImageTgt) || p.ImageTgt == p.Tgt {
 		p.ImageTgt = ""
 	}
-	if !slices.Contains(Fonts, p.Font) {
+	if strings.TrimSpace(p.Font) == "" {
 		p.Font = Fonts[0]
 	}
 	if p.Source != "" && p.SourceName == "" {

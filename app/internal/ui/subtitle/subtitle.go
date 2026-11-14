@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	// FontFamily are the families of the fonts, by key: the first family with a glyph draws it, of
-	// macOS's then Windows's. Windows has no rounded one: the system's draws it there.
-	FontFamily = map[string]string{
+	// presets are the families of the fonts of prefs.Fonts, by key: the first family with a glyph
+	// draws it, of macOS's then Windows's. Windows has no rounded one: the system's draws it there.
+	presets = map[string]string{
 		"serif":   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang",
 		"rounded": "Yuanti SC, Hiragino Maru Gothic ProN",
 	}
@@ -309,12 +309,24 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 	return top
 }
 
+// family is the family list the subtitles are in: a preset's, a family of the system's by name, or
+// "" for the system's. What a family lacks, or a family not installed, the system's draws.
+func family(p prefs.Prefs) string {
+	if f, ok := presets[p.Font]; ok {
+		return f
+	}
+	if p.Font == prefs.Fonts[0] {
+		return ""
+	}
+	return p.Font
+}
+
 // fitTail is s if it fits one line of width at size, else "…" and as much of its end as fits:
 // the newest words of a sentence still being spoken matter most. Spaced languages start at a
 // word.
 func fitTail(c *ui.Context, p prefs.Prefs, s string, size, width float32, cjk bool) string {
 	measure := func(t string) float32 {
-		w, _ := c.MeasureText(0, ui.Span{Text: t, Font: FontFamily[p.Font], Size: size, Weight: 700, Lang: p.Src})
+		w, _ := c.MeasureText(0, ui.Span{Text: t, Font: family(p), Size: size, Weight: 700, Lang: p.Src})
 		return w
 	}
 	if measure(s) <= width {
@@ -343,7 +355,7 @@ func fitTail(c *ui.Context, p prefs.Prefs, s string, size, width float32, cjk bo
 // Japanese.
 func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Color, lines int) ui.Element {
 	t := ui.Text(c, s).Lang(lang).FontSize(size).Bold().TextAlign(Align(p)).TextColor(col).MaxLines(lines)
-	if f := FontFamily[p.Font]; f != "" {
+	if f := family(p); f != "" {
 		t = t.Font(f)
 	}
 	if p.Edge == 1 || p.Edge == 2 {

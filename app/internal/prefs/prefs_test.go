@@ -38,10 +38,15 @@ func TestLoad(t *testing.T) {
 
 	// Edited out of range: set right. An API deleted stays chosen: translating says it is gone
 	// rather than sending the subtitles elsewhere.
-	os.WriteFile(path, []byte(`{"Src": "ja", "Tgt": "ja", "Shown": 99, "Font": "Comic", "MT": "custom:gone"}`), 0o644)
+	os.WriteFile(path, []byte(`{"Src": "ja", "Tgt": "ja", "Shown": 99, "Font": " ", "MT": "custom:gone"}`), 0o644)
 	got, _ = Load(path, "zh-Hans")
 	if got.Src != "en" || got.Tgt != "zh" || got.Shown != MaxShown || got.Font != "system" || got.MT != "custom:gone" {
 		t.Errorf("%+v", got)
+	}
+	// A family of the system's stays, installed or not: the subtitles fall back to the system's.
+	os.WriteFile(path, []byte(`{"Font": "Comic Sans MS"}`), 0o644)
+	if got, _ = Load(path, "en"); got.Font != "Comic Sans MS" {
+		t.Errorf("font %q", got.Font)
 	}
 }
 
