@@ -18,7 +18,7 @@ go test ./...
 go tool mygo build -sign -    # 本机测试用的包，在 app/build/darwin-arm64/
 ```
 
-`scripts/setup.sh` 构建引擎和 tomoru-asr，下载人声检测和 llama-server，都放进 `app/resources/<os>-<arch>/`。`go tool mygo dev` 也监视这个目录，所以在 app 运行时执行它（或只执行 `scripts/build-engine-mac.sh`），app 会带着新引擎重启。开发版叫 `Tomoru Dev`（`dev.acane.tomoru.dev`），权限和设置与已安装的 Tomoru 分开。`go run . --guide` 再次进入引导。
+`scripts/setup.sh` 构建引擎和 tomoru-asr，下载人声检测和 llama-server，都放进 `app/resources/<os>-<arch>/`。`go tool mygo dev` 也监视这个目录，所以在 app 运行时执行它（或只执行 `scripts/build-engine-mac.sh`），app 会带着新引擎重启。开发版叫 `Tomoru Dev`（`dev.acane.tomoru.dev`），权限和设置与已安装的 Tomoru 分开。`go run . --guide` 再次进入引导。`go tool mygo dev -background` 启动和每次重建后都不把 app 带到前台，保存代码时焦点留在编辑器里。
 
 `-sign -` 使用 ad-hoc 临时签名，供本机测试，产物在 `app/build/darwin-arm64/`。它只为这次命令覆盖 `macos.signingIdentity`，贡献者无需持有发布证书，也无需修改 `app/mygo.json`。`go tool mygo dev` 默认也使用临时签名。若要用固定身份测试权限，可以传入自己的证书：`-sign "你的证书名称"`，见 MyGo 的 [构建参数](https://github.com/egoist/mygo/blob/main/docs/cli.md#mygo-build)。正式发布仍使用现有证书和更新密钥，见 [发布指南](release_zh.md)。
 
