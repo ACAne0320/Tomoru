@@ -152,7 +152,7 @@ func (d *Card) allow(c *ui.Context) {
 		case k.Screen == "denied":
 			kit.Caption(c, locales.GuideSelectSettings()).TextAlign(ui.Center)
 			if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).Margin(kit.Space(2), 0, 0).Clicked() {
-				kit.OpenScreenSettings()
+				kit.GuideScreenRecording()
 			}
 		default:
 			kit.Caption(c, locales.ScreenSelectWhy()).TextAlign(ui.Center)

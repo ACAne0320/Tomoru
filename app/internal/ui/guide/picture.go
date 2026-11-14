@@ -67,7 +67,7 @@ func (g *Guide) pictureAsk(c *ui.Context) {
 	case k.Screen == "denied":
 		body(c, locales.GuideSelectSettings())
 		if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).AlignSelf(ui.Start).Clicked() {
-			kit.OpenScreenSettings()
+			kit.GuideScreenRecording()
 		}
 	default:
 		body(c, locales.GuideSelectAsk())

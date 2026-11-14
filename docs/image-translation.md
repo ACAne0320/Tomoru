@@ -41,7 +41,10 @@ In the first-run guide, select-to-translate is a step that can be skipped: it as
 user wants it, they turn on Tomoru's Screen Recording in System Settings, choose a shortcut, and
 try it on the sample dialogue on the right (`assets/samples/`, made by `guide/samples_test.go`).
 
-- macOS only offers "Open System Settings"; the app can't grant it with one click. When the system
+- macOS only offers "Open System Settings"; the app can't grant it with one click. Once denied,
+  "Open System Settings" opens the Screen Recording list with a panel under System Settings' window
+  that holds Tomoru to drag into the list (MyGo's `permissionflow`, after PermissionFlow); it goes
+  once the permission is on, or with System Settings. When the system
   then asks to "Quit & Reopen", the user can choose "Later": the permission check and the capture
   both happen in a freshly started engine process each time, so it works without relaunching. If
   relaunched, the guide returns to the step it stopped on.
@@ -154,7 +157,8 @@ without activating Tomoru.
   cloud" (or on this computer, or the user's API), Index-Translate a link to its page; its tooltip says neither the picture nor
   its translation is kept.
 - **No image**: without Screen Recording and with no image on the clipboard, it asks for Screen
-  Recording, as the guide does (turn it on; denied, open System Settings); once on, a Screenshot
+  Recording, as the guide does (turn it on; denied, open System Settings with the panel to drag Tomoru
+  into the list); once on, a Screenshot
   button selects a part of the screen.
 
 ## Later, maybe
