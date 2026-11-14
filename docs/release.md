@@ -56,6 +56,7 @@ The certificate and update key below are for official releases.
    a local translation model, and quitting while translating. Check that both find their bundled
    engines and libraries and carry their [license texts and notices](third-party-licenses.md) in
    `licenses/`: the license check looks at the resources before packaging, not at the package.
+   Also test, on each platform, the pull requests since the last release that say it is left.
 5. Publish the draft on GitHub. Installed apps check soon after they launch, then once a day, and
    find it then. Within half an hour the website copies its installers to R2 and its download
    buttons give them ([site/README.md](../site/README.md)).

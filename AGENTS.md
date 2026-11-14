@@ -31,7 +31,8 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 - After code changes (not docs), run `scripts/check.sh` and the tests of what you changed; `scripts/test.sh` runs them all. Releases build packages; checks and tests never do.
 - Tests must pass in any time zone.
 - Look at UI changes on screen as users see them: the subtitle overlay with another app in front.
-- Windows changes count as done only after a run on a real Windows 11 machine.
+- Test on the platform you develop on and say in the PR which platforms are left; before a release, test what changed since the last one on the others.
+- A change to one platform's own code (engines, `capture`, `shell`) is tested on that platform before it merges.
 - Benchmark routine changes on the quick set (one case per language, `-max 120`); run the full set only for a new model or a large performance change.
 - When acting on review findings, fix what affects users and say which ones you left as over-defensive.
 

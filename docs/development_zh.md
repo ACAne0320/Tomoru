@@ -87,8 +87,10 @@ go test ./...
 | `check.sh` | 格式、针对 macOS 和 Windows 的 vet 和 lint、无用代码、包边界和平台边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
 | `test.sh --race` | 业务规则、持久化、子进程、并发、协议实现、UI、Swift 契约 | 每次代码变更、CI、发布门槛 |
 | 人工录音与桌面验收 | 权限、真实录音、快捷键、跨屏字幕、退出、打包资源 | 发布前及平台行为变更 |
-| Windows 11 x64 实机 | 在 MSYS2 里运行 `scripts/check.sh go` 和 `scripts/test.sh go`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 相关变更、发布前 |
+| Windows 11 x64 实机 | 在 MSYS2 里运行 `scripts/check.sh go` 和 `scripts/test.sh go`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 自己的代码（`engine/windows`、`capture`、`shell`）变更；发布前测上次发布以来的改动 |
 | 选配真实评测 | 指定音频、模型或云端服务的质量与延迟 | 识别/断句/翻译效果变更 |
+
+其他改动在开发它的平台上测，PR 里写明还有哪些平台没测；发布时在其他平台补测。
 
 真实评测的输入、参数及评分见 [benchmark 指南](../bench/README_zh.md)。`TOMORU_E2E` 等变量启用真实端到端测试；`TOMORU_DOWNLOAD` 启用下载测试；普通检查保持这些变量未设置，避免自动下载或云端调用。UI gallery 通过 `TOMORU_GALLERY` 输出截图，是人工布局验收的补充。
 

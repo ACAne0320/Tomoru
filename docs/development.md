@@ -126,8 +126,11 @@ local ports. Tests use only local fake servers and need no external API by defau
 | `check.sh` | Formatting, vet and lint for macOS and Windows, unused code, package and platform boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
 | `test.sh --race` | Domain rules, persistence, child processes, concurrency, the protocol implementations, the UI, the Swift contracts | Every code change; CI; the release gate |
 | Real audio and desktop acceptance | Permissions, real audio, shortcuts, subtitles across screens, quitting, packaged resources | Before a release, and when platform behavior changes |
-| A real Windows 11 x64 machine | `scripts/check.sh go` and `scripts/test.sh go` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Windows changes, before a release |
+| A real Windows 11 x64 machine | `scripts/check.sh go` and `scripts/test.sh go` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Changes to Windows's own code (`engine/windows`, `capture`, `shell`); before a release, what changed since the last one |
 | Optional real benchmark | Quality and latency with given audio, models or cloud services | Changes to recognition, segmenting or translation quality |
+
+Other changes are tested on the platform they were made on, and the pull request says which
+platforms are left; the release tests those on the others.
 
 The benchmark's inputs, options and scoring are in the [benchmark guide](../bench/README.md).
 Variables such as `TOMORU_E2E` turn on real end-to-end tests, and `TOMORU_DOWNLOAD` the download
