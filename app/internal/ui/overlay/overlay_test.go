@@ -254,3 +254,18 @@ func TestUnlock(t *testing.T) {
 		t.Errorf("more subtitles: the lock %v moved from %v, %q", o.lock, lock, tt.Texts())
 	}
 }
+
+// What takes the mouse: hovered, the block with its toolbar; locked, the lock alone while it
+// shows; else nothing, so that clicks reach the app behind.
+func TestInputRegion(t *testing.T) {
+	o := &Overlay{block: ui.Rect{X: 10.4, Y: 20.6, W: 100.2, H: 50}, lock: ui.Rect{X: 50, Y: 0, W: 28, H: 28}}
+	if got := inputRegion(true, false, o); len(got) != 1 || got[0] != (mygo.Rectangle{X: 10, Y: 20, Width: 101, Height: 51}) {
+		t.Errorf("hovered: %v", got)
+	}
+	if got := inputRegion(false, true, o); len(got) != 1 || got[0] != (mygo.Rectangle{X: 50, Y: 0, Width: 28, Height: 28}) {
+		t.Errorf("the lock: %v", got)
+	}
+	if got := inputRegion(false, false, o); got == nil || len(got) != 0 {
+		t.Errorf("none takes it, not all: %v", got)
+	}
+}
