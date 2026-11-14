@@ -1,5 +1,6 @@
 name: Idea / 想法
 description: Something Tomoru could do better. / Tomoru 可以做得更好的地方。
+title: "[Feature] "
 labels: [enhancement]
 body:
   - type: markdown
