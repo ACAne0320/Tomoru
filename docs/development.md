@@ -27,7 +27,8 @@ llama-server into `app/resources/<os>-<arch>/`. `go tool mygo dev` watches that 
 running it, or only `scripts/build-engine-mac.sh`, while the app runs restarts the app with the new
 engine. The development app is `Tomoru Dev` (`dev.acane.tomoru.dev`): it asks for permissions and
 keeps its settings apart from an installed Tomoru. `go run . --guide` runs the first-run guide
-again.
+again. `go tool mygo dev -background` starts it, and again after each rebuild, without bringing it
+to the front, so the editor keeps the focus as you save.
 
 `-sign -` signs the app ad hoc for local testing and writes the package to
 `app/build/darwin-arm64/`. It overrides `macos.signingIdentity` for this command, so contributors
