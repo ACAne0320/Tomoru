@@ -9,7 +9,7 @@ Tomoru 的 GPL-3.0-or-later 许可覆盖自身代码。依赖、图标和下载�
 | 组件 | 使用的版本或来源 | 已收集的声明 |
 | --- | --- | --- |
 | Go 运行时和 app 依赖 | Go 1.27.3；三个 `go.mod` 中的版本 | Go BSD、websocket ISC、purego Apache、typesetting 和 HarfBuzz 声明，以及 `x/image`、`x/net`（Windows）、`x/sys`、`x/text` 的许可和专利授权 |
-| MyGo | `v0.9.0` | MIT；其 Ebitengine 派生 shader 代码的 Apache 许可 |
+| MyGo | `v0.9.0` | MIT；其 Ebitengine 派生 shader 代码的 Apache 许可；其权限引导参照 PermissionFlow，附其 MIT 声明 |
 | Lucide / Feather | lucide-static 0.469.0，仓库中的 SVG 子集 | 原有 ISC 声明和 Feather MIT 声明 |
 | sherpa-onnx | v1.13.8 | Apache-2.0 及已识别的原生依赖声明，包括采用 GPL 的 eSpeak NG |
 | ONNX Runtime | 1.28.2，已与两平台动态库及 sherpa 构建配置核对 | MIT 和完整的上游 `ThirdPartyNotices.txt` |
