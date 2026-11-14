@@ -148,8 +148,10 @@ func main() {
 		mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { k.Shutdown(); cancel() })
 		ui := shell.New(k)
 		// Starting the app again, from Finder or the launcher, opens its settings: the menu bar icon
-		// may be out of sight.
+		// may be out of sight, behind the notch. macOS starts no second instance for that: it asks
+		// the running one to reopen.
 		mygo.App.OnSecondInstance(func([]string, string) { ui.ShowSettings() })
+		mygo.App.OnActivate(func(bool) { ui.ShowSettings() })
 		ui.Launch(*start)
 	})
 	if err := mygo.App.Run(); err != nil {
