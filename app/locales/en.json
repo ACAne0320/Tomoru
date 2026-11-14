@@ -415,9 +415,33 @@
   "@aboutLicense": {
     "description": "In About: the app's license."
   },
-  "aboutCredits": "Translation model Index-Translate (bilibili, Apache-2.0) · UI MyGo · Icons Lucide (ISC)",
-  "@aboutCredits": {
-    "description": "In About: the works the app is built on, with their licenses."
+  "aboutLicenses": "Third-party licenses",
+  "@aboutLicenses": {
+    "description": "About: the button opening the directory of the licenses of all the third-party works the app ships with."
+  },
+  "creditTranslation": "Translation model",
+  "@creditTranslation": {
+    "description": "About, the works the app is built on: what the translation model (Index-Translate) is."
+  },
+  "creditLocalModels": "Local models",
+  "@creditLocalModels": {
+    "description": "About, the works the app is built on: what runs the local models (llama.cpp)."
+  },
+  "creditRecognition": "Speech recognition",
+  "@creditRecognition": {
+    "description": "About, the works the app is built on: what recognizes speech (sherpa-onnx)."
+  },
+  "creditVoice": "Voice detection",
+  "@creditVoice": {
+    "description": "About, the works the app is built on: what tells when someone speaks (Silero VAD)."
+  },
+  "creditUI": "UI",
+  "@creditUI": {
+    "description": "About, the works the app is built on: what draws the interface (MyGo)."
+  },
+  "creditIcons": "Icons",
+  "@creditIcons": {
+    "description": "About, the works the app is built on: the icons (Lucide)."
   },
   "aboutGuide": "First-run guide",
   "@aboutGuide": {

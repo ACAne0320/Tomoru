@@ -1,4 +1,5 @@
-// Package resource finds the programs the app ships with: the engine, llama-server.
+// Package resource finds what the app ships with: the engine, llama-server, the third-party
+// licenses.
 package resource
 
 import (
@@ -27,4 +28,20 @@ func Bin(name string, roots ...string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("no %s in resource roots [%s]", name, strings.Join(roots, ", "))
+}
+
+// Licenses finds the directory of the third-party licenses the app ships with, in the roots as Bin
+// does, or "" for none.
+func Licenses(roots ...string) string {
+	for _, dir := range roots {
+		for _, p := range []string{
+			filepath.Join(dir, "licenses"),
+			filepath.Join(dir, runtime.GOOS+"-"+runtime.GOARCH, "licenses"),
+		} {
+			if info, err := os.Stat(p); err == nil && info.IsDir() {
+				return p
+			}
+		}
+	}
+	return ""
 }

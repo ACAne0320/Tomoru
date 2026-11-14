@@ -1433,18 +1433,112 @@ func (msgs Messages) AboutLicense() string {
 	return Catalog.Format(msgs.locale, "aboutLicense", nil)
 }
 
-// AboutCredits says "Translation model Index-Translate (bilibili, Apache-2.0) · UI MyGo · Icons Lucide (ISC)"
+// AboutLicenses says "Third-party licenses"
 // in the language the app shows.
 //
-// In About: the works the app is built on, with their licenses.
-func AboutCredits() string { return In(i18n.Locale()).AboutCredits() }
+// About: the button opening the directory of the licenses of all the
+// third-party works the app ships with.
+func AboutLicenses() string { return In(i18n.Locale()).AboutLicenses() }
 
-// AboutCredits says "Translation model Index-Translate (bilibili, Apache-2.0) · UI MyGo · Icons Lucide (ISC)"
+// AboutLicenses says "Third-party licenses"
 // in the language of msgs.
 //
-// In About: the works the app is built on, with their licenses.
-func (msgs Messages) AboutCredits() string {
-	return Catalog.Format(msgs.locale, "aboutCredits", nil)
+// About: the button opening the directory of the licenses of all the
+// third-party works the app ships with.
+func (msgs Messages) AboutLicenses() string {
+	return Catalog.Format(msgs.locale, "aboutLicenses", nil)
+}
+
+// CreditTranslation says "Translation model"
+// in the language the app shows.
+//
+// About, the works the app is built on: what the translation model
+// (Index-Translate) is.
+func CreditTranslation() string { return In(i18n.Locale()).CreditTranslation() }
+
+// CreditTranslation says "Translation model"
+// in the language of msgs.
+//
+// About, the works the app is built on: what the translation model
+// (Index-Translate) is.
+func (msgs Messages) CreditTranslation() string {
+	return Catalog.Format(msgs.locale, "creditTranslation", nil)
+}
+
+// CreditLocalModels says "Local models"
+// in the language the app shows.
+//
+// About, the works the app is built on: what runs the local models
+// (llama.cpp).
+func CreditLocalModels() string { return In(i18n.Locale()).CreditLocalModels() }
+
+// CreditLocalModels says "Local models"
+// in the language of msgs.
+//
+// About, the works the app is built on: what runs the local models
+// (llama.cpp).
+func (msgs Messages) CreditLocalModels() string {
+	return Catalog.Format(msgs.locale, "creditLocalModels", nil)
+}
+
+// CreditRecognition says "Speech recognition"
+// in the language the app shows.
+//
+// About, the works the app is built on: what recognizes speech
+// (sherpa-onnx).
+func CreditRecognition() string { return In(i18n.Locale()).CreditRecognition() }
+
+// CreditRecognition says "Speech recognition"
+// in the language of msgs.
+//
+// About, the works the app is built on: what recognizes speech
+// (sherpa-onnx).
+func (msgs Messages) CreditRecognition() string {
+	return Catalog.Format(msgs.locale, "creditRecognition", nil)
+}
+
+// CreditVoice says "Voice detection"
+// in the language the app shows.
+//
+// About, the works the app is built on: what tells when someone speaks
+// (Silero VAD).
+func CreditVoice() string { return In(i18n.Locale()).CreditVoice() }
+
+// CreditVoice says "Voice detection"
+// in the language of msgs.
+//
+// About, the works the app is built on: what tells when someone speaks
+// (Silero VAD).
+func (msgs Messages) CreditVoice() string {
+	return Catalog.Format(msgs.locale, "creditVoice", nil)
+}
+
+// CreditUI says "UI"
+// in the language the app shows.
+//
+// About, the works the app is built on: what draws the interface (MyGo).
+func CreditUI() string { return In(i18n.Locale()).CreditUI() }
+
+// CreditUI says "UI"
+// in the language of msgs.
+//
+// About, the works the app is built on: what draws the interface (MyGo).
+func (msgs Messages) CreditUI() string {
+	return Catalog.Format(msgs.locale, "creditUI", nil)
+}
+
+// CreditIcons says "Icons"
+// in the language the app shows.
+//
+// About, the works the app is built on: the icons (Lucide).
+func CreditIcons() string { return In(i18n.Locale()).CreditIcons() }
+
+// CreditIcons says "Icons"
+// in the language of msgs.
+//
+// About, the works the app is built on: the icons (Lucide).
+func (msgs Messages) CreditIcons() string {
+	return Catalog.Format(msgs.locale, "creditIcons", nil)
 }
 
 // AboutGuide says "First-run guide"

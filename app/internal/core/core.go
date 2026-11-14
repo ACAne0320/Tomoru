@@ -51,6 +51,8 @@ type Deps struct {
 	Now func() time.Time
 	// LogPath is the app's log file, "" for none.
 	LogPath string
+	// LicensesDir is the directory of the third-party licenses the app ships with, "" for none.
+	LicensesDir string
 	// Version is the app's, OS the system's with its version, as "macOS 26.1": what a report of a
 	// problem says.
 	Version, OS string
@@ -232,6 +234,9 @@ func New(p prefs.Prefs, d Deps) *Core {
 
 // LogPath is the app's log file, or "".
 func (c *Core) LogPath() string { return c.deps.LogPath }
+
+// LicensesDir is the directory of the third-party licenses the app ships with, or "".
+func (c *Core) LicensesDir() string { return c.deps.LicensesDir }
 
 // Network tells whether the computer is online, and whether the connection is metered.
 func (c *Core) Network() (online, metered bool) {

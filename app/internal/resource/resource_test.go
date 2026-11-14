@@ -50,3 +50,22 @@ func TestExplicitRoots(t *testing.T) {
 		t.Fatal("directory accepted as a binary")
 	}
 }
+
+func TestLicenses(t *testing.T) {
+	packaged, dev, none := t.TempDir(), t.TempDir(), t.TempDir()
+	want := filepath.Join(dev, runtime.GOOS+"-"+runtime.GOARCH, "licenses")
+	for _, dir := range []string{filepath.Join(packaged, "licenses"), want} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := Licenses(none, dev, packaged); got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+	if got := Licenses(packaged); got != filepath.Join(packaged, "licenses") {
+		t.Fatalf("packaged: got %q", got)
+	}
+	if got := Licenses(none); got != "" {
+		t.Fatalf("none: got %q", got)
+	}
+}
