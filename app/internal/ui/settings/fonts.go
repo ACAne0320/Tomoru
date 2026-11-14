@@ -74,9 +74,9 @@ func (s *Settings) fontDialog(c *ui.Context) {
 	pr := s.core.Preferences()
 	// The boss coming: Latin among the language's own script.
 	line := subtitle.Sample(pr, 8)
-	sample, lang := line.Tgt, pr.Tgt
-	if !pr.Translates() {
-		sample, lang = line.Src, pr.Src
+	sample, lang := line.Src, pr.Src
+	if pr.Display == prefs.DisplayTgt || pr.Display == prefs.DisplayBoth && pr.TgtFirst {
+		sample, lang = line.Tgt, pr.Tgt
 	}
 	q := strings.ToLower(strings.TrimSpace(d.query))
 	var shown []string

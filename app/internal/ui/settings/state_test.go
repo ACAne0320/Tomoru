@@ -11,6 +11,7 @@ import (
 	"tomoru/internal/prefs"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/shared"
+	"tomoru/internal/ui/subtitle"
 	"tomoru/locales"
 )
 
@@ -94,6 +95,44 @@ func TestSystemFont(t *testing.T) {
 	if !tt.HasText(locales.FontNoMatch()) {
 		t.Errorf("no match isn't said: %q", tt.Texts())
 	}
+}
+
+// The font list shows its sample in the language on top of the subtitles: the original, unless
+// the translation is shown above it or alone.
+func TestFontSampleLang(t *testing.T) {
+	k := coretest.New()
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	for _, c := range []struct {
+		display  int
+		tgtFirst bool
+		src      bool
+	}{{prefs.DisplayBoth, false, true}, {prefs.DisplayBoth, true, false}, {prefs.DisplayTgt, false, false}, {prefs.DisplaySrc, true, true}} {
+		k.UpdatePrefs(func(p *prefs.Prefs) { p.Src, p.Tgt, p.Display, p.TgtFirst = "ja", "en", c.display, c.tgtFirst })
+		s.openFonts()
+		tt.Frame()
+		line := subtitle.Sample(k.Preferences(), 8)
+		want, not := line.Tgt, line.Src
+		if c.src {
+			want, not = not, want
+		}
+		// A row each, against the preview's line at most.
+		if n, m := count(tt.Texts(), want), count(tt.Texts(), not); n < 3 || m > 1 {
+			t.Errorf("display %d, translation first %v: %q %d times, %q %d", c.display, c.tgtFirst, want, n, not, m)
+		}
+		s.fonts.open = false
+	}
+}
+
+func count(texts []string, s string) int {
+	n := 0
+	for _, t := range texts {
+		if t == s {
+			n++
+		}
+	}
+	return n
 }
 
 // Hiding the subtitles when no new ones come: how long first, which goes with it when turned off.
