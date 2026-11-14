@@ -56,6 +56,7 @@ type Entry struct {
 	Src, Tgt string
 	Pending  bool // still being spoken
 	DimTgt   bool // Tgt is not this sentence's, or not a translation
+	Note     bool // Tgt is a note in the app's language, such as why there is no translation
 	Draft    bool // Tgt is a draft: the translation of an unfinished sentence
 	// Swaps says that Tgt changes whole, as a draft does to the next, or to the translation: it
 	// cross-fades, where a translation streaming in grows.
@@ -82,7 +83,7 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 			// until the translation is done, rather than going back to a few words.
 			e.Tgt, e.Draft = l.Draft, true
 		case l.Err != nil:
-			e.Tgt, e.DimTgt = Failure(l.Err), true
+			e.Tgt, e.DimTgt, e.Note = Failure(l.Err), true, true
 		}
 		if p.Display != prefs.DisplayTgt || e.Tgt != "" {
 			all = append(all, e)
@@ -101,7 +102,7 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	}
 	if k := len(all); p.Display == prefs.DisplayBoth && n == 1 && k >= 2 && all[k-1].Tgt == "" && all[k-2].Tgt != "" {
 		cur, prev := all[k-1], all[k-2]
-		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Draft: prev.Draft, Swaps: true}}
+		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Note: prev.Note, Draft: prev.Draft, Swaps: true}}
 	}
 	return all[max(0, len(all)-n):]
 }
@@ -270,7 +271,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 						col, n = ui.Hex("#cdcdcd"), 1
 						text = fitTail(c, p, text, float32(p.SrcSize)*k, width-36*k, cjk)
 					}
-					line(c, p, text, float32(p.SrcSize)*k, col, n)
+					line(c, p, text, p.Src, float32(p.SrcSize)*k, col, n)
 				}
 				tgt := func() {
 					if e.Tgt == "" || p.Display == prefs.DisplaySrc {
@@ -280,7 +281,11 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					if age == 0 {
 						n = 3
 					}
-					t := line(c, p, e.Tgt, float32(p.TgtSize)*k, hex(p.TgtColor, ui.Hex("#ffec8c")), n)
+					tgtLang := p.Tgt
+					if e.Note {
+						tgtLang = "" // the app's
+					}
+					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, hex(p.TgtColor, ui.Hex("#ffec8c")), n)
 					if e.Swaps {
 						t.ContentTransition(swap)
 					}
@@ -309,7 +314,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 // word.
 func fitTail(c *ui.Context, p prefs.Prefs, s string, size, width float32, cjk bool) string {
 	measure := func(t string) float32 {
-		w, _ := c.MeasureText(0, ui.Span{Text: t, Font: FontFamily[p.Font], Size: size, Weight: 700})
+		w, _ := c.MeasureText(0, ui.Span{Text: t, Font: FontFamily[p.Font], Size: size, Weight: 700, Lang: p.Src})
 		return w
 	}
 	if measure(s) <= width {
@@ -332,10 +337,12 @@ func fitTail(c *ui.Context, p prefs.Prefs, s string, size, width float32, cjk bo
 	return "…" + end
 }
 
-// line draws one subtitle line with the chosen edge, which the GPU draws from the text as it
-// renders (edgeShader).
-func line(c *ui.Context, p prefs.Prefs, s string, size float32, col ui.Color, lines int) ui.Element {
-	t := ui.Text(c, s).FontSize(size).Bold().TextAlign(Align(p)).TextColor(col).MaxLines(lines)
+// line draws one subtitle line in language lang ("" for the app's) with the chosen edge, which the
+// GPU draws from the text as it renders (edgeShader). The language picks the glyphs of the Han
+// characters that Chinese and Japanese draw apart, so that Japanese in a Chinese app reads as
+// Japanese.
+func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Color, lines int) ui.Element {
+	t := ui.Text(c, s).Lang(lang).FontSize(size).Bold().TextAlign(Align(p)).TextColor(col).MaxLines(lines)
 	if f := FontFamily[p.Font]; f != "" {
 		t = t.Font(f)
 	}
