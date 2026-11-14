@@ -34,8 +34,11 @@ func TestVisible(t *testing.T) {
 	if got[0].Tgt != "B draft" || !got[0].Draft {
 		t.Errorf("a translation streaming in shows the draft: %+v", got[0])
 	}
-	if got[1].Tgt != locales.TranslationFailed() || !got[1].DimTgt {
-		t.Errorf("a failed line: %+v", got[1])
+	if got[1].Tgt != locales.TranslationFailed() || !got[1].DimTgt || !got[1].Note {
+		t.Errorf("a failed line says why, in the app's language: %+v", got[1])
+	}
+	if got[0].Note || got[2].Note {
+		t.Errorf("translations are not notes: %+v", got)
 	}
 	if !got[2].Pending || got[2].Key != 4 || got[2].Tgt != "评论也" {
 		t.Errorf("the pending sentence: %+v", got[2])
