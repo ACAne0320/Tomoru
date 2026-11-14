@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="app/go.mod"><img alt="Go 1.27" src="https://img.shields.io/badge/Go-1.27-fbf6ec?logo=go&amp;logoColor=white&amp;labelColor=1f1e4e"></a>
-  <a href="https://github.com/egoist/mygo"><img alt="MyGo 0.7.3" src="https://img.shields.io/badge/MyGo-0.7.3-fbf6ec?labelColor=1f1e4e"></a>
+  <a href="https://github.com/egoist/mygo"><img alt="MyGo 0.9.0" src="https://img.shields.io/badge/MyGo-0.9.0-fbf6ec?labelColor=1f1e4e"></a>
   <a href="https://github.com/bilibili/Index-Translate"><img alt="Translation: Index-Translate" src="https://img.shields.io/badge/translation-Index--Translate-fbf6ec?labelColor=1f1e4e"></a>
   <a href="https://github.com/QwenAudio/SenseVoice"><img alt="Speech recognition: SenseVoice, Qwen-ASR and Apple" src="https://img.shields.io/badge/ASR-SenseVoice_%7C_Qwen--ASR_%7C_Apple-fbf6ec?labelColor=1f1e4e"></a>
 </p>
