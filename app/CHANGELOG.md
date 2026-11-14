@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.10
+
+Japanese in the subtitles reads as Japanese: its kanji take their Japanese forms, also on a
+Mac or PC set to Chinese. On Windows, subtitles can go onto a screen of another scale. Clicks next
+to the subtitles reach the video under them, and turning on Screen Recording on a Mac takes a drag.
+
+### Improved
+
+- Turning on Screen Recording after declining it: Open System Settings also shows Tomoru in a panel
+  under System Settings, to drag into the list. ([#43](https://github.com/ACAne0320/Tomoru/pull/43))
+- The subtitles take clicks only on themselves and their toolbar. A click next to them, right after
+  the pointer leaves them, goes to the video or app under them, and the lock of locked subtitles
+  answers the first click. ([#44](https://github.com/ACAne0320/Tomoru/pull/44))
+
+### Fixed
+
+- Japanese originals showed their kanji in Chinese forms, as 今 with a dot for its stroke, when the
+  app or the system was in Chinese. Each line now takes its language's forms, the original and the
+  translation alike. ([#42](https://github.com/ACAne0320/Tomoru/pull/42))
+- On Windows, with screens of different scales, the subtitles could not be dragged onto the other
+  screen, and a screen changed to another scale put them half on the main one.
+  ([#41](https://github.com/ACAne0320/Tomoru/pull/41))
+
 ## 0.1.9
 
 Teams calls on Windows now produce subtitles with **All system sound** selected. The call must
