@@ -1,6 +1,8 @@
 package overlay
 
 import (
+	"math"
+	"slices"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -14,17 +16,18 @@ import (
 
 // What hovering offers: the toolbar, and handles to move and resize the subtitle area.
 
-// watchPointer turns click-through off while the pointer rests on the unlocked subtitle block, so
-// it can be hovered and dragged: a window that lets clicks through hears no pointer at all.
-// Passing by does nothing: the pointer has to stay still on the block for a moment, and the block
-// has to show something (subtitles, or its frame while adjusting). Locked, resting there shows the
-// lock above the block, which alone takes clicks, and only while the pointer is on it; it goes
+// watchPointer has the unlocked subtitle block, with its toolbar, take the mouse while the pointer
+// rests on it, so it can be hovered and dragged: a window that lets clicks through hears no
+// pointer at all. Passing by does nothing: the pointer has to stay still on the block for a
+// moment, and the block has to show something (subtitles, or its frame while adjusting). Locked,
+// resting there shows the lock above the block, which alone takes clicks; it goes
 // again once the pointer stays still for a while, so that a pointer left over a video shows
 // nothing, and shows only after the pointer has left the block it was locked from. It runs on a
 // goroutine of its own.
 func (o *Overlay) watchPointer() {
 	const dwell, still, linger, peekFor = 400 * time.Millisecond, 8, 500 * time.Millisecond, 3 * time.Second
-	hover, peek, through, armed := false, false, true, false
+	hover, peek, armed := false, false, false
+	taking := []mygo.Rectangle{} // the part of the overlay that takes the mouse, as last set
 	var left, restAt time.Time
 	var restP mygo.Point
 	ticker := time.NewTicker(50 * time.Millisecond)
@@ -62,15 +65,17 @@ func (o *Overlay) watchPointer() {
 			armed = false
 			h = (in && (hover || rested || o.adjusting.Load())) || (hover && time.Since(left) < linger)
 		}
-		th := !h && !(pk && onLock)
-		if h != hover || pk != peek || th != through {
-			hover, peek, through = h, pk, th
+		// What takes the mouse: the system lets the rest through, and switches as the pointer comes
+		// in or leaves, at once, rather than at the next tick here.
+		region := inputRegion(h, pk, o)
+		if h != hover || pk != peek || !slices.Equal(region, taking) {
+			hover, peek, taking = h, pk, region
 			o.win.Update(func() {
 				if o.core.Context().Err() != nil {
 					return
 				}
 				o.hover, o.peek = h, pk
-				o.win.SetIgnoreMouseEvents(th)
+				o.win.SetInputRegion(region)
 			})
 		}
 	}
@@ -83,12 +88,38 @@ func within(p mygo.Point, r mygo.Rectangle) bool {
 // blockRect is the subtitle block on screen, within the overlay's bounds b: where the pointer
 // finds it; and the lock shown above it while locked.
 func (o *Overlay) blockRect(b mygo.Rectangle) (block, lock mygo.Rectangle) {
+	hit, lock := o.hitArea()
+	at := func(r mygo.Rectangle) mygo.Rectangle {
+		return mygo.Rectangle{X: b.X + r.X, Y: b.Y + r.Y, Width: r.Width, Height: r.Height}
+	}
+	return at(hit), at(lock)
+}
+
+// hitArea is the subtitle block, with its toolbar while hovered, and the lock shown above it while
+// locked, in the overlay, whole DIPs around them.
+func (o *Overlay) hitArea() (block, lock mygo.Rectangle) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	at := func(r ui.Rect) mygo.Rectangle {
-		return mygo.Rectangle{X: b.X + int(r.X), Y: b.Y + int(r.Y), Width: int(r.W), Height: int(r.H)}
+	return around(o.block), around(o.lock)
+}
+
+// inputRegion is the part of the overlay that takes the mouse: the block with its toolbar while
+// hovered, the lock alone while it shows, else none.
+func inputRegion(hover, peek bool, o *Overlay) []mygo.Rectangle {
+	hit, lock := o.hitArea()
+	switch {
+	case hover:
+		return []mygo.Rectangle{hit}
+	case peek:
+		return []mygo.Rectangle{lock}
 	}
-	return at(o.block), at(o.lock)
+	return []mygo.Rectangle{}
+}
+
+// around is r in whole DIPs, out to the pixels it touches.
+func around(r ui.Rect) mygo.Rectangle {
+	x, y := int(math.Floor(float64(r.X))), int(math.Floor(float64(r.Y)))
+	return mygo.Rectangle{X: x, Y: y, Width: int(math.Ceil(float64(r.X+r.W))) - x, Height: int(math.Ceil(float64(r.Y+r.H))) - y}
 }
 
 // toolbarH is the toolbar's height.

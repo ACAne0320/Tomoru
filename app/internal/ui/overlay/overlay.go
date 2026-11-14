@@ -71,7 +71,7 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 		Content: ui.View(o.View),
 	})
 	toolWindow(o.win)
-	o.win.SetIgnoreMouseEvents(true)
+	o.win.SetInputRegion([]mygo.Rectangle{}) // none, until the pointer rests on the subtitles
 	o.win.SetVisibleOnAllWorkspaces(true)
 	o.win.SetContentProtection(k.Preferences().HideFromCapture)
 	o.win.ShowInactive()
@@ -144,7 +144,7 @@ func (o *Overlay) SetLocked(v bool) {
 	o.locked.Store(v)
 	if v {
 		o.hover, o.adjust = false, time.Time{}
-		o.win.SetIgnoreMouseEvents(true)
+		o.win.SetInputRegion([]mygo.Rectangle{})
 		o.toast = time.Now().Add(2600 * time.Millisecond)
 	} else {
 		o.peek = false
