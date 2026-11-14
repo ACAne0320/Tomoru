@@ -112,7 +112,7 @@ var problemSteps = []string{
 	"5. Don't open other files of Tomoru: settings.json, scenes.json, stats.json and history/ hold my settings, names and subtitles. Don't record audio or the screen. If a subtitle line matters, ask me to paste the lines I choose, and show me exactly how they will appear in the issue.",
 	"6. Write steps someone else can follow to see it happen, with what I expected and what happened.",
 	"7. Look for the same issue, open or closed: `gh issue list --repo ACAne0320/Tomoru --state all --search \"<words>\"` if the GitHub CLI is installed and signed in, else " + Repo + "/issues. If one matches, show it to me and ask whether to add what is new there as a comment instead.",
-	"8. Draft the issue, as the repository's bug report form asks: a short title, and a body with these parts: Tomoru version, Platform, OS version and computer, Engines, What happened (with the steps), Logs (the redacted lines, in a code block; leave it out if none bear on it). Show me the whole title and body, change what I ask, and send it only once I say yes.",
+	"8. Draft the issue, as the repository's bug report form asks: a short title starting with \"[Bug] \", and a body with these parts: Tomoru version, Platform, OS version and computer, Engines, What happened (with the steps), Logs (the redacted lines, in a code block; leave it out if none bear on it). Show me the whole title and body, change what I ask, and send it only once I say yes.",
 	"9. Send it with `gh issue create --repo ACAne0320/Tomoru --title \"...\" --body-file -`, the body on its standard input, then give me its link. Without the GitHub CLI, give me the title and body to paste at " + Repo + "/issues/new?template=bug_report.yml.",
 }
 
@@ -123,7 +123,7 @@ var ideaSteps = []string{
 	"2. Don't read the logs or any file of Tomoru's: an idea needs none. My setup above is there if it bears on the idea; leave it out if not.",
 	"3. If it turns out something doesn't work as it should, rather than something missing, say so and tell me to report it as a problem instead (Settings > About > Feedback & ideas > Problem). Don't write an idea up as a bug, nor a bug as an idea.",
 	"4. Look for the same idea, open or closed: `gh issue list --repo ACAne0320/Tomoru --state all --search \"<words>\"` if the GitHub CLI is installed and signed in, else " + Repo + "/issues. If one matches, show it to me and ask whether to add what is new there as a comment instead.",
-	"5. Draft the issue, as the repository's idea form asks: a short title, and a body with two parts: \"What were you watching, and what got in the way?\" and \"What would help\", in my words, the need before any solution. Show me the whole title and body, change what I ask, and send it only once I say yes.",
+	"5. Draft the issue, as the repository's idea form asks: a short title starting with \"[Feature] \", and a body with two parts: \"What were you watching, and what got in the way?\" and \"What would help\", in my words, the need before any solution. Show me the whole title and body, change what I ask, and send it only once I say yes.",
 	"6. Send it with `gh issue create --repo ACAne0320/Tomoru --title \"...\" --body-file -`, the body on its standard input, then give me its link. Without the GitHub CLI, give me the title and body to paste at " + Repo + "/issues/new?template=feature_request.yml.",
 }
 
