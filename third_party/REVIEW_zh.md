@@ -15,9 +15,10 @@ llama.cpp `b9840` 从 Visual Studio 的 `debug_nonredist` 目录复制 `libomp14
 
 ## MyGo 源码：已解决
 
-`app/go.mod` 已把 MyGo 固定到公开的正式版本 `v0.7.3`。`v0.7.2` 是第一个包含 Tomoru 需要的
-Windows 修复和 `.icns` 图标支持的版本；`v0.7.3` 还修复了 Windows 上缩放窗口时画面被放大的问题。
-它的许可文件和依赖与 `v0.7.2` 相同。发布检查仍会拒绝对 MyGo 的本地 `replace`。
+`app/go.mod` 已把 MyGo 固定到公开的正式版本 `v0.9.0`。Tomoru 从这个版本起用上了 MyGo `v0.8.0`
+的修复：Windows 上窗口在缩放不同的显示器之间能放到正确的位置。它的许可文件与 `v0.7.3` 相同，
+也没有把别的模块编进应用；它在 `go.mod` 里新增的模块只给它的打包工具用。发布检查仍会拒绝对
+MyGo 的本地 `replace`。
 
 ## 需要保留的模型和原生库来源
 
