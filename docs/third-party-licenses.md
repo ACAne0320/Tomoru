@@ -11,7 +11,7 @@ must be resolved before publishing the affected binary.
 | Component | Version/source used | Collected notices |
 | --- | --- | --- |
 | Go runtime and app dependencies | Go 1.27.3; versions in the three `go.mod` files | Go BSD, websocket ISC, purego Apache, typesetting and HarfBuzz notices, `x/image`, `x/net` (Windows), `x/sys`, `x/text` licenses and patent grants |
-| MyGo | `v0.7.3` | MIT; Apache notice for its Ebitengine-derived shader code |
+| MyGo | `v0.9.0` | MIT; Apache notice for its Ebitengine-derived shader code |
 | Lucide / Feather | lucide-static 0.469.0, SVG subset | Original ISC notice and Feather MIT notice |
 | sherpa-onnx | v1.13.8 | Apache-2.0 plus identified native component notices, including GPL eSpeak NG |
 | ONNX Runtime | 1.28.2, verified against both bundled libraries and sherpa's build files | MIT and the complete upstream `ThirdPartyNotices.txt` |

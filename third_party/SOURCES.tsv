@@ -29,8 +29,8 @@ llama-xxhash.txt	xxHash in llama.cpp	b11960	BSD-2-Clause	https://github.com/ggml
 llama.cpp.txt	llama.cpp / ggml	b11960	MIT	https://github.com/ggml-org/llama.cpp/blob/b11960/LICENSE	Complete upstream file.
 llvm-openmp.txt	LLVM OpenMP runtime (libomp.dll, Windows)	20.1.8	Apache-2.0 WITH LLVM-exception	https://github.com/llvm/llvm-project/blob/llvmorg-20.1.8/LICENSE.TXT	Complete upstream file, as LICENSE-LLVM-OpenMP in llama.cpp's Windows archive.
 lucide.txt	Lucide icons	lucide-static 0.469.0	ISC AND MIT	https://github.com/lucide-icons/lucide/blob/0.469.0/LICENSE	Complete upstream file; the version is the one in each SVG's header.
-mygo-ebitengine-shader.txt	MyGo / Ebitengine shader code	v0.7.3	Apache-2.0	https://github.com/egoist/mygo/blob/v0.7.3/internal/shader/LICENSE	Complete upstream file; app/go.mod pins this public release.
-mygo.txt	MyGo / Ebitengine shader code	v0.7.3	MIT	https://github.com/egoist/mygo/blob/v0.7.3/LICENSE	Complete upstream file; app/go.mod pins this public release.
+mygo-ebitengine-shader.txt	MyGo / Ebitengine shader code	v0.9.0	Apache-2.0	https://github.com/egoist/mygo/blob/v0.9.0/internal/shader/LICENSE	Complete upstream file; app/go.mod pins this public release.
+mygo.txt	MyGo / Ebitengine shader code	v0.9.0	MIT	https://github.com/egoist/mygo/blob/v0.9.0/LICENSE	Complete upstream file; app/go.mod pins this public release.
 onnxruntime-ThirdPartyNotices.txt	ONNX Runtime dependencies	v1.28.2	See individual notices	https://github.com/microsoft/onnxruntime/blob/v1.28.2/ThirdPartyNotices.txt	Full upstream notice set, including optional features.
 onnxruntime.txt	ONNX Runtime	v1.28.2	MIT	https://github.com/microsoft/onnxruntime/blob/v1.28.2/LICENSE	Complete upstream file.
 openfst.txt	OpenFst	v1.8.5-2026-07-09	Apache-2.0	https://github.com/csukuangfj/openfst/blob/v1.8.5-2026-07-09/COPYING	Complete upstream file.
