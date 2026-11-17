@@ -17,6 +17,8 @@
 
 首页的演示是用 HTML 画的录屏：每个 `.studio` 按 `--w`、`--h` 的尺寸排好画面，`studio.js` 把它缩放进页面，看得见时按脚本播放（光标、点击、镜头推近、按键）。HTML 里写的是没有脚本或要少动时显示的那一帧；画面里 app 界面的文字跟 `app/locales/` 里的一致。
 
+直播演示里的主播是用 [Rev2D](https://github.com/RevStudio/Rev2D) 绑好的 Tomoru，渲染成 `assets/vtuber.mp4`：每帧并排三格，平时、说话和透明遮罩，`studio.js` 用 WebGL 合成，说一句话时显示说话那格。
+
 页面列在 `build.mjs` 里。帮助页 `/help/install/` 和 `/help/offline/` 还要用 `locales/help/<语言>.json`，放在 `help` 键下，只在这个文件完整的语言里生成，目前是简体中文和英文；它们的 hreflang、语言菜单和 sitemap 也只列这些语言。帮助页的内容跟着 app 走：app 改了模型、大小、设置项名称或权限时，对照代码一起改。
 
 ## 下载

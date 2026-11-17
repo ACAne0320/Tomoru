@@ -43,8 +43,89 @@
   }
   const fadeIn = (el, ms = 200) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: 'ease-out' });
 
-  // 说一句：原文分块出现，第一块一出来就上屏；说到一半先出大意，说完换成完整译文
-  async function say(s, roll, line) {
+  // 直播画面里会动的 Tomoru：Rev2D 绑好的模型（design/art/vtuber）预渲染成 8 秒的循环视频，
+  // 每帧并排三格：平时、说话、透明遮罩。WebGL 把它合成成透明底，每个画面按自己说不说话取一格。
+  // 视频加载好之前、没有 WebGL 时，显示 HTML 里的第一帧。
+  const vtuber = (() => {
+    const TW = 300, TH = 360, STEP = 308; // 一格的大小、格与格的间距（视频里）
+    const views = new Set();
+    let gl, glc, video, tex, size, last = -1;
+    function init() {
+      glc = document.createElement('canvas');
+      glc.width = TW * 2;
+      glc.height = TH;
+      gl = glc.getContext('webgl', { premultipliedAlpha: true, preserveDrawingBuffer: true });
+      if (!gl) return false;
+      const shader = (type, code) => {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, code);
+        gl.compileShader(sh);
+        return sh;
+      };
+      const prog = gl.createProgram();
+      gl.attachShader(prog, shader(gl.VERTEX_SHADER, 'attribute vec2 p; varying vec2 v; void main() { v = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }'));
+      // 左半边画平时那格，右半边画说话那格；透明度都取第三格
+      gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, `precision mediump float; varying vec2 v; uniform sampler2D t; uniform vec2 k;
+        void main() {
+          float tile = step(0.5, v.x), x = fract(v.x * 2.0) * ${TW}.0, y = (1.0 - v.y) * ${TH}.0;
+          vec3 c = texture2D(t, vec2(tile * ${STEP}.0 + x, y) * k).rgb;
+          float a = clamp((texture2D(t, vec2(${STEP * 2}.0 + x, y) * k).r - 0.02) / 0.96, 0.0, 1.0); // 压缩后遮罩的黑白不纯
+          gl_FragColor = vec4(c * a, a);
+        }`));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
+      gl.useProgram(prog);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      for (const [p, val] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, p, val);
+      size = gl.getUniformLocation(prog, 'k');
+      video = document.createElement('video');
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.src = '/assets/vtuber.mp4';
+      requestAnimationFrame(frame);
+      return true;
+    }
+    const onScreen = (el) => {
+      const r = el.getBoundingClientRect();
+      return r.bottom > 0 && r.top < innerHeight && r.width > 0;
+    };
+    function frame() {
+      requestAnimationFrame(frame);
+      for (const v of views) if (!v.el.isConnected) views.delete(v);
+      const shown = !document.hidden && [...views].some((v) => onScreen(v.el));
+      if (!shown) { if (!video.paused) video.pause(); return; }
+      if (video.paused) video.play().catch(() => {});
+      if (video.readyState < 2) return;
+      if (video.currentTime !== last) {
+        last = video.currentTime;
+        gl.viewport(0, 0, TW * 2, TH);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+        gl.uniform2f(size, 1 / video.videoWidth, 1 / video.videoHeight);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+      for (const v of views) {
+        v.ctx.clearRect(0, 0, TW, TH);
+        v.ctx.drawImage(glc, v.talking ? TW : 0, 0, TW, TH, 0, 0, TW, TH);
+        v.el.parentElement.classList.add('on');
+      }
+    }
+    let ok;
+    // 接上一个画面里的 <canvas>，返回 talk(on)；脚本每遍重画 HTML，所以每遍接一次
+    return (el) => {
+      const view = { el, ctx: el?.getContext('2d'), talking: false };
+      if (el && (ok ??= init())) views.add(view);
+      return (on) => { view.talking = on; };
+    };
+  })();
+
+  // 说一句：原文分块出现，第一块一出来就上屏；说到一半先出大意，说完换成完整译文。talk 让说话的人动嘴
+  async function say(s, roll, line, talk = () => {}) {
     const entry = document.createElement('div');
     entry.className = 'line';
     const src = document.createElement('p');
@@ -54,6 +135,7 @@
     tgt.className = 'tgt';
     tgt.innerHTML = '&nbsp;';
     entry.append(src, tgt);
+    talk(true);
     for (let i = 0; i < line.src.length; i++) {
       const chunk = document.createElement('span');
       chunk.textContent = line.src[i];
@@ -66,6 +148,7 @@
       }
       await s.wait(520);
     }
+    talk(false);
     await s.wait(260);
     await swap(tgt, line.tgt);
   }
@@ -211,6 +294,7 @@
     async hero(s) {
       const roll = s.q('[data-roll]'), tray = s.q('[data-tray]'), panel = s.q('[data-panel]'), notice = s.q('[data-notice]');
       const title = s.q('[data-title]'), btn = s.q('[data-start]'), av = s.q('[data-av]'), chat = s.q('[data-chat]'), stat = s.q('[data-stats]');
+      const talk = vtuber(s.q('[data-vt] canvas'));
       const today = { sec: 760, n: 186 }, run = { sec: 0, n: 0 };
       const count = () => (panel.classList.contains('on')
         ? stats(stat, stat.dataset.session, run.sec, run.n)
@@ -268,7 +352,7 @@
       notice.classList.remove('show');
       for (let i = 0; i < 6; i++) {
         if (i === 4 && !s.small) await s.unzoom();
-        await say(s, roll, t.roll[n++ % t.roll.length]);
+        await say(s, roll, t.roll[n++ % t.roll.length], talk);
         run.n++;
         count();
         await s.wait(1500);
@@ -370,11 +454,12 @@
     // 抢先翻译：镜头推近，原文一块块出来，先出大意，说完换成完整的一句
     async draft(s) {
       const chunks = [...s.q('[data-src]').children], tgt = s.q('[data-tgt]'), note = s.q('[data-note]');
-      const full = tgt.textContent;
+      const full = tgt.textContent, talk = vtuber(s.q('[data-vt] canvas'));
       chunks.forEach((c) => c.classList.add('wait'));
       tgt.innerHTML = '&nbsp;';
       await s.wait(600);
       await s.zoom(520, 470, 1.3, 1100);
+      talk(true);
       chunks[0].classList.remove('wait');
       await s.wait(650);
       chunks[1].classList.remove('wait');
@@ -384,7 +469,9 @@
       note.classList.add('show');
       await s.wait(1300);
       chunks[2].classList.remove('wait');
-      await s.wait(700);
+      await s.wait(600);
+      talk(false);
+      await s.wait(100);
       note.classList.add('final');
       await swap(tgt, full);
       await s.wait(2600);

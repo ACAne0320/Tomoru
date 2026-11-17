@@ -243,7 +243,13 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .live-badge { position: absolute; left: 16px; top: 16px; padding: 5px 9px; border-radius: 6px; background: #e0564a; color: #fff; font-size: 14px; font-weight: 800; line-height: 1; letter-spacing: .06em; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0564a; }
-.facecam { position: absolute; right: 18px; bottom: 14px; width: 116px; filter: drop-shadow(0 8px 16px rgb(0 0 0 / .4)); }
+.facecam { position: absolute; right: 18px; bottom: 0; width: 130px; aspect-ratio: 300 / 360; filter: drop-shadow(0 8px 16px rgb(0 0 0 / .4)); }
+.facecam > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.facecam canvas { opacity: 0; transition: opacity .3s; }
+.facecam.on canvas { opacity: 1; }
+.facecam.on img { opacity: 0; transition: opacity .3s; }
+/* 主播像 VTuber 那样贴着画面底边；首屏的大一点 */
+.video .facecam { right: 14px; width: 200px; }
 
 /* 字幕卡片和工作原理里的字幕 */
 .src, .tgt { text-shadow: 0 0 2px var(--edge), 0 0 2px var(--edge), 0 1px 3px rgb(0 0 0 / .45); }
@@ -511,7 +517,7 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .player-bar i { flex: 1; height: 3px; border-radius: 2px; background: rgb(255 255 255 / .25); }
 .player-bar b { display: block; width: 38%; height: 100%; border-radius: inherit; background: var(--lantern); }
 .shot-vtuber { background: radial-gradient(70% 60% at 50% 30%, #6e5bc8, transparent 75%), linear-gradient(180deg, #3b2c7e, #1b1949); }
-.shot-vtuber .avatar { position: absolute; left: 50%; top: 14px; width: 92px; transform: translateX(-50%); }
+.shot-vtuber .avatar { position: absolute; left: 50%; top: 20px; width: 124px; transform: translateX(-50%); -webkit-mask-image: linear-gradient(#000 62%, transparent 92%); mask-image: linear-gradient(#000 62%, transparent 92%); }
 .call { position: absolute; left: 8px; right: 8px; top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 96px; }
 .call i { border-radius: 6px; background: radial-gradient(circle at 50% 42%, #8f86e6 0 11px, transparent 12px), #2c2970; }
 .call i:nth-child(2) { background: radial-gradient(circle at 50% 42%, #f2b98a 0 11px, transparent 12px), #2c2970; }
