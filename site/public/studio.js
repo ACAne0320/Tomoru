@@ -100,7 +100,7 @@
       cam.style.transition = ms ? `transform ${ms}ms ${glide}, opacity .4s` : '';
       cam.style.transform = `scale(${fit}) translate(${view.x}px, ${view.y}px) scale(${view.z})`;
     };
-    new ResizeObserver(() => { fit = el.clientWidth / W; apply(); el.classList.add('ready'); }).observe(el);
+    new ResizeObserver(() => { fit = el.clientWidth / W; apply(); }).observe(el);
     if (reduce) return;
 
     let seen = false;

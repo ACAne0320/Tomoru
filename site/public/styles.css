@@ -212,8 +212,14 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 /* 一段录屏：画面按逻辑尺寸 --w × --h 排好，整体缩放进容器；镜头、光标和按键提示由 studio.js 按脚本走。
    没有脚本或要少动时，看到的就是 HTML 里写好的那一帧。 */
 .studio { position: relative; width: 100%; aspect-ratio: var(--w) / var(--h); overflow: hidden; container-type: inline-size; user-select: none; -webkit-user-select: none; }
-.cam { position: absolute; left: 0; top: 0; width: calc(var(--w) * 1px); height: calc(var(--h) * 1px); transform-origin: 0 0; transition: opacity .4s; }
-html.js .studio:not(.ready) .cam { visibility: hidden; }
+/* 缩放进容器：容器宽 ÷ 逻辑宽。能拿长度除长度的浏览器用第二行；不能的丢掉它，用第一行，
+   tan(atan2(a, b)) 也是 a/b（Safari 26 在 atan2 里算错 cqw，但能做除法）。
+   没有脚本时就靠它；脚本播放时写上自己的 transform（加上镜头），盖过它。 */
+.cam {
+  position: absolute; left: 0; top: 0; width: calc(var(--w) * 1px); height: calc(var(--h) * 1px); transform-origin: 0 0; transition: opacity .4s;
+  transform: scale(tan(atan2(100cqw, calc(var(--w) * 1px))));
+  transform: scale(calc(100cqw / (var(--w) * 1px)));
+}
 .studio.fade .cam { opacity: 0; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
