@@ -25,6 +25,11 @@ the value as text, for attributes and titles; `{{key|json}}` is it as JSON, for 
 `$homeUrl`, the hreflang links, the language menu. `{{>name}}` puts in `src/partials/name`.
 `main.js` reads its text from the page's `#strings` (the `js` group).
 
+The home page's demos are recordings drawn in HTML: each `.studio` lays out its screen at the size
+in `--w` and `--h`, and `studio.js` scales it to fit and plays its script (pointer, clicks, zoom,
+keys) while it is on screen. The HTML holds the frame shown without the script or with reduced
+motion; the mock app's words follow the app's catalogs in `app/locales/`.
+
 The pages are listed in `build.mjs`. The help pages, `/help/install/` and `/help/offline/`, also
 take `locales/help/<language>.json`, under the key `help`. They are built only in the languages
 that have that file in full, now zh-Hans and en, and their hreflang links, language menu and

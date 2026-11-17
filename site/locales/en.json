@@ -33,35 +33,6 @@
     "eyebrow": "Use Cases",
     "title": "Subtitles for anything without them"
   },
-  "faq": {
-    "price": {
-      "q": "Is Tomoru free?",
-      "a": "Yes. Tomoru is free and open-source under GPL-3.0. The built-in cloud translation is free; cloud speech recognition uses your own API key, billed by the provider. Using only local engines is completely free."
-    },
-    "systems": {
-      "q": "Which platforms are supported?",
-      "a": "macOS 26 or later (Apple silicon), Windows 11 (x64), and Linux (x64; Ubuntu 22.04 or a distribution as new, with GNOME or KDE)."
-    },
-    "languages": {
-      "q": "Which languages are supported?",
-      "a": "Speech recognition supports up to 30 languages (depending on the chosen recognition engine), and translation supports 31 languages in any direction. The UI is available in Simplified Chinese, Traditional Chinese, English, Japanese, and Korean."
-    },
-    "setup": {
-      "q": "Do I need a virtual audio driver or microphone access?",
-      "a": "Neither. Tomoru captures your computer's audio directly and never uses the microphone."
-    },
-    "blocked": {
-      "q": "Why does my system warn me on first launch?",
-      "a": "Tomoru isn't notarized by Apple or signed for Windows yet. macOS: open System Settings › Privacy & Security, and click “Open Anyway” next to Tomoru. Windows: when SmartScreen warns, click “More info”, then “Run anyway”. Installing via terminal command skips these warnings on both macOS and Windows."
-    },
-    "recording": {
-      "q": "Will subtitles show up in screen recordings or live streams?",
-      "a": "You can turn on “Hide subtitles from screen recording” in Settings so subtitles stay visible only to you."
-    },
-    "more": "Trouble installing or with permissions? See <a href=\"/en/help/install/\">Install and permissions</a>. To run recognition and translation on your computer, see <a href=\"/en/help/offline/\">On-device models</a>.",
-    "eyebrow": "FAQ",
-    "title": "Frequently Asked Questions"
-  },
   "meta": {
     "title": "Tomoru: Live Subtitles & Real-Time Translation for Your PC",
     "description": "Tomoru captures system audio and generates floating bilingual subtitles in real time. For live streams, anime, and games—if your computer plays sound, Tomoru translates it. Fully open-source and free on macOS, Windows and Linux.",
@@ -73,15 +44,10 @@
   "header": {
     "skip": "Skip to main content",
     "homeLabel": "Tomoru Home",
-    "navLabel": "Page navigation",
     "githubLabel": "Tomoru on GitHub",
     "language": "Language"
   },
   "nav": {
-    "features": "Features",
-    "how": "How It Works",
-    "privacy": "Privacy",
-    "faq": "FAQ",
     "download": "Download"
   },
   "hero": {
@@ -98,9 +64,9 @@
       "systems": "macOS / Windows / Linux",
       "license": "Open-source GPL-3.0"
     },
-    "visualLabel": "Bilingual subtitles floating over a live stream window: Japanese original in white, English translation in amber, new lines appearing from below as older lines push up",
+    "visualLabel": "Tomoru is started from the menu bar, and bilingual subtitles appear over a game stream: the Japanese original in white, the English translation in amber, each new line coming in at the bottom and pushing the older one up",
     "screenTitle": "Stream · Gameplay",
-    "listening": "Listening · Browser",
+    "listening": "Listening · Japanese → English",
     "line1": {
       "src": "皆さん、こんばんは。",
       "tgt": "Good evening, everyone."
@@ -108,6 +74,15 @@
     "line2": {
       "src": "今日の配信はいつもより少し長くなります。",
       "tgt": "Today's stream will run a bit longer than usual."
+    },
+    "streamTitle": "【初見】第三章ボス戦！今日は長めです",
+    "chat": {
+      "c1": "こんばんは〜",
+      "c2": "待ってた！",
+      "c3": "ボス戦たのしみ",
+      "c4": "今日の装備いいね",
+      "c5": "8888888",
+      "c6": "がんばれー！"
     }
   },
   "js": {
@@ -200,35 +175,17 @@
     "title": "Translates whatever your PC plays",
     "lead": "Live streams, raw anime, or gaming—if your computer plays sound, subtitles are right there.",
     "overlay": {
-      "artLabel": "The same subtitles float over anime, game, and meeting windows",
-      "animeName": "Anime · Ep. 7",
-      "gameName": "Game",
-      "meetingName": "Meeting",
-      "sub1": {
-        "srcLang": "ja",
-        "src": "今夜は、星がよく見えるね。",
-        "tgt": "The stars are so clear tonight."
-      },
+      "artLabel": "The subtitles over a game are dragged into place and locked; the game menu under them can still be clicked",
       "sub2": {
         "srcLang": "ja",
         "src": "あ、ボスが出てきた！",
         "tgt": "Oh, here comes the boss!"
       },
-      "sub3": {
-        "srcLang": "ja",
-        "src": "この件は、来週また話しましょう。",
-        "tgt": "Let's revisit this next week."
-      },
       "title": "Always on top, click-through",
       "body": "The subtitle window stays on top of your screen. Drag and resize freely; lock it to pass clicks through to what's behind, and automatically hide it from screen recordings and streams."
     },
     "capture": {
-      "artLabel": "Listen to all system audio, or target a single app like a browser",
-      "browser": "Browser",
-      "game": "Game",
-      "music": "Music",
-      "all": "All system sound",
-      "oneApp": "Browser only",
+      "artLabel": "In Tomoru's panel, the sound source changes from all system sound to Chrome alone",
       "title": "Native loopback, no microphone",
       "body": "Captures system audio output directly without ever calling the microphone. Listen globally, or isolate a single app (like translating a stream in your browser while gaming)."
     },
@@ -236,30 +193,8 @@
       "artLabel": "Switch between local and cloud: data stays on your machine locally, or goes only to the chosen service",
       "local": "Local",
       "cloud": "Cloud",
-      "localCaption": "Audio and text stay on your device",
-      "cloudCaption": "Sent only to the service you choose",
       "title": "Offline or cloud, switch as needed",
       "body": "Speech recognition and translation can run entirely offline on your computer, keeping data private; or use built-in free cloud translation, or connect your own LLM API."
-    }
-  },
-  "how": {
-    "eyebrow": "How It Works",
-    "title": "Hear, recognize, translate—sentence by sentence",
-    "lead": "Speech recognition supports up to 30 languages (depending on the chosen recognition engine), and translation supports 31 languages. Original in white, translation in warm amber.",
-    "hear": {
-      "title": "Hear",
-      "body": "Captures system audio in real time, or targets a specific app."
-    },
-    "srcLang": "ja",
-    "src": "皆さん、こんばんは。",
-    "tgt": "Good evening, everyone.",
-    "recognize": {
-      "title": "Recognize",
-      "body": "Streaming speech recognition generates the original text word by word as it's spoken."
-    },
-    "translate": {
-      "title": "Translate",
-      "body": "Translations appear immediately in a floating bilingual overlay."
     }
   },
   "details": {
@@ -270,8 +205,6 @@
       "title": "No waiting for full sentences",
       "body": "Displays an early draft of what's being said before the speaker pauses, then automatically updates to the full translation once the sentence finishes. Fast-paced streams stay in sync.",
       "artLabel": "An early draft appears mid-sentence, then updates to the full translation when finished",
-      "talking": "Speaking…",
-      "done": "Done",
       "srcLang": "ja",
       "chunk1": "今日の配信は",
       "chunk2": "いつもより",
@@ -279,37 +212,33 @@
       "draft": "Today's stream will…",
       "final": "Today's stream runs longer.",
       "draftNote": "Draft",
-      "finalNote": "Full",
-      "caption": "See the draft first, updated to full when done"
+      "finalNote": "Full"
     },
     "scenes": {
       "tag": "Scenes & Glossaries",
       "title": "Proper names without translation blunders",
       "body": "Speech recognition easily mishears names as similar sounds, and machine translation loves literal guesses (like turning “<span lang=\"ja\">クラウド</span>” into “Crowd”). You can build a glossary for each anime or game you follow to fix homophones and keep names consistent. With your own API, it even learns new names from your subtitle history.",
-      "artLabel": "Without a scene, メテオ is misheard as メデオ and クラウド is translated as Crowd; with the Final Fantasy VII scene, both original and translation are fixed",
-      "off": "No Scene",
-      "on": "Scene: FFVII",
+      "artLabel": "With the General scene, メテオ is heard as メデオ and クラウド is translated as \"crowd\"; after switching to the FFVII scene in the panel, the next line is right in both languages",
       "srcLang": "ja",
-      "srcBefore": "クラウド、<tspan class=\"bad\">メデオ</tspan>が来る！",
-      "tgtBefore": "<tspan class=\"bad\">Crowd</tspan>, <tspan class=\"bad\">Medeo</tspan> is coming!",
-      "srcAfter": "クラウド、<tspan class=\"good\">メテオ</tspan>が来る！",
-      "tgtAfter": "<tspan class=\"good\">Cloud</tspan>, <tspan class=\"good\">Meteor</tspan> is coming!",
+      "srcBefore": "クラウド、<span class=\"bad\">メデオ</span>が来る！",
+      "tgtBefore": "<span class=\"bad\">Crowd</span>, <span class=\"bad\">Medeo</span> is coming!",
+      "srcAfter": "クラウド、<span class=\"good\">メテオ</span>が来る！",
+      "tgtAfter": "<span class=\"good\">Cloud</span>, <span class=\"good\">Meteor</span> is coming!",
       "glossary": "Names",
-      "term1": "<tspan lang=\"ja\">クラウド</tspan> → Cloud",
-      "term2": "<tspan lang=\"ja\">メテオ</tspan> → Meteor",
-      "term3": "<tspan lang=\"ja\">エアリス</tspan> → Aerith"
+      "term1": "<span lang=\"ja\">クラウド</span> → Cloud",
+      "term2": "<span lang=\"ja\">メテオ</span> → Meteor",
+      "term3": "<span lang=\"ja\">エアリス</span> → Aerith"
     },
     "picture": {
       "tag": "Screen OCR Translation",
       "title": "Select any silent text to translate",
       "body": "For unvoiced dialogue, signs in videos, or stream chat, press <kbd>⌥⇧S</kbd> (<kbd>Alt+Shift+S</kbd> on Windows and Linux) and select a region on screen to translate it instantly. With local models, OCR runs entirely on your device.",
-      "artLabel": "Pressing the shortcut and selecting Japanese game dialogue displays the English translation above",
+      "artLabel": "A shortcut is pressed, the Japanese dialogue box in a game is selected, and its English translation appears in a window beside it",
       "srcLang": "ja",
       "srcName": "エルナ",
       "src1": "クロード、あの塔のてっぺんで光ってるもの……",
       "src2": "まさか「星の欠片」じゃないよね？",
       "tgtName": "Erna",
-      "note": "Translation",
       "tgt1": "Claude, that light on top of the tower…",
       "tgt2": "it can't be the Star Fragment, can it?"
     }
@@ -321,6 +250,7 @@
       "title": "Download & run",
       "body": "Double-click the installer (if prompted, click “Open Anyway”); or run a single-line script in your terminal to skip security prompts. On Linux, prefer the script: what it installs updates itself, and the .deb package doesn't."
     },
+    "terminal": "Install from the terminal",
     "copyMac": "Copy macOS and Linux install command",
     "copyWindows": "Copy Windows install command (PowerShell)",
     "copy": "Copy",
@@ -332,8 +262,7 @@
       "title": "Quick trial, ready anytime",
       "body": "Play a sample to confirm subtitles appear properly. Tomoru sits quietly in the menu bar, ready to toggle anytime."
     },
-    "shotAlt": "Tomoru first-run guide: Japanese to English selected, speech and translation engines picked, sample played with three checks passing, and shortcut tested",
-    "shotCaption": "First-run guide: Settings › Try it out › Ready"
+    "shotAlt": "The \"Try it now\" step of the first-run guide: a sample plays, Tomoru checks off hearing the computer, recognizing Japanese and translating into English, and bilingual subtitles appear beside it"
   },
   "privacy": {
     "eyebrow": "Privacy",
@@ -371,7 +300,6 @@
   },
   "footer": {
     "tagline": "Turns computer audio into live bilingual subtitles.",
-    "madeBy": "Made by <a href=\"https://acane.dev/\" rel=\"author\">诗浓 (ACAne0320)</a>.",
     "product": "Product",
     "helpInstall": "Install and permissions",
     "helpOffline": "On-device models",
@@ -380,13 +308,15 @@
     "contributing": "Contributing",
     "security": "Security",
     "issues": "Issues",
+    "license": "License",
+    "trademarks": "Trademarks",
     "thanks": "Credits",
-    "licenses": "Third-Party Licenses",
-    "legal": "Code licensed under <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/LICENSE\">GPL-3.0-or-later</a>. The Tomoru name, icon, and mascot are reserved rights; see <a href=\"https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md\">Trademarks</a>."
+    "licenses": "Third-Party Licenses"
   },
   "links": {
     "contributing": "https://github.com/ACAne0320/Tomoru/blob/main/CONTRIBUTING.md",
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
+    "trademarks": "https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md",
     "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
     "helpInstall": "/en/help/install/",
     "helpOffline": "/en/help/offline/",
@@ -397,5 +327,47 @@
     "claim": "No subtitles on this page.",
     "lead": "The page you're looking for doesn't exist or has moved.",
     "home": "Back to Home"
+  },
+  "mock": {
+    "idle": "Not translating",
+    "translating": "Translating",
+    "today": "Listened today",
+    "session": "Listening for",
+    "lines": "{n} lines",
+    "linesOne": "{n} line",
+    "start": "Start",
+    "stop": "Stop",
+    "scene": "Scene",
+    "general": "General",
+    "sceneGame": "FFVII",
+    "source": "Sound from",
+    "sourceAll": "All system sound",
+    "playing": "Playing",
+    "from": "Japanese",
+    "to": "English",
+    "engines": "Speech & translation",
+    "asr": "Speech recognition",
+    "mt": "Translation",
+    "picture": "Picture translation"
+  },
+  "game": {
+    "fight": "たたかう",
+    "skill": "スキル",
+    "item": "アイテム",
+    "run": "にげる"
+  },
+  "guide": {
+    "setup": "Set up",
+    "try": "Try it",
+    "start": "Get started",
+    "title": "Try it now",
+    "body": "Play a video in Japanese, or have Tomoru say a few sample sentences.",
+    "play": "Play a sample",
+    "hearing": "Receiving sound from your computer",
+    "recognizing": "Recognizing Japanese",
+    "translating": "Translating into English",
+    "back": "Back",
+    "skip": "Skip",
+    "next": "Continue"
   }
 }

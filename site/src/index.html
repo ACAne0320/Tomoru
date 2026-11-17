@@ -67,18 +67,7 @@
         "inLanguage": ["zh-Hans", "zh-Hant", "en", "ja", "ko"],
         "publisher": { "@id": "https://acane.dev/#person" }
       },
-      {{>person.json}},
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          { "@type": "Question", "name": {{faq.price.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.price.a|json}} } },
-          { "@type": "Question", "name": {{faq.systems.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.systems.a|json}} } },
-          { "@type": "Question", "name": {{faq.languages.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.languages.a|json}} } },
-          { "@type": "Question", "name": {{faq.setup.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.setup.a|json}} } },
-          { "@type": "Question", "name": {{faq.blocked.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.blocked.a|json}} } },
-          { "@type": "Question", "name": {{faq.recording.q|json}}, "acceptedAnswer": { "@type": "Answer", "text": {{faq.recording.a|json}} } }
-        ]
-      }
+      {{>person.json}}
     ]
   }
   </script>
@@ -90,7 +79,62 @@
 
   <main id="main">
 
-    <!-- ① 首屏：品牌主张 + 下载 -->
+    <!-- 演示画面：录屏里用到的游戏和夜景，各处共用 -->
+    <svg class="sprite" width="0" height="0" aria-hidden="true">
+      <defs>
+        <linearGradient id="bt-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1648"/><stop offset=".55" stop-color="#4b2a6e"/><stop offset="1" stop-color="#b8576a"/></linearGradient>
+        <linearGradient id="bt-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1f55"/><stop offset="1" stop-color="#0f0c2a"/></linearGradient>
+        <radialGradient id="bt-aura" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff7a4a" stop-opacity=".5"/><stop offset="1" stop-color="#ff7a4a" stop-opacity="0"/></radialGradient>
+        <linearGradient id="nt-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13123a"/><stop offset="1" stop-color="#33215c"/></linearGradient>
+        <radialGradient id="nt-moon" cx=".5" cy=".5" r=".5"><stop offset=".55" stop-color="#fbf3e2"/><stop offset=".7" stop-color="#fbf3e2" stop-opacity=".25"/><stop offset="1" stop-color="#fbf3e2" stop-opacity="0"/></radialGradient>
+        <linearGradient id="nt-meteor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbf3e2" stop-opacity="0"/><stop offset="1" stop-color="#ffd27a"/></linearGradient>
+      </defs>
+      <symbol id="sc-battle" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice">
+        <rect width="1000" height="560" fill="url(#bt-sky)"/>
+        <g fill="#fff"><circle cx="80" cy="60" r="1.6" opacity=".7"/><circle cx="210" cy="120" r="1.2" opacity=".5"/><circle cx="380" cy="50" r="1.8" opacity=".8"/><circle cx="520" cy="96" r="1.2" opacity=".5"/><circle cx="660" cy="40" r="1.5" opacity=".6"/><circle cx="930" cy="170" r="1.2" opacity=".5"/></g>
+        <circle cx="830" cy="112" r="44" fill="#fbf3e2" opacity=".9"/>
+        <path d="M0 330 L120 250 L210 300 L330 205 L460 300 L560 240 L700 312 L820 232 L1000 322 V560 H0Z" fill="#2c2160"/>
+        <path d="M0 372 Q200 332 420 362 T1000 352 V560 H0Z" fill="url(#bt-ground)"/>
+        <circle cx="610" cy="300" r="230" fill="url(#bt-aura)"/>
+        <g transform="translate(610 372)">
+          <ellipse cy="46" rx="210" ry="22" fill="#000" opacity=".35"/>
+          <path d="M-110 -84 L-168 -176 L-58 -118Z M110 -84 L168 -176 L58 -118Z" fill="#1a1238"/>
+          <path d="M-175 40 C-175 -160 175 -160 175 40 Q0 70 -175 40Z" fill="#1a1238"/>
+          <ellipse cx="-56" cy="-34" rx="17" ry="11" fill="#f5a524"/><ellipse cx="56" cy="-34" rx="17" ry="11" fill="#f5a524"/>
+          <path d="M-60 6 l12 14 l12 -14 l12 14 l12 -14 l12 14 l12 -14 l12 14 l12 -14" fill="none" stroke="#3a2a6e" stroke-width="5" stroke-linejoin="round"/>
+        </g>
+        <g transform="translate(300 34)">
+          <rect width="400" height="12" rx="6" fill="#fff" fill-opacity=".15"/><rect width="292" height="12" rx="6" fill="#e0564a"/>
+        </g>
+        <g transform="translate(34 30)">
+          <rect width="230" height="78" rx="12" fill="#0b0920" fill-opacity=".72" stroke="#fff" stroke-opacity=".2"/>
+          <circle cx="30" cy="26" r="10" fill="#d3cff6"/><rect x="50" y="21" width="160" height="9" rx="4.5" fill="#fff" fill-opacity=".15"/><rect x="50" y="21" width="128" height="9" rx="4.5" fill="#3fa463"/>
+          <circle cx="30" cy="54" r="10" fill="#f5a524"/><rect x="50" y="49" width="160" height="9" rx="4.5" fill="#fff" fill-opacity=".15"/><rect x="50" y="49" width="76" height="9" rx="4.5" fill="#6aa8ff"/>
+        </g>
+      </symbol>
+      <symbol id="sc-night" viewBox="0 0 560 315" preserveAspectRatio="xMidYMid slice">
+        <rect width="560" height="315" fill="url(#nt-sky)"/>
+        <g fill="#fff"><circle cx="60" cy="40" r="1.2" opacity=".7"/><circle cx="140" cy="86" r="1" opacity=".5"/><circle cx="220" cy="30" r="1.4" opacity=".8"/><circle cx="300" cy="70" r="1" opacity=".5"/><circle cx="350" cy="24" r="1.2" opacity=".6"/><circle cx="500" cy="110" r="1" opacity=".5"/><circle cx="90" cy="130" r="1" opacity=".4"/><circle cx="260" cy="120" r="1.2" opacity=".5"/><circle cx="530" cy="40" r="1.3" opacity=".7"/></g>
+        <circle cx="440" cy="78" r="44" fill="url(#nt-moon)"/>
+        <path d="M0 220 Q90 160 180 195 T360 180 T560 190 V315 H0Z" fill="#241f5c"/>
+        <path d="M0 250 Q120 215 250 240 T560 230 V315 H0Z" fill="#1b1949"/>
+        <g transform="translate(118 212)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
+        <g transform="translate(336 202)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
+        <path d="M0 280 Q140 260 280 278 T560 272 V315 H0Z" fill="#13123a"/>
+      </symbol>
+      <symbol id="sc-hill" viewBox="0 0 560 315" preserveAspectRatio="xMidYMid slice">
+        <use href="#sc-night"/>
+        <g fill="#0e0d2b"><circle cx="262" cy="160" r="8"/><path d="M251 191q0-23 11-23t11 23Z"/><circle cx="288" cy="157" r="8.5"/><path d="M276 190q0-25 12-25t12 25Z"/></g>
+      </symbol>
+      <symbol id="sc-meteor" viewBox="0 0 560 315" preserveAspectRatio="xMidYMid slice">
+        <use href="#sc-night"/>
+        <path d="M120 10 L330 120" stroke="url(#nt-meteor)" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="332" cy="121" r="16" fill="#ffd27a"/><circle cx="332" cy="121" r="34" fill="#ffd27a" opacity=".25"/>
+        <rect y="0" width="560" height="315" fill="#e0564a" opacity=".12"/>
+      </symbol>
+    </svg>
+
+    <!-- ① 首屏：品牌主张 + 下载，下面是一段录屏：点开菜单栏里的 Tomoru，开始翻译，镜头推近字幕 -->
     <section class="hero night" aria-labelledby="hero-title">
       <div class="sky" aria-hidden="true"></div>
       <div class="wrap hero-grid">
@@ -117,55 +161,77 @@
             <li>{{hero.facts.license}}</li>
           </ul>
         </div>
+        <img class="hero-mascot" src="/assets/mascot.webp" width="400" height="448" alt="" fetchpriority="high">
+      </div>
 
-        <div class="hero-visual" role="img" aria-label="{{hero.visualLabel|plain}}">
-          <div class="screen">
-            <div class="screen-bar">
-              <i></i><i></i><i></i>
-              <span class="screen-title">{{hero.screenTitle}}</span>
-              <span class="live">LIVE</span>
+      <div class="hero-stage wp-dusk" data-expand>
+        <div class="studio" data-demo="hero" style="--w:1280;--h:800" role="img" aria-label="{{hero.visualLabel|plain}}">
+          <div class="cam">
+            <div class="desk"></div>
+            <div class="menubar-mock">
+              <span class="mb-tray on" data-tray>
+                <svg class="tr-idle" viewBox="0 -2.4 20 18.4"><g transform="rotate(-10 10 9)" fill="currentColor"><path fill-rule="evenodd" d="M1 17L1 8.6C1 3.6 5 .8 10 .8C15 .8 19 3.6 19 8.6L19 17L15.6 17L15.6 10.6Q14.8 8.2 12.6 7.5Q13 9.2 12.3 10.7Q10.9 8.3 7.9 7.7Q8.7 9.6 7.7 11.1Q6.3 9.4 4.4 9.8L4.4 17Z"/><path d="M9.5 1.3C9.1-1.1 11.5-2.4 13.7-1.4C14.4-1.1 14.7-.4 14.5.2C13.9-.6 12.5-1 11.3-.2C10.9.2 10.9.8 11 1.3Z"/><path d="M6.1 13.6q1.4 1.4 2.8 0M11.1 13.6q1.4 1.4 2.8 0" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></g></svg>
+                <svg class="tr-on" viewBox="0 -2.4 20 18.4"><g transform="rotate(-10 10 9)" fill="currentColor"><path fill-rule="evenodd" d="M1 17L1 8.6C1 3.6 5 .8 10 .8C15 .8 19 3.6 19 8.6L19 17L15.6 17L15.6 10.6Q14.8 8.2 12.6 7.5Q13 9.2 12.3 10.7Q10.9 8.3 7.9 7.7Q8.7 9.6 7.7 11.1Q6.3 9.4 4.4 9.8L4.4 17Z"/><path d="M9.5 1.3C9.1-1.1 11.5-2.4 13.7-1.4C14.4-1.1 14.7-.4 14.5.2C13.9-.6 12.5-1 11.3-.2C10.9.2 10.9.8 11 1.3Z"/><ellipse cx="7.5" cy="13.6" rx="1.15" ry="1.65"/><ellipse cx="12.5" cy="13.6" rx="1.15" ry="1.65"/></g></svg>
+              </span>
+              <svg class="mb-icon" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M8.5 16.43a6 6 0 0 1 7 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+              <svg class="mb-icon" viewBox="0 0 28 24"><rect x="2" y="7" width="21" height="11" rx="3"/><rect x="4.5" y="9.5" width="14" height="6" rx="1.2" fill="currentColor" stroke="none"/><path d="M25.5 11v3"/></svg>
+              <span class="mb-time">21:30</span>
             </div>
-            <svg class="screen-scene" viewBox="0 0 560 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-              <defs>
-                <linearGradient id="h-sky" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#13123a"/><stop offset="1" stop-color="#33215c"/>
-                </linearGradient>
-                <radialGradient id="h-moon" cx=".5" cy=".5" r=".5">
-                  <stop offset=".55" stop-color="#fbf3e2"/><stop offset=".7" stop-color="#fbf3e2" stop-opacity=".25"/><stop offset="1" stop-color="#fbf3e2" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <rect width="560" height="330" fill="url(#h-sky)"/>
-              <g fill="#fff">
-                <circle cx="60" cy="40" r="1.2" opacity=".7"/><circle cx="140" cy="86" r="1" opacity=".5"/><circle cx="220" cy="30" r="1.4" opacity=".8"/>
-                <circle cx="300" cy="70" r="1" opacity=".5"/><circle cx="350" cy="24" r="1.2" opacity=".6"/><circle cx="500" cy="110" r="1" opacity=".5"/>
-                <circle cx="90" cy="130" r="1" opacity=".4"/><circle cx="260" cy="120" r="1.2" opacity=".5"/><circle cx="530" cy="40" r="1.3" opacity=".7"/>
-              </g>
-              <circle cx="440" cy="78" r="44" fill="url(#h-moon)"/>
-              <path d="M0 230 Q90 170 180 205 T360 190 T560 200 V330 H0Z" fill="#241f5c"/>
-              <path d="M0 262 Q120 225 250 250 T560 240 V330 H0Z" fill="#1b1949"/>
-              <g class="lanterns">
-                <g transform="translate(118 222)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
-                <g transform="translate(336 212)"><line y1="-30" y2="-8" stroke="#d3cff6" stroke-opacity=".3"/><rect x="-7" y="-8" width="14" height="18" rx="6" fill="#f5a524"/><rect x="-4" y="10" width="8" height="3" fill="#8a5200"/></g>
-              </g>
-              <path d="M0 290 Q140 270 280 288 T560 282 V330 H0Z" fill="#13123a"/>
-            </svg>
-            <div class="listening" aria-hidden="true">
-              <span class="levels"><i></i><i></i><i></i><i></i><i></i></span>
-              {{hero.listening}}
+
+            <div class="win browser">
+              <div class="win-bar"><i></i><i></i><i></i><span class="win-title"><b class="live-dot"></b>{{hero.screenTitle}}</span></div>
+              <div class="stream">
+                <div class="video">
+                  <svg class="scene"><use href="#sc-battle"/></svg>
+                  <span class="live-badge">LIVE</span>
+                  <img class="facecam" src="/assets/sticker.webp" width="128" height="143" alt="">
+                </div>
+                <div class="stream-meta">
+                  <p class="stream-title" lang="{{js.rollLang}}">{{hero.streamTitle}}</p>
+                  <p class="channel"><img src="/assets/icon-128.webp" width="36" height="36" alt=""><b>Tomoru Ch.</b><span><svg class="icon"><use href="#i-eye"/></svg>12,408</span></p>
+                </div>
+                <ol class="chat" lang="{{js.rollLang}}" data-chat>
+                  <li><b>yoru</b>{{hero.chat.c1}}</li>
+                  <li><b>mochi_7</b>{{hero.chat.c2}}</li>
+                  <li><b>ruri</b>{{hero.chat.c3}}</li>
+                  <li><b>kuma</b>{{hero.chat.c4}}</li>
+                  <li><b>hoshi</b>{{hero.chat.c5}}</li>
+                  <li><b>nagi</b>{{hero.chat.c6}}</li>
+                </ol>
+              </div>
             </div>
+
+            <div class="ov hero-ov">
+              <p class="notice" data-notice><span class="levels"><i></i><i></i><i></i><i></i><i></i></span>{{hero.listening}}</p>
+              <div class="roll" data-roll>
+                <div class="line old"><p class="src" lang="{{js.rollLang}}">{{hero.line1.src}}</p><p class="tgt">{{hero.line1.tgt}}</p></div>
+                <div class="line"><p class="src" lang="{{js.rollLang}}">{{hero.line2.src}}</p><p class="tgt">{{hero.line2.tgt}}</p></div>
+              </div>
+            </div>
+
+            <div class="pn hero-pn" data-panel>
+              <div class="pn-head">
+                <img class="pn-av" src="/assets/sticker-asleep.webp" width="128" height="143" alt="" data-av>
+                <div class="pn-status"><b data-title data-on="{{mock.translating|plain}}">{{mock.idle}}</b><span data-stats data-today="{{mock.today|plain}}" data-session="{{mock.session|plain}}" data-lines="{{mock.lines|plain}}" data-one="{{mock.linesOne|plain}}">{{mock.today}} 12:40</span></div>
+                <span class="pn-btn" data-start data-on="{{mock.stop|plain}}"><svg class="icon"><use href="#i-play"/></svg><span>{{mock.start}}</span></span>
+              </div>
+              <div class="pn-body">
+                <div class="pn-card">
+                  <div class="pn-row"><svg class="icon"><use href="#i-book"/></svg><span class="k">{{mock.scene}}</span><b>{{mock.general}}</b><svg class="icon chev"><use href="#i-chevron"/></svg></div>
+                  <div class="pn-langs"><span class="pn-sel">{{mock.from}}<svg class="icon chev"><use href="#i-chevron"/></svg></span><svg class="icon swap"><use href="#i-swap"/></svg><span class="pn-sel">{{mock.to}}<svg class="icon chev"><use href="#i-chevron"/></svg></span></div>
+                  <div class="pn-row"><svg class="icon"><use href="#i-audio"/></svg><span class="k">{{mock.source}}</span><b>{{mock.sourceAll}}</b><svg class="icon chev"><use href="#i-chevron"/></svg></div>
+                </div>
+              </div>
+              <div class="pn-foot"><svg class="icon"><use href="#i-scan"/></svg><i></i><svg class="icon"><use href="#i-move"/></svg><svg class="icon"><use href="#i-lock-open"/></svg><span></span><svg class="icon"><use href="#i-settings"/></svg><svg class="icon"><use href="#i-power"/></svg></div>
+            </div>
+
+            <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
           </div>
-          <div class="overlay" aria-hidden="true">
-            <div class="roll" data-roll>
-              <div class="line old"><p class="src" lang="{{js.rollLang}}">{{hero.line1.src}}</p><p class="tgt">{{hero.line1.tgt}}</p></div>
-              <div class="line"><p class="src" lang="{{js.rollLang}}">{{hero.line2.src}}</p><p class="tgt">{{hero.line2.tgt}}</p></div>
-            </div>
-          </div>
-          <img class="hero-mascot" src="/assets/mascot.webp" width="400" height="448" alt="" fetchpriority="high">
         </div>
       </div>
     </section>
 
-    <!-- ② 核心卖点 -->
+    <!-- ② 核心卖点：每张卡片是一段小录屏 -->
     <section id="features" class="section paper" aria-labelledby="features-title">
       <div class="wrap">
         <header class="section-head">
@@ -174,173 +240,93 @@
           <p class="section-lead">{{features.lead}}</p>
         </header>
 
-        <div class="pillars">
-          <article class="pillar" data-anim>
-            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="{{features.overlay.artLabel|plain}}">
-              <defs>
-                <clipPath id="a-win"><rect x="28" y="18" width="304" height="164" rx="10"/></clipPath>
-                <linearGradient id="a-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2870"/><stop offset="1" stop-color="#4a2e6e"/></linearGradient>
-              </defs>
-              <rect width="360" height="220" rx="16" fill="#15133d"/>
-              <g clip-path="url(#a-win)">
-                <rect x="28" y="18" width="304" height="164" fill="#211f55"/>
-                <g class="cyc c1">
-                  <rect x="28" y="42" width="304" height="140" fill="url(#a-sky)"/>
-                  <circle cx="60" cy="62" r="1.2" fill="#fff"/><circle cx="120" cy="76" r="1" fill="#fff" opacity=".6"/><circle cx="200" cy="58" r="1.3" fill="#fff" opacity=".8"/>
-                  <circle cx="276" cy="78" r="15" fill="#fbf3e2" opacity=".92"/>
-                  <path d="M28 150 Q90 112 150 138 T260 128 T332 140 V182 H28Z" fill="#1b1949"/>
-                  <path d="M28 164 Q110 142 190 160 T332 156 V182 H28Z" fill="#13123a"/>
-                </g>
-                <g class="cyc c2">
-                  <rect x="28" y="42" width="304" height="140" fill="#10213f"/>
-                  <rect x="28" y="160" width="304" height="22" fill="#0a1630"/>
-                  <rect x="44" y="54" width="90" height="7" rx="3.5" fill="#fff" fill-opacity=".15"/><rect x="44" y="54" width="62" height="7" rx="3.5" fill="#3fa463"/>
-                  <rect x="214" y="54" width="102" height="7" rx="3.5" fill="#fff" fill-opacity=".15"/><rect x="214" y="54" width="88" height="7" rx="3.5" fill="#e0564a"/>
-                  <path d="M222 160 C222 106 302 106 302 160Z M236 120 l-10 -20 l20 11Z M288 120 l10 -20 l-20 11Z" fill="#3a2a6e"/>
-                  <circle cx="250" cy="134" r="4" fill="#f5a524"/><circle cx="274" cy="134" r="4" fill="#f5a524"/>
-                  <circle cx="88" cy="126" r="7" fill="#d3cff6"/><rect x="80" y="134" width="16" height="26" rx="5" fill="#d3cff6"/>
-                </g>
-                <g class="cyc c3">
-                  <rect x="28" y="42" width="304" height="140" fill="#1d1b4a"/>
-                  <g fill="#2c2970">
-                    <rect x="38" y="50" width="138" height="58" rx="8"/><rect x="184" y="50" width="138" height="58" rx="8" stroke="#f5a524" stroke-width="2"/>
-                    <rect x="38" y="114" width="138" height="58" rx="8"/><rect x="184" y="114" width="138" height="58" rx="8"/>
-                  </g>
-                  <g fill="#d3cff6" opacity=".7">
-                    <circle cx="107" cy="74" r="10"/><path d="M89 102a18 14 0 0 1 36 0Z"/>
-                    <circle cx="253" cy="74" r="10"/><path d="M235 102a18 14 0 0 1 36 0Z"/>
-                    <circle cx="107" cy="138" r="10"/><circle cx="253" cy="138" r="10"/>
-                  </g>
-                </g>
-              </g>
-              <rect x="28" y="18" width="304" height="164" rx="10" fill="none" stroke="#fff" stroke-opacity=".14"/>
-              <circle cx="42" cy="30" r="3.2" fill="#ff5f57"/><circle cx="53" cy="30" r="3.2" fill="#febc2e"/><circle cx="64" cy="30" r="3.2" fill="#28c840"/>
-              <text class="cyc c1 t-mini" x="180" y="33.5" text-anchor="middle">{{features.overlay.animeName}}</text>
-              <text class="cyc c2 t-mini" x="180" y="33.5" text-anchor="middle">{{features.overlay.gameName}}</text>
-              <text class="cyc c3 t-mini" x="180" y="33.5" text-anchor="middle">{{features.overlay.meetingName}}</text>
-
-              <rect x="52" y="146" width="256" height="56" rx="9" fill="#08071c" fill-opacity=".88"/>
-              <g class="cyc c1"><text class="t-src" x="180" y="169" text-anchor="middle" lang="{{features.overlay.sub1.srcLang}}">{{features.overlay.sub1.src}}</text><text class="t-tgt" x="180" y="192" text-anchor="middle">{{features.overlay.sub1.tgt}}</text></g>
-              <g class="cyc c2"><text class="t-src" x="180" y="169" text-anchor="middle" lang="{{features.overlay.sub2.srcLang}}">{{features.overlay.sub2.src}}</text><text class="t-tgt" x="180" y="192" text-anchor="middle">{{features.overlay.sub2.tgt}}</text></g>
-              <g class="cyc c3"><text class="t-src" x="180" y="169" text-anchor="middle" lang="{{features.overlay.sub3.srcLang}}">{{features.overlay.sub3.src}}</text><text class="t-tgt" x="180" y="192" text-anchor="middle">{{features.overlay.sub3.tgt}}</text></g>
-              <g transform="translate(308 146)">
-                <circle r="11" fill="#f5a524"/>
-                <g transform="translate(-7 -7.5) scale(.58)" fill="none" stroke="#232057" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
-              </g>
-            </svg>
+        <div class="bento">
+          <article class="tile wide">
+            <div class="tile-stage wp-dusk">
+              <div class="studio" data-demo="overlay" style="--w:1200;--h:560" role="img" aria-label="{{features.overlay.artLabel|plain}}">
+                <div class="cam">
+                  <div class="win game">
+                    <div class="win-bar"><i></i><i></i><i></i></div>
+                    <div class="view">
+                      <svg class="scene"><use href="#sc-battle"/></svg>
+                      <ul class="command" lang="{{features.overlay.sub2.srcLang}}">
+                        <li data-fight>{{game.fight}}</li><li>{{game.skill}}</li><li>{{game.item}}</li><li>{{game.run}}</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="ov drag-ov" data-block>
+                    <span class="handle l"></span><span class="handle r"></span>
+                    <div class="ov-bar"><span class="bar-icon"><svg class="icon"><use href="#i-pause"/></svg></span><i></i><span class="bar-scene"><b>{{mock.general}}</b><span>{{mock.from}} → {{mock.to}} ▾</span></span><i></i><span class="bar-icon" data-lock><svg class="icon"><use href="#i-lock"/></svg></span><span class="bar-icon"><svg class="icon"><use href="#i-settings"/></svg></span></div>
+                    <div class="roll">
+                      <div class="line"><p class="src" lang="{{features.overlay.sub2.srcLang}}">{{features.overlay.sub2.src}}</p><p class="tgt">{{features.overlay.sub2.tgt}}</p></div>
+                    </div>
+                  </div>
+                  <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
+                </div>
+              </div>
+            </div>
             <h3>{{features.overlay.title}}</h3>
             <p>{{features.overlay.body}}</p>
           </article>
 
-          <article class="pillar" data-anim>
-            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="{{features.capture.artLabel|plain}}">
-              <defs>
-                <radialGradient id="b-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f5a524" stop-opacity=".45"/><stop offset="1" stop-color="#f5a524" stop-opacity="0"/></radialGradient>
-              </defs>
-              <rect width="360" height="220" rx="16" fill="#15133d"/>
-              <g class="flow">
-                <path class="dash" d="M190 48 C230 48 228 104 262 108"/>
-                <path class="dash ph-off" d="M190 110 L262 110"/>
-                <path class="dash ph-off" d="M190 172 C230 172 228 116 262 112"/>
-              </g>
-              <g class="tile">
-                <rect x="20" y="26" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
-                <circle cx="44" cy="48" r="12" fill="#2c2970"/>
-                <g fill="none" stroke="#d3cff6" stroke-width="1.4"><circle cx="44" cy="48" r="6.5"/><ellipse cx="44" cy="48" rx="2.8" ry="6.5"/><path d="M37.5 48h13"/></g>
-                <text class="t-label" x="64" y="52">{{features.capture.browser}}</text>
-                <g class="lv" transform="translate(152 48)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
-              </g>
-              <g class="tile ph-dim">
-                <rect x="20" y="88" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
-                <circle cx="44" cy="110" r="12" fill="#2c2970"/>
-                <g fill="none" stroke="#d3cff6" stroke-width="1.4" stroke-linecap="round"><rect x="36" y="105" width="16" height="10" rx="5"/><path d="M40 108.5v3M38.5 110h3"/><circle cx="48" cy="110" r=".6" fill="#d3cff6"/></g>
-                <text class="t-label" x="64" y="114">{{features.capture.game}}</text>
-                <g class="lv" transform="translate(152 110)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
-              </g>
-              <g class="tile ph-dim">
-                <rect x="20" y="150" width="170" height="44" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
-                <circle cx="44" cy="172" r="12" fill="#2c2970"/>
-                <g fill="none" stroke="#d3cff6" stroke-width="1.4" stroke-linecap="round"><path d="M42 177v-10l7-2v10"/><circle cx="40" cy="177" r="2"/><circle cx="47" cy="175" r="2"/></g>
-                <text class="t-label" x="64" y="176">{{features.capture.music}}</text>
-                <g class="lv" transform="translate(152 172)"><rect x="0" y="-7" width="3" height="14" rx="1.5"/><rect x="6" y="-7" width="3" height="14" rx="1.5"/><rect x="12" y="-7" width="3" height="14" rx="1.5"/><rect x="18" y="-7" width="3" height="14" rx="1.5"/></g>
-              </g>
-              <rect class="frame ph-a" x="13" y="19" width="184" height="182" rx="16"/>
-              <rect class="frame ph-b" x="13" y="19" width="184" height="58" rx="16"/>
-              <circle cx="300" cy="110" r="56" fill="url(#b-glow)"/>
-              <image href="/assets/icon-128.webp" x="266" y="76" width="68" height="68"/>
-              <text class="t-label ph-a" x="300" y="170" text-anchor="middle">{{features.capture.all}}</text>
-              <text class="t-label ph-b" x="300" y="170" text-anchor="middle">{{features.capture.oneApp}}</text>
-            </svg>
+          <article class="tile">
+            <div class="tile-stage wp-dusk-r">
+              <div class="studio" data-demo="capture" style="--w:640;--h:460" role="img" aria-label="{{features.capture.artLabel|plain}}">
+                <div class="cam">
+                  <div class="pn cap-pn on">
+                    <div class="pn-head">
+                      <img class="pn-av" src="/assets/sticker.webp" width="128" height="143" alt="">
+                      <div class="pn-status"><b>{{mock.translating}}</b><span data-stats data-today="{{mock.today|plain}}" data-session="{{mock.session|plain}}" data-lines="{{mock.lines|plain}}" data-one="{{mock.linesOne|plain}}" data-sec="42" data-n="9">{{mock.session}} 0:42</span></div>
+                      <span class="pn-btn"><svg class="icon"><use href="#i-square"/></svg><span>{{mock.stop}}</span></span>
+                    </div>
+                    <div class="pn-body">
+                      <div class="pn-card">
+                        <div class="pn-row"><svg class="icon"><use href="#i-book"/></svg><span class="k">{{mock.scene}}</span><b>{{mock.general}}</b><svg class="icon chev"><use href="#i-chevron"/></svg></div>
+                        <div class="pn-langs"><span class="pn-sel">{{mock.from}}<svg class="icon chev"><use href="#i-chevron"/></svg></span><svg class="icon swap"><use href="#i-swap"/></svg><span class="pn-sel">{{mock.to}}<svg class="icon chev"><use href="#i-chevron"/></svg></span></div>
+                        <div class="pn-row" data-source><span class="levels"><i></i><i></i><i></i><i></i><i></i></span><span class="k">{{mock.source}}</span><b data-value>Chrome</b><svg class="icon chev"><use href="#i-chevron"/></svg></div>
+                      </div>
+                    </div>
+                  </div>
+                  <ul class="menu-mock cap-menu" data-menu>
+                    <li data-all><svg class="icon"><use href="#i-check"/></svg>{{mock.sourceAll}}</li>
+                    <li class="sep"></li>
+                    <li class="head">{{mock.playing}}</li>
+                    <li data-app>Chrome</li>
+                    <li>Steam</li>
+                    <li>Spotify</li>
+                  </ul>
+                  <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
+                </div>
+              </div>
+            </div>
             <h3>{{features.capture.title}}</h3>
             <p>{{features.capture.body}}</p>
           </article>
 
-          <article class="pillar" data-anim>
-            <svg class="art" viewBox="0 0 360 220" role="img" aria-label="{{features.engines.artLabel|plain}}">
-              <rect width="360" height="220" rx="16" fill="#15133d"/>
-              <rect x="106" y="14" width="148" height="32" rx="16" fill="#fff" fill-opacity=".08" stroke="#fff" stroke-opacity=".12"/>
-              <rect class="knob" x="110" y="18" width="68" height="24" rx="12" fill="#f5a524"/>
-              <text class="seg seg-a" x="144" y="34.5" text-anchor="middle">{{features.engines.local}}</text>
-              <text class="seg seg-b" x="216" y="34.5" text-anchor="middle">{{features.engines.cloud}}</text>
-
-              <rect x="56" y="80" width="136" height="88" rx="8" fill="#211f55" stroke="#d3cff6" stroke-opacity=".5" stroke-width="1.5"/>
-              <path d="M40 174 H208 L198 184 H50Z" fill="#d3cff6" fill-opacity=".5"/>
-              <g class="ph-local">
-                <circle class="ring" cx="124" cy="124" r="28" fill="none" stroke="#f5a524" stroke-width="2" stroke-dasharray="5 6"/>
-              </g>
-              <image href="/assets/icon-128.webp" x="106" y="106" width="36" height="36"/>
-
-              <g class="ph-cloud">
-                <path class="dash" d="M194 112 C224 94 244 94 262 104"/>
-                <path class="dash rev" d="M262 124 C244 134 224 134 194 130"/>
-              </g>
-              <path class="cloud" d="M266 136 a17 17 0 0 1 2 -34 a24 24 0 0 1 45 -6 a19 19 0 0 1 6 40Z"/>
-              <text class="t-cap ph-a" x="180" y="206" text-anchor="middle">{{features.engines.localCaption}}</text>
-              <text class="t-cap ph-b" x="180" y="206" text-anchor="middle">{{features.engines.cloudCaption}}</text>
-            </svg>
+          <article class="tile">
+            <div class="tile-stage wp-dusk-deep">
+              <div class="studio" data-demo="engines" style="--w:640;--h:460" role="img" aria-label="{{features.engines.artLabel|plain}}">
+                <div class="cam">
+                  <div class="win light eng">
+                    <div class="win-bar"><i></i><i></i><i></i><span class="win-title">{{mock.engines}}</span></div>
+                    <div class="eng-body">
+                      <div class="eng-row"><span>{{mock.asr}}</span><span class="seg"><b class="on">{{features.engines.local}}</b><b>{{features.engines.cloud}}</b></span></div>
+                      <div class="eng-row"><span>{{mock.mt}}</span><span class="seg" data-seg><b class="on" data-local>{{features.engines.local}}</b><b data-cloud>{{features.engines.cloud}}</b></span></div>
+                      <div class="eng-path" data-path>
+                        <span class="dev"><svg class="icon"><use href="#i-laptop"/></svg></span>
+                        <span class="wire"></span>
+                        <span class="svc"><svg class="icon"><use href="#i-cloud"/></svg></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
+                </div>
+              </div>
+            </div>
             <h3>{{features.engines.title}}</h3>
             <p>{{features.engines.body}}</p>
           </article>
         </div>
-      </div>
-    </section>
-
-    <!-- ③ 工作原理 -->
-    <section id="how" class="section night stage-section" aria-labelledby="how-title">
-      <div class="sky" aria-hidden="true"></div>
-      <div class="wrap">
-        <header class="section-head on-night">
-          <p class="eyebrow">{{how.eyebrow}}</p>
-          <h2 id="how-title">{{how.title}}</h2>
-          <p class="section-lead">{{how.lead}}</p>
-        </header>
-        <ol class="pipeline" data-anim>
-          <li class="step">
-            <span class="step-no">1</span>
-            <svg class="step-art" viewBox="0 0 200 80" aria-hidden="true">
-              <g class="wave">
-                <rect x="20" y="30" width="6" height="20" rx="3"/><rect x="34" y="22" width="6" height="36" rx="3"/><rect x="48" y="12" width="6" height="56" rx="3"/>
-                <rect x="62" y="26" width="6" height="28" rx="3"/><rect x="76" y="16" width="6" height="48" rx="3"/><rect x="90" y="6" width="6" height="68" rx="3"/>
-                <rect x="104" y="20" width="6" height="40" rx="3"/><rect x="118" y="28" width="6" height="24" rx="3"/><rect x="132" y="14" width="6" height="52" rx="3"/>
-                <rect x="146" y="24" width="6" height="32" rx="3"/><rect x="160" y="32" width="6" height="16" rx="3"/><rect x="174" y="28" width="6" height="24" rx="3"/>
-              </g>
-            </svg>
-            <h3>{{how.hear.title}}</h3>
-            <p>{{how.hear.body}}</p>
-          </li>
-          <li class="step">
-            <span class="step-no">2</span>
-            <div class="step-sub"><p class="src typing" lang="{{how.srcLang}}">{{how.src}}</p></div>
-            <h3>{{how.recognize.title}}</h3>
-            <p>{{how.recognize.body}}</p>
-          </li>
-          <li class="step">
-            <span class="step-no">3</span>
-            <div class="step-sub"><p class="src dim" lang="{{how.srcLang}}">{{how.src}}</p><p class="tgt appear">{{how.tgt}}</p></div>
-            <h3>{{how.translate.title}}</h3>
-            <p>{{how.translate.body}}</p>
-          </li>
-        </ol>
       </div>
     </section>
 
@@ -352,152 +338,131 @@
           <h2 id="details-title">{{details.title}}</h2>
         </header>
 
-        <article class="feature" data-anim>
+        <article class="feature">
           <div class="feature-copy">
             <p class="tag"><svg class="icon"><use href="#i-sparkles"/></svg>{{details.draft.tag}}</p>
             <h3>{{details.draft.title}}</h3>
             <p>{{details.draft.body}}</p>
           </div>
-          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="{{details.draft.artLabel|plain}}">
-            <rect width="420" height="250" rx="16" fill="#15133d"/>
-            <g transform="translate(24 22)">
-              <circle class="rec" cx="6" cy="6" r="5" fill="#f5a524"/>
-              <text class="t-label ph-talk" x="18" y="10.5">{{details.draft.talking}}</text>
-              <text class="t-label ph-done" x="18" y="10.5">{{details.draft.done}}</text>
-            </g>
-            <defs>
-              <g id="wv">
-                <rect x="0" y="14" width="6" height="12" rx="3"/>
-                <rect x="11.5" y="8" width="6" height="24" rx="3"/>
-                <rect x="23" y="2" width="6" height="36" rx="3"/>
-                <rect x="34.5" y="10" width="6" height="20" rx="3"/>
-                <rect x="46" y="4" width="6" height="32" rx="3"/>
-                <rect x="57.5" y="12" width="6" height="16" rx="3"/>
-                <rect x="69" y="0" width="6" height="40" rx="3"/>
-                <rect x="80.5" y="6" width="6" height="28" rx="3"/>
-                <rect x="92" y="14" width="6" height="12" rx="3"/>
-                <rect x="103.5" y="5" width="6" height="30" rx="3"/>
-                <rect x="115" y="9" width="6" height="22" rx="3"/>
-                <rect x="126.5" y="2" width="6" height="36" rx="3"/>
-                <rect x="138" y="12" width="6" height="16" rx="3"/>
-                <rect x="149.5" y="7" width="6" height="26" rx="3"/>
-                <rect x="161" y="15" width="6" height="10" rx="3"/>
-                <rect x="172.5" y="3" width="6" height="34" rx="3"/>
-                <rect x="184" y="9" width="6" height="22" rx="3"/>
-                <rect x="195.5" y="1" width="6" height="38" rx="3"/>
-                <rect x="207" y="11" width="6" height="18" rx="3"/>
-                <rect x="218.5" y="6" width="6" height="28" rx="3"/>
-                <rect x="230" y="13" width="6" height="14" rx="3"/>
-                <rect x="241.5" y="4" width="6" height="32" rx="3"/>
-                <rect x="253" y="10" width="6" height="20" rx="3"/>
-                <rect x="264.5" y="2" width="6" height="36" rx="3"/>
-                <rect x="276" y="8" width="6" height="24" rx="3"/>
-                <rect x="287.5" y="14" width="6" height="12" rx="3"/>
-                <rect x="299" y="6" width="6" height="28" rx="3"/>
-                <rect x="310.5" y="11" width="6" height="18" rx="3"/>
-                <rect x="322" y="15" width="6" height="10" rx="3"/>
-                <rect x="333.5" y="12" width="6" height="16" rx="3"/>
-                <rect x="345" y="16" width="6" height="8" rx="3"/>
-                <rect x="356.5" y="17" width="6" height="6" rx="3"/>
-              </g>
-              <clipPath id="wv-clip"><rect class="sweep" x="0" y="-4" width="364" height="48"/></clipPath>
-            </defs>
-            <g class="wv-bars" transform="translate(24 44)">
-              <use class="dim" href="#wv"/>
-              <use class="lit" href="#wv" clip-path="url(#wv-clip)"/>
-              <line class="playhead" x1="-1" y1="-6" x2="-1" y2="46" stroke="#fbf3e2" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <rect x="20" y="104" width="380" height="104" rx="12" fill="#08071c" fill-opacity=".88"/>
-            <text class="t-src big" x="40" y="140" lang="{{details.draft.srcLang}}"><tspan class="ck ck1">{{details.draft.chunk1}}</tspan><tspan class="ck ck2">{{details.draft.chunk2}}</tspan><tspan class="ck ck3">{{details.draft.chunk3}}</tspan></text>
-            <text class="t-tgt big ph-draft" x="40" y="180">{{details.draft.draft}}</text>
-            <text class="t-tgt big ph-final" x="40" y="180">{{details.draft.final}}</text>
-            <text class="t-note ph-draft" x="382" y="180" text-anchor="end">{{details.draft.draftNote}}</text>
-            <text class="t-note ph-final" x="382" y="180" text-anchor="end">{{details.draft.finalNote}}</text>
-            <text class="t-cap" x="210" y="234" text-anchor="middle">{{details.draft.caption}}</text>
-          </svg>
+          <div class="feature-stage wp-dusk-r">
+            <div class="studio" data-demo="draft" style="--w:960;--h:640" role="img" aria-label="{{details.draft.artLabel|plain}}">
+              <div class="cam">
+                <div class="win player">
+                  <div class="win-bar"><i></i><i></i><i></i></div>
+                  <div class="view">
+                    <svg class="scene"><use href="#sc-night"/></svg>
+                    <span class="live-badge">LIVE</span>
+                    <img class="facecam" src="/assets/sticker.webp" width="128" height="143" alt="">
+                  </div>
+                </div>
+                <div class="ov draft-ov">
+                  <div class="roll">
+                    <div class="line"><p class="src" lang="{{details.draft.srcLang}}" data-src><span>{{details.draft.chunk1}}</span><span>{{details.draft.chunk2}}</span><span>{{details.draft.chunk3}}</span></p><p class="tgt" data-tgt data-draft="{{details.draft.draft|plain}}">{{details.draft.final}}</p></div>
+                  </div>
+                  <span class="note" data-note><span class="n-draft">{{details.draft.draftNote}}</span><span class="n-final">{{details.draft.finalNote}}</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
         </article>
 
-        <article class="feature flip" data-anim>
+        <article class="feature flip">
           <div class="feature-copy">
             <p class="tag"><svg class="icon"><use href="#i-book"/></svg>{{details.scenes.tag}}</p>
             <h3>{{details.scenes.title}}</h3>
             <p>{{details.scenes.body}}</p>
           </div>
-          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="{{details.scenes.artLabel|plain}}">
-            <rect width="420" height="250" rx="16" fill="#15133d"/>
-            <rect x="70" y="16" width="280" height="32" rx="16" fill="#fff" fill-opacity=".08" stroke="#fff" stroke-opacity=".12"/>
-            <rect class="knob knob-wide" x="74" y="20" width="132" height="24" rx="12" fill="#f5a524"/>
-            <text class="seg seg-a" x="140" y="36.5" text-anchor="middle">{{details.scenes.off}}</text>
-            <text class="seg seg-b" x="280" y="36.5" text-anchor="middle">{{details.scenes.on}}</text>
-
-            <rect x="20" y="62" width="380" height="84" rx="12" fill="#08071c" fill-opacity=".88"/>
-            <g class="ph-a">
-              <text class="t-src big" x="40" y="94" lang="{{details.scenes.srcLang}}">{{details.scenes.srcBefore}}</text>
-              <text class="t-tgt big" x="40" y="128">{{details.scenes.tgtBefore}}</text>
-            </g>
-            <g class="ph-b">
-              <text class="t-src big" x="40" y="94" lang="{{details.scenes.srcLang}}">{{details.scenes.srcAfter}}</text>
-              <text class="t-tgt big" x="40" y="128">{{details.scenes.tgtAfter}}</text>
-            </g>
-
-            <g class="gloss">
-              <rect x="20" y="160" width="380" height="74" rx="12" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".12"/>
-              <text class="t-note" x="36" y="181">{{details.scenes.glossary}}</text>
-              <text class="t-label" x="36" y="214">{{details.scenes.term1}}</text>
-              <text class="t-label" x="160" y="214">{{details.scenes.term2}}</text>
-              <text class="t-label" x="272" y="214">{{details.scenes.term3}}</text>
-            </g>
-          </svg>
+          <div class="feature-stage wp-dusk">
+            <div class="studio" data-demo="scenes" style="--w:960;--h:640" role="img" aria-label="{{details.scenes.artLabel|plain}}">
+              <div class="cam">
+                <div class="win game scene-game">
+                  <div class="win-bar"><i></i><i></i><i></i></div>
+                  <div class="view"><svg class="scene"><use href="#sc-meteor"/></svg></div>
+                </div>
+                <div class="ov scene-ov">
+                  <div class="roll" data-roll>
+                    <div class="line" data-after><p class="src" lang="{{details.scenes.srcLang}}">{{details.scenes.srcAfter}}</p><p class="tgt">{{details.scenes.tgtAfter}}</p></div>
+                  </div>
+                </div>
+                <div class="pn scene-pn on">
+                  <div class="pn-head">
+                    <img class="pn-av" src="/assets/sticker.webp" width="128" height="143" alt="">
+                    <div class="pn-status"><b>{{mock.translating}}</b><span data-stats data-today="{{mock.today|plain}}" data-session="{{mock.session|plain}}" data-lines="{{mock.lines|plain}}" data-one="{{mock.linesOne|plain}}" data-sec="65" data-n="14">{{mock.session}} 1:05</span></div>
+                    <span class="pn-btn"><svg class="icon"><use href="#i-square"/></svg><span>{{mock.stop}}</span></span>
+                  </div>
+                  <div class="pn-body">
+                    <div class="pn-card">
+                      <div class="pn-row" data-scene><svg class="icon"><use href="#i-book"/></svg><span class="k">{{mock.scene}}</span><b data-value>{{mock.sceneGame}}</b><svg class="icon chev"><use href="#i-chevron"/></svg></div>
+                      <div class="pn-langs"><span class="pn-sel">{{mock.from}}<svg class="icon chev"><use href="#i-chevron"/></svg></span><svg class="icon swap"><use href="#i-swap"/></svg><span class="pn-sel">{{mock.to}}<svg class="icon chev"><use href="#i-chevron"/></svg></span></div>
+                    </div>
+                  </div>
+                </div>
+                <ul class="menu-mock scene-menu" data-menu>
+                  <li data-general><svg class="icon"><use href="#i-check"/></svg>{{mock.general}}</li>
+                  <li data-game>{{mock.sceneGame}}</li>
+                </ul>
+                <div class="gloss" data-gloss>
+                  <p>{{details.scenes.glossary}}</p>
+                  <ul><li>{{details.scenes.term1}}</li><li>{{details.scenes.term2}}</li><li>{{details.scenes.term3}}</li></ul>
+                </div>
+                <template data-before><div class="line"><p class="src" lang="{{details.scenes.srcLang}}">{{details.scenes.srcBefore}}</p><p class="tgt">{{details.scenes.tgtBefore}}</p></div></template>
+                <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
+              </div>
+            </div>
+          </div>
         </article>
 
-        <article class="feature" data-anim>
+        <article class="feature">
           <div class="feature-copy">
             <p class="tag"><svg class="icon"><use href="#i-scan"/></svg>{{details.picture.tag}}</p>
             <h3>{{details.picture.title}}</h3>
             <p>{{details.picture.body}}</p>
           </div>
-          <svg class="art art-wide" viewBox="0 0 420 250" role="img" aria-label="{{details.picture.artLabel|plain}}">
-            <defs>
-              <linearGradient id="c-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13123a"/><stop offset="1" stop-color="#33215c"/></linearGradient>
-            </defs>
-            <rect width="420" height="250" rx="16" fill="url(#c-sky)"/>
-            <path d="M0 120 Q100 90 210 110 T420 100 V250 H0Z" fill="#1b1949" opacity=".8"/>
-            <g class="keys">
-              <g class="key k1"><rect x="150" y="40" width="34" height="32" rx="8"/><text x="167" y="61" text-anchor="middle">⌥</text></g>
-              <g class="key k2"><rect x="193" y="40" width="34" height="32" rx="8"/><text x="210" y="61" text-anchor="middle">⇧</text></g>
-              <g class="key k3"><rect x="236" y="40" width="34" height="32" rx="8"/><text x="253" y="61" text-anchor="middle">S</text></g>
-            </g>
-            <rect x="24" y="148" width="372" height="86" rx="10" fill="#0b0a1e" stroke="#cfcfe0" stroke-width="2"/>
-            <text class="t-name" x="42" y="172" lang="{{details.picture.srcLang}}">{{details.picture.srcName}}</text>
-            <text class="t-src" x="42" y="196" lang="{{details.picture.srcLang}}">{{details.picture.src1}}</text>
-            <text class="t-src" x="42" y="219" lang="{{details.picture.srcLang}}">{{details.picture.src2}}</text>
-            <rect class="sel" x="16" y="140" width="388" height="102" rx="6"/>
-            <g class="cross"><path d="M0 -9V9M-9 0H9" stroke="#fff" stroke-width="1.6"/></g>
-            <g class="result">
-              <rect x="24" y="18" width="372" height="104" rx="12" fill="#1b1949" stroke="#f5a524" stroke-opacity=".7"/>
-              <text class="t-name" x="42" y="44">{{details.picture.tgtName}}</text>
-              <text class="t-note" x="378" y="44" text-anchor="end">{{details.picture.note}}</text>
-              <text class="t-tgt" x="42" y="72">{{details.picture.tgt1}}</text>
-              <text class="t-tgt" x="42" y="100">{{details.picture.tgt2}}</text>
-            </g>
-          </svg>
+          <div class="feature-stage wp-dusk-deep">
+            <div class="studio" data-demo="picture" style="--w:960;--h:640" role="img" aria-label="{{details.picture.artLabel|plain}}">
+              <div class="cam">
+                <div class="win game vn">
+                  <div class="win-bar"><i></i><i></i><i></i></div>
+                  <div class="view">
+                    <svg class="scene"><use href="#sc-night"/></svg>
+                    <div class="dialogue" lang="{{details.picture.srcLang}}" data-box>
+                      <b>{{details.picture.srcName}}</b>
+                      <p>{{details.picture.src1}}<br>{{details.picture.src2}}</p>
+                      <i></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="pic-dim" data-dim></div>
+                <div class="pic-sel" data-sel></div>
+                <div class="win light card-win" data-card>
+                  <div class="win-bar"><i></i><i></i><i></i><span class="win-title">{{mock.picture}}</span></div>
+                  <div class="card-body">
+                    <p data-text><b>{{details.picture.tgtName}}</b>{{details.picture.tgt1}}<br>{{details.picture.tgt2}}</p>
+                    <span class="card-copy"><svg class="icon"><use href="#i-copy"/></svg>{{start.copy}}</span>
+                  </div>
+                </div>
+                <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg><svg class="cross" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></div>
+              </div>
+              <div class="keycast" data-keys></div>
+            </div>
+          </div>
         </article>
       </div>
     </section>
 
     <!-- ⑤ 使用场景 -->
-    <section class="section sand" aria-labelledby="uses-title">
+    <section class="section paper" aria-labelledby="uses-title">
       <div class="wrap">
         <header class="section-head">
           <p class="eyebrow">{{uses.eyebrow}}</p>
           <h2 id="uses-title">{{uses.title}}</h2>
         </header>
         <ul class="uses">
-          <li class="use"><h3>{{uses.live.title}}</h3><div class="sub-card"><p class="src" lang="{{uses.live.srcLang}}">{{uses.live.src}}</p><p class="tgt">{{uses.live.tgt}}</p></div></li>
-          <li class="use"><h3>{{uses.anime.title}}</h3><div class="sub-card"><p class="src" lang="{{uses.anime.srcLang}}">{{uses.anime.src}}</p><p class="tgt">{{uses.anime.tgt}}</p></div></li>
-          <li class="use"><h3>{{uses.vtuber.title}}</h3><div class="sub-card"><p class="src" lang="{{uses.vtuber.srcLang}}">{{uses.vtuber.src}}</p><p class="tgt">{{uses.vtuber.tgt}}</p></div></li>
-          <li class="use"><h3>{{uses.games.title}}</h3><div class="sub-card"><p class="src" lang="{{uses.games.srcLang}}">{{uses.games.src}}</p><p class="tgt">{{uses.games.tgt}}</p></div></li>
-          <li class="use"><h3>{{uses.meetings.title}}</h3><div class="sub-card"><p class="src" lang="{{uses.meetings.srcLang}}">{{uses.meetings.src}}</p><p class="tgt">{{uses.meetings.tgt}}</p></div></li>
+          <li class="use"><h3>{{uses.live.title}}</h3><div class="use-shot shot-live" aria-hidden="true"><svg class="scene"><use href="#sc-night"/></svg><span class="live-badge">LIVE</span><span class="mini-chat"><i></i><i></i><i></i><i></i></span><div class="use-sub"><p class="src" lang="{{uses.live.srcLang}}">{{uses.live.src}}</p><p class="tgt">{{uses.live.tgt}}</p></div></div></li>
+          <li class="use"><h3>{{uses.anime.title}}</h3><div class="use-shot shot-anime" aria-hidden="true"><svg class="scene"><use href="#sc-hill"/></svg><span class="player-bar"><svg class="icon"><use href="#i-play"/></svg><i><b></b></i></span><div class="use-sub"><p class="src" lang="{{uses.anime.srcLang}}">{{uses.anime.src}}</p><p class="tgt">{{uses.anime.tgt}}</p></div></div></li>
+          <li class="use"><h3>{{uses.vtuber.title}}</h3><div class="use-shot shot-vtuber" aria-hidden="true"><img class="avatar" src="/assets/sticker.webp" width="128" height="143" alt="" loading="lazy"><span class="live-badge">LIVE</span><div class="use-sub"><p class="src" lang="{{uses.vtuber.srcLang}}">{{uses.vtuber.src}}</p><p class="tgt">{{uses.vtuber.tgt}}</p></div></div></li>
+          <li class="use"><h3>{{uses.games.title}}</h3><div class="use-shot shot-games" aria-hidden="true"><svg class="scene"><use href="#sc-battle"/></svg><div class="use-sub"><p class="src" lang="{{uses.games.srcLang}}">{{uses.games.src}}</p><p class="tgt">{{uses.games.tgt}}</p></div></div></li>
+          <li class="use"><h3>{{uses.meetings.title}}</h3><div class="use-shot shot-meetings" aria-hidden="true"><span class="call"><i></i><i class="talk"></i><i></i><i></i></span><span class="call-bar"><i></i><i></i><i class="end"></i></span><div class="use-sub"><p class="src" lang="{{uses.meetings.srcLang}}">{{uses.meetings.src}}</p><p class="tgt">{{uses.meetings.tgt}}</p></div></div></li>
         </ul>
       </div>
     </section>
@@ -514,36 +479,64 @@
             <li>
               <h3>{{start.install.title}}</h3>
               <p>{{start.install.body}}</p>
-              <div class="cmd">
-                <span class="cmd-os">macOS<br>Linux</span>
-                <code>curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh</code>
-                <button class="copy" type="button" data-copy aria-label="{{start.copyMac|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
-              </div>
-              <div class="cmd">
-                <span class="cmd-os">Windows</span>
-                <code>irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | iex</code>
-                <button class="copy" type="button" data-copy aria-label="{{start.copyWindows|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
-              </div>
+              <a class="btn btn-primary step-download" href="https://github.com/ACAne0320/Tomoru/releases/latest" data-download>
+                <svg class="icon"><use href="#i-download"/></svg>
+                <span>{{hero.download}}<small data-platform>{{hero.platforms}}</small></span>
+              </a>
+              <details class="terminal">
+                <summary>{{start.terminal}}<svg class="icon"><use href="#i-chevron"/></svg></summary>
+                <div class="cmd">
+                  <span class="cmd-os">macOS<br>Linux</span>
+                  <code>curl -fsSL https://github.com/ACAne0320/Tomoru/releases/latest/download/install.sh | sh</code>
+                  <button class="copy" type="button" data-copy aria-label="{{start.copyMac|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
+                </div>
+                  <div class="cmd">
+                  <span class="cmd-os">Windows</span>
+                  <code>irm https://github.com/ACAne0320/Tomoru/releases/latest/download/install.ps1 | iex</code>
+                  <button class="copy" type="button" data-copy aria-label="{{start.copyWindows|plain}}"><svg class="icon i-copy"><use href="#i-copy"/></svg><svg class="icon i-done"><use href="#i-check"/></svg><span>{{start.copy}}</span></button>
+                </div>
+              </details>
             </li>
             <li><h3>{{start.choose.title}}</h3><p>{{start.choose.body}}</p></li>
             <li><h3>{{start.try.title}}</h3><p>{{start.try.body}}</p></li>
           </ol>
         </div>
-        <figure class="shot">
-          <picture>
-            <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="/assets/guide-dark.webp">
-            <source media="(prefers-reduced-motion: reduce)" srcset="/assets/guide-light.webp">
-            <source media="(prefers-color-scheme: dark)" srcset="/assets/guide-dark.avif" type="image/avif">
-            <source srcset="/assets/guide-light.avif" type="image/avif">
-            <img src="/assets/guide-light.webp" width="1200" height="822" loading="lazy" decoding="async" alt="{{start.shotAlt|plain}}">
-          </picture>
-          <figcaption>{{start.shotCaption}}</figcaption>
-        </figure>
+        <div class="start-stage wp-dusk-r">
+          <div class="studio" data-demo="guide" style="--w:820;--h:600" role="img" aria-label="{{start.shotAlt|plain}}">
+            <div class="cam">
+              <div class="win light guide-win">
+                <div class="guide-left">
+                  <p class="guide-lights"><i></i><i></i><i></i></p>
+                  <p class="guide-crumbs"><span>{{guide.setup}}</span> › <b>{{guide.try}}</b> › <span>{{guide.start}}</span></p>
+                  <i class="guide-progress"></i>
+                  <h4>{{guide.title}}</h4>
+                  <p class="guide-body">{{guide.body}}</p>
+                  <span class="guide-play" data-play><svg class="icon"><use href="#i-play"/></svg>{{guide.play}}</span>
+                  <ul class="checks">
+                    <li class="done" data-check><span class="dot"><svg class="icon"><use href="#i-check"/></svg></span>{{guide.hearing}}</li>
+                    <li class="done" data-check><span class="dot"><svg class="icon"><use href="#i-check"/></svg></span>{{guide.recognizing}}</li>
+                    <li class="done" data-check><span class="dot"><svg class="icon"><use href="#i-check"/></svg></span>{{guide.translating}}</li>
+                  </ul>
+                  <p class="guide-foot"><span>{{guide.back}}</span><b class="go" data-next data-skip="{{guide.skip|plain}}">{{guide.next}}</b></p>
+                </div>
+                <div class="guide-stage">
+                  <div class="ov guide-ov">
+                    <div class="roll" data-roll>
+                      <div class="line old"><p class="src" lang="{{js.rollLang}}">{{hero.line1.src}}</p><p class="tgt">{{hero.line1.tgt}}</p></div>
+                      <div class="line"><p class="src" lang="{{js.rollLang}}">{{hero.line2.src}}</p><p class="tgt">{{hero.line2.tgt}}</p></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cursor"><svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.4-4.2 2.9 6.6 2.9-1.3-2.9-6.5h6.2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- ⑦ 隐私 -->
-    <section id="privacy" class="section paper-2" aria-labelledby="privacy-title">
+    <section id="privacy" class="section paper" aria-labelledby="privacy-title">
       <div class="wrap">
         <header class="section-head">
           <p class="eyebrow">{{privacy.eyebrow}}</p>
@@ -563,7 +556,10 @@
       <div class="sky" aria-hidden="true"></div>
       <div class="wrap mascot-grid" data-anim>
         <div class="mascot-art">
-          <img src="/assets/mascot.webp" width="400" height="448" loading="lazy" decoding="async" alt="{{mascot.alt|plain}}">
+          <div class="mascot-pic">
+            <img class="m-asleep" src="/assets/mascot-asleep.webp" width="400" height="448" loading="lazy" decoding="async" alt="">
+            <img class="m-awake" src="/assets/mascot.webp" width="400" height="448" loading="lazy" decoding="async" alt="{{mascot.alt|plain}}">
+          </div>
         </div>
         <div class="mascot-copy">
           <p class="eyebrow">{{mascot.eyebrow}}</p>
@@ -589,25 +585,6 @@
       </div>
     </section>
 
-    <!-- ⑨ 常见问题（内容和 head 里的 FAQPage JSON-LD 保持一致） -->
-    <section id="faq" class="section paper" aria-labelledby="faq-title">
-      <div class="wrap narrow">
-        <header class="section-head">
-          <p class="eyebrow">{{faq.eyebrow}}</p>
-          <h2 id="faq-title">{{faq.title}}</h2>
-        </header>
-        <div class="faq">
-          <details open><summary>{{faq.price.q}}</summary><p>{{faq.price.a}}</p></details>
-          <details><summary>{{faq.systems.q}}</summary><p>{{faq.systems.a}}</p></details>
-          <details><summary>{{faq.languages.q}}</summary><p>{{faq.languages.a}}</p></details>
-          <details><summary>{{faq.setup.q}}</summary><p>{{faq.setup.a}}</p></details>
-          <details><summary>{{faq.blocked.q}}</summary><p>{{faq.blocked.a}}</p></details>
-          <details><summary>{{faq.recording.q}}</summary><p>{{faq.recording.a}}</p></details>
-        </div>
-        <p class="faq-more">{{faq.more}}</p>
-      </div>
-    </section>
-
     <!-- ⑩ 收尾：再放一次首屏主张 -->
     <section id="download" class="section night callback" aria-labelledby="callback-title">
       <div class="sky" aria-hidden="true"></div>
@@ -626,7 +603,19 @@
         <p class="alt-source" data-alt hidden>{{hero.altSource}} <a data-from="github">GitHub</a> · <a data-from="cloudflare">Cloudflare</a></p>
         <p class="req">{{callback.req}}</p>
       </div>
+      <svg class="hills hills-back" viewBox="0 0 1440 140" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><radialGradient id="cb-glow"><stop offset="0" stop-color="#f5a524" stop-opacity=".45"/><stop offset="1" stop-color="#f5a524" stop-opacity="0"/></radialGradient></defs>
+        <path d="M0 78Q240 40 480 66T960 58T1440 70V140H0Z" fill="#241f5c"/>
+        <path d="M0 100Q300 66 600 96Q720 106 840 96Q1140 66 1440 100V140H0Z" fill="#1b1949"/>
+        <g class="lamp" transform="translate(300 81)"><circle cy="-30" r="30" fill="url(#cb-glow)"/><path d="M0 0V-58M0-58h-14" stroke="#3a2a6e" stroke-width="3" fill="none"/><line x1="-14" y1="-58" x2="-14" y2="-46" stroke="#d3cff6" stroke-opacity=".35"/><rect x="-23" y="-46" width="18" height="22" rx="8" fill="#f5a524"/><rect x="-18" y="-24" width="8" height="3" fill="#8a5200"/></g>
+        <g class="lamp" transform="translate(1150 82) scale(-1 1)"><circle cy="-30" r="30" fill="url(#cb-glow)"/><path d="M0 0V-58M0-58h-14" stroke="#3a2a6e" stroke-width="3" fill="none"/><line x1="-14" y1="-58" x2="-14" y2="-46" stroke="#d3cff6" stroke-opacity=".35"/><rect x="-23" y="-46" width="18" height="22" rx="8" fill="#f5a524"/><rect x="-18" y="-24" width="8" height="3" fill="#8a5200"/></g>
+        <g transform="translate(520 64) scale(.6)"><circle cy="-30" r="30" fill="url(#cb-glow)"/><path d="M0 0V-58M0-58h-14" stroke="#3a2a6e" stroke-width="3" fill="none"/><rect x="-23" y="-46" width="18" height="22" rx="8" fill="#f5a524"/></g>
+        <g transform="translate(930 60) scale(-.6 .6)"><circle cy="-30" r="30" fill="url(#cb-glow)"/><path d="M0 0V-58M0-58h-14" stroke="#3a2a6e" stroke-width="3" fill="none"/><rect x="-23" y="-46" width="18" height="22" rx="8" fill="#f5a524"/></g>
+      </svg>
       <img class="peek" src="/assets/peeking-penguin.webp" width="1254" height="1254" loading="lazy" decoding="async" alt="{{callback.peekAlt|plain}}">
+      <svg class="hills hills-front" viewBox="0 0 1440 140" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <path d="M0 122Q360 96 720 116Q1080 96 1440 122V140H0Z" fill="#13123a"/>
+      </svg>
     </section>
   </main>
 
@@ -634,5 +623,6 @@
 
   <script type="application/json" id="strings">{{js|json}}</script>
   <script src="/main.js" defer></script>
+  <script src="/studio.js" defer></script>
 </body>
 </html>

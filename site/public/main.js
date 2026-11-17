@@ -1,7 +1,6 @@
-// Tomoru 官网的一点交互：下载按钮按系统改说明和链接、复制安装命令、语言菜单、滚动进场、动画只在看得见时跑、首屏字幕滚动。
+// Tomoru 官网的一点交互：下载按钮按系统改说明和链接、复制安装命令、语言菜单、滚动进场、动画只在看得见时跑。首页的录屏演示在 studio.js。
 // 文字来自页面里的 #strings，由 build.mjs 按语言写入。
 (() => {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const t = JSON.parse(document.getElementById('strings').textContent);
 
   // 下载按钮下的小字：按访客的系统说明适用平台
@@ -51,7 +50,7 @@
   }
 
   // 滚动进场：一次就好
-  const reveal = document.querySelectorAll('.section-head, .pillar, .feature-copy, .feature .art, .step, .use, .card, .steps li, .shot, .mascot-grid, .faq');
+  const reveal = document.querySelectorAll('.section-head, .tile, .feature-copy, .feature-stage, .use, .card, .steps li, .start-stage, .mascot-grid');
   const seen = new IntersectionObserver((entries) => {
     for (const e of entries) {
       if (!e.isIntersecting) continue;
@@ -66,78 +65,4 @@
     for (const e of entries) e.target.classList.toggle('playing', e.isIntersecting);
   }, { threshold: 0.2 });
   document.querySelectorAll('[data-anim]').forEach((el) => play.observe(el));
-
-  // 首屏：字幕像 app 里一样滚动——新的一句在最下面，旧的被推上去、变淡
-  const roll = document.querySelector('[data-roll]');
-  if (!roll || reduce) return;
-
-  // 句子在各语言的 js.roll 里（中文页和 app/internal/samples 的示例直播一样）。src 分块出现，draft 是说到一半时的大意。
-  const lines = t.roll;
-  const keep = 2;
-  const spring = 'cubic-bezier(.3, 1.25, .5, 1)';
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  let heroVisible = true;
-  new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe(roll);
-  const ready = async () => { while (!heroVisible || document.hidden) await sleep(400); };
-
-  const fadeIn = (el, ms = 200) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: 'ease-out' });
-
-  function push(entry) {
-    const old = [...roll.children];
-    const before = old.map((el) => el.getBoundingClientRect().top);
-    roll.append(entry);
-    old.forEach((el, i) => {
-      const dy = before[i] - el.getBoundingClientRect().top;
-      el.classList.add('old');
-      if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 460, easing: spring });
-    });
-    entry.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'ease-out' });
-    // 推出视野的旧句子淡出后移走
-    while (roll.children.length > keep + 1) roll.firstElementChild.remove();
-    const extra = roll.children.length > keep ? roll.firstElementChild : null;
-    if (extra) extra.animate([{ opacity: 0.55 }, { opacity: 0 }], { duration: 460, fill: 'forwards' }).finished.then(() => extra.remove());
-  }
-
-  async function say(line) {
-    const entry = document.createElement('div');
-    entry.className = 'line';
-    const src = document.createElement('p');
-    src.className = 'src';
-    src.lang = t.rollLang;
-    const tgt = document.createElement('p');
-    tgt.className = 'tgt';
-    tgt.innerHTML = '&nbsp;';
-    entry.append(src, tgt);
-
-    // 第一块一出来就上屏
-    for (let i = 0; i < line.src.length; i++) {
-      const chunk = document.createElement('span');
-      chunk.textContent = line.src[i];
-      src.append(chunk);
-      if (i === 0) push(entry); else fadeIn(chunk);
-      if (i === 1 && line.draft) {
-        tgt.textContent = line.draft;
-        tgt.classList.add('draft');
-        fadeIn(tgt);
-      }
-      await sleep(520);
-    }
-    await sleep(260);
-    // 说完了：换成完整译文（交叉淡入）
-    await tgt.animate([{ opacity: tgt.classList.contains('draft') ? 0.7 : 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).finished;
-    tgt.textContent = line.tgt;
-    tgt.classList.remove('draft');
-    tgt.getAnimations().forEach((a) => a.cancel());
-    fadeIn(tgt, 240);
-  }
-
-  (async () => {
-    await sleep(1200);
-    for (let i = 0; ; i = (i + 1) % lines.length) {
-      await ready();
-      await say(lines[i]);
-      await sleep(1700);
-    }
-  })();
 })();
