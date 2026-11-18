@@ -63,14 +63,7 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 	o.area = o.display.WorkArea
 	o.locked.Store(k.Preferences().Locked)
 	area := o.area
-	o.win = mygo.NewWindow(mygo.WindowOptions{
-		Title: "Tomoru", X: area.X, Y: area.Y,
-		Width: area.Width, Height: area.Height + below, Hidden: true,
-		Frameless: true, Transparent: true, AlwaysOnTop: true, SkipTaskbar: true,
-		// No DisableFullScreen: it keeps the window out of other apps' full screen (egoist/mygo#309).
-		DisableShadow: true, DisableResize: true,
-		Content: ui.View(o.View),
-	})
+	o.win = mygo.NewWindow(windowOptions(area, ui.View(o.View)))
 	toolWindow(o.win)
 	o.win.SetInputRegion([]mygo.Rectangle{}) // none, until the pointer rests on the subtitles
 	o.win.SetVisibleOnAllWorkspaces(true)
@@ -83,6 +76,20 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 		o.win.Update(func() { o.moveTo(displayNamed(mygo.Screen.Displays(), o.core.Preferences().Screen)) })
 	})
 	return o
+}
+
+// windowOptions makes the overlay's window: the work area, plus below for the newest line sliding
+// in, with content drawn there. DisableFullScreen keeps the window out of full screen itself; with
+// SetVisibleOnAllWorkspaces, MyGo then makes it an auxiliary of other apps' full-screen Spaces
+// (egoist/mygo#309), the way macOS documents for showing over them.
+func windowOptions(area mygo.Rectangle, content mygo.Content) mygo.WindowOptions {
+	return mygo.WindowOptions{
+		Title: "Tomoru", X: area.X, Y: area.Y,
+		Width: area.Width, Height: area.Height + below, Hidden: true,
+		Frameless: true, Transparent: true, AlwaysOnTop: true, SkipTaskbar: true,
+		DisableFullScreen: true, DisableShadow: true, DisableResize: true,
+		Content: content,
+	}
 }
 
 // displayNamed is the display of ds named name, or the primary one: the first, as
