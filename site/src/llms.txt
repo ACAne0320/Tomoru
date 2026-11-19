@@ -1,6 +1,6 @@
 # Tomoru
 
-> Tomoru is a free, open-source desktop app that listens to audio playing on the computer and shows live bilingual subtitles: the line as spoken, and a translation. Source version {{version}} (`app/mygo.json`). Installers are the latest published GitHub release, which can lag that version.
+> Tomoru is a free, open-source desktop app that listens to audio playing on the computer and shows live bilingual subtitles: the line as spoken, and a translation. Version {{version}}.
 
 Tomoru (灯る, “to light up”) captures system audio, not the microphone, recognizes the speech, and floats the subtitles over the screen. Recognition and translation can each run on the computer or through a cloud service the user chooses. The license is GPL-3.0-or-later. There is no analytics and no telemetry.
 

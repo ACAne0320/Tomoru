@@ -102,11 +102,6 @@
           },
           {
             "@type": "Question",
-            "name": {{faq.mic.q|json}},
-            "acceptedAnswer": { "@type": "Answer", "text": {{faq.mic.a|json}} }
-          },
-          {
-            "@type": "Question",
             "name": {{faq.captions.q|json}},
             "acceptedAnswer": { "@type": "Answer", "text": {{faq.captions.a|json}} }
           },
@@ -114,11 +109,6 @@
             "@type": "Question",
             "name": {{faq.languages.q|json}},
             "acceptedAnswer": { "@type": "Answer", "text": {{faq.languages.a|json}} }
-          },
-          {
-            "@type": "Question",
-            "name": {{faq.data.q|json}},
-            "acceptedAnswer": { "@type": "Answer", "text": {{faq.data.a|json}} }
           }
         ]
       },
@@ -614,7 +604,7 @@
       </div>
     </section>
 
-    <!-- ⑨ 常见问题：和页头 FAQPage 用同一组键 -->
+    <!-- ⑧ 常见问题：和页头 FAQPage 用同一组键 -->
     <section id="faq" class="section paper" aria-labelledby="faq-title">
       <div class="wrap">
         <header class="section-head">
@@ -640,10 +630,6 @@
             <p>{{faq.audio.a}}</p>
           </article>
           <article>
-            <h3>{{faq.mic.q}}</h3>
-            <p>{{faq.mic.a}}</p>
-          </article>
-          <article>
             <h3>{{faq.captions.q}}</h3>
             <p>{{faq.captions.a}}</p>
           </article>
@@ -651,15 +637,11 @@
             <h3>{{faq.languages.q}}</h3>
             <p>{{faq.languages.a}}</p>
           </article>
-          <article>
-            <h3>{{faq.data.q}}</h3>
-            <p>{{faq.data.a}}</p>
-          </article>
         </div>
       </div>
     </section>
 
-    <!-- ⑧ 看板娘 -->
+    <!-- ⑨ 看板娘 -->
     <section class="section night mascot-section" aria-labelledby="mascot-title">
       <div class="sky" aria-hidden="true"></div>
       <div class="wrap mascot-grid" data-anim>

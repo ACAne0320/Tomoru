@@ -597,14 +597,14 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .card h3 { margin: 18px 0 6px; font-size: 18px; font-weight: 800; }
 .card p { color: var(--ink-muted); font-size: 15px; }
 
-/* ---------- ⑨ 常见问题 ---------- */
+/* ---------- ⑧ 常见问题 ---------- */
 #faq { scroll-margin-top: 80px; }
 .faq { display: flex; flex-direction: column; gap: 12px; max-width: 760px; margin-inline: auto; }
 .faq article { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; }
 .faq h3 { font-size: 18px; font-weight: 800; line-height: 1.45; }
 .faq p { margin-top: 8px; color: var(--ink-muted); font-size: 16px; }
 
-/* ---------- ⑧ 看板娘 ---------- */
+/* ---------- ⑨ 看板娘 ---------- */
 .mascot-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 80px); align-items: center; }
 .mascot-art { position: relative; justify-self: center; width: min(340px, 80%); }
 .mascot-art::before { content: ""; position: absolute; inset: 12% 6% 0; border-radius: 50%; background: radial-gradient(closest-side, rgb(245 165 36 / .35), transparent); filter: blur(20px); z-index: -1; }
