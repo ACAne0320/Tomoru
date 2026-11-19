@@ -26,7 +26,7 @@ func Swatches(c *ui.Context, v *string, colors []string) {
 			}
 		}
 		ui.Box(c).Width(1).Height(16).Background(c.Theme().Border)
-		col := parseHex(*v, ui.RGB(255, 255, 255))
+		col := ui.Hex(*v)
 		w := ui.ColorWell(c, &col).Label(locales.CustomColor()).Tooltip(locales.CustomColor())
 		if custom {
 			w = w.Border(2, c.Theme().Accent)
@@ -54,17 +54,6 @@ func Slider(c *ui.Context, v *float64, lo, hi float64, unit, label string) ui.El
 
 // offOpacity fades a control of MyGo's own colors, which a disabled row can't make faint.
 const offOpacity = .45
-
-// parseHex parses a color of the settings file, which a person may have edited: ui.Hex panics
-// on bad input.
-func parseHex(s string, fallback ui.Color) (col ui.Color) {
-	defer func() {
-		if recover() != nil {
-			col = fallback
-		}
-	}()
-	return ui.Hex(s)
-}
 
 // hexOf is col as the settings keep it: #rrggbb, or #rrggbbaa when it is not opaque.
 func hexOf(col ui.Color) string {

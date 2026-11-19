@@ -265,6 +265,14 @@ func (p *Prefs) fix(d Prefs) {
 	if strings.TrimSpace(p.Font) == "" {
 		p.Font = Fonts[0]
 	}
+	for _, c := range []struct {
+		v *string
+		d string
+	}{{&p.SrcColor, d.SrcColor}, {&p.TgtColor, d.TgtColor}, {&p.EdgeColor, d.EdgeColor}} {
+		if !isColor(*c.v) {
+			*c.v = c.d
+		}
+	}
 	if p.Source != "" && p.SourceName == "" {
 		p.SourceName = p.Source
 	}
@@ -301,6 +309,15 @@ func (p *Prefs) fix(d Prefs) {
 	if p.ImageShortcut == p.Shortcut { // starting and stopping took ⌥⇧S before pictures came
 		p.ImageShortcut = DefaultShortcut
 	}
+}
+
+// isColor tells whether s is a color as the UI reads it: #rgb, #rgba, #rrggbb or #rrggbbaa.
+func isColor(s string) bool {
+	h := strings.TrimPrefix(strings.TrimSpace(s), "#")
+	if n := len(h); n != 3 && n != 4 && n != 6 && n != 8 {
+		return false
+	}
+	return strings.Trim(h, "0123456789abcdefABCDEF") == ""
 }
 
 // Save writes p to path.

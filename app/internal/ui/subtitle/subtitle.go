@@ -299,7 +299,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 						n, dim = 1, .8
 						text = fitTail(c, p, text, srcLang, float32(p.SrcSize)*k, width-36*k)
 					}
-					line(c, p, text, srcLang, float32(p.SrcSize)*k, hex(p.SrcColor, ui.RGBA(255, 255, 255, 1)), n).Opacity(dim * opacity)
+					line(c, p, text, srcLang, float32(p.SrcSize)*k, ui.Hex(p.SrcColor), n).Opacity(dim * opacity)
 				}
 				tgt := func() {
 					if e.Tgt == "" || p.Display == prefs.DisplaySrc {
@@ -313,7 +313,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					if e.Note {
 						tgtLang = "" // the app's
 					}
-					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, hex(p.TgtColor, ui.Hex("#ffec8c")), n)
+					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, ui.Hex(p.TgtColor), n)
 					if e.Swaps {
 						t.ContentTransition(swap)
 					}
@@ -443,7 +443,7 @@ func edgeFor(p prefs.Prefs, size float32) ui.Effect {
 		reach = 2*w + 2
 	}
 	return gpuOnly{edgeShader.Effect(shader.Options{
-		Uniforms:        map[string]any{"Edge": hex(p.EdgeColor, ui.RGBA(0, 0, 0, 1)), "Width": w, "Mode": int(p.Edge)},
+		Uniforms:        map[string]any{"Edge": ui.Hex(p.EdgeColor), "Width": w, "Mode": int(p.Edge)},
 		MaxSampleOffset: ui.Point{X: reach, Y: reach},
 	})}
 }
@@ -460,15 +460,4 @@ func (e gpuOnly) PaintEffect(p *ui.Painter, box ui.Rect, content *ui.Bitmap, ins
 	s := p.Scale()
 	w, h := content.Size()
 	p.ImageRegion(content, ui.Rect{}, ui.Rect{X: box.X - inset.X/s, Y: box.Y - inset.Y/s, W: float32(w) / s, H: float32(h) / s}, ui.ImageOptions{})
-}
-
-// hex parses a color of the settings file, which a person may have edited: ui.Hex panics on bad
-// input.
-func hex(s string, fallback ui.Color) (c ui.Color) {
-	defer func() {
-		if recover() != nil {
-			c = fallback
-		}
-	}()
-	return ui.Hex(s)
 }

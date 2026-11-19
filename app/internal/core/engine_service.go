@@ -183,16 +183,21 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 }
 
 // visionOf is what a picture's translation that ended with err says of the API reading pictures,
-// the sample's text having been translated: one that reads none answers it with an error status,
-// 400 (DeepSeek) or 500 (llama-server without a vision projector), but 429, too many requests; one
-// whose format reads none is not sent it.
+// the sample's text having been translated: one that reads none answers it with a client error,
+// 400 (DeepSeek), or 500 (llama-server without a vision projector); one whose format reads none is
+// not sent it. Too many requests, and a gateway or a server busy (502–504), tell nothing: the
+// endpoint keeps what it is found to be, and would stop getting pictures for a moment's outage.
 func visionOf(err error) prefs.Vision {
 	var status *translate.StatusError
 	switch {
 	case err == nil:
 		return prefs.VisionYes
-	case errors.Is(err, translate.ErrNoPictures), errors.As(err, &status) && status.Status != http.StatusTooManyRequests:
+	case errors.Is(err, translate.ErrNoPictures):
 		return prefs.VisionNo
+	case errors.As(err, &status):
+		if s := status.Status; s == http.StatusInternalServerError || s >= 400 && s < 500 && s != http.StatusTooManyRequests {
+			return prefs.VisionNo
+		}
 	}
 	return prefs.VisionUnknown
 }
