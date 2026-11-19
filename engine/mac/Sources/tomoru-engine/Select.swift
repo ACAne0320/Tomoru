@@ -4,6 +4,10 @@
 import CoreGraphics
 import Foundation
 
+/// selecting is screencapture's process, which the app's SIGTERM ends with the engine: it is in a
+/// process group of its own, so killing the engine would leave its crosshair on the screen.
+private var selecting: pid_t = 0
+
 /// selectArea has the user select a part of the screen, written to path as PNG, and sends where it
 /// is, in the screen's pixels. Cancelled, with Escape, it writes and sends nothing; a click, which
 /// picks a window (after Space), is no area.
@@ -14,6 +18,11 @@ func selectArea(_ path: String) {
     let errors = Pipe()
     p.standardError = errors
     do { try p.run() } catch { fail("capture-failed", "screencapture: \(error)") }
+    selecting = p.processIdentifier
+    signal(SIGTERM) { _ in
+        kill(selecting, SIGTERM)
+        _exit(0)
+    }
     var pressed = false
     var down: CGPoint?, up: CGPoint?
     while p.isRunning {
