@@ -207,7 +207,8 @@ whether to start again.
   user drags (the right button cancels too), and lets the app take the keyboard as it ends. On
   macOS it runs the system's `screencapture -i`, which does not tell where the part was: the engine
   watches the left button and the pointer while it runs. A click, which picks a window there
-  (after Space), sends no area: the translation shows under the menu bar icon.
+  (after Space), sends no area: the translation shows under the menu bar icon. The app ends a
+  selection with SIGTERM (on Windows it kills the engine): the engine ends what it runs and exits.
 
 ## App → engine
 

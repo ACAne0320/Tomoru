@@ -5,6 +5,8 @@ import (
 	"context"
 	"image"
 	"os/exec"
+	"syscall"
+	"time"
 
 	"tomoru/internal/resource"
 )
@@ -20,6 +22,15 @@ func selectInto(ctx context.Context, engine func() (string, error), path string)
 	}
 	cmd := exec.CommandContext(ctx, bin, "select", "--out", path)
 	resource.Hide(cmd)
+	// Ended, it is asked to stop, so that it ends the selection it runs (macOS's screencapture);
+	// Windows has no SIGTERM, and its selection is the engine's own window.
+	cmd.Cancel = func() error {
+		if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			return cmd.Process.Kill()
+		}
+		return nil
+	}
+	cmd.WaitDelay = 2 * time.Second
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
