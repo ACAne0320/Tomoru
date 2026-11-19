@@ -40,6 +40,7 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 
 - Never commit or push unless asked.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org): `type(scope): summary` in English, scope a package or directory (`asr`, `ui/settings`, `engine/windows`, `site`), body saying why.
+- Organize a commit message by intention groups: one group per thing the change sets out to do, not one per file.
 - Never commit secrets, API keys or recordings of copyrighted media.
 - Issue titles start with `[Bug]` or `[Feature]`; issues we open are in English, users write in theirs.
 - Merge pull requests by squashing (`gh pr merge --squash`), with the PR's title, so `main` gets one commit for each.
