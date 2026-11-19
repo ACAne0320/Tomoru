@@ -310,35 +310,6 @@
       "On-device or cloud recognition and translation, with no telemetry"
     ]
   },
-  "faq": {
-    "eyebrow": "FAQ",
-    "title": "Before you download",
-    "lead": "What it costs, where it runs, and what it does and doesn't do.",
-    "free": {
-      "q": "Is Tomoru free? Is it open source?",
-      "a": "Yes. It is free, and the code is open under GPL-3.0 or later. On-device engines and the default cloud translation cost nothing; a cloud recognition service needs your own API key."
-    },
-    "systems": {
-      "q": "Which operating systems does it support?",
-      "a": "macOS 26 or later on Apple silicon, Windows 11 x64, and Linux x64 with GNOME or KDE (Ubuntu 22.04 or a distribution as new). Intel Macs and Windows 10 are not supported."
-    },
-    "offline": {
-      "q": "Does it work offline?",
-      "a": "Yes, once both recognition and translation run on your computer; then audio and text stay on it. Translation starts on a free cloud service, so switch it to an on-device model too. On Windows and Linux, recognition is a model you download as well."
-    },
-    "audio": {
-      "q": "Can it translate live streams, Japanese anime, and any app's audio?",
-      "a": "Yes. It listens to whatever your computer plays: a live stream, raw anime, a game, a meeting. On macOS and Windows it can listen to one app only; Linux hears all system sound. It recognizes speech, not subtitle files inside a video."
-    },
-    "captions": {
-      "q": "How is this different from Windows Live Captions?",
-      "a": "Live Captions is built into Windows 11, and its translation needs a Copilot+ PC. Tomoru runs on any Windows 11 x64 PC and on macOS and Linux. It translates into 31 languages and shows the spoken line and its translation together. You choose on-device models or a cloud service."
-    },
-    "languages": {
-      "q": "How many languages does it translate?",
-      "a": "It translates into 31 languages, Chinese (Simplified and Traditional), English, Japanese and Korean among them. Which languages it hears depends on the recognition engine you pick."
-    }
-  },
   "footer": {
     "tagline": "Turns computer audio into live bilingual subtitles.",
     "product": "Product",
