@@ -37,6 +37,10 @@ type Line struct {
 	// Draft is the translation of the sentence while it was being spoken. A translation streaming
 	// in starts shorter than the draft it replaces, so the draft shows until Done.
 	Draft string
+	// Start and End are when it was said, by the wall: its first and last sounds, where recognition
+	// timed them; else from when the voice began, not before the line before ended, to when it was
+	// committed.
+	Start, End time.Time
 }
 
 // ErrBehind is a translation skipped because translating fell behind. Its message is what history
@@ -172,6 +176,9 @@ type Session struct {
 	clockAt time.Time
 	// heardAt is when the voice last started, by the wall, until text is recognized after it.
 	heardAt time.Time
+	// voiceStart is when the voice last started, by the wall, and saidEnd when the line committed
+	// last ended: on the engine's goroutine.
+	voiceStart, saidEnd time.Time
 	// heard is the language the recognizer last told it heard, and heardFinal its final results'
 	// last: "" before it told one. On the engine's goroutine.
 	heard, heardFinal string
@@ -415,6 +422,10 @@ func (s *Session) handle(ev engine.Event) {
 		began := ev.On && !s.voiceOn
 		if began {
 			s.voiceAt, s.heardAt = ev.T, s.wall(ev.T)
+			s.voiceStart = s.heardAt
+			if s.voiceStart.IsZero() {
+				s.voiceStart = s.cfg.Now()
+			}
 		}
 		s.voiceOn = ev.On
 		var speechEnd time.Time
@@ -481,6 +492,7 @@ func (s *Session) handle(ev engine.Event) {
 			l = s.spoken(s.heardFinal)
 		}
 		q := queued{Line: Line{Src: a.Commit.Text, Lang: l}, seq: a.Commit.Seq, at: now}
+		q.Start, q.End = s.said(a.Commit, s.cfg.Now())
 		if src, _ := s.terms(q.Src); src != q.Src {
 			q.Src, q.Heard = src, q.Src
 		}
@@ -552,6 +564,29 @@ func (s *Session) handle(ev engine.Event) {
 		st.Pending, st.PendingLang = pending, heard
 		s.maybeDraft(st)
 	})
+}
+
+// said is when seg, committed at now, was said, by the wall: from its first sound to its last,
+// where recognition timed them; else from when the voice began, not before the line before ended,
+// to now.
+func (s *Session) said(seg *segment.Segment, now time.Time) (start, end time.Time) {
+	start, end = s.voiceStart, now
+	if start.Before(s.saidEnd) {
+		start = s.saidEnd
+	}
+	if seg.Timed {
+		if t := s.wall(seg.Start); !t.IsZero() {
+			start = t
+		}
+		if t := s.wall(seg.End); !t.IsZero() {
+			end = t
+		}
+	}
+	if start.IsZero() || start.After(end) {
+		start = end
+	}
+	s.saidEnd = end
+	return start, end
 }
 
 // spoken is the language of what was heard, as the recognizer told it (heard), else the session's;

@@ -132,3 +132,43 @@ func TestStatsTimestampDefaultsToWallClock(t *testing.T) {
 		t.Errorf("default stats timestamp = %v", last.StatsAt)
 	}
 }
+
+// TestLineSaid checks when lines were said: a timed one from its first sound to its last; one cut
+// from the hypothesis from when the voice began, not before the line before ended, to when it was
+// committed.
+func TestLineSaid(t *testing.T) {
+	start := time.Date(2026, 11, 19, 14, 26, 0, 0, time.Local)
+	clock := &statsClock{at: start}
+	var mu sync.Mutex
+	var lines []Line
+	s := newSession(Config{Now: clock.now, VolatileSentences: true}, func(st State) {
+		mu.Lock()
+		lines = st.Lines
+		mu.Unlock()
+	})
+	t.Cleanup(func() { s.Stop(); s.Wait() })
+	at := func(v float64) *float64 { return &v }
+	sec := func(v float64) time.Time { return start.Add(time.Duration(v * float64(time.Second))) }
+
+	s.handle(engine.Event{Type: "clock", T: 100})
+	s.handle(engine.Event{Type: "voice", On: true, T: 100})
+	clock.set(sec(3))
+	s.handle(engine.Event{Type: "result", Final: true, Start: 100.5, End: 102, Tokens: []engine.Token{
+		{Text: "What", Start: at(100.5), End: at(101)}, {Text: " is wrong?", Start: at(101), End: at(102)}}})
+	clock.set(sec(5))
+	s.handle(engine.Event{Type: "result", Start: 102, End: 104, Tokens: []engine.Token{{Text: "Weird. And"}}})
+	s.Stop()
+	s.Wait()
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(lines) != 2 {
+		t.Fatalf("lines %+v", lines)
+	}
+	if l := lines[0]; !l.Start.Equal(sec(0.5)) || !l.End.Equal(sec(2)) {
+		t.Errorf("timed %q: %v – %v", l.Src, l.Start, l.End)
+	}
+	if l := lines[1]; !l.Start.Equal(sec(2)) || !l.End.Equal(sec(5)) {
+		t.Errorf("untimed %q: %v – %v", l.Src, l.Start, l.End)
+	}
+}

@@ -58,8 +58,10 @@ the subtitles, default false) and `Learn` (the API that learns names, as last ch
 
 Once turned on, each viewing is one file: `history/<scene ID or general>/<start time>.jsonl`
 (`internal/history`). The first line holds the scene ID, the scene's name then, the languages, the
-start time and the app heard (empty for all the system's sound); then one line per sentence: time,
-the original as shown, the original as recognized (only when the glossary changed it), the
+start time and the app heard (empty for all the system's sound); then one line per sentence: when
+it was saved, when it was said (from its first sound to its last where recognition timed them,
+else from when the voice began to when the sentence was committed; older files lack it), the
+original as shown, the original as recognized (only when the glossary changed it), the
 translation, and why it failed if it did. The glossary entries each sentence used aren't stored:
 they can be worked out again from the glossary at any time.
 
@@ -71,6 +73,11 @@ When lines are saved:
 - Switching scene or restarting (after changing languages, say) starts a new file.
 - Turning saving on midway also saves the sentences still on screen.
 - No sentences, no file.
+
+A session's card exports it: as text (each sentence's time, original and translation, for minutes
+or a summary), as SRT subtitles timed from the session's start or its first sentence if said
+before, both lines in each cue, or copied as the text. Untranslated sentences carry the original
+alone. The folder button shows the file itself.
 
 Turning saving off doesn't delete existing files. Deleting first renames the file to `.deleted`,
 so it can be undone; it's really deleted the first time the list is opened after the next launch.

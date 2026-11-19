@@ -2,6 +2,7 @@ package core
 
 import (
 	"log"
+	"os"
 
 	"tomoru/internal/history"
 )
@@ -19,6 +20,9 @@ type HistoryView struct {
 	// Shown is the session being read, by path, and Lines its lines once read.
 	Shown string
 	Lines []history.Entry
+	// Exports counts the sessions exported, and ExportErr is why the last one failed.
+	Exports   int
+	ExportErr error
 }
 
 // HistoryOn tells whether history has a storage location.
@@ -99,4 +103,19 @@ func (c *HistoryService) DeleteHistory(paths []string) (undo func()) {
 func (c *HistoryService) histChanged() {
 	c.histGen++
 	c.listed = false
+}
+
+// ExportHistory writes a session exported, data, to path, in the background; History.Exports
+// tells once it is done.
+func (c *HistoryService) ExportHistory(path, data string) {
+	c.work.Go(func() {
+		err := os.WriteFile(path, []byte(data), 0o644)
+		if err != nil {
+			log.Println("history:", err)
+		}
+		c.work.Post(func() {
+			c.History.Exports, c.History.ExportErr = c.History.Exports+1, err
+			c.changed()
+		})
+	})
 }

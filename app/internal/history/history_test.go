@@ -3,6 +3,7 @@ package history
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -175,5 +176,57 @@ func TestRemovedWhileRecording(t *testing.T) {
 	}
 	if rs, _ := List(dir); len(rs) != 1 || rs[0].Lines != 1 {
 		t.Fatalf("sessions %+v", rs)
+	}
+}
+
+func TestExport(t *testing.T) {
+	start := time.Date(2026, 11, 19, 14, 26, 0, 0, time.Local)
+	at := func(s float64) time.Time { return start.Add(time.Duration(s * float64(time.Second))) }
+	head := Head{Src: "en", Tgt: "zh", Start: at(1)}
+	es := []Entry{
+		{At: at(3), Start: at(0.5), End: at(2), Src: "What is wrong?", Tgt: "出啥事了？"},
+		{At: at(4), Start: at(2.4), End: at(2.8), Src: "Weird.", Tgt: "怪怪的。"},
+		{At: at(9), Start: at(5), End: at(7), Src: "Cloud", Err: "behind"},
+		{At: at(3725.25), Src: "Hi", Tgt: "Hi", Said: true}, // kept before said times were
+	}
+	if got, want := Text("General", head, es), `General
+
+14:26:00 What is wrong?
+出啥事了？
+
+14:26:02 Weird.
+怪怪的。
+
+14:26:05 Cloud
+
+15:28:05 Hi
+`; got != want {
+		t.Errorf("text:\n%s", got)
+	}
+	// Time 0 is the first line, said before the session started; the second shows its least time,
+	// cut where the third starts.
+	if got, want := SRT(head, es), `1
+00:00:00,000 --> 00:00:01,500
+What is wrong?
+出啥事了？
+
+2
+00:00:01,900 --> 00:00:03,400
+Weird.
+怪怪的。
+
+3
+00:00:04,500 --> 00:00:06,500
+Cloud
+
+4
+01:02:04,750 --> 01:02:06,250
+Hi
+`; got != want {
+		t.Errorf("srt:\n%s", got)
+	}
+	head.Untranslated = true
+	if got := Text("General", head, es[:1]); strings.Contains(got, "出啥事了") {
+		t.Errorf("untranslated:\n%s", got)
 	}
 }
