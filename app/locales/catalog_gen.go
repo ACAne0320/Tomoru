@@ -5435,6 +5435,38 @@ func (msgs Messages) ExportSubtitles() string {
 	return Catalog.Format(msgs.locale, "exportSubtitles", nil)
 }
 
+// ExportTextType says "Text"
+// in the language the app shows.
+//
+// Save dialog: the file type of a session exported as text, which the
+// system shows with its extension.
+func ExportTextType() string { return In(i18n.Locale()).ExportTextType() }
+
+// ExportTextType says "Text"
+// in the language of msgs.
+//
+// Save dialog: the file type of a session exported as text, which the
+// system shows with its extension.
+func (msgs Messages) ExportTextType() string {
+	return Catalog.Format(msgs.locale, "exportTextType", nil)
+}
+
+// ExportSubtitlesType says "Subtitles"
+// in the language the app shows.
+//
+// Save dialog: the file type of a session exported as SRT subtitles, which
+// the system shows with its extension.
+func ExportSubtitlesType() string { return In(i18n.Locale()).ExportSubtitlesType() }
+
+// ExportSubtitlesType says "Subtitles"
+// in the language of msgs.
+//
+// Save dialog: the file type of a session exported as SRT subtitles, which
+// the system shows with its extension.
+func (msgs Messages) ExportSubtitlesType() string {
+	return Catalog.Format(msgs.locale, "exportSubtitlesType", nil)
+}
+
 // CopyAll says "Copy all"
 // in the language the app shows.
 //

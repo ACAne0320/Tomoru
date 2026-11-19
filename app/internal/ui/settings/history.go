@@ -202,10 +202,10 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 			}
 			name := fileName(s.recordScene(r) + " " + r.Head.Start.Format("2006-01-02 15-04"))
 			if m.Item(locales.ExportText()).Chosen() {
-				s.export(name+".txt", text())
+				s.export(name, mygo.FileFilter{Name: locales.ExportTextType(), Extensions: []string{"txt"}}, text())
 			}
 			if m.Item(locales.ExportSubtitles()).Chosen() {
-				s.export(name+".srt", history.SRT(r.Head, lines))
+				s.export(name, mygo.FileFilter{Name: locales.ExportSubtitlesType(), Extensions: []string{"srt"}}, history.SRT(r.Head, lines))
 			}
 			m.Separator()
 			if m.Item(locales.CopyAll()).Chosen() {
@@ -235,17 +235,20 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	})
 }
 
-// export asks where to save a session exported, data, as the file name, in the folder the last
-// was saved in, else Downloads, and saves it there.
-func (s *Settings) export(name, data string) {
+// export asks where to save a session exported, data, a file of kind, as name, in the folder the
+// last was saved in, else Downloads, and saves it there. The dialog is the window's it was asked
+// from.
+func (s *Settings) export(name string, kind mygo.FileFilter, data string) {
 	k, e := s.core, &s.historyEdit
 	dir := e.exportDir
 	if dir == "" {
 		dir, _ = mygo.App.Path(mygo.PathDownloads)
 	}
+	opts := mygo.SaveDialogOptions{Parent: mygo.FocusedWindow(), DefaultPath: filepath.Join(dir, name+"."+kind.Extensions[0]),
+		Filters: []mygo.FileFilter{kind}, CreateDirectories: true}
 	// The dialog waits for the user: not on the main thread, which draws.
 	go func() {
-		path, err := mygo.Dialog.Save(mygo.SaveDialogOptions{DefaultPath: filepath.Join(dir, name), CreateDirectories: true})
+		path, err := mygo.Dialog.Save(opts)
 		if err != nil {
 			log.Println("export:", err)
 		}

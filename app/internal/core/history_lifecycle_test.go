@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"tomoru/internal/history"
 	"tomoru/internal/live"
@@ -62,6 +63,23 @@ func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 	c.HistoryService.drain()
 	if len(recordedEntries(t, c)) != 20 {
 		t.Fatal("stale completion was kept")
+	}
+	c.Shutdown()
+}
+
+func TestHistorySessionStartsWhenItsFirstLineWasSaid(t *testing.T) {
+	c, _, s := recordingCore(t)
+	said := time.Now().Add(-time.Minute).Round(0)
+	l := live.Line{ID: 1, Src: "said a minute ago", Tgt: "translated", Done: true, Start: said, End: said.Add(3 * time.Second)}
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: l})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: l})
+	c.Stop()
+	rs, err := history.List(c.deps.HistoryDir)
+	if err != nil || len(rs) != 1 {
+		t.Fatalf("sessions: %v, %v", rs, err)
+	}
+	if !rs[0].Head.Start.Equal(said) {
+		t.Fatalf("session starts at %v, its first line was said at %v", rs[0].Head.Start, said)
 	}
 	c.Shutdown()
 }

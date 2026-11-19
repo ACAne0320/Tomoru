@@ -1911,6 +1911,14 @@
   "@exportSubtitles": {
     "description": "Export menu: the session as an SRT subtitle file, timed from its start."
   },
+  "exportTextType": "Text",
+  "@exportTextType": {
+    "description": "Save dialog: the file type of a session exported as text, which the system shows with its extension."
+  },
+  "exportSubtitlesType": "Subtitles",
+  "@exportSubtitlesType": {
+    "description": "Save dialog: the file type of a session exported as SRT subtitles, which the system shows with its extension."
+  },
   "copyAll": "Copy all",
   "@copyAll": {
     "description": "Export menu: copies the session as text."

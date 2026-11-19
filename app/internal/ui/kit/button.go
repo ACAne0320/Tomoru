@@ -167,13 +167,25 @@ func Button(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label stri
 // IconButton is a round button showing icon alone, named label for assistive technology and in
 // its tooltip.
 func IconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string) ui.Element {
+	return TurnedIconButton(c, kind, size, icon, label, 0)
+}
+
+// TurnedIconButton is an IconButton whose icon is turned degrees clockwise, springing there as they
+// change. The icon turns, not the button: drawn turned it stays sharp, where a turned button is
+// resampled and shows soft.
+func TurnedIconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string, degrees float32) ui.Element {
 	h := size.height() - 2
 	b := ui.ButtonBase(c).Size(h, h).Radius(Pill(h)).Label(label).Tooltip(label).Shrink(0)
 	glyph := float32(IconSizeButton)
 	if size == Small {
 		glyph = IconSizeSmall
 	}
-	return press(c, b, kind).Children(func() { ui.Icon(c, icon).FontSize(glyph) })
+	return press(c, b, kind).Children(func() {
+		g := ui.Icon(c, icon).FontSize(glyph)
+		if degrees != 0 {
+			g.Rotate(g.AnimateTo("turn", degrees, Spring))
+		}
+	})
 }
 
 // DeleteButton is the one way a row or a page deletes: a trash can, Quiet until the pointer
