@@ -210,13 +210,13 @@ func TestUIStateAccess(t *testing.T) {
 }
 
 // platformFiles are the production files that name the platform, by a build constraint or by
-// runtime.GOOS and GOARCH: the edges of docs/architecture.md, and the few places the domain asks.
-// A new one is a decision, made by changing this list.
+// runtime.GOOS and GOARCH: the edges of docs/architecture.md, and the domain's few platform facts
+// (what the system has, where files go). A new one is a decision, made by changing this list; a
+// domain file that behaves differently by platform does not belong on it.
 var platformFiles = []string{
 	"internal/asr/asr.go",
 	"internal/core/feedback.go",
 	"internal/core/system.go",
-	"internal/history/history.go",
 	"internal/models/memory_darwin.go",
 	"internal/models/memory_linux.go",
 	"internal/models/memory_windows.go",

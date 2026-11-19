@@ -11,9 +11,8 @@ import (
 )
 
 // TestReplay feeds recordings of the engine (testdata/*.jsonl, docs/engine-protocol.md) through the
-// segmenter and compares what it commits with the .golden file next to each. The
-// golden files were made by the Swift segmenter it was ported from, on the same recordings; run
-// with -update to write them from this one instead, after a deliberate change.
+// segmenter and compares what it commits with the .golden file next to each. Run with -update to
+// write them again after a deliberate change.
 func TestReplay(t *testing.T) {
 	recs, _ := filepath.Glob("testdata/*.jsonl")
 	if len(recs) == 0 {

@@ -52,6 +52,11 @@ func TestLoad(t *testing.T) {
 	if got, _ = Load(path, "zh-Hans"); got.Src != "en" || got.Tgt != "zh" {
 		t.Errorf("ja → auto became %s → %s", got.Src, got.Tgt)
 	}
+	// A color a person mistyped takes the default.
+	os.WriteFile(path, []byte(`{"SrcColor": "white", "TgtColor": "#12345", "EdgeColor": "#ABCDEF80"}`), 0o644)
+	if got, _ = Load(path, "en"); got.SrcColor != "#ffffff" || got.TgtColor != "#7fdbff" || got.EdgeColor != "#ABCDEF80" {
+		t.Errorf("colors %q %q %q", got.SrcColor, got.TgtColor, got.EdgeColor)
+	}
 	// Opacity past its range is set right; settings from before it take the defaults.
 	os.WriteFile(path, []byte(`{"TextOpacity": 5, "BoxOpacity": 120}`), 0o644)
 	if got, _ = Load(path, "en"); got.TextOpacity != MinTextOpacity || got.BoxOpacity != 100 || got.OlderOpacity != 54 {

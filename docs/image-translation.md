@@ -76,8 +76,8 @@ they read none and those prompted as Hy-MT2, a model that reads none (`Format.Re
 - **Testing an API**: the add/edit API dialog's Test sends, alongside the sample sentence, a small
   picture of it (`testPicture`); to an API prompted as Hy-MT2 it sends none
   (`translate.ErrNoPictures`), and the result says it reads none. When the sentence comes back, the picture's answer says whether
-  the API reads pictures: translated, it does; an error status (400 at DeepSeek, 500 at a
-  llama-server without a vision projector; not 429) and it does not; anything else, not known. The
+  the API reads pictures: translated, it does; a client error (400 at DeepSeek) or 500 (a
+  llama-server without a vision projector) and it does not, but not 429 or a gateway or busy server's 502–504; anything else, not known. The
   result shows under the translation (reads pictures / can't read pictures) and is kept on the
   endpoint (`Endpoint.Vision`), at once if it is saved and the same API, else when it is saved.
   Changing its address, model or format makes it not known again. APIs saved before stay listed

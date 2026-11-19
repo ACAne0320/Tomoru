@@ -669,10 +669,10 @@ func final(t *turn) engine.Event {
 		if i+1 < len(pieces) {
 			end = t0 + pieces[i+1].At
 		}
-		start, until := round(t0+p.At), round(min(end, t1))
+		start, until := batch.Round(t0+p.At), batch.Round(min(end, t1))
 		tokens = append(tokens, engine.Token{Text: p.Text, Start: &start, End: &until})
 	}
-	return engine.Event{Type: "result", Final: true, Start: round(t0), End: round(t1), Tokens: tokens}
+	return engine.Event{Type: "result", Final: true, Start: batch.Round(t0), End: batch.Round(t1), Tokens: tokens}
 }
 
 // spaced is a turn's text, starting with a space where its script spaces words.
@@ -683,9 +683,7 @@ func spaced(s string) string {
 	return batch.Spaced([]batch.Piece{{Text: s}})[0].Text
 }
 
-func sec(n int64) float64 { return round(float64(n) / rate) }
-
-func round(x float64) float64 { return float64(int64(x*1000+.5)) / 1000 }
+func sec(n int64) float64 { return batch.Round(float64(n) / rate) }
 
 // upsampler makes the engine's 16 kHz 16-bit PCM 24 kHz, interpolating linearly, a turn of it at
 // a time, chunk by chunk.

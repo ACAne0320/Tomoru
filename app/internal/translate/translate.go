@@ -330,22 +330,34 @@ var ErrDraftPaused = errors.New("translate: drafts pause while the service limit
 // first, Endpoint.Gap between them.
 var ErrStalled = errors.New("translate: the reply stalled")
 
-// hedged translates r, and asks again when the first words have not come within e.FirstWait,
-// without dropping the first request, which may yet answer first: the request that sends words
-// first is read, and the other dropped. A draft is dropped instead, as one of more words follows.
+// hedged translates r, asking again when the first words have not come within e.FirstWait (hedge).
+// A draft is dropped instead, as one of more words follows.
 func (e *Endpoint) hedged(ctx context.Context, r Request, onDelta func(string)) (string, error) {
+	return hedge(ctx, e.FirstWait, 0, r.Draft, onDelta, func(ctx context.Context, _ int32, onDelta func(string)) (string, error) {
+		return e.attempt(ctx, r, onDelta)
+	})
+}
+
+// hedge reads what ask streams, n numbering its requests from 1. When no words have come within
+// wait, it asks again, once, alongside, without dropping the first request, which may yet answer
+// first: the request that sends words first is read, and the other dropped. With drop, it gives up
+// at wait instead; with giveUp, when no words have come within it; both with ErrStalled. It returns
+// once the requests not read have ended.
+func hedge(ctx context.Context, wait, giveUp time.Duration, drop bool, onDelta func(string),
+	ask func(ctx context.Context, n int32, onDelta func(string)) (string, error)) (string, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel() // the request not read
 	type result struct {
 		n   int32
 		out string
 		err error
 	}
-	var read atomic.Int32 // the request read, from 1; 0 until one sends words, -1 when dropped
+	var read atomic.Int32 // the request read, from 1; 0 until one sends words, -1 when given up
 	results := make(chan result, 2)
-	ask := func(n int32) {
+	pending := 0
+	start := func(n int32) {
+		pending++
 		go func() {
-			out, err := e.attempt(ctx, r, func(s string) {
+			out, err := ask(ctx, n, func(s string) {
 				if (read.CompareAndSwap(0, n) || read.Load() == n) && onDelta != nil {
 					onDelta(s)
 				}
@@ -353,32 +365,43 @@ func (e *Endpoint) hedged(ctx context.Context, r Request, onDelta func(string)) 
 			results <- result{n, out, err}
 		}()
 	}
-	ask(1)
-	asked, pending := int32(1), 1
-	wait := time.NewTimer(e.FirstWait)
-	defer wait.Stop()
+	defer func() {
+		cancel() // the request not read
+		for ; pending > 0; pending-- {
+			<-results
+		}
+	}()
+	start(1)
+	again := time.NewTimer(wait)
+	defer again.Stop()
+	var stalled <-chan time.Time
+	if giveUp > 0 {
+		t := time.NewTimer(giveUp)
+		defer t.Stop()
+		stalled = t.C
+	}
 	for {
 		select {
-		case <-wait.C:
+		case <-again.C:
 			switch {
 			case ctx.Err() != nil:
-			case r.Draft:
+			case drop:
 				if read.CompareAndSwap(0, -1) {
 					return "", ErrStalled
 				}
 			case read.Load() == 0:
-				log.Printf("translate: no words in %v, asking again", e.FirstWait)
-				ask(2)
-				asked, pending = 2, pending+1
+				log.Printf("translate: no words in %v, asking again", wait)
+				start(2)
+			}
+		case <-stalled:
+			if read.CompareAndSwap(0, -1) {
+				return "", ErrStalled
 			}
 		case res := <-results:
 			pending--
-			switch n := read.Load(); {
-			case n == res.n:
-				return res.out, res.err
-			case n == 0 && (pending == 0 || asked == 1):
-				// Failed without words, with no other request to wait for. One that failed before
-				// FirstWait failed fast, as asking again would.
+			if n := read.Load(); n == res.n || n == 0 && pending == 0 {
+				// The one read; or, failed without words, with no other to wait for: one that failed
+				// before wait failed fast, as asking again would.
 				return res.out, res.err
 			}
 		}

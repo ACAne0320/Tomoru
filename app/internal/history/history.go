@@ -12,7 +12,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -332,11 +331,11 @@ func Rewrite(path string, es []Entry) error {
 	return err
 }
 
-// rename renames a file, trying again a few times: on Windows a file a search indexer or a virus
-// scanner opens for a moment cannot be replaced or moved meanwhile.
+// rename renames a file, trying again a few times: a file a search indexer or a virus scanner opens
+// for a moment cannot be replaced or moved meanwhile, on Windows.
 func rename(from, to string) error {
 	err := os.Rename(from, to)
-	for i := 0; err != nil && runtime.GOOS == "windows" && i < 5; i++ {
+	for i := 0; err != nil && i < 5; i++ {
 		time.Sleep(time.Duration(i+1) * 20 * time.Millisecond)
 		err = os.Rename(from, to)
 	}

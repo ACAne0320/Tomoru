@@ -17,7 +17,7 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 
 - The code is the truth: when behavior changes, update every doc, README line, UI string and site text that describes it.
 - Remove what nothing uses (functions, fields, constants, UI strings); helpers only tests use go in `_test.go` files.
-- Platform differences stay at the edges (engines, `capture`, `shell`); domain packages never check the platform.
+- Platform differences stay at the edges (engines, `capture`, `shell`); domain code may read a platform fact (what the system has, where files go) but never behaves differently by platform.
 - A protocol change updates `protocol/fixtures.json`, all four implementations and `docs/engine-protocol.md` together.
 
 ## Text

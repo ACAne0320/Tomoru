@@ -276,6 +276,21 @@ func TestEndpointReadsPictures(t *testing.T) {
 	}
 }
 
+// TestVisionOf takes an API's refusal of the picture for reading none, and a moment's failure for
+// nothing known.
+func TestVisionOf(t *testing.T) {
+	for status, want := range map[int]prefs.Vision{
+		http.StatusBadRequest: prefs.VisionNo, http.StatusUnprocessableEntity: prefs.VisionNo,
+		http.StatusInternalServerError: prefs.VisionNo, http.StatusTooManyRequests: prefs.VisionUnknown,
+		http.StatusBadGateway: prefs.VisionUnknown, http.StatusServiceUnavailable: prefs.VisionUnknown,
+		http.StatusGatewayTimeout: prefs.VisionUnknown,
+	} {
+		if got := visionOf(&translate.StatusError{Status: status}); got != want {
+			t.Errorf("%d: %v, want %v", status, got, want)
+		}
+	}
+}
+
 // TestEndpointNoPictures tests an API prompted as Hy-MT2 is without a picture: it reads none.
 // Saved so while chosen for pictures, it gives them to the cloud.
 func TestEndpointNoPictures(t *testing.T) {

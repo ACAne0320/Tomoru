@@ -163,7 +163,8 @@ and the app and pipeline can't depend on any part of MyGo. `core/coretest` is on
 adapter and must not reach production dependencies.
 
 The same file forbids the UI from touching mutable settings or scene fields, or calling save, and
-lists the files that name the platform (`platformFiles`): a new one fails until it is added there;
+lists the files that name the platform (`platformFiles`): a new one fails until it is added there,
+and a domain file goes on it only for a platform fact, never to behave differently by platform;
 `design_test.go` keeps the design tokens and the dependency list. The protocol fixtures are read
 by the app's Go, the ASR engine's Go and a Swift checker; the checks also type-check the Swift
 production code. Checks and tests use no real audio, download no models and use no cloud keys.
