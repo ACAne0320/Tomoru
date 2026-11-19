@@ -298,6 +298,55 @@
     "req": "macOS 26 or later · Apple silicon　|　Windows 11 · x64　|　Linux · x64",
     "peekAlt": "Tomoru and Rubi the penguin peeking out from the bottom of the screen"
   },
+  "ld": {
+    "features": [
+      "Live bilingual subtitles for audio the computer plays",
+      "System audio capture, without the microphone",
+      "All system sound, or one app on macOS and Windows",
+      "Subtitles that stay on top, lock for click-through, and can hide from screen recordings",
+      "A draft translation before the sentence ends",
+      "Scenes and glossaries that keep names consistent",
+      "Translation of a screen region you select",
+      "On-device or cloud recognition and translation, with no telemetry"
+    ]
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Before you download",
+    "lead": "What it costs, where it runs, and what it does and doesn't do.",
+    "free": {
+      "q": "Is Tomoru free? Is it open source?",
+      "a": "Yes. It is free to download and use, and the source code is under GPL-3.0 or later. On-device recognition and translation cost nothing to run. Cloud translation is free by default; cloud recognition uses an API key you bring."
+    },
+    "systems": {
+      "q": "Which operating systems does it support?",
+      "a": "macOS 26 or later on Apple silicon, Windows 11 (x64), and Linux (x64) on Ubuntu 22.04 or a distribution as new, with GNOME or KDE and PipeWire or PulseAudio. Intel Macs and Windows 10 are not supported. On Linux it hears all system sound, and cannot listen to one app alone yet."
+    },
+    "offline": {
+      "q": "Does it work offline?",
+      "a": "Yes, when both speech recognition and translation run on your computer. Audio and text then stay there, and running needs no connection. macOS can use the recognition built into the system. Windows and Linux have none, so you download one: a smaller model for Chinese, English, Japanese, Korean, and Cantonese that runs on the CPU, or a larger one for 30 languages that needs a GPU. Translation is a separate download. It starts on a free cloud translation, so fully offline means switching that to a model on your computer as well. Those models need disk space and memory of their own."
+    },
+    "audio": {
+      "q": "Can it translate live streams, Japanese anime, and any app's audio?",
+      "a": "It listens to audio your computer is already playing, so a live stream, raw anime, a game, a meeting, or a VTuber works the same way. It shows the original line and the translation together. On macOS and Windows you can hear everything, or just one app, such as a browser with a stream. Linux hears all system sound only. It recognizes the speech; it does not read subtitle files inside a video. On Windows, some calls stay silent if you pick one app. Hearing all system sound, with the call's speaker on the default device, covers them."
+    },
+    "mic": {
+      "q": "Does it use the microphone?",
+      "a": "No. It captures what the computer plays, and it never asks for the microphone. You do not need a virtual audio device."
+    },
+    "captions": {
+      "q": "How is this different from Windows Live Captions?",
+      "a": "Windows 11 Live Captions captions audio on Windows. Tomoru is its own app, for macOS, Windows, and Linux, and it shows the line that was spoken and a translation of it together. You choose on-device models or a cloud service. A glossary can keep names stable, and a shortcut translates text you select on screen. The subtitle window can be locked so clicks pass through, and it can be hidden from screen recordings. It is free under GPL-3.0 and sends no analytics or telemetry."
+    },
+    "languages": {
+      "q": "How many languages does it translate?",
+      "a": "31, including Simplified and Traditional Chinese, English, Japanese, and Korean. Traditional Chinese is a written form, not a separate spoken language. A smaller on-device recognizer hears Chinese, English, Japanese, Korean, and Cantonese. A larger one hears 30 languages and needs a GPU. The app's own interface is in English, Simplified and Traditional Chinese, Japanese, and Korean."
+    },
+    "data": {
+      "q": "Does it collect usage data?",
+      "a": "No analytics and no telemetry. Subtitle history is off until you turn it on, and then it stays on your computer. With local engines, audio and text do not leave the machine. With a cloud engine, they go only to the service you chose. Translating a region of the screen sends only that region, and keeps neither the picture nor the translation. Tomoru does contact GitHub to look for updates, and model downloads come from Hugging Face or ModelScope."
+    }
+  },
   "footer": {
     "tagline": "Turns computer audio into live bilingual subtitles.",
     "product": "Product",

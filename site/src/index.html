@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>document.documentElement.classList.add('js')</script>
 
-  <!-- 模板：双花括号里的键取自 locales/ 下各语言的文字，带 $ 的由 build.mjs 按语言生成，见 site/README_zh.md。换域名时，改 build.mjs 里的 site、各页的 og:image 和 JSON-LD、partials/person.json、robots.txt 里的地址。 -->
+  <!-- 模板：双花括号里的键取自 locales/ 下各语言的文字，带 $ 的由 build.mjs 按语言生成（$version 取自 app/mygo.json），见 site/README_zh.md。换域名时，改 build.mjs 里的 site、各页仍写死的 og:image 和 JSON-LD 地址、partials/person.json、robots.txt。#app 和 #website 的 @id 固定在站点根上，各语言页的 url 用 $url / $homeUrl。常见问题的可见文字和 FAQPage 用同一组键。 -->
   <title>{{meta.title|plain}}</title>
   <meta name="description" content="{{meta.description|plain}}">
   <link rel="canonical" href="{{$url}}">
@@ -41,14 +41,28 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebPage",
+        "@id": "{{$url}}#webpage",
+        "url": "{{$url}}",
+        "name": {{meta.title|json}},
+        "description": {{meta.description|json}},
+        "inLanguage": "{{$lang}}",
+        "isPartOf": { "@id": "https://tomoru.acane.dev/#website" },
+        "about": { "@id": "https://tomoru.acane.dev/#app" },
+        "mainEntity": { "@id": "https://tomoru.acane.dev/#app" }
+      },
+      {
         "@type": "SoftwareApplication",
         "@id": "https://tomoru.acane.dev/#app",
         "name": "Tomoru",
         "alternateName": "灯る",
+        "softwareVersion": "{{$version}}",
         "description": {{meta.ldDescription|json}},
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "macOS 26 (Apple silicon), Windows 11 (x64), Linux (x64)",
-        "url": "https://tomoru.acane.dev/",
+        "featureList": {{ld.features|json}},
+        "url": "{{$homeUrl}}",
+        "mainEntityOfPage": { "@id": "{{$url}}#webpage" },
         "downloadUrl": "https://github.com/ACAne0320/Tomoru/releases/latest",
         "image": "https://tomoru.acane.dev/assets/og-image.jpg",
         "screenshot": "https://tomoru.acane.dev/assets/guide-light.webp",
@@ -58,6 +72,55 @@
         "inLanguage": ["zh-Hans", "zh-Hant", "en", "ja", "ko"],
         "sameAs": ["https://github.com/ACAne0320/Tomoru"],
         "author": { "@id": "https://acane.dev/#person" }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{$url}}#faq",
+        "url": "{{$url}}",
+        "inLanguage": "{{$lang}}",
+        "isPartOf": { "@id": "{{$url}}#webpage" },
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": {{faq.free.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.free.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.systems.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.systems.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.offline.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.offline.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.audio.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.audio.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.mic.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.mic.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.captions.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.captions.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.languages.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.languages.a|json}} }
+          },
+          {
+            "@type": "Question",
+            "name": {{faq.data.q|json}},
+            "acceptedAnswer": { "@type": "Answer", "text": {{faq.data.a|json}} }
+          }
+        ]
       },
       {
         "@type": "WebSite",
@@ -548,6 +611,51 @@
           <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-history"/></svg></span><h3>{{privacy.history.title}}</h3><p>{{privacy.history.body}}</p></li>
           <li class="card"><span class="card-icon"><svg class="icon"><use href="#i-eye-off"/></svg></span><h3>{{privacy.telemetry.title}}</h3><p>{{privacy.telemetry.body}}</p></li>
         </ul>
+      </div>
+    </section>
+
+    <!-- ⑨ 常见问题：和页头 FAQPage 用同一组键 -->
+    <section id="faq" class="section paper" aria-labelledby="faq-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">{{faq.eyebrow}}</p>
+          <h2 id="faq-title">{{faq.title}}</h2>
+          <p class="section-lead">{{faq.lead}}</p>
+        </header>
+        <div class="faq">
+          <article>
+            <h3>{{faq.free.q}}</h3>
+            <p>{{faq.free.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.systems.q}}</h3>
+            <p>{{faq.systems.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.offline.q}}</h3>
+            <p>{{faq.offline.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.audio.q}}</h3>
+            <p>{{faq.audio.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.mic.q}}</h3>
+            <p>{{faq.mic.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.captions.q}}</h3>
+            <p>{{faq.captions.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.languages.q}}</h3>
+            <p>{{faq.languages.a}}</p>
+          </article>
+          <article>
+            <h3>{{faq.data.q}}</h3>
+            <p>{{faq.data.a}}</p>
+          </article>
+        </div>
       </div>
     </section>
 
