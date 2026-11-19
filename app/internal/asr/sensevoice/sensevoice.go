@@ -13,14 +13,11 @@ import (
 	"tomoru/internal/engine"
 )
 
-// Caps are how SenseVoice is run: a volatile decode every 0.4 s, and a stretch made final at 12 s,
-// as tomoru-asr ran it before decoding moved to the app; a stretch ended by 0.5 s without voice.
-// tomoru-asr ended it after 0.25 s of its own detector's silence (0.35 s joined TTS sentences),
-// but the engine's detector on macOS (Silero v6, Core ML) hears pauses under music that tomoru-asr's
-// (silero_vad.onnx) didn't: at 0.25 s a variety show was cut in 28 stretches of 2 s where it had
-// been 5, and words were lost at the cuts (Korean 18.5 → 26.0 % errors; the benchmark's quick set,
-// 2026-10-31). 0.5 s gave back English and Chinese, and most of Korean (22.4 %); 0.8 s did no
-// better. SenseVoice ends every decode with a full stop, wherever the stretch ends: it is no
+// Caps are how SenseVoice is run: a volatile decode every 0.4 s, a stretch made final at 12 s, and
+// ended by 0.5 s without voice. The engine's detector on macOS (Silero v6, Core ML) hears pauses
+// under music: at 0.25 s a variety show was cut in 28 stretches of 2 s rather than 5, and words
+// were lost at the cuts (Korean 18.5 → 26.0 % errors; the benchmark's quick set, 2026-10-31).
+// 0.5 s gave back English and Chinese, and most of Korean (22.4 %); 0.8 s did no better. SenseVoice ends every decode with a full stop, wherever the stretch ends: it is no
 // sentence's end.
 var Caps = batch.Caps{Volatile: .4, Gap: .5, Longest: 12, Stops: true}
 

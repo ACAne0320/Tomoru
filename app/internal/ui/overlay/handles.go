@@ -270,8 +270,7 @@ type resize struct {
 // follow moves the subtitle area after the pointer while h is held, to the display the pointer
 // goes to, the overlay with it; or resizes it around its center from a side handle. Held, not
 // pressed: a press ends as the pointer leaves the element, which it does a narrow side handle at
-// once, the handle following a frame behind. (Element.DragWindow hands the drag to AppKit, which
-// ignored synthesized drags in testing; following the pointer also keeps the area on screen.)
+// once, the handle following a frame behind.
 func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 	lx, ly, _ := h.PointerPosition()
 	if _, _, held := h.Dragged(); !held {

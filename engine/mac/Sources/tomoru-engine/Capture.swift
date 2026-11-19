@@ -122,7 +122,8 @@ func processObjects() -> [AudioObjectID] {
     return ids
 }
 
-/// responsiblePID is the process responsible for pid: a helper's app.
+/// responsiblePID is the process responsible for pid: a helper's app. Private SPI, as
+/// TCCAccessPreflight is: where it is gone, pid itself.
 let responsibleFn = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "responsibility_get_pid_responsible_for_pid")
     .map { unsafeBitCast($0, to: (@convention(c) (pid_t) -> pid_t).self) }
 func responsiblePID(_ pid: pid_t) -> pid_t { responsibleFn?(pid) ?? pid }

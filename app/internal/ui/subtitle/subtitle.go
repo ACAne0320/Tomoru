@@ -397,8 +397,9 @@ func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Col
 
 // edgeShader draws a line's edge from the line as it renders: an outline Width wide around the
 // glyphs (their coverage, the most of it within Width), or a soft shadow down and to the right
-// (their coverage moved by Width and blurred, and a faint rim close around them), under the text. Drawing the text once more for
-// each side, as before, cost a run of glyphs a copy and left the outline's corners notched.
+// (their coverage moved by Width and blurred, and a faint rim close around them), under the text.
+// Drawing the text once more for each side costs a run of glyphs a copy and notches the outline's
+// corners.
 var edgeShader = shader.MustCompile(`package main
 
 var Edge vec4   // the edge's color
