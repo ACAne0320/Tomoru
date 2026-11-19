@@ -6,7 +6,7 @@
 
 - `src/`：页面模板；`src/partials/`：各页共用的片段（页头、页脚、图标、作者的 JSON-LD）。
 - `locales/`：页面文字，每种语言一个文件，`zh-Hans.json` 是源。`locales/help/` 以同样方式放帮助页的文字。
-- `public/`：样式、脚本、图片等静态文件。`build.mjs` 把页面和 `sitemap.xml` 写到这里，不进仓库。
+- `public/`：样式、脚本、图片等静态文件。`build.mjs` 把页面、`sitemap.xml` 和 `llms.txt` 写到这里，不进仓库。
 - `build.mjs`：按语言生成页面，不依赖任何包。`wrangler dev` 和 `wrangler deploy` 之前，Wrangler 会先运行它。
 
 在这里运行 `npx wrangler dev` 查看网站，`src/` 和 `locales/` 改了会自动重新生成。推到 `main` 就会部署（`.github/workflows/site.yml`）。
@@ -18,6 +18,8 @@
 首页的演示是用 HTML 画的录屏：每个 `.studio` 按 `--w`、`--h` 的尺寸排好画面，`studio.js` 把它缩放进页面，看得见时按脚本播放（光标、点击、镜头推近、按键）。HTML 里写的是没有脚本或要少动时显示的那一帧；画面里 app 界面的文字跟 `app/locales/` 里的一致。
 
 直播演示里的主播是用 [Rev2D](https://github.com/RevStudio/Rev2D) 绑好的 Tomoru，渲染成 `assets/vtuber.mp4`：每帧并排三格，平时、说话和透明遮罩，`studio.js` 用 WebGL 合成，说一句话时显示说话那格。
+
+`/llms.txt` 由 `src/llms.txt` 生成：给语言模型看的一段短的事实说明，版本号取自 `app/mygo.json`。
 
 页面列在 `build.mjs` 里。帮助页 `/help/install/` 和 `/help/offline/` 还要用 `locales/help/<语言>.json`，放在 `help` 键下，只在这个文件完整的语言里生成，目前是简体中文和英文；它们的 hreflang、语言菜单和 sitemap 也只列这些语言。帮助页的内容跟着 app 走：app 改了模型、大小、设置项名称或权限时，对照代码一起改。
 

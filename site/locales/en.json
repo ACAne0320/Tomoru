@@ -298,6 +298,18 @@
     "req": "macOS 26 or later · Apple silicon　|　Windows 11 · x64　|　Linux · x64",
     "peekAlt": "Tomoru and Rubi the penguin peeking out from the bottom of the screen"
   },
+  "ld": {
+    "features": [
+      "Live bilingual subtitles for audio the computer plays",
+      "System audio capture, without the microphone",
+      "All system sound, or one app on macOS and Windows",
+      "Subtitles that stay on top, lock for click-through, and can hide from screen recordings",
+      "A draft translation before the sentence ends",
+      "Scenes and glossaries that keep names consistent",
+      "Translation of a screen region you select",
+      "On-device or cloud recognition and translation, with no telemetry"
+    ]
+  },
   "footer": {
     "tagline": "Turns computer audio into live bilingual subtitles.",
     "product": "Product",

@@ -1,7 +1,7 @@
 // Builds the website into public/: each page in src/ filled with the text of each language in
-// locales/, and the sitemap. zh-Hans is the source and its pages sit at the root; the others sit
-// under their own directory. A language with a null left is not translated yet: it is skipped.
-// Wrangler runs this before `wrangler dev` and `wrangler deploy`.
+// locales/, the sitemap, and llms.txt. zh-Hans is the source and its pages sit at the root; the
+// others sit under their own directory. A language with a null left is not translated yet: it is
+// skipped. Wrangler runs this before `wrangler dev` and `wrangler deploy`.
 //
 // In the pages, {{key}} is a value from the language's file, which may hold HTML; {{key|plain}}
 // is it as text, for attributes and titles; {{key|json}} is it as JSON, for scripts. {{$name}} is
@@ -12,6 +12,12 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const site = 'https://tomoru.acane.dev';
+// The app's version, the same field the desktop build ships. Injected into the pages and llms.txt.
+const appVersion = JSON.parse(readFileSync(join(root, '..', 'app', 'mygo.json'), 'utf8')).version;
+if (typeof appVersion !== 'string' || !/^\d+\.\d+\.\d+$/.test(appVersion)) {
+  console.error(`app/mygo.json: version ${JSON.stringify(appVersion)} is not x.y.z`);
+  process.exit(1);
+}
 
 // The pages: the template, where it goes under a language's directory ("" for its home), and the
 // texts it takes besides the site's. A text other than the site's is in locales/<name>/, under the
@@ -125,6 +131,7 @@ function vars(lang, page) {
   const menu = langs.map((l) => `<li><a href="${href(l, page)}" hreflang="${l.id}" lang="${l.id}"${l === lang ? ' aria-current="page"' : ''}>${l.name}</a></li>`).join('');
   return {
     lang: lang.id, og: lang.og, url: site + href(lang, page), home: home(lang), homeUrl: site + home(lang),
+    version: appVersion,
     alternates: links, name: lang.name, menu, single: langs.length < 2 ? ' hidden' : '',
   };
 }
@@ -159,4 +166,12 @@ writeFileSync(join(root, 'public', 'sitemap.xml'), `<?xml version="1.0" encoding
 ${urls.join('\n')}
 </urlset>
 `);
+// llms.txt is a factual description for language models. {{version}} is the only placeholder.
+const llms = readFileSync(join(root, 'src', 'llms.txt'), 'utf8').replaceAll('{{version}}', appVersion);
+if (llms.includes('{{')) {
+  console.error('src/llms.txt: an unfilled placeholder');
+  process.exit(1);
+}
+writeFileSync(join(root, 'public', 'llms.txt'), llms);
 console.log(pages.map((p) => `${p.src}: ${langsOf(p).map((l) => l.id).join(', ')}`).join('\n'));
+console.log(`llms.txt: ${appVersion}`);

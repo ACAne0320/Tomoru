@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>document.documentElement.classList.add('js')</script>
 
-  <!-- 模板：双花括号里的键取自 locales/ 下各语言的文字，带 $ 的由 build.mjs 按语言生成，见 site/README_zh.md。换域名时，改 build.mjs 里的 site、各页的 og:image 和 JSON-LD、partials/person.json、robots.txt 里的地址。 -->
+  <!-- 模板：双花括号里的键取自 locales/ 下各语言的文字，带 $ 的由 build.mjs 按语言生成（$version 取自 app/mygo.json），见 site/README_zh.md。换域名时，改 build.mjs 里的 site、各页仍写死的 og:image 和 JSON-LD 地址、partials/person.json、robots.txt。#app 和 #website 的 @id 固定在站点根上，各语言页的 url 用 $url / $homeUrl。 -->
   <title>{{meta.title|plain}}</title>
   <meta name="description" content="{{meta.description|plain}}">
   <link rel="canonical" href="{{$url}}">
@@ -41,14 +41,28 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebPage",
+        "@id": "{{$url}}#webpage",
+        "url": "{{$url}}",
+        "name": {{meta.title|json}},
+        "description": {{meta.description|json}},
+        "inLanguage": "{{$lang}}",
+        "isPartOf": { "@id": "https://tomoru.acane.dev/#website" },
+        "about": { "@id": "https://tomoru.acane.dev/#app" },
+        "mainEntity": { "@id": "https://tomoru.acane.dev/#app" }
+      },
+      {
         "@type": "SoftwareApplication",
         "@id": "https://tomoru.acane.dev/#app",
         "name": "Tomoru",
         "alternateName": "灯る",
+        "softwareVersion": "{{$version}}",
         "description": {{meta.ldDescription|json}},
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "macOS 26 (Apple silicon), Windows 11 (x64), Linux (x64)",
-        "url": "https://tomoru.acane.dev/",
+        "featureList": {{ld.features|json}},
+        "url": "{{$homeUrl}}",
+        "mainEntityOfPage": { "@id": "{{$url}}#webpage" },
         "downloadUrl": "https://github.com/ACAne0320/Tomoru/releases/latest",
         "image": "https://tomoru.acane.dev/assets/og-image.jpg",
         "screenshot": "https://tomoru.acane.dev/assets/guide-light.webp",

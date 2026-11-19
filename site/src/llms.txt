@@ -1,0 +1,61 @@
+# Tomoru
+
+> Tomoru is a free, open-source desktop app that listens to audio playing on the computer and shows live bilingual subtitles: the line as spoken, and a translation. Version {{version}}.
+
+Tomoru (灯る, “to light up”) captures system audio, not the microphone, recognizes the speech, and floats the subtitles over the screen. Recognition and translation can each run on the computer or through a cloud service the user chooses. The license is GPL-3.0-or-later. There is no analytics and no telemetry.
+
+## What it does
+
+- Bilingual subtitles for whatever the computer is playing: video, live streams, anime, games, meetings, VTubers.
+- It recognizes speech. It does not read subtitle files embedded in a video.
+- macOS and Windows can hear all system sound or one app. Linux hears all system sound only.
+- On Windows, all system audio hears the default playback device and follows output changes. Some calls are silent when one app is selected; hearing all system sound, with the call's speaker on that same device, covers them.
+- The subtitle window stays on top. It can be dragged, resized, and locked so clicks pass through to the window behind it. Hiding it from screen recordings is a setting, off by default.
+- A draft translation can appear before a sentence ends, then be replaced by the full line.
+- Scenes hold a glossary: names stay consistent, and words recognition mishears can be corrected. Learning new names from subtitle history needs the user's own chat API.
+- Option+Shift+S on macOS, Alt+Shift+S on Windows and Linux, translates a region of the screen (unvoiced dialogue, signs, stream chat). Only that region is sent. Neither the picture nor the translation is kept. On-device picture translation works with the Index-Translate models; Hy-MT2 does not translate pictures. The default picture engine is Index-Translate in the cloud unless a local model or the user's own API is chosen.
+- Subtitle history is off by default. When on, it stays on the computer and can be deleted.
+- The interface is in English, Simplified Chinese, Traditional Chinese, Japanese, and Korean.
+
+## Languages
+
+- 31 languages to translate into, the list in `app/internal/lang`: the 30 that Qwen3-ASR recognizes, plus Traditional Chinese.
+- Traditional Chinese is a written form, not a separate spoken language. Spoken languages are the other 30.
+- SenseVoice (on-device, CPU, 228 MB) hears Chinese, English, Japanese, Korean, and Cantonese.
+- Qwen3-ASR 0.6B and 1.7B (on-device, GPU) hear 30 languages. With SenseVoice or Qwen3-ASR the spoken language can be Auto-detect.
+- macOS can use Apple's on-device recognition, for the languages that system supports. Windows and Linux have no system recognition.
+- Cloud recognition uses an API key the user provides. Default cloud translation is Index-Translate and is free. On-device translation models are Index-Translate 2B and 9B, and Hy-MT2 1.8B and 7B.
+
+## Requirements
+
+- macOS 26 or later, Apple silicon. Intel Macs are not supported. The app is not notarized by Apple. The first launch from the installer needs “Open Anyway” under Privacy & Security, then permission for System Audio Recording. Screen translation also needs Screen Recording. The terminal install script skips the “Open Anyway” step.
+- Windows 11, x64. Windows 10 is not supported: system-audio capture uses an API that needs Windows build 20348 or later. The app is not signed for SmartScreen. The first launch needs “More info”, then “Run anyway”. The PowerShell install script skips that step. Windows itself needs no extra permission to hear audio.
+- Linux x64, Ubuntu 22.04 or a distribution as new, GNOME or KDE, PipeWire or PulseAudio. The tray icon needs `libayatana-appindicator3`, and on GNOME the AppIndicator extension (Ubuntu ships it). Outside GNOME, staying above other windows needs `libgtk-layer-shell0`, which the Debian package installs. Hearing needs no permission. On Wayland, selecting part of the screen asks once for permission to take screenshots.
+- After installation the app updates itself, except the Linux .deb package, which does not.
+
+## Privacy
+
+- No microphone permission and no virtual audio device. Audio is discarded after use.
+- No analytics and no telemetry.
+- Local engines keep audio and text on the computer. A cloud engine sends data only to the service the user chose.
+- It contacts GitHub to check for updates. When the system language is Chinese, model downloads try ModelScope first, otherwise Hugging Face first; if one cannot be reached, the other is tried.
+
+## Links
+
+- [Home, Simplified Chinese](https://tomoru.acane.dev/): site root
+- [English](https://tomoru.acane.dev/en/)
+- [Traditional Chinese](https://tomoru.acane.dev/zh-hant/)
+- [Japanese](https://tomoru.acane.dev/ja/)
+- [Korean](https://tomoru.acane.dev/ko/)
+- [Install and permissions, Simplified Chinese](https://tomoru.acane.dev/help/install/)
+- [Install and permissions, English](https://tomoru.acane.dev/en/help/install/)
+- [On-device models, Simplified Chinese](https://tomoru.acane.dev/help/offline/)
+- [On-device models, English](https://tomoru.acane.dev/en/help/offline/)
+- Help pages exist in Simplified Chinese and English only.
+- [Download macOS](https://tomoru.acane.dev/download/mac): .dmg, Apple silicon
+- [Download Windows](https://tomoru.acane.dev/download/windows): .exe, x64
+- [Download Linux](https://tomoru.acane.dev/download/linux): .deb, x64
+- [GitHub](https://github.com/ACAne0320/Tomoru)
+- [Latest release](https://github.com/ACAne0320/Tomoru/releases/latest)
+- [Changelog](https://github.com/ACAne0320/Tomoru/blob/main/app/CHANGELOG.md)
+- [License, GPL-3.0](https://github.com/ACAne0320/Tomoru/blob/main/LICENSE)

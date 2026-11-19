@@ -9,8 +9,8 @@ The site at <https://tomoru.acane.dev>, served as Cloudflare Workers static asse
   footer, the icons, the author's JSON-LD).
 - `locales/`: their text, one file per language. `zh-Hans.json` is the source. `locales/help/`
   holds the help pages' text the same way.
-- `public/`: styles, script, images and other static files. `build.mjs` writes the pages and
-  `sitemap.xml` here; they are not committed.
+- `public/`: styles, script, images and other static files. `build.mjs` writes the pages,
+  `sitemap.xml` and `llms.txt` here; they are not committed.
 - `build.mjs`: fills the pages for each language, with no dependencies. Wrangler runs it before
   `wrangler dev` and `wrangler deploy`.
 
@@ -33,6 +33,9 @@ motion; the mock app's words follow the app's catalogs in `app/locales/`.
 The streamer in the live-stream demos is Tomoru rigged with [Rev2D](https://github.com/RevStudio/Rev2D)
 and rendered to `assets/vtuber.mp4`: each frame holds three tiles, idle, talking and alpha, and
 `studio.js` composites them with WebGL, showing the talking tile while a line is being said.
+
+`/llms.txt` is generated from `src/llms.txt`: a short factual description of Tomoru for language
+models, with the version filled in from `app/mygo.json`.
 
 The pages are listed in `build.mjs`. The help pages, `/help/install/` and `/help/offline/`, also
 take `locales/help/<language>.json`, under the key `help`. They are built only in the languages
