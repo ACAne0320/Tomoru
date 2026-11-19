@@ -478,6 +478,7 @@ func (s *Session) handle(ev engine.Event) {
 		return
 	}
 	var added []queued
+	var segs []*segment.Segment
 	type ended struct {
 		seq int
 		at  time.Time
@@ -492,15 +493,15 @@ func (s *Session) handle(ev engine.Event) {
 			l = s.spoken(s.heardFinal)
 		}
 		q := queued{Line: Line{Src: a.Commit.Text, Lang: l}, seq: a.Commit.Seq, at: now}
-		q.Start, q.End = s.said(a.Commit, s.cfg.Now())
 		if src, _ := s.terms(q.Src); src != q.Src {
 			q.Src, q.Heard = src, q.Src
 		}
 		if a.Commit.Timed {
 			spoke = append(spoke, ended{q.seq, s.wall(a.Commit.End)})
 		}
-		added = append(added, q)
+		added, segs = append(added, q), append(segs, a.Commit)
 	}
+	s.said(added, segs, s.cfg.Now())
 	// The ends of lines cut from the hypothesis, as the final results after them tell.
 	for _, e := range s.seg.Ended() {
 		spoke = append(spoke, ended{e.Seq, s.wall(e.End)})
@@ -566,27 +567,39 @@ func (s *Session) handle(ev engine.Event) {
 	})
 }
 
-// said is when seg, committed at now, was said, by the wall: from its first sound to its last,
-// where recognition timed them; else from when the voice began, not before the line before ended,
-// to now.
-func (s *Session) said(seg *segment.Segment, now time.Time) (start, end time.Time) {
-	start, end = s.voiceStart, now
+// said sets when lines, committed together at now from segs, were said, by the wall: a line
+// recognition timed, from its first sound to its last; the others share the time from when the
+// voice began, not before the line before ended, to now, by their length, one after another.
+func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
+	var untimed []int
+	total := 0
+	for i, seg := range segs {
+		start, end := s.wall(seg.Start), s.wall(seg.End)
+		if !seg.Timed || start.IsZero() || start.After(end) {
+			untimed = append(untimed, i)
+			total += max(1, utf8.RuneCountInString(seg.Text))
+			continue
+		}
+		lines[i].Start, lines[i].End = start, end
+		s.saidEnd = end
+	}
+	if len(untimed) == 0 {
+		return
+	}
+	start := s.voiceStart
 	if start.Before(s.saidEnd) {
 		start = s.saidEnd
 	}
-	if seg.Timed {
-		if t := s.wall(seg.Start); !t.IsZero() {
-			start = t
-		}
-		if t := s.wall(seg.End); !t.IsZero() {
-			end = t
-		}
+	if start.IsZero() || start.After(now) {
+		start = now
 	}
-	if start.IsZero() || start.After(end) {
-		start = end
+	span, done := now.Sub(start), 0
+	for _, i := range untimed {
+		lines[i].Start = start.Add(span * time.Duration(done) / time.Duration(total))
+		done += max(1, utf8.RuneCountInString(segs[i].Text))
+		lines[i].End = start.Add(span * time.Duration(done) / time.Duration(total))
 	}
-	s.saidEnd = end
-	return start, end
+	s.saidEnd = now
 }
 
 // spoken is the language of what was heard, as the recognizer told it (heard), else the session's;

@@ -60,9 +60,9 @@ Once turned on, each viewing is one file: `history/<scene ID or general>/<start 
 (`internal/history`). The first line holds the scene ID, the scene's name then, the languages, the
 start time and the app heard (empty for all the system's sound); then one line per sentence: when
 it was saved, when it was said (from its first sound to its last where recognition timed them,
-else from when the voice began to when the sentence was committed; older files lack it), the
-original as shown, the original as recognized (only when the glossary changed it), the
-translation, and why it failed if it did. The glossary entries each sentence used aren't stored:
+else from when the voice began to when the sentence was committed, shared by length among those
+committed together; older files lack it), the original as shown, the original as recognized
+(only when the glossary changed it), the translation, and why it failed if it did. The glossary entries each sentence used aren't stored:
 they can be worked out again from the glossary at any time.
 
 When lines are saved:
