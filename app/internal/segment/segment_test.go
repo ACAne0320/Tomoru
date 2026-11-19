@@ -139,6 +139,15 @@ func TestVolatile(t *testing.T) {
 			t.Errorf("committed until %v", s.CommittedUntil())
 		}
 	})
+	t.Run("a final result with no words still ends the hypothesis committed from", func(t *testing.T) {
+		s := New(Config{VolatileSentences: true, FinalsEnd: true})
+		s.Volatile(" Any questions so far?", 9.41, 11.51)
+		s.Final([]Token{{"?..?", 9.41, 11.39}}) // Apple's, for "Any questions so far?"
+		got := commits(s.Volatile(" Okay, then let's move on to the next item.", 12.83, 16.85))
+		if !slices.Equal(texts(got), []string{"Okay, then let's move on to the next item."}) {
+			t.Errorf("%q", texts(got))
+		}
+	})
 	t.Run("volatile sentence ends wait for the final result where they don't hold", func(t *testing.T) {
 		s := zh(0)
 		if got := commits(s.Volatile("大家好。欢迎来到", 0, 2)); len(got) > 0 || s.Pending() != "大家好。欢迎来到" {
