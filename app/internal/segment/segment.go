@@ -132,7 +132,12 @@ func (s *Segmenter) Final(incoming []Token) []Action {
 		// Some of this final result was committed from volatile text already: drop that part.
 		finalText := joinTokens(toks)
 		s.timeVolSegs(toks, finalText)
-		if len(norm(finalText)) < len(norm(s.volCommitted)) {
+		if !hasSpeech(finalText) {
+			// No words to align ("?..?" for "Any questions so far?"), and the next hypothesis
+			// starts after this result all the same: nothing committed is left in it.
+			s.committedUntil = toks[len(toks)-1].End
+			s.volCommitted, s.volSegs, toks = "", nil, nil
+		} else if len(norm(finalText)) < len(norm(s.volCommitted)) {
 			// The final result covers only part of what was committed.
 			vc := []rune(s.volCommitted)
 			d := alignEnd(finalText, s.volCommitted)
