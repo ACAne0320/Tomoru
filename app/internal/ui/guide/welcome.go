@@ -28,7 +28,7 @@ func (g *Guide) welcome(c *ui.Context) {
 // language is a language's field, as one of the two: swapped, each goes to where the other was.
 type language string
 
-// languages are the two languages, and swapping them, its button turning half a turn each time.
+// languages are the two languages, and swapping them, its icon turning half a turn each time.
 func (g *Guide) languages(c *ui.Context) {
 	k := g.core
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Margin(6, 0, 0, 0).Children(func() {
@@ -43,8 +43,7 @@ func (g *Guide) languages(c *ui.Context) {
 			lang(locales.SpokenLanguage(), k.Preferences().Src, k.SourceLangs(), k.SetSrc)
 			lang(locales.TranslateInto(), k.Preferences().Tgt, k.TargetLangs(), k.SetTgt)
 		})
-		b := kit.IconButton(c, kit.Plain, kit.Small, assets.Swap, locales.SwapLanguages()).Margin(18, 0, 0, 0)
-		b.Rotate(b.AnimateTo("turn", 90+180*float32(g.swaps), kit.Spring))
+		b := kit.TurnedIconButton(c, kit.Plain, kit.Small, assets.Swap, locales.SwapLanguages(), 90+180*float32(g.swaps)).Margin(18, 0, 0, 0)
 		if kit.Off(c, b, !k.CanSwap()).Clicked() {
 			g.swaps++
 			k.Swap()

@@ -368,6 +368,8 @@
   "exportRecord": "导出",
   "exportText": "文本 (.txt)",
   "exportSubtitles": "字幕 (.srt)",
+  "exportTextType": "文本",
+  "exportSubtitlesType": "字幕",
   "copyAll": "复制全部",
   "exported": "已导出",
   "exportFailed": "导出失败：{error}",

@@ -154,9 +154,10 @@ func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 				mygo.Shell.ShowItemInFolder(dir)
 			}
 			if kit.Button(c, kit.Plain, kit.Small, nil, locales.ModelsFolderChange()).Clicked() {
+				opts := mygo.OpenDialogOptions{Parent: mygo.FocusedWindow(), DefaultPath: dir, Directory: true, CreateDirectories: true}
 				// The dialog waits for the user: not on the main thread, which draws.
 				go func() {
-					dirs, err := mygo.Dialog.Open(mygo.OpenDialogOptions{DefaultPath: dir, Directory: true, CreateDirectories: true})
+					dirs, err := mygo.Dialog.Open(opts)
 					if err != nil {
 						log.Println("models folder:", err)
 					} else if len(dirs) > 0 {

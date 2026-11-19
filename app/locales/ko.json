@@ -368,6 +368,8 @@
   "exportRecord": "내보내기",
   "exportText": "텍스트 (.txt)",
   "exportSubtitles": "자막 (.srt)",
+  "exportTextType": "텍스트",
+  "exportSubtitlesType": "자막",
   "copyAll": "모두 복사",
   "exported": "내보냈습니다",
   "exportFailed": "내보내지 못했습니다: {error}",

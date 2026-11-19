@@ -133,7 +133,11 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if s.hist == nil || s.writing != p || s.writingRun != r {
 				s.closeHistory()
 				head := p.head
+				// The session starts where its first line was said, not where it is written.
 				head.Start = time.Now()
+				if !l.Start.IsZero() && l.Start.Before(head.Start) {
+					head.Start = l.Start
+				}
 				s.hist = history.NewWriter(s.dir, head)
 				s.writing, s.writingRun = p, r
 			}

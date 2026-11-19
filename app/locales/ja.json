@@ -368,6 +368,8 @@
   "exportRecord": "書き出す",
   "exportText": "テキスト (.txt)",
   "exportSubtitles": "字幕 (.srt)",
+  "exportTextType": "テキスト",
+  "exportSubtitlesType": "字幕",
   "copyAll": "すべてコピー",
   "exported": "書き出しました",
   "exportFailed": "書き出せませんでした：{error}",
