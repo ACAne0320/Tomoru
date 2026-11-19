@@ -555,7 +555,7 @@ func result(final bool, from, to int64, pieces []Piece) engine.Event {
 			if i+1 < len(pieces) {
 				end = t0 + pieces[i+1].At
 			}
-			start, until := round(t0+p.At), round(min(end, t1))
+			start, until := Round(t0+p.At), Round(min(end, t1))
 			tokens = append(tokens, engine.Token{Text: p.Text, Start: &start, End: &until})
 		}
 	} else if text := strings.TrimRightFunc(join(pieces), ending); text != "" {
@@ -569,7 +569,7 @@ func result(final bool, from, to int64, pieces []Piece) engine.Event {
 		}
 		tokens = []engine.Token{}
 	}
-	ev := engine.Event{Type: "result", Final: final, Start: round(t0), End: round(t1), Tokens: tokens}
+	ev := engine.Event{Type: "result", Final: final, Start: Round(t0), End: Round(t1), Tokens: tokens}
 	for _, p := range pieces {
 		if p.Lang != "" {
 			ev.Lang = p.Lang
@@ -592,10 +592,10 @@ func join(pieces []Piece) string {
 	return b.String()
 }
 
-func sec(n int64) float64 { return round(float64(n) / rate) }
+func sec(n int64) float64 { return Round(float64(n) / rate) }
 
-// round is seconds to the millisecond, as the protocol's times are.
-func round(x float64) float64 {
+// Round is seconds to the millisecond, as the protocol's times are.
+func Round(x float64) float64 {
 	return float64(int64(x*1000+.5)) / 1000
 }
 

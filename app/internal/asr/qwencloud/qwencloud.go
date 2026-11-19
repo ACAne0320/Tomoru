@@ -235,7 +235,7 @@ func (s *Session) Audio(ev engine.Event) error {
 	}
 	s.mu.Unlock()
 	if clock {
-		s.emit(engine.Event{Type: "clock", T: round(heard)})
+		s.emit(engine.Event{Type: "clock", T: batch.Round(heard)})
 	}
 	return nil
 }
@@ -571,13 +571,13 @@ func (s *Session) read(c *websocket.Conn) error {
 		s.mu.Lock()
 		t0, heard := s.t0, s.heard
 		s.mu.Unlock()
-		at := func(ms float64) float64 { return round(t0 + ms/1000) }
+		at := func(ms float64) float64 { return batch.Round(t0 + ms/1000) }
 		if !sen.Final {
 			// The sentence as heard so far, which the next replaces.
 			text := steady(prev, sen.Text, s.lang)
 			prev = sen.Text
 			if text != "" {
-				s.emit(engine.Event{Type: "result", Start: at(sen.Begin), End: round(heard), Tokens: []engine.Token{{Text: text}}})
+				s.emit(engine.Event{Type: "result", Start: at(sen.Begin), End: batch.Round(heard), Tokens: []engine.Token{{Text: text}}})
 			}
 			continue
 		}
@@ -592,7 +592,7 @@ func (s *Session) read(c *websocket.Conn) error {
 		if sen.End != nil {
 			end = at(*sen.End)
 		}
-		s.emit(engine.Event{Type: "result", Final: true, Start: at(sen.Begin), End: round(end), Tokens: toks})
+		s.emit(engine.Event{Type: "result", Final: true, Start: at(sen.Begin), End: batch.Round(end), Tokens: toks})
 	}
 }
 
@@ -647,6 +647,3 @@ func spaceAhead(toks []engine.Token) {
 		toks[i].Text = t
 	}
 }
-
-// round is seconds to the millisecond, as the protocol's times are.
-func round(x float64) float64 { return float64(int64(x*1000+.5)) / 1000 }

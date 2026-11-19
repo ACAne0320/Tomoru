@@ -9,12 +9,10 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"log"
 	"maps"
 	"net/http"
 	"slices"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"golang.org/x/image/draw"
@@ -64,76 +62,32 @@ func (e *Endpoint) TranslateImage(ctx context.Context, pic []byte, tgt string, t
 }
 
 // readImage reads a picture's translation. When its first words have not come within
-// e.ImageWait, the picture is asked again, once, on a connection of its own, without dropping the
-// first request, which may yet answer first: the request that sends words first is read, and the
-// other dropped. With no words from either within six times e.ImageWait, a minute for the cloud,
-// it is given up as ErrStalled. Both happen with the cloud: through a proxy, one connection in
-// five took a picture and answered nothing until the server closed it minutes later, and HTTP/2
-// sent the picture asked again on it (2026-11-01); and, for some minutes at a time, it starts
-// each picture after 9 to 30 s, as late for one asked again (2026-11-10). 0 asks once.
+// e.ImageWait, the picture is asked again on a connection of its own (hedge); with no words from
+// either within six times e.ImageWait, a minute for the cloud, it is given up as ErrStalled. Both
+// happen with the cloud: through a proxy, one connection in five took a picture and answered
+// nothing until the server closed it minutes later, and HTTP/2 sent the picture asked again on it
+// (2026-11-01); and, for some minutes at a time, it starts each picture after 9 to 30 s, as late
+// for one asked again (2026-11-10). 0 asks once.
 func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
 	if e.ImageWait <= 0 {
 		return e.readOne(ctx, body, onDelta)
 	}
-	ctx, cancel := context.WithCancel(ctx)
-	type result struct {
-		n   int32
-		out string
-		err error
-	}
-	var read atomic.Int32 // the request read, from 1; 0 until one sends words, -1 when given up
-	results := make(chan result, 2)
-	ask := func(ctx context.Context, n int32, body map[string]any) {
-		go func() {
-			out, err := e.readOne(ctx, body, func(s string) {
-				if (read.CompareAndSwap(0, n) || read.Load() == n) && onDelta != nil {
-					onDelta(s)
-				}
-			})
-			results <- result{n, out, err}
-		}()
-	}
-	var fresh *http.Client // the connection asked again on
-	pending := 1
+	body2 := maps.Clone(body) // the first request's changes when a server refuses a parameter
+	var fresh *http.Client    // the connection asked again on
 	defer func() {
-		cancel() // the request not read
-		for ; pending > 0; pending-- {
-			<-results
-		}
 		if fresh != nil {
 			fresh.CloseIdleConnections()
 			// The one stalled goes too, for the pictures after: idle once its request is done with.
 			cmp.Or(e.Client, &http.Client{}).CloseIdleConnections()
 		}
 	}()
-	body2 := maps.Clone(body) // the first request's changes when a server refuses a parameter
-	ask(ctx, 1, body)
-	again := time.NewTimer(e.ImageWait)
-	defer again.Stop()
-	giveUp := time.NewTimer(6 * e.ImageWait)
-	defer giveUp.Stop()
-	for {
-		select {
-		case <-again.C:
-			if read.Load() == 0 {
-				log.Printf("translate: no words in %v, asking again on a new connection", e.ImageWait)
-				fresh = e.anew(imageTimeout)
-				ask(context.WithValue(ctx, clientKey{}, fresh), 2, body2)
-				pending++
-			}
-		case <-giveUp.C:
-			if read.CompareAndSwap(0, -1) {
-				return "", ErrStalled
-			}
-		case res := <-results:
-			pending--
-			if n := read.Load(); n == res.n || n == 0 && pending == 0 {
-				// The one read; or, failed without words, with no other to wait for: one that failed
-				// before ImageWait failed fast, as asking again would.
-				return res.out, res.err
-			}
+	return hedge(ctx, e.ImageWait, 6*e.ImageWait, false, onDelta, func(ctx context.Context, n int32, onDelta func(string)) (string, error) {
+		if n == 1 {
+			return e.readOne(ctx, body, onDelta)
 		}
-	}
+		fresh = e.anew(imageTimeout)
+		return e.readOne(context.WithValue(ctx, clientKey{}, fresh), body2, onDelta)
+	})
 }
 
 // readOne reads a picture's translation from one request. A line the model keeps repeating ends it
