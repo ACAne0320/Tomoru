@@ -1899,6 +1899,36 @@
       }
     }
   },
+  "exportRecord": "Export",
+  "@exportRecord": {
+    "description": "Button of a session kept: opens a menu of the ways to export it."
+  },
+  "exportText": "Text (.txt)",
+  "@exportText": {
+    "description": "Export menu: the session as text, each line's time, words and translation."
+  },
+  "exportSubtitles": "Subtitles (.srt)",
+  "@exportSubtitles": {
+    "description": "Export menu: the session as an SRT subtitle file, timed from its start."
+  },
+  "copyAll": "Copy all",
+  "@copyAll": {
+    "description": "Export menu: copies the session as text."
+  },
+  "exported": "Exported",
+  "@exported": {
+    "description": "Toast once a session is saved to a file."
+  },
+  "exportFailed": "Couldn't export: {error}",
+  "@exportFailed": {
+    "description": "Toast when saving an exported session fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "permission denied"
+      }
+    }
+  },
   "orderLabel": "On top",
   "@orderLabel": {
     "description": "A setting of the subtitles' text: which line is on top."

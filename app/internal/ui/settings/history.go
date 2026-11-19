@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"log"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -30,6 +32,10 @@ type historyEdit struct {
 	scene  string
 	chosen bool
 	record string
+	// exports is the sessions exported, as last shown: one more says so. exportDir is the folder
+	// the last was saved in, where the next is offered.
+	exports   int
+	exportDir string
 }
 
 // allScenes is the history's filter of no scene.
@@ -46,6 +52,14 @@ func (s *Settings) history(c *ui.Context) {
 	}
 	if k.HistoryStale() {
 		k.LoadHistory()
+	}
+	if n := k.History.Exports; n != e.exports {
+		e.exports = n
+		if err := k.History.ExportErr; err != nil {
+			c.Toast(locales.ExportFailed(err.Error()))
+		} else {
+			c.Toast(locales.Exported())
+		}
 	}
 	var shown []history.Record
 	for _, r := range k.History.Records {
@@ -140,11 +154,7 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 // runs out.
 func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at string) kit.ListItem {
 	p := kit.Colors(c)
-	langs := shared.Langs(r.Head.Src, r.Head.Tgt)
-	if r.Head.Untranslated {
-		langs = shared.LangName(r.Head.Src)
-	}
-	meta := []string{langs, locales.HistoryLines(r.Lines)}
+	meta := []string{recordLangs(r), locales.HistoryLines(r.Lines)}
 	if r.Head.App != "" {
 		meta = append(meta, r.Head.App)
 	}
@@ -153,8 +163,8 @@ func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at strin
 	}}
 }
 
-// record is a session's card: what it was and when, learning names from it, showing its file in
-// Finder, deleting it, and its lines, as heard and translated.
+// record is a session's card: what it was and when, learning names from it, exporting it, showing
+// its file in Finder, deleting it, and its lines, as heard and translated.
 func (s *Settings) record(c *ui.Context, r history.Record) {
 	k, e := s.core, &s.historyEdit
 	p := kit.Colors(c)
@@ -163,27 +173,49 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	if sc, ok := k.SceneByID(r.Head.Scene); ok {
 		terms = sc.Terms
 	}
-	// Its name and when it was, across the card, and under them what is done with it, the deletion
-	// apart at the end.
+	// Its name and when it was, across the card, and under them what is done with it: learning
+	// names first, the rest at the end.
+	// When it was, from its start to its last line, and the app it heard: on the card by the day
+	// as the list heads it, in a file exported by its date, as read later.
+	hours := r.Head.Start.Format("15:04")
+	if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
+		hours += " – " + lines[n-1].At.Format("15:04")
+	}
+	from := ""
+	if r.Head.App != "" {
+		from = " · " + locales.RecordSource(r.Head.App)
+	}
+	span := day(r.Head.Start) + " " + hours + from
 	ui.Column(c).Gap(kit.Space(1)).Children(func() {
 		ui.Text(c, s.recordScene(r)).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2)
-		span := day(r.Head.Start) + " " + r.Head.Start.Format("15:04")
-		if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
-			span += " – " + lines[n-1].At.Format("15:04")
-		}
-		if r.Head.App != "" {
-			span += " · " + locales.RecordSource(r.Head.App)
-		}
 		kit.Caption(c, span)
 	})
 	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
-		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, assets.Sparkles, locales.LearnNames()), r.Lines == 0).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Soft, kit.Small, assets.Sparkles, locales.LearnNames()), r.Lines == 0).Clicked() {
 			s.learnFrom([]string{r.Path}, r.Head.Scene)
 		}
-		if kit.Button(c, kit.Plain, kit.Small, nil, shared.OnEach(locales.ShowInFinder(), locales.ShowInExplorer(), locales.ShowInFolder())).Clicked() {
+		ui.Spacer(c)
+		kit.Off(c, kit.Button(c, kit.Plain, kit.Small, assets.Download, locales.ExportRecord()), len(lines) == 0).Menu(func(m *ui.Menu) {
+			text := func() string {
+				date := i18n.FormatDate(i18n.Locale(), r.Head.Start, i18n.DateOptions{Date: i18n.MediumStyle})
+				return history.Text(s.recordScene(r)+" · "+date+" "+hours+from+" · "+recordLangs(r), r.Head, lines)
+			}
+			name := fileName(s.recordScene(r) + " " + r.Head.Start.Format("2006-01-02 15-04"))
+			if m.Item(locales.ExportText()).Chosen() {
+				s.export(name+".txt", text())
+			}
+			if m.Item(locales.ExportSubtitles()).Chosen() {
+				s.export(name+".srt", history.SRT(r.Head, lines))
+			}
+			m.Separator()
+			if m.Item(locales.CopyAll()).Chosen() {
+				c.Services().WriteClipboard(text())
+				c.Toast(locales.Copied())
+			}
+		})
+		if kit.IconButton(c, kit.Quiet, kit.Small, assets.Folder, shared.OnEach(locales.ShowInFinder(), locales.ShowInExplorer(), locales.ShowInFolder())).Clicked() {
 			mygo.Shell.ShowItemInFolder(r.Path)
 		}
-		ui.Spacer(c)
 		if kit.DeleteButton(c, kit.Small, locales.DeleteRecord()).Clicked() {
 			c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
 			e.record = ""
@@ -191,12 +223,57 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	})
 	ui.Column(c).Children(func() {
 		for i, l := range lines {
+			said := l.Start
+			if said.IsZero() {
+				said = l.At
+			}
 			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Padding(kit.Space(3), 0).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(func() {
-				ui.Text(c, l.At.Format("15:04:05")).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(56).Shrink(0)
+				ui.Text(c, said.Format("15:04:05")).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(56).Shrink(0)
 				ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() { line(c, l, terms, r.Head.Untranslated) })
 			})
 		}
 	})
+}
+
+// export asks where to save a session exported, data, as the file name, in the folder the last
+// was saved in, else Downloads, and saves it there.
+func (s *Settings) export(name, data string) {
+	k, e := s.core, &s.historyEdit
+	dir := e.exportDir
+	if dir == "" {
+		dir, _ = mygo.App.Path(mygo.PathDownloads)
+	}
+	// The dialog waits for the user: not on the main thread, which draws.
+	go func() {
+		path, err := mygo.Dialog.Save(mygo.SaveDialogOptions{DefaultPath: filepath.Join(dir, name), CreateDirectories: true})
+		if err != nil {
+			log.Println("export:", err)
+		}
+		if path != "" {
+			mygo.RunOnMain(func() {
+				e.exportDir = filepath.Dir(path)
+				k.ExportHistory(path, data)
+			})
+		}
+	}()
+}
+
+// fileName is name, as a file can be named on every system.
+func fileName(name string) string {
+	return strings.Map(func(r rune) rune {
+		if strings.ContainsRune(`/\:*?"<>|`, r) || r < ' ' {
+			return '-'
+		}
+		return r
+	}, name)
+}
+
+// recordLangs is a session's languages: what it heard, and translated into, if it did.
+func recordLangs(r history.Record) string {
+	if r.Head.Untranslated {
+		return shared.LangName(r.Head.Src)
+	}
+	return shared.Langs(r.Head.Src, r.Head.Tgt)
 }
 
 // line is a line kept: as heard, the names the glossary corrected marked, as terms, the scene's,

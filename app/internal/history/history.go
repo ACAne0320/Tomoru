@@ -33,7 +33,10 @@ type Head struct {
 
 // Entry is a line of a session.
 type Entry struct {
-	At    time.Time `json:"at"`
+	At time.Time `json:"at"` // when it was kept
+	// Start and End are when it was said; zero in sessions kept before they were.
+	Start time.Time `json:"start,omitzero"`
+	End   time.Time `json:"end,omitzero"`
 	Src   string    `json:"src"`             // as shown: the names heard wrong written right
 	Heard string    `json:"heard,omitempty"` // as recognized, when the glossary changed it
 	// Lang is the language it was heard in, where not the session's (Head's Src): a session of

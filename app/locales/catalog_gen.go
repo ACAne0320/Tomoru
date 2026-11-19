@@ -5391,6 +5391,92 @@ func (msgs Messages) RecordSource(app string) string {
 	return Catalog.Format(msgs.locale, "recordSource", map[string]any{"app": app})
 }
 
+// ExportRecord says "Export"
+// in the language the app shows.
+//
+// Button of a session kept: opens a menu of the ways to export it.
+func ExportRecord() string { return In(i18n.Locale()).ExportRecord() }
+
+// ExportRecord says "Export"
+// in the language of msgs.
+//
+// Button of a session kept: opens a menu of the ways to export it.
+func (msgs Messages) ExportRecord() string {
+	return Catalog.Format(msgs.locale, "exportRecord", nil)
+}
+
+// ExportText says "Text (.txt)"
+// in the language the app shows.
+//
+// Export menu: the session as text, each line's time, words and
+// translation.
+func ExportText() string { return In(i18n.Locale()).ExportText() }
+
+// ExportText says "Text (.txt)"
+// in the language of msgs.
+//
+// Export menu: the session as text, each line's time, words and
+// translation.
+func (msgs Messages) ExportText() string {
+	return Catalog.Format(msgs.locale, "exportText", nil)
+}
+
+// ExportSubtitles says "Subtitles (.srt)"
+// in the language the app shows.
+//
+// Export menu: the session as an SRT subtitle file, timed from its start.
+func ExportSubtitles() string { return In(i18n.Locale()).ExportSubtitles() }
+
+// ExportSubtitles says "Subtitles (.srt)"
+// in the language of msgs.
+//
+// Export menu: the session as an SRT subtitle file, timed from its start.
+func (msgs Messages) ExportSubtitles() string {
+	return Catalog.Format(msgs.locale, "exportSubtitles", nil)
+}
+
+// CopyAll says "Copy all"
+// in the language the app shows.
+//
+// Export menu: copies the session as text.
+func CopyAll() string { return In(i18n.Locale()).CopyAll() }
+
+// CopyAll says "Copy all"
+// in the language of msgs.
+//
+// Export menu: copies the session as text.
+func (msgs Messages) CopyAll() string {
+	return Catalog.Format(msgs.locale, "copyAll", nil)
+}
+
+// Exported says "Exported"
+// in the language the app shows.
+//
+// Toast once a session is saved to a file.
+func Exported() string { return In(i18n.Locale()).Exported() }
+
+// Exported says "Exported"
+// in the language of msgs.
+//
+// Toast once a session is saved to a file.
+func (msgs Messages) Exported() string {
+	return Catalog.Format(msgs.locale, "exported", nil)
+}
+
+// ExportFailed says "Couldn't export: {error}"
+// in the language the app shows.
+//
+// Toast when saving an exported session fails.
+func ExportFailed(error string) string { return In(i18n.Locale()).ExportFailed(error) }
+
+// ExportFailed says "Couldn't export: {error}"
+// in the language of msgs.
+//
+// Toast when saving an exported session fails.
+func (msgs Messages) ExportFailed(error string) string {
+	return Catalog.Format(msgs.locale, "exportFailed", map[string]any{"error": error})
+}
+
 // OrderLabel says "On top"
 // in the language the app shows.
 //

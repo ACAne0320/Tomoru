@@ -37,6 +37,10 @@ type Line struct {
 	// Draft is the translation of the sentence while it was being spoken. A translation streaming
 	// in starts shorter than the draft it replaces, so the draft shows until Done.
 	Draft string
+	// Start and End are when it was said, by the wall: its first and last sounds, where recognition
+	// timed them; else from when the voice began, not before the line before ended, to when it was
+	// committed.
+	Start, End time.Time
 }
 
 // ErrBehind is a translation skipped because translating fell behind. Its message is what history
@@ -172,6 +176,9 @@ type Session struct {
 	clockAt time.Time
 	// heardAt is when the voice last started, by the wall, until text is recognized after it.
 	heardAt time.Time
+	// voiceStart is when the voice last started, by the wall, and saidEnd when the line committed
+	// last ended: on the engine's goroutine.
+	voiceStart, saidEnd time.Time
 	// heard is the language the recognizer last told it heard, and heardFinal its final results'
 	// last: "" before it told one. On the engine's goroutine.
 	heard, heardFinal string
@@ -415,6 +422,10 @@ func (s *Session) handle(ev engine.Event) {
 		began := ev.On && !s.voiceOn
 		if began {
 			s.voiceAt, s.heardAt = ev.T, s.wall(ev.T)
+			s.voiceStart = s.heardAt
+			if s.voiceStart.IsZero() {
+				s.voiceStart = s.cfg.Now()
+			}
 		}
 		s.voiceOn = ev.On
 		var speechEnd time.Time
@@ -467,6 +478,7 @@ func (s *Session) handle(ev engine.Event) {
 		return
 	}
 	var added []queued
+	var segs []*segment.Segment
 	type ended struct {
 		seq int
 		at  time.Time
@@ -487,8 +499,9 @@ func (s *Session) handle(ev engine.Event) {
 		if a.Commit.Timed {
 			spoke = append(spoke, ended{q.seq, s.wall(a.Commit.End)})
 		}
-		added = append(added, q)
+		added, segs = append(added, q), append(segs, a.Commit)
 	}
+	s.said(added, segs, s.cfg.Now())
 	// The ends of lines cut from the hypothesis, as the final results after them tell.
 	for _, e := range s.seg.Ended() {
 		spoke = append(spoke, ended{e.Seq, s.wall(e.End)})
@@ -552,6 +565,41 @@ func (s *Session) handle(ev engine.Event) {
 		st.Pending, st.PendingLang = pending, heard
 		s.maybeDraft(st)
 	})
+}
+
+// said sets when lines, committed together at now from segs, were said, by the wall: a line
+// recognition timed, from its first sound to its last; the others share the time from when the
+// voice began, not before the line before ended, to now, by their length, one after another.
+func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
+	var untimed []int
+	total := 0
+	for i, seg := range segs {
+		start, end := s.wall(seg.Start), s.wall(seg.End)
+		if !seg.Timed || start.IsZero() || start.After(end) {
+			untimed = append(untimed, i)
+			total += max(1, utf8.RuneCountInString(seg.Text))
+			continue
+		}
+		lines[i].Start, lines[i].End = start, end
+		s.saidEnd = end
+	}
+	if len(untimed) == 0 {
+		return
+	}
+	start := s.voiceStart
+	if start.Before(s.saidEnd) {
+		start = s.saidEnd
+	}
+	if start.IsZero() || start.After(now) {
+		start = now
+	}
+	span, done := now.Sub(start), 0
+	for _, i := range untimed {
+		lines[i].Start = start.Add(span * time.Duration(done) / time.Duration(total))
+		done += max(1, utf8.RuneCountInString(segs[i].Text))
+		lines[i].End = start.Add(span * time.Duration(done) / time.Duration(total))
+	}
+	s.saidEnd = now
 }
 
 // spoken is the language of what was heard, as the recognizer told it (heard), else the session's;

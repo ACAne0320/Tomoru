@@ -109,6 +109,9 @@ var (
 	Plus, Arrow, Trash, Reset = ui.MustParseSVG(plusSVG), ui.MustParseSVG(arrowSVG), ui.MustParseSVG(trashSVG), ui.MustParseSVG(resetSVG)
 	Sparkles, Check, Download = ui.MustParseSVG(sparklesSVG), ui.MustParseSVG(checkSVG), ui.MustParseSVG(downloadSVG)
 	Sliders, Pencil, More     = ui.MustParseSVG(slidersSVG), ui.MustParseSVG(pencilSVG), ui.MustParseSVG(moreSVG)
+	//go:embed icons/folder-open.svg
+	folderSVG []byte
+	Folder    = ui.MustParseSVG(folderSVG)
 
 	// The settings window's sidebar.
 	//go:embed icons/house.svg

@@ -150,7 +150,7 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if heard == p.head.Src {
 				heard = ""
 			}
-			if err := s.hist.Add(history.Entry{At: time.Now(), Src: l.Src, Heard: l.Heard, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
+			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.Heard, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err
 				log.Println("history:", err)
 				// Writer errors are sticky. A new writer can recover on the next drain; the
