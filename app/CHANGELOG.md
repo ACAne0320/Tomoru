@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.1
+
+The subtitle history exports: a session as text, for meeting notes or a summary, or as SRT
+subtitles to lay over a recording of it. On a Mac, the subtitles show over a video in full screen.
+
+### New
+
+- History › Export: a session as text, each line with its time and translation; as SRT subtitles,
+  timed by when each line was said; or copied, ready to paste.
+  ([#69](https://github.com/ACAne0320/Tomoru/pull/69))
+
+### Fixed
+
+- On macOS, the subtitles show over a video in full screen, not on the desktop behind it.
+  ([#65](https://github.com/ACAne0320/Tomoru/pull/65))
+- A picture translation API tested while it was briefly down (502–504) is no longer taken as one
+  that reads no pictures. ([#66](https://github.com/ACAne0320/Tomoru/pull/66))
+
 ## 0.2.0
 
 Tomoru runs on Linux: subtitles for what the computer plays, and selecting part of the screen to
