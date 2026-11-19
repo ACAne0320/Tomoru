@@ -105,7 +105,8 @@ func (v ImageView) ID() int { return v.run }
 type ImageService struct {
 	Image         ImageView
 	imageCancel   context.CancelFunc
-	selecting     bool
+	selectCancel  context.CancelFunc                   // ends the open selection
+	selectNext    func([]byte, image.Rectangle, error) // selects once the open one has ended
 	work          *tasks
 	endpoint      *translate.Endpoint // translates every picture, whatever the engine: for tests
 	selectPicture func(context.Context) ([]byte, image.Rectangle, error)
@@ -254,14 +255,31 @@ func (s *ImageService) stopImage() {
 	}
 }
 
+// selectImage has the user select a part of the screen. Asked while a selection is open, which
+// may be stuck out of sight, it ends that one and selects anew once it has.
 func (s *ImageService) selectImage(done func([]byte, image.Rectangle, error)) {
-	if s.selecting || s.selectPicture == nil || s.work.ctx.Err() != nil {
+	if s.selectPicture == nil || s.work.ctx.Err() != nil {
 		return
 	}
-	s.selecting = true
+	if s.selectCancel != nil {
+		s.selectNext = done
+		s.selectCancel()
+		return
+	}
+	ctx, cancel := context.WithCancel(s.work.ctx)
+	s.selectCancel = cancel
 	s.work.Go(func() {
-		pic, at, err := s.selectPicture(s.work.ctx)
-		s.work.Post(func() { s.selecting = false; done(pic, at, err) })
+		pic, at, err := s.selectPicture(ctx)
+		s.work.Post(func() {
+			cancel()
+			s.selectCancel = nil
+			if next := s.selectNext; next != nil {
+				s.selectNext = nil
+				s.selectImage(next)
+				return
+			}
+			done(pic, at, err)
+		})
 	})
 }
 

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -260,5 +261,29 @@ func TestImageEngines(t *testing.T) {
 	}
 	if c.Image.Err == nil || c.Image.Text != "" || c.Image.Via != prefs.CustomPrefix+id {
 		t.Errorf("the API failed: %+v", c.Image)
+	}
+}
+
+// TestSelectImageAgain: the shortcut pressed while a selection is open ends it and selects anew, so
+// one stuck out of sight (#62) does not keep the shortcut from working until the app restarts.
+func TestSelectImageAgain(t *testing.T) {
+	c, f := newCore(t)
+	var b bytes.Buffer
+	png.Encode(&b, image.NewRGBA(image.Rect(0, 0, 4, 4)))
+	var calls atomic.Int32
+	c.ImageService.selectPicture = func(ctx context.Context) ([]byte, image.Rectangle, error) {
+		if calls.Add(1) == 1 {
+			<-ctx.Done() // stuck until its process is killed
+			return nil, image.Rectangle{}, errors.New("capture: exit status 1")
+		}
+		return b.Bytes(), image.Rect(0, 0, 4, 4), nil
+	}
+	shown := 0
+	c.SelectImage(func() { shown++ })
+	c.SelectImage(func() { shown++ })
+	f.flush(t, 1) // the first ended
+	f.flush(t, 1) // the second selected
+	if calls.Load() != 2 || shown != 1 || c.Image.PNG == nil {
+		t.Fatalf("selections %d, shown %d, %+v", calls.Load(), shown, c.Image)
 	}
 }

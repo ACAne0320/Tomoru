@@ -35,7 +35,7 @@ So there are two ways:
 | Way | Permission | How |
 |---|---|---|
 | **Clipboard** (default) | None | The user copies a screenshot with ⌃⇧⌘4 first, then presses ⌥⇧S. The clipboard is read with `mygo.Clipboard.ReadImage()`, which turns TIFF into PNG |
-| **Select-to-translate** (optional) | Screen Recording | ⌥⇧S starts selecting, and the selection is translated once done; Esc cancels. Selection always goes through the engine's `select` (`internal/capture`): on macOS it runs the system's `screencapture -i -x` and watches where the left mouse button goes down and up while it runs, to report the area; on Windows it's the engine's own selection window. The screenshot goes in a temporary directory and is deleted once read |
+| **Select-to-translate** (optional) | Screen Recording | ⌥⇧S starts selecting, and the selection is translated once done; Esc cancels, and ⌥⇧S again starts over. Selection always goes through the engine's `select` (`internal/capture`): on macOS it runs the system's `screencapture -i -x` and watches where the left mouse button goes down and up while it runs, to report the area; on Windows it's the engine's own selection window. The screenshot goes in a temporary directory and is deleted once read |
 
 In the first-run guide, select-to-translate is a step that can be skipped: it asks first; if the
 user wants it, they turn on Tomoru's Screen Recording in System Settings, choose a shortcut, and
