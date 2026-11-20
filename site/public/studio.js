@@ -305,7 +305,7 @@
         tray.classList.toggle('on', on);
         title.textContent = on ? title.dataset.on : idle.title;
         btn.querySelector('span').textContent = on ? btn.dataset.on : idle.btn;
-        btn.querySelector('use').setAttribute('href', on ? '#i-square' : '#i-play');
+        btn.querySelector('use').setAttribute('href', on ? '#i-pause' : '#i-play');
         av.src = on ? '/assets/sticker.webp' : '/assets/sticker-asleep.webp';
         if (!on) { today.sec += run.sec; today.n += run.n; }
         count();

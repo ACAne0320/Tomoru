@@ -348,7 +348,7 @@
     "lines": "{n}문장",
     "linesOne": "{n}문장",
     "start": "시작",
-    "stop": "중지",
+    "pause": "일시 정지",
     "scene": "장면",
     "general": "일반",
     "sceneGame": "FFVII",

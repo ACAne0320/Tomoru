@@ -14,7 +14,7 @@ type Kind int
 const (
 	// Primary is the screen's one main action, in the lantern's amber: Start translating, Use this.
 	Primary Kind = iota
-	// Strong switches a state, in indigo: Stop translating; a chosen chip is its face too.
+	// Strong switches a state, in indigo: Pause translating; a chosen chip is its face too.
 	Strong
 	// Plain is any other, raised a step above the card it is on: Download, Adjust position.
 	Plain

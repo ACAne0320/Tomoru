@@ -24,7 +24,7 @@ func (s *Shell) trayMenu() *mygo.Menu {
 	toggle := &mygo.MenuItem{Label: shared.StartText(k.Preferences()), Accelerator: k.Preferences().Shortcut,
 		Click: func(*mygo.MenuItem, *mygo.Window) { k.Toggle() }}
 	if k.Running {
-		toggle.Label = shared.StopText(k.Preferences())
+		toggle.Label = shared.PauseText(k.Preferences())
 	}
 	var items []*mygo.MenuItem
 	if menuOnly {

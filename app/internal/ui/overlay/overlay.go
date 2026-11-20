@@ -5,6 +5,7 @@
 package overlay
 
 import (
+	"math"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -51,9 +52,12 @@ type Overlay struct {
 	toast   time.Time // the "locked" note shows until then
 	sample  time.Time // sample subtitles show until then
 	resize  *resize
-	textTop float32 // the top of the subtitles in the overlay, as last laid out
-	glass   panes   // under the block and the toolbar while they show
-	barW    float32 // the width of the toolbar's capsule, as last laid out
+	textTop float32   // the top of the subtitles in the overlay, as last laid out
+	glass   panes     // under the block and the toolbar while they show
+	barW    float32   // the width of the toolbar's capsule, as last laid out
+	notes   int       // the notices shown: one that shows after none did is a new pill
+	noted   time.Time // when the notice showing appeared, zero while none does
+	noteBox ui.Rect   // the notice's pill, as last laid out: the glass goes under it
 }
 
 // New makes the overlay's window, on the display the subtitles were put on, and shows it.
@@ -224,12 +228,18 @@ func (o *Overlay) View(c *ui.Context) {
 	if adjusting {
 		c.After(adjust)
 	}
-	o.grabbable.Store(show || adjusting || k.Paused && !k.Running)
+	o.grabbable.Store(show || adjusting)
 	o.adjusting.Store(adjusting)
 	ww, wh := c.Size()
 	left, width := float32(p.AreaX-p.AreaW/2)*ww, float32(p.AreaW)*ww
 	minH := subtitle.SlotHeight(p, 1, true) + 16 // the same size empty as with one sentence
 	note := o.notice(c)
+	if shown := !show && note.title != ""; !shown {
+		o.noted, o.noteBox = time.Time{}, ui.Rect{}
+	} else if o.noted.IsZero() {
+		o.notes++
+		o.noted = c.Now()
+	}
 	// The block's bottom, from the overlay's bottom edge.
 	bottom := float32(o.area.Y + int(wh) - o.blockBottom())
 
@@ -293,9 +303,6 @@ func (o *Overlay) View(c *ui.Context) {
 			Justify(ui.End).AlignItems(ui.Center).Padding(8, 12).Children(func() {
 			switch {
 			case show:
-			case note != "":
-				pill(c.Key("notice"), note).AlignSelf(subtitle.Align(p)).Margin(0, 0, 10, 0).Transition(fades).
-					ContentTransition(ui.ContentTransition{}) // from getting ready to listening, say
 			case hover:
 				ui.Text(c.Key("hint"), locales.DragHint()).FontSize(14).TextColor(ui.RGBA(255, 255, 255, .85)).
 					Margin(0, 0, 8, 0).Transition(fades)
@@ -328,6 +335,20 @@ func (o *Overlay) View(c *ui.Context) {
 			hit.H += hit.Y - bar.Y
 			hit.Y = bar.Y
 		}
+		// The notice floats on its own, centered where the toolbar comes, never in the block: with the
+		// toolbar there, above it. It takes no clicks.
+		noteBottom := barBottom + (toolbarH-30)/2
+		if !show && note.title != "" {
+			up := float32(0)
+			if hover || peek {
+				up = 1
+			}
+			lift := column.AnimateTo("lift", up, ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}})
+			noteBottom += lift * (toolbarH + 8)
+			ui.Row(c).Absolute().Left(0).Right(0).Bottom(noteBottom).Justify(ui.Center).Children(func() {
+				o.noteBox = o.notePill(c, note).Bounds()
+			})
+		}
 		if until := time.Until(o.toast); until > 0 {
 			c.After(until)
 			ui.Row(c).Absolute().Left(0).Right(0).Bottom(bottom + h + 12).Justify(ui.Center).Transition(fades).Children(func() {
@@ -341,6 +362,10 @@ func (o *Overlay) View(c *ui.Context) {
 		if hover || adjusting {
 			glass = append(glass, pane{ui.Rect{X: left, Y: wh - bottom - h, W: width, H: h}, 14})
 		}
+		// The notice's, as wide and tall as it was.
+		if r := o.noteBox; r.W > 0 {
+			glass = append(glass, pane{ui.Rect{X: left + (width-r.W)/2, Y: wh - noteBottom - r.H, W: r.W, H: r.H}, r.H / 2})
+		}
 		if (hover || peek) && o.barW > 0 {
 			glass = append(glass, pane{ui.Rect{X: left + (width-o.barW)/2, Y: wh - barBottom - toolbarH, W: o.barW, H: toolbarH}, toolbarH / 2})
 		}
@@ -352,14 +377,9 @@ func (o *Overlay) View(c *ui.Context) {
 	o.pointerOn.Store(column.Hovered()) // it takes the mouse only where the block is
 }
 
-// notice is what shows where the subtitles go, while none do, about translating: that it is
-// getting ready, that it listens or stopped, for a while after, and what went wrong, until it is
-// tried again. The eye is there, and the menu bar may hide the icon behind the notch. Listening
-// with nobody speaking shows nothing.
-// hoverShade is the hovered block's background, and the toolbar's over it: the closed-caption
-// bands, now the block's, though no lighter than the immersive's, or for immersive subtitles a
-// lighter one, only to grab the block by. On glass where the system has it, which shows what plays
-// under it, lighter: only for the text to read on.
+// hoverShade is the hovered block's background, and the toolbar's over it: the block's shade, on
+// glass where the system has it, which shows what plays under it, lighter: only for the text to
+// read on.
 func hoverShade(p prefs.Prefs) ui.Color {
 	shade := float32(1)
 	if hasGlass() {
@@ -371,41 +391,117 @@ func hoverShade(p prefs.Prefs) ui.Color {
 	return ui.RGBA(0, 0, 0, max(.42, float32(p.BoxOpacity)/100)*shade)
 }
 
-func (o *Overlay) notice(c *ui.Context) string {
+// note is what floats over the subtitles while none show.
+type note struct {
+	mark   kit.MarkState
+	marked bool // errors and a slow network say so in words alone
+	title  string
+	detail string // what to know beside it, as the languages while preparing
+	since  time.Time
+}
+
+// notice is what floats over the subtitles while none show, about translating: that it is getting
+// ready, that it listens or paused, for a while after, from wherever it was paused, and what went
+// wrong, until it is tried again. The eye is there, and the menu bar may
+// hide the icon behind the notch. Listening with nobody speaking shows nothing.
+func (o *Overlay) notice(c *ui.Context) note {
 	const lasts = 4 * time.Second
 	k := o.core
-	langs, keys := shared.LangsOf(k.Preferences()), kit.ShortcutText(k.Preferences().Shortcut)
-	recent := time.Since(k.NoteAt) < lasts
+	langs := shared.LangsOf(k.Preferences())
+	since := c.Now().Sub(k.NoteAt)
+	recent := since < lasts
 	if recent {
-		c.After(lasts - time.Since(k.NoteAt))
+		c.After(lasts - since)
+	}
+	mark := func(m kit.MarkState, title, detail string) note {
+		return note{mark: m, marked: true, title: title, detail: detail, since: k.NoteAt}
 	}
 	switch {
 	case k.Err != nil:
-		return locales.NoticeRetry(shared.ErrorText(k.Err), keys)
-	case k.Paused && !k.Running:
-		return locales.NoticePaused(keys)
+		return note{title: locales.NoticeRetry(shared.ErrorText(k.Err), kit.ShortcutText(k.Preferences().Shortcut))}
 	case k.Running && k.State.Phase == "downloading":
-		return locales.NoticeStatus(locales.StatusDownloading(), langs)
+		return mark(kit.MarkWaiting, locales.StatusDownloading(), langs)
 	case k.Running && k.State.Phase == "loading":
-		return locales.NoticeStatus(locales.StatusLoadingModel(), langs)
+		return mark(kit.MarkWaiting, locales.StatusLoadingModel(), langs)
 	case k.Running && k.State.Phase != "listening":
-		return locales.NoticeStatus(locales.StatusPreparing(), langs)
+		return mark(kit.MarkWaiting, locales.StatusPreparing(), langs)
 	case k.Running && k.State.Slow:
-		return locales.NoticeSlowNetwork()
+		return note{title: locales.NoticeSlowNetwork()}
 	case recent && k.Running:
-		return locales.NoticeListening(langs, keys)
+		return mark(kit.MarkLive, locales.NoticeListening(), "")
 	case recent && !k.Started:
-		if !k.Preferences().Translates() {
-			return locales.NoticeReadySubtitles(keys)
-		}
-		return locales.NoticeReady(keys)
+		return mark(kit.MarkReady, locales.NoticeReady(), "")
 	case recent:
-		if !k.Preferences().Translates() {
-			return locales.NoticeStoppedSubtitles(keys)
-		}
-		return locales.NoticeStopped(keys)
+		return mark(kit.MarkPaused, locales.NoticePaused(), "")
 	}
-	return ""
+	return note{}
+}
+
+var (
+	// The notice's pill follows its words' width closely, without bouncing past it.
+	fits = ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}}
+	// One state's words at a time: the old ones lift away blurring, quickly; then the new ones rise
+	// into place from a blur.
+	swaps = ui.ElementTransition{
+		Animation:    &ui.Animation{Spring: ui.SpringOptions{Duration: 380 * time.Millisecond}},
+		ExitDuration: 90 * time.Millisecond, ExitEase: ui.EaseIn,
+		Enter: &ui.Motion{Y: 5, Blur: 5}, Exit: &ui.Motion{Y: -5, Blur: 5},
+		AfterExits: true,
+	}
+)
+
+// notePill is the notice in a pill of its own, each time it appears: the mark first, then its
+// words, apart from what to know beside them by weight and color alone. While it shows, its words
+// change in place.
+func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
+	const wordsAfter = 320 * time.Millisecond
+	words := c.Preferences().ReduceMotion || !n.marked
+	if !words {
+		if d := c.Now().Sub(o.noted); d < wordsAfter {
+			c.After(wordsAfter - d)
+		} else {
+			words = true
+		}
+	}
+	pill := ui.Row(c.Key(appearance(o.notes))).MinHeight(30).Radius(15).Padding(0, 14, 0, 12)
+	if !n.marked {
+		pill.Padding(6, 14) // what went wrong can take more than a line
+	}
+	// A capsule as the toolbar is. Its place in its row moves with its width, so that it stays
+	// centered over its glass as it grows; the row, not the pill, goes with the block. It comes and
+	// goes only through a blur: the glass under it does not scale.
+	return capsule(o.core.Preferences(), pill).Gap(10).AlignItems(ui.Center).Clip().
+		Transition(ui.ElementTransition{Animation: &fits, Position: true, Size: true, Enter: &ui.Motion{Blur: 4}, Exit: &ui.Motion{Blur: 4}}).
+		Children(func() {
+			if n.marked {
+				kit.StatusMark(c, n.mark, n.since, o.level, ui.RGB(255, 255, 255))
+			}
+			if !words {
+				return
+			}
+			ui.Row(c.Key(n.title)).Gap(8).AlignItems(ui.Center).Transition(swaps).Children(func() {
+				title := ui.Text(c, n.title).FontSize(12.5).FontWeight(600).TextColor(ui.RGB(255, 255, 255))
+				if n.marked {
+					title.NoWrap()
+				}
+				if n.detail != "" {
+					ui.Text(c, n.detail).NoWrap().FontSize(12.5).TextColor(ui.RGBA(255, 255, 255, .58))
+				}
+			})
+		})
+}
+
+// appearance keys the notice's pill by how many showed before it, apart from the keys of the
+// handles beside it.
+type appearance int
+
+func (o *Overlay) level(t time.Time) float32 {
+	if !o.core.State.Voice {
+		return 0
+	}
+	s := float64(t.UnixMilli()%1_000_000) / 1000
+	v := .5 + .5*math.Sin(s*4.3)*math.Sin(s*1.7+.6)*math.Sin(s*.9+1.3)
+	return .25 + .6*float32(v)
 }
 
 func (o *Overlay) sampleNote() string {

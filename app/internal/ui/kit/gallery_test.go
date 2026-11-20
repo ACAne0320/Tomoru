@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 
@@ -44,7 +45,7 @@ func (g *gallery) view(c *ui.Context) {
 			if Button(c, Primary, Large, assets.Play, "开始翻译").Clicked() {
 				g.clicks++
 			}
-			Button(c, Strong, Large, assets.Stop, "停止翻译")
+			Button(c, Strong, Large, assets.Pause, "暂停翻译")
 		})
 		section("Button · Medium", func() {
 			Button(c, Primary, Medium, nil, "使用这个场景")
@@ -83,12 +84,15 @@ func (g *gallery) view(c *ui.Context) {
 			Segmented(c, &g.seg, "带底框", "沉浸").Label("背景")
 			Segmented(c, &g.seg2, "无", "描边", "阴影").Label("文字边缘")
 		})
-		section("Caption · Waiting · Warning · Levels", func() {
+		section("Caption · Waiting · Warning · Levels · StatusMark", func() {
 			Caption(c, "改了就生效")
 			Waiting(c, "测试中…")
 			Warning(c, "下载失败")
 			MenuLevels(c, true)
 			MenuLevels(c, false)
+			for s := range MarkPaused + 1 {
+				StatusMark(c, s, time.Time{}, func(time.Time) float32 { return .7 }, p.Ink)
+			}
 		})
 		section("FadeScroll", func() {
 			Card(c).Width(340).Height(120).Children(func() {
@@ -241,7 +245,7 @@ func TestGallery(t *testing.T) {
 	tt.Frame()
 
 	// Each button at rest, hovered and pressed, side by side.
-	labels := []string{"开始翻译", "停止翻译", "取消", "从字幕记录学习", "稍后", "最终幻想7 重制版", "通用"}
+	labels := []string{"开始翻译", "暂停翻译", "取消", "从字幕记录学习", "稍后", "最终幻想7 重制版", "通用"}
 	var strip *image.RGBA
 	const cw, ch, padX, padY = 300, 64, 44, 18
 	if dir != "" {

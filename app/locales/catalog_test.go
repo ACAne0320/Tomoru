@@ -46,7 +46,7 @@ func TestTranslated(t *testing.T) {
 			"accessNoteDenied":   {l.AccessNoteDenied(), en.AccessNoteDenied()},
 			"hideWait":           {l.HideWait(), en.HideWait()},
 			"sourceNotRunning":   {l.SourceNotRunning("Safari"), en.SourceNotRunning("Safari")},
-			"noticeListening":    {l.NoticeListening("A → B", "⌥⇧T"), en.NoticeListening("A → B", "⌥⇧T")},
+			"noticeListening":    {l.NoticeListening(), en.NoticeListening()},
 			"displaySrc":         {l.DisplaySrc(), en.DisplaySrc()},
 		} {
 			if m[0] == "" || m[0] == m[1] {

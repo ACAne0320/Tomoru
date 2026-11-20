@@ -8,6 +8,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"tomoru/internal/prefs"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/shared"
 	"tomoru/internal/ui/subtitle"
@@ -145,7 +146,7 @@ func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element 
 	return o.capsule(c, "toolbar", bottom, shown, func() {
 		if k.Running {
 			if barIcon(c, assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
-				k.Pause()
+				k.Stop()
 			}
 		} else if barIcon(c, assets.Play, shared.StartText(k.Preferences())).Clicked() {
 			k.Start()
@@ -187,21 +188,23 @@ func (o *Overlay) capsule(c *ui.Context, key string, bottom float32, shown bool,
 		bar.Invisible() // gone: it takes neither the pointer nor the focus
 	}
 	return bar.Children(func() {
-		// As the block: on glass where the system has it (glass_darwin.go), shaded as dark to the
-		// eye. The system lightens a pane as thin as the toolbar more than the block, all of it the
-		// glass's curved rim: over one color, at the block's shade it was (160, 154, 167) to the
-		// block's (134, 125, 145) (2026-10-21).
-		capsule := ui.Row(c).Height(toolbarH).Padding(0, 4).Gap(2).AlignItems(ui.Center).Radius(toolbarH/2).
-			Border(1, ui.RGBA(255, 255, 255, .12))
-		if hasGlass() {
-			bg := hoverShade(o.core.Preferences())
-			capsule.Background(ui.RGBA(bg.R, bg.G, bg.B, float32(bg.A)/255+.12))
-		} else {
-			capsule.Background(ui.RGBA(24, 24, 28, .72)).Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, .28))
-		}
-		o.barW = capsule.Bounds().W
-		capsule.Children(children)
+		row := capsule(o.core.Preferences(), ui.Row(c).Height(toolbarH).Padding(0, 4).Gap(2).AlignItems(ui.Center).Radius(toolbarH/2))
+		o.barW = row.Bounds().W
+		row.Children(children)
 	})
+}
+
+// capsule gives e, a capsule over the block, the block's look: on glass where the system has it
+// (glass_darwin.go), shaded as dark to the eye. The system lightens a pane as thin as a capsule more
+// than the block, all of it the glass's curved rim: over one color, at the block's shade the toolbar
+// was (160, 154, 167) to the block's (134, 125, 145) (2026-10-21).
+func capsule(p prefs.Prefs, e ui.Element) ui.Element {
+	e = e.Border(1, ui.RGBA(255, 255, 255, .12))
+	if hasGlass() {
+		bg := hoverShade(p)
+		return e.Background(ui.RGBA(bg.R, bg.G, bg.B, float32(bg.A)/255+.12))
+	}
+	return e.Background(ui.RGBA(24, 24, 28, .72)).Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, .28))
 }
 
 // barIcon is a button of the capsule: round, lit on hover, the capsule its background.

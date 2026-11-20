@@ -89,9 +89,9 @@
       }
     }
   },
-  "shortcut": "Start / stop",
+  "shortcut": "Start / pause",
   "@shortcut": {
-    "description": "Label of the global shortcut that starts and stops translating."
+    "description": "Label of the global shortcut that starts and pauses translating."
   },
   "shortcutRecording": "Press the new shortcut",
   "@shortcutRecording": {
@@ -483,11 +483,11 @@
   "@start": {
     "description": "Button that starts translating."
   },
-  "stop": "Stop",
-  "@stop": {
-    "description": "Button that stops translating."
+  "pauseShort": "Pause",
+  "@pauseShort": {
+    "description": "The menu bar panel's button that pauses translating: short, as start."
   },
-  "shortcutHint": "{keys} start / stop",
+  "shortcutHint": "{keys} start / pause",
   "@shortcutHint": {
     "description": "At the bottom of the menu bar panel.",
     "placeholders": {
@@ -529,13 +529,13 @@
   "@lockedToast": {
     "description": "Over the subtitles, once locked."
   },
-  "pause": "Pause",
+  "pause": "Pause translating",
   "@pause": {
-    "description": "Tooltip of the subtitles' toolbar."
+    "description": "The action that pauses translating: the home page's button, the menu bar icon's menu and the subtitles' toolbar."
   },
-  "pauseSubtitles": "Pause",
+  "pauseSubtitles": "Pause subtitles",
   "@pauseSubtitles": {
-    "description": "The overlay's pause button, while the subtitles show the original only."
+    "description": "pause, while the subtitles show the original only."
   },
   "startTranslating": "Start translating",
   "@startTranslating": {
@@ -567,83 +567,17 @@
   "@noticeSlowNetwork": {
     "description": "Where the subtitles show, while translating: the cloud recognition's network is slow, its text comes late."
   },
-  "noticePaused": "Paused · {keys} to go on",
+  "noticePaused": "Paused",
   "@noticePaused": {
-    "description": "Where the subtitles show, while paused from their toolbar.",
-    "placeholders": {
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
+    "description": "Where the subtitles show, beside a pause mark: while paused from their toolbar, or for a few seconds after paused by the shortcut or the menus."
   },
-  "noticeStatus": "{status} · {langs}",
-  "@noticeStatus": {
-    "description": "Where the subtitles show, while translating gets ready.",
-    "placeholders": {
-      "status": {
-        "type": "String",
-        "example": "Getting ready to listen…"
-      },
-      "langs": {
-        "type": "String",
-        "example": "Japanese → English"
-      }
-    }
-  },
-  "noticeListening": "Listening · {langs} · {keys} to stop",
+  "noticeListening": "Listening",
   "@noticeListening": {
-    "description": "Where the subtitles show, for a few seconds after listening starts.",
-    "placeholders": {
-      "langs": {
-        "type": "String",
-        "example": "Japanese → English"
-      },
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
+    "description": "Where the subtitles show, beside bars moving with what is heard, for a few seconds after listening starts."
   },
-  "noticeReady": "Tomoru is ready · press {keys} to translate",
+  "noticeReady": "Tomoru is ready",
   "@noticeReady": {
-    "description": "Where the subtitles show, for a few seconds after the app opens without translating.",
-    "placeholders": {
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
-  },
-  "noticeReadySubtitles": "Tomoru is ready · press {keys} for subtitles",
-  "@noticeReadySubtitles": {
-    "description": "noticeReady, while the subtitles show the original only.",
-    "placeholders": {
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
-  },
-  "noticeStopped": "Stopped translating · {keys} to start again",
-  "@noticeStopped": {
-    "description": "Where the subtitles show, for a few seconds after translating stops.",
-    "placeholders": {
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
-  },
-  "noticeStoppedSubtitles": "Stopped subtitles · {keys} to start again",
-  "@noticeStoppedSubtitles": {
-    "description": "noticeStopped, while the subtitles show the original only.",
-    "placeholders": {
-      "keys": {
-        "type": "String",
-        "example": "⌥⇧T"
-      }
-    }
+    "description": "Where the subtitles show, beside Tomoru's eyes, for a few seconds after the app opens without translating."
   },
   "sampleNoteRunning": "Sample subtitles · when someone speaks, subtitles show here",
   "@sampleNoteRunning": {
@@ -1523,14 +1457,6 @@
   "@homeSubtitlesOff": {
     "description": "The title while not running and the subtitles show the original only, in place of homeIdle."
   },
-  "stopTranslating": "Stop translating",
-  "@stopTranslating": {
-    "description": "The home page's button while translating."
-  },
-  "stopSubtitles": "Stop subtitles",
-  "@stopSubtitles": {
-    "description": "The button that stops, in place of stopTranslating, while the subtitles show the original only."
-  },
   "homeStats": "Numbers",
   "@homeStats": {
     "description": "Assistive technology's name of the home page's numbers."
@@ -2151,7 +2077,7 @@
   "@guideShortcutsTitle": {
     "description": "Guide: the step with the shortcuts."
   },
-  "guideShortcutsBody": "Press it anywhere to start or stop translating. Try it now.",
+  "guideShortcutsBody": "Press it anywhere to start or pause translating. Try it now.",
   "@guideShortcutsBody": {
     "description": "Guide, shortcuts step."
   },

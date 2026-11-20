@@ -83,7 +83,7 @@ func LangsOf(p prefs.Prefs) string {
 	return Langs(p.Src, p.Tgt)
 }
 
-// The words of starting and stopping follow what runs: translating, or, with the original only,
+// The words of starting and pausing follow what runs: translating, or, with the original only,
 // subtitles alone.
 
 // Title is what the app is doing, as it runs or not.
@@ -107,15 +107,7 @@ func StartText(p prefs.Prefs) string {
 	return locales.StartSubtitles()
 }
 
-// StopText is the action that stops.
-func StopText(p prefs.Prefs) string {
-	if p.Translates() {
-		return locales.StopTranslating()
-	}
-	return locales.StopSubtitles()
-}
-
-// PauseText is the action that pauses, from the subtitles.
+// PauseText is the action that pauses.
 func PauseText(p prefs.Prefs) string {
 	if p.Translates() {
 		return locales.Pause()

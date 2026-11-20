@@ -347,7 +347,7 @@
     "lines": "{n} 文",
     "linesOne": "{n} 文",
     "start": "開始",
-    "stop": "停止",
+    "pause": "一時停止",
     "scene": "シーン",
     "general": "汎用",
     "sceneGame": "FF7",

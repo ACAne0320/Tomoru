@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The notice over the subtitles tells at a glance what Tomoru does, by a small mark beside a word
+  or two: her eyes when she is ready, dots while she gets ready, bars that move with what she
+  hears, a pause. It floats on its own, in the toolbar's glass, above the toolbar while that shows.
+  With Reduce Motion on, the mark holds still.
+  ([#73](https://github.com/ACAne0320/Tomoru/issues/73))
+- Stopping translating is called pausing, as it is from the subtitles: the buttons, the menu bar
+  icon's menu, the shortcut and the guide say Pause. Paused from the subtitles' toolbar, the
+  notice goes after a few seconds, as paused from anywhere else, instead of staying.
+
 ## 0.2.1
 
 The subtitle history exports: a session as text, for meeting notes or a summary, or as SRT
