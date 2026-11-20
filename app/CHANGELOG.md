@@ -1,17 +1,41 @@
 # Changelog
 
-## Unreleased
+## 0.2.2
 
-### Changed
+Subtitles that take two lines wrap them about the same length, as a film's do, and the notice over
+them tells at a glance what Tomoru is doing. Tomoru uses less of the processor, idle or listening,
+and the subtitles stay together as they are dragged.
 
+### Improved
+
+- A subtitle that takes two lines wraps them about the same length, rather than a full line and a
+  word or two alone under it. ([#96](https://github.com/ACAne0320/Tomoru/pull/96))
 - The notice over the subtitles tells at a glance what Tomoru does, by a small mark beside a word
   or two: her eyes when she is ready, dots while she gets ready, bars that move with what she
   hears, a pause. It floats on its own, in the toolbar's glass, above the toolbar while that shows.
-  With Reduce Motion on, the mark holds still.
-  ([#73](https://github.com/ACAne0320/Tomoru/issues/73))
-- Stopping translating is called pausing, as it is from the subtitles: the buttons, the menu bar
-  icon's menu, the shortcut and the guide say Pause. Paused from the subtitles' toolbar, the
-  notice goes after a few seconds, as paused from anywhere else, instead of staying.
+  With Reduce Motion on, the mark holds still. Stopping translating is called pausing everywhere:
+  the buttons, the menu bar icon's menu, the shortcut and the guide say Pause.
+  ([#78](https://github.com/ACAne0320/Tomoru/pull/78))
+- Idle, Tomoru takes no measurable processor time, where it took about 1% of a core even with the
+  mouse moving over other apps; listening to silence, under half a percent instead of 1 to 2.5%.
+  ([#92](https://github.com/ACAne0320/Tomoru/pull/92),
+  [#93](https://github.com/ACAne0320/Tomoru/pull/93),
+  [#94](https://github.com/ACAne0320/Tomoru/pull/94))
+
+### Fixed
+
+- Dragged quickly, the subtitles move with their box instead of springing after it, and the box
+  keeps its glass closer. ([#98](https://github.com/ACAne0320/Tomoru/pull/98))
+- With Apple speech recognition, the sentence after a pause keeps its first words.
+  ([#71](https://github.com/ACAne0320/Tomoru/pull/71))
+- Pressing the picture shortcut again starts a new selection when the last one shows nothing,
+  instead of doing nothing until Tomoru restarts. ([#72](https://github.com/ACAne0320/Tomoru/pull/72))
+- Save dialogs open over Settings and name the file's type; the first-run guide's focus ring and
+  swap button draw right; a history session starts at its first line.
+  ([#74](https://github.com/ACAne0320/Tomoru/pull/74))
+- On Linux, the serif subtitle font draws in serif. ([#95](https://github.com/ACAne0320/Tomoru/pull/95))
+- On Linux, the toolbar's languages line up with the scene's name.
+  ([#100](https://github.com/ACAne0320/Tomoru/pull/100))
 
 ## 0.2.1
 
