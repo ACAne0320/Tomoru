@@ -20,9 +20,10 @@
 
 ## 每次发布
 
-1. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。这一节就是这个版本的更新说明，GitHub 的 release 页面和 app 的更新窗口都显示它：先用几句话总结这个版本带来了什么，再把各条分到 `### New`、`### Improved`、`### Fixed` 下面（没有的就不写）。每一条末尾链接到它的 PR，没有 PR 就链接到它的提交：`([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))`。
-2. 提交到 `main`，等 Checks 和 Tests 通过。
-3. 推送这个版本的 tag：
+1. 改版本号之前，先在每个平台上测 `main`：上次发布以来写明某个平台没测的 PR，在那个平台上补测，并按用户的用法试一遍这次发布改了的地方。发现问题先修。tag 在这之后才打，这样现在发现的问题不会浪费一个版本号。
+2. 在 `app/mygo.json` 里设版本号，在 `app/CHANGELOG.md` 写这个版本的一节（`## 0.1.1`）。这一节就是这个版本的更新说明，GitHub 的 release 页面和 app 的更新窗口都显示它：先用几句话总结这个版本带来了什么，再把各条分到 `### New`、`### Improved`、`### Fixed` 下面（没有的就不写）。每一条末尾链接到它的 PR，没有 PR 就链接到它的提交：`([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))`。
+3. 提交到 `main`，等 Checks 和 Tests 通过。
+4. 推送这个版本的 tag：
 
    ```sh
    git tag v0.1.1
@@ -30,8 +31,8 @@
    ```
 
    Release workflow 检查 tag 和版本号一致、changelog 里有这一节，用这一节加上安装包的下载链接（GitHub 的，以及给中国大陆用的官网链接）作说明创建草稿 release，然后依次在 macOS、Windows（MSYS2）和 Linux（Ubuntu 22.04）上构建：`scripts/setup.sh`、许可证发布检查，再 `go tool mygo build -upload`，签名 app 和更新包并上传到草稿。带连字符的 tag（`v0.2.0-beta.1`）发成预发布版。某个平台失败时，点「Re-run failed jobs」重新构建它，上传到同一个草稿。
-4. 发布前先试用草稿里的文件。在 Mac 上用 `tomoru-<version>-arm64.dmg`：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。在 Windows 11 x64 上用 `tomoru-setup-<version>-amd64.exe`：从头走一遍引导、收听全部声音和单个应用、托盘的面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。在 Linux x64 上，GNOME 和 KDE 各一遍，用 `install.sh` 装的和 `tomoru_<version>_amd64.deb`：从头走一遍引导、收听全部声音、托盘的菜单和面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。确认三个平台都能找到随包的引擎和库，且 `licenses/` 里有它们的 [许可证正文和声明](third-party-licenses_zh.md)：许可证检查只看打包前的资源，不看安装包。另外，上次发布以来写明某个平台没测的 PR，要在那个平台上补测。
-5. 在 GitHub 上发布草稿。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。半小时内官网会把它的安装包复制到 R2，下载按钮随之给出新版（[site/README_zh.md](../site/README_zh.md)）。
+5. 发布前先试用草稿里的文件。在 Mac 上用 `tomoru-<version>-arm64.dmg`：首次运行的权限、用 Apple 和本地识别听真实的声音、换语言和场景、快捷键、字幕位置、慢翻译之后的字幕记录、重开后的设置，以及工作中途退出。在 Windows 11 x64 上用 `tomoru-setup-<version>-amd64.exe`：从头走一遍引导、收听全部声音和单个应用、托盘的面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。在 Linux x64 上，GNOME 和 KDE 各一遍，用 `install.sh` 装的和 `tomoru_<version>_amd64.deb`：从头走一遍引导、收听全部声音、托盘的菜单和面板、快捷键、框选翻译、本地翻译模型，以及翻译中途退出。确认三个平台都能找到随包的引擎和库，且 `licenses/` 里有它们的 [许可证正文和声明](third-party-licenses_zh.md)：许可证检查只看打包前的资源，不看安装包。
+6. 三个平台都测过了，才在 GitHub 上发布草稿。哪个平台的机器暂时不在，就等它：发布出去的版本一天之内就会到已安装的 app 上。已安装的 app 在启动后不久检查一次，之后每天一次，那时就会发现它。半小时内官网会把它的安装包复制到 R2，下载按钮随之给出新版（[site/README_zh.md](../site/README_zh.md)）。
 
 ## 手动构建
 

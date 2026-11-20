@@ -28,13 +28,17 @@ The certificate and update key below are for official releases.
 
 ## Each release
 
-1. Set the version in `app/mygo.json`, and write its section in `app/CHANGELOG.md`
+1. Test `main` on each platform before setting the version: the pull requests since the last
+   release that say a platform is left, on that platform, and what the release changes as a user
+   meets it. Fix what you find first. The tag comes after this, so that a problem found now does
+   not cost a version.
+2. Set the version in `app/mygo.json`, and write its section in `app/CHANGELOG.md`
    (`## 0.1.1`). That section is the release's notes, on GitHub and in the app's update window:
    a few sentences on what the release brings, then its items under `### New`, `### Improved`
    and `### Fixed`, those it has. End each item with a link to its pull request, or to its commits when it had none:
    `([6a25ce5](https://github.com/ACAne0320/Tomoru/commit/6a25ce5))`.
-2. Commit to `main`, and wait for Checks and Tests to pass.
-3. Push the version's tag:
+3. Commit to `main`, and wait for Checks and Tests to pass.
+4. Push the version's tag:
 
    ```sh
    git tag v0.1.1
@@ -48,7 +52,7 @@ The certificate and update key below are for official releases.
    `go tool mygo build -upload`, which signs the apps and their updates and uploads them to the
    draft. A tag with a hyphen (`v0.2.0-beta.1`) makes a prerelease. "Re-run failed jobs" builds a
    failed platform again into the same draft.
-4. Try the draft's files before publishing. On a Mac, `tomoru-<version>-arm64.dmg`: first-run
+5. Try the draft's files before publishing. On a Mac, `tomoru-<version>-arm64.dmg`: first-run
    permissions, real audio with Apple and local ASR, language and scene changes, shortcuts,
    subtitle placement, history after a slow translation, settings after relaunch, and quitting
    during active work. On Windows 11 x64, `tomoru-setup-<version>-amd64.exe`: the guide from the
@@ -59,10 +63,11 @@ The certificate and update key below are for official releases.
    translation model, and quitting while translating. Check that all three find their bundled
    engines and libraries and carry their [license texts and notices](third-party-licenses.md) in
    `licenses/`: the license check looks at the resources before packaging, not at the package.
-   Also test, on each platform, the pull requests since the last release that say it is left.
-5. Publish the draft on GitHub. Installed apps check soon after they launch, then once a day, and
-   find it then. Within half an hour the website copies its installers to R2 and its download
-   buttons give them ([site/README.md](../site/README.md)).
+6. Publish the draft on GitHub only once all three platforms passed. When a platform's machine is
+   not at hand, wait for it: what is published reaches installed apps within a day. Installed
+   apps check soon after they launch, then once a day, and find it then. Within half an hour the
+   website copies its installers to R2 and its download buttons give them
+   ([site/README.md](../site/README.md)).
 
 ## Building by hand
 
