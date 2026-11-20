@@ -130,9 +130,9 @@ if it was on.
 
 Scheduling onto the UI's main thread uses a cancellable FIFO; producers never wait for the main
 thread, so the main thread stopping a session and a worker can't wait on each other. The
-overlay's pointer watching uses a ticker that can be stopped. The model server's health and
-identity requests are bound to a context and have a per-request timeout; stopped child processes
-are reaped.
+overlay's pointer watching uses a ticker that can be stopped, and stops it while nothing shows to
+grab. The model server's health and identity requests are bound to a context and have a
+per-request timeout; stopped child processes are reaped.
 
 Platform differences live only at the edges: the engine process (Swift on macOS, Go on Windows and Linux);
 `capture` (selecting a part of the screen always goes through the engine's `select`, which reports

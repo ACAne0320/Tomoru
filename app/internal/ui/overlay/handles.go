@@ -29,23 +29,34 @@ import (
 // it, until the pointer has not moved for a while: XWayland does not tell an X11 window that the
 // pointer left it for a Wayland one. Locked, it cannot show the lock. It runs on a goroutine of its
 // own.
+//
+// While nothing can be grabbed (parks), it sleeps until View or SetLocked wakes it, and the
+// window lets all of the mouse through, with no input region: an empty one still has MyGo watch
+// every move of the mouse over any app on macOS, and ask where the cursor is at each tick of the
+// system's clock on Windows. Asking where the pointer is every 50 ms, idle, the app used 1.4% of a
+// core; parked, 0.0% (2026-11-20). It alone sets how the window takes the mouse, on the main
+// thread, in order.
 func (o *Overlay) watchPointer() {
+	const tick = 50 * time.Millisecond // how often it looks, awake
 	const dwell, still, linger, peekFor = 400 * time.Millisecond, 8, 500 * time.Millisecond, 3 * time.Second
 	hover, peek, armed := false, false, false
-	taking := []mygo.Rectangle{} // the part of the overlay that takes the mouse, as last set
+	parked := true              // as the window starts
+	var taking []mygo.Rectangle // the part of the overlay that takes the mouse, as last set
 	var left, restAt, movedAt time.Time
 	var restP, lastP mygo.Point
-	ticker := time.NewTicker(50 * time.Millisecond)
+	ticker := time.NewTicker(tick)
+	ticker.Stop()
 	defer ticker.Stop()
 	for {
 		select {
 		case <-o.core.Context().Done():
 			return
+		case <-o.woken:
 		case <-ticker.C:
 		}
 		p := mygo.Screen.CursorScreenPoint()
 		b, lock := o.blockRect(o.win.Bounds())
-		locked := o.locked.Load()
+		locked, grabbable := o.locked.Load(), o.grabbable.Load()
 		over := within(p, b)
 		if p != lastP {
 			lastP, movedAt = p, time.Now()
@@ -53,7 +64,7 @@ func (o *Overlay) watchPointer() {
 		if pointerUnseen && !locked {
 			over = o.pointerOn.Load() && time.Since(movedAt) < peekFor
 		}
-		in := over && (hover || peek || o.grabbable.Load())
+		in := over && (hover || peek || grabbable)
 		switch {
 		case !in:
 			restAt = time.Time{}
@@ -76,19 +87,57 @@ func (o *Overlay) watchPointer() {
 			armed = false
 			h = (in && (hover || rested || o.adjusting.Load())) || (hover && time.Since(left) < linger)
 		}
+		park := parks(grabbable, h, pk)
+		if park {
+			// Asleep, it cannot tell that the pointer left: the lock may show once something does.
+			armed = true
+		}
+		if park != parked {
+			if park {
+				ticker.Stop()
+			} else {
+				ticker.Reset(tick)
+			}
+		}
 		// What takes the mouse: the system lets the rest through, and switches as the pointer comes
 		// in or leaves, at once, rather than at the next tick here.
-		region := inputRegion(h || pointerUnseen && !locked && o.grabbable.Load(), pk, o)
-		if h != hover || pk != peek || !slices.Equal(region, taking) {
-			hover, peek, taking = h, pk, region
+		region := inputRegion(h || pointerUnseen && !locked && grabbable, pk, o)
+		if h != hover || pk != peek || park != parked || !slices.Equal(region, taking) {
+			woke := parked && !park
+			hover, peek, parked, taking = h, pk, park, region
 			o.win.Update(func() {
 				if o.core.Context().Err() != nil {
 					return
 				}
 				o.hover, o.peek = h, pk
-				o.win.SetInputRegion(region)
+				// In this order, the window never takes all of the mouse: ignoring it wins over the
+				// region, and no region is all of it.
+				switch {
+				case park:
+					o.win.SetIgnoreMouseEvents(true)
+					o.win.SetInputRegion(nil)
+				case woke:
+					o.win.SetInputRegion(region)
+					o.win.SetIgnoreMouseEvents(false)
+				default:
+					o.win.SetInputRegion(region)
+				}
 			})
 		}
+	}
+}
+
+// parks tells whether the pointer watcher sleeps and the window lets all of the mouse through:
+// while the block shows nothing to grab (adjusting, its frame is something), and is neither
+// hovered nor showing the lock.
+func parks(grabbable, hover, peek bool) bool { return !grabbable && !hover && !peek }
+
+// wake has the pointer watcher look at once, as something to grab shows: it may be asleep. It
+// never waits.
+func (o *Overlay) wake() {
+	select {
+	case o.woken <- struct{}{}:
+	default:
 	}
 }
 
