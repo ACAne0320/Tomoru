@@ -320,7 +320,11 @@ func (o *Overlay) sceneMenu(c *ui.Context) {
 	}
 	b.Children(func() {
 		ui.Text(c, name).FontSize(13).Bold().MaxLines(1).MaxWidth(160)
-		ui.Text(c, shared.LangsOf(pr)+" ▾").FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
+		ui.Text(c, shared.LangsOf(pr)).FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
+		// The menu's mark, as the app's other menus draw it: a "▾" took a fallback font's taller line
+		// where the system's font has no such glyph, and the row, centered, set the languages higher
+		// than the scene's name (Noto Sans on Linux, 2026-11-20).
+		ui.Icon(c, assets.Chevron).FontSize(12).TextColor(ui.RGBA(255, 255, 255, .62)).Margin(0, 0, 0, -2)
 	})
 	b.Menu(shared.SceneMenu(k, true, func() { o.nav.ShowSettingsPage("scenes") }))
 }
