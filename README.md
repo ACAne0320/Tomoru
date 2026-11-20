@@ -196,6 +196,18 @@ starts.
 > I-it's not a nod to MyGO!!!!!'s [Tomorin](https://en.wikipedia.org/wiki/Tomori_Takamatsu) or
 > anything!
 
+## Star history
+
+<p align="center">
+  <a href="https://www.star-history.com/#ACAne0320/Tomoru&amp;Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date&amp;theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date">
+      <img alt="GitHub stars of ACAne0320/Tomoru over time" src="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date">
+    </picture>
+  </a>
+</p>
+
 ## License
 
 The code is licensed under the GNU General Public License v3.0 or later ([LICENSE](LICENSE)). The

@@ -149,6 +149,18 @@ app 的名字来自看板娘 Tomoru（ともる），一个提着纸灯笼的女
 
 > 才、才没有 neta Mygo 中的 [Tomorin](https://zh.wikipedia.org/wiki/%E9%AB%98%E6%9D%BE%E7%87%88) 呢！
 
+## Star 历史
+
+<p align="center">
+  <a href="https://www.star-history.com/#ACAne0320/Tomoru&amp;Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date&amp;theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date">
+      <img alt="ACAne0320/Tomoru 的 GitHub Star 随时间变化" src="https://api.star-history.com/svg?repos=ACAne0320/Tomoru&amp;type=date">
+    </picture>
+  </a>
+</p>
+
 ## 许可证
 
 代码以 GNU 通用公共许可证 v3.0 或更新版本授权（[LICENSE](LICENSE)）。名称、图标和吉祥物不在此列：见 [商标说明](TRADEMARKS_zh.md)。
