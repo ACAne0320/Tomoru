@@ -365,10 +365,11 @@ Copy. The title row has the language it translates into, a `Picker`; with no ima
 for Screen Recording instead. See [image translation](image-translation.md).
 
 **Overlay**: while hovered or being moved, the subtitle box and the toolbar above it sit on the
-system's Liquid Glass (`overlay/glass_darwin.go`):
+system's Liquid Glass (`onGlass` in `overlay/handles.go`):
 
-- AppKit's `NSGlassEffectView` (macOS 26), inserted in the overlay's window under what MyGo draws,
-  so other apps behind show through. MyGo's glass plugin only shows what the same window draws.
+- AppKit's `NSGlassEffectView` (macOS 26), which MyGo puts in the overlay's window under what it
+  draws (a native glass material), so other apps behind show through. MyGo moves the glass in the
+  same Core Animation commit as the frame drawn over it, so dragged, the box keeps its glass.
 - The clear style (regular gets more frosted the larger it is). The ground is light, only enough
   to read the text: with a box, 65% of the box's opacity, of 42% at least (40% by default), 27% immersive; the toolbar 12% darker.
 - Clear glass is only clear in the active window. AppKit's private `_setForceMainAppearance:`

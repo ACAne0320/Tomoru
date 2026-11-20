@@ -198,6 +198,31 @@ func TestResize(t *testing.T) {
 	}
 }
 
+// TestMoveTakesText moves the hovered block up, as a drag does from frame to frame: its sentences
+// go with it in the same frame, rather than rolling after it, the older a moment later.
+func TestMoveTakesText(t *testing.T) {
+	k := coretest.New()
+	area := mygo.Rectangle{Width: 1400, Height: 820}
+	o := &Overlay{core: k, nav: &coretest.Nav{}, area: area, display: mygo.Display{Bounds: area, WorkArea: area}}
+	k.Running, k.Updated = true, time.Now()
+	k.State = live.State{Phase: "listening", Lines: []live.Line{
+		{ID: 1, Src: "みなさん、こんばんは。", Tgt: "大家晚上好。", Done: true},
+		{ID: 2, Src: "今日は頑張ります。", Tgt: "今天我会努力。", Done: true},
+	}}
+	o.hover = true
+	tt := ui.NewTester(o.View, 1400, 900)
+	tt.Advance(time.Second)
+	older, _ := tt.Find("大家晚上好。")
+	newest, _ := tt.Find("今天我会努力。")
+	k.Prefs.Bottom = o.blockBottom() - 120
+	tt.Frame()
+	for s, was := range map[string]ui.Rect{"大家晚上好。": older, "今天我会努力。": newest} {
+		if r, _ := tt.Find(s); r.Y != was.Y-120 {
+			t.Errorf("%q at %.0f, not %.0f with the block", s, r.Y, was.Y-120)
+		}
+	}
+}
+
 // TestDisplays puts the subtitles on the display they were moved to, by its name, or on the primary
 // one while it is not connected; their bottom edge is kept from their display's top.
 func TestDisplays(t *testing.T) {
