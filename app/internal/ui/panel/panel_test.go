@@ -108,7 +108,7 @@ func TestPanelCount(t *testing.T) {
 	}
 }
 
-// TestPanelRunning shows the run's numbers while translating, and stops it.
+// TestPanelRunning shows the run's numbers while translating, and pauses it.
 func TestPanelRunning(t *testing.T) {
 	k := coretest.New()
 	k.Err, k.Running = nil, true
@@ -117,13 +117,13 @@ func TestPanelRunning(t *testing.T) {
 	tt.SetScale(2)
 	tt.Advance(1e9)
 	tt.Frame()
-	for _, want := range []string{locales.HomeTranslating(), locales.Stop()} {
+	for _, want := range []string{locales.HomeTranslating(), locales.PauseShort()} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
 	gallery(t, tt, "panel")
-	if err := tt.Click(locales.Stop()); err != nil {
+	if err := tt.Click(locales.PauseShort()); err != nil {
 		t.Fatal(err)
 	}
 	gallery(t, tt, "panel-idle") // the sticker asleep

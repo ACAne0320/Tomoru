@@ -321,16 +321,16 @@ func (msgs Messages) SourceNotRunning(app string) string {
 	return Catalog.Format(msgs.locale, "sourceNotRunning", map[string]any{"app": app})
 }
 
-// Shortcut says "Start / stop"
+// Shortcut says "Start / pause"
 // in the language the app shows.
 //
-// Label of the global shortcut that starts and stops translating.
+// Label of the global shortcut that starts and pauses translating.
 func Shortcut() string { return In(i18n.Locale()).Shortcut() }
 
-// Shortcut says "Start / stop"
+// Shortcut says "Start / pause"
 // in the language of msgs.
 //
-// Label of the global shortcut that starts and stops translating.
+// Label of the global shortcut that starts and pauses translating.
 func (msgs Messages) Shortcut() string {
 	return Catalog.Format(msgs.locale, "shortcut", nil)
 }
@@ -1693,27 +1693,27 @@ func (msgs Messages) Start() string {
 	return Catalog.Format(msgs.locale, "start", nil)
 }
 
-// Stop says "Stop"
+// PauseShort says "Pause"
 // in the language the app shows.
 //
-// Button that stops translating.
-func Stop() string { return In(i18n.Locale()).Stop() }
+// The menu bar panel's button that pauses translating: short, as start.
+func PauseShort() string { return In(i18n.Locale()).PauseShort() }
 
-// Stop says "Stop"
+// PauseShort says "Pause"
 // in the language of msgs.
 //
-// Button that stops translating.
-func (msgs Messages) Stop() string {
-	return Catalog.Format(msgs.locale, "stop", nil)
+// The menu bar panel's button that pauses translating: short, as start.
+func (msgs Messages) PauseShort() string {
+	return Catalog.Format(msgs.locale, "pauseShort", nil)
 }
 
-// ShortcutHint says "{keys} start / stop"
+// ShortcutHint says "{keys} start / pause"
 // in the language the app shows.
 //
 // At the bottom of the menu bar panel.
 func ShortcutHint(keys string) string { return In(i18n.Locale()).ShortcutHint(keys) }
 
-// ShortcutHint says "{keys} start / stop"
+// ShortcutHint says "{keys} start / pause"
 // in the language of msgs.
 //
 // At the bottom of the menu bar panel.
@@ -1835,30 +1835,32 @@ func (msgs Messages) LockedToast() string {
 	return Catalog.Format(msgs.locale, "lockedToast", nil)
 }
 
-// Pause says "Pause"
+// Pause says "Pause translating"
 // in the language the app shows.
 //
-// Tooltip of the subtitles' toolbar.
+// The action that pauses translating: the home page's button, the menu bar
+// icon's menu and the subtitles' toolbar.
 func Pause() string { return In(i18n.Locale()).Pause() }
 
-// Pause says "Pause"
+// Pause says "Pause translating"
 // in the language of msgs.
 //
-// Tooltip of the subtitles' toolbar.
+// The action that pauses translating: the home page's button, the menu bar
+// icon's menu and the subtitles' toolbar.
 func (msgs Messages) Pause() string {
 	return Catalog.Format(msgs.locale, "pause", nil)
 }
 
-// PauseSubtitles says "Pause"
+// PauseSubtitles says "Pause subtitles"
 // in the language the app shows.
 //
-// The overlay's pause button, while the subtitles show the original only.
+// pause, while the subtitles show the original only.
 func PauseSubtitles() string { return In(i18n.Locale()).PauseSubtitles() }
 
-// PauseSubtitles says "Pause"
+// PauseSubtitles says "Pause subtitles"
 // in the language of msgs.
 //
-// The overlay's pause button, while the subtitles show the original only.
+// pause, while the subtitles show the original only.
 func (msgs Messages) PauseSubtitles() string {
 	return Catalog.Format(msgs.locale, "pauseSubtitles", nil)
 }
@@ -1937,110 +1939,52 @@ func (msgs Messages) NoticeSlowNetwork() string {
 	return Catalog.Format(msgs.locale, "noticeSlowNetwork", nil)
 }
 
-// NoticePaused says "Paused · {keys} to go on"
+// NoticePaused says "Paused"
 // in the language the app shows.
 //
-// Where the subtitles show, while paused from their toolbar.
-func NoticePaused(keys string) string { return In(i18n.Locale()).NoticePaused(keys) }
+// Where the subtitles show, beside a pause mark: while paused from their
+// toolbar, or for a few seconds after paused by the shortcut or the menus.
+func NoticePaused() string { return In(i18n.Locale()).NoticePaused() }
 
-// NoticePaused says "Paused · {keys} to go on"
+// NoticePaused says "Paused"
 // in the language of msgs.
 //
-// Where the subtitles show, while paused from their toolbar.
-func (msgs Messages) NoticePaused(keys string) string {
-	return Catalog.Format(msgs.locale, "noticePaused", map[string]any{"keys": keys})
+// Where the subtitles show, beside a pause mark: while paused from their
+// toolbar, or for a few seconds after paused by the shortcut or the menus.
+func (msgs Messages) NoticePaused() string {
+	return Catalog.Format(msgs.locale, "noticePaused", nil)
 }
 
-// NoticeStatus says "{status} · {langs}"
+// NoticeListening says "Listening"
 // in the language the app shows.
 //
-// Where the subtitles show, while translating gets ready.
-func NoticeStatus(status string, langs string) string {
-	return In(i18n.Locale()).NoticeStatus(status, langs)
-}
+// Where the subtitles show, beside bars moving with what is heard, for a
+// few seconds after listening starts.
+func NoticeListening() string { return In(i18n.Locale()).NoticeListening() }
 
-// NoticeStatus says "{status} · {langs}"
+// NoticeListening says "Listening"
 // in the language of msgs.
 //
-// Where the subtitles show, while translating gets ready.
-func (msgs Messages) NoticeStatus(status string, langs string) string {
-	return Catalog.Format(msgs.locale, "noticeStatus", map[string]any{"status": status, "langs": langs})
+// Where the subtitles show, beside bars moving with what is heard, for a
+// few seconds after listening starts.
+func (msgs Messages) NoticeListening() string {
+	return Catalog.Format(msgs.locale, "noticeListening", nil)
 }
 
-// NoticeListening says "Listening · {langs} · {keys} to stop"
+// NoticeReady says "Tomoru is ready"
 // in the language the app shows.
 //
-// Where the subtitles show, for a few seconds after listening starts.
-func NoticeListening(langs string, keys string) string {
-	return In(i18n.Locale()).NoticeListening(langs, keys)
-}
+// Where the subtitles show, beside Tomoru's eyes, for a few seconds after
+// the app opens without translating.
+func NoticeReady() string { return In(i18n.Locale()).NoticeReady() }
 
-// NoticeListening says "Listening · {langs} · {keys} to stop"
+// NoticeReady says "Tomoru is ready"
 // in the language of msgs.
 //
-// Where the subtitles show, for a few seconds after listening starts.
-func (msgs Messages) NoticeListening(langs string, keys string) string {
-	return Catalog.Format(msgs.locale, "noticeListening", map[string]any{"langs": langs, "keys": keys})
-}
-
-// NoticeReady says "Tomoru is ready · press {keys} to translate"
-// in the language the app shows.
-//
-// Where the subtitles show, for a few seconds after the app opens without
-// translating.
-func NoticeReady(keys string) string { return In(i18n.Locale()).NoticeReady(keys) }
-
-// NoticeReady says "Tomoru is ready · press {keys} to translate"
-// in the language of msgs.
-//
-// Where the subtitles show, for a few seconds after the app opens without
-// translating.
-func (msgs Messages) NoticeReady(keys string) string {
-	return Catalog.Format(msgs.locale, "noticeReady", map[string]any{"keys": keys})
-}
-
-// NoticeReadySubtitles says "Tomoru is ready · press {keys} for subtitles"
-// in the language the app shows.
-//
-// noticeReady, while the subtitles show the original only.
-func NoticeReadySubtitles(keys string) string { return In(i18n.Locale()).NoticeReadySubtitles(keys) }
-
-// NoticeReadySubtitles says "Tomoru is ready · press {keys} for subtitles"
-// in the language of msgs.
-//
-// noticeReady, while the subtitles show the original only.
-func (msgs Messages) NoticeReadySubtitles(keys string) string {
-	return Catalog.Format(msgs.locale, "noticeReadySubtitles", map[string]any{"keys": keys})
-}
-
-// NoticeStopped says "Stopped translating · {keys} to start again"
-// in the language the app shows.
-//
-// Where the subtitles show, for a few seconds after translating stops.
-func NoticeStopped(keys string) string { return In(i18n.Locale()).NoticeStopped(keys) }
-
-// NoticeStopped says "Stopped translating · {keys} to start again"
-// in the language of msgs.
-//
-// Where the subtitles show, for a few seconds after translating stops.
-func (msgs Messages) NoticeStopped(keys string) string {
-	return Catalog.Format(msgs.locale, "noticeStopped", map[string]any{"keys": keys})
-}
-
-// NoticeStoppedSubtitles says "Stopped subtitles · {keys} to start again"
-// in the language the app shows.
-//
-// noticeStopped, while the subtitles show the original only.
-func NoticeStoppedSubtitles(keys string) string {
-	return In(i18n.Locale()).NoticeStoppedSubtitles(keys)
-}
-
-// NoticeStoppedSubtitles says "Stopped subtitles · {keys} to start again"
-// in the language of msgs.
-//
-// noticeStopped, while the subtitles show the original only.
-func (msgs Messages) NoticeStoppedSubtitles(keys string) string {
-	return Catalog.Format(msgs.locale, "noticeStoppedSubtitles", map[string]any{"keys": keys})
+// Where the subtitles show, beside Tomoru's eyes, for a few seconds after
+// the app opens without translating.
+func (msgs Messages) NoticeReady() string {
+	return Catalog.Format(msgs.locale, "noticeReady", nil)
 }
 
 // SampleNoteRunning says "Sample subtitles · when someone speaks, subtitles show here"
@@ -4375,36 +4319,6 @@ func (msgs Messages) HomeSubtitlesOff() string {
 	return Catalog.Format(msgs.locale, "homeSubtitlesOff", nil)
 }
 
-// StopTranslating says "Stop translating"
-// in the language the app shows.
-//
-// The home page's button while translating.
-func StopTranslating() string { return In(i18n.Locale()).StopTranslating() }
-
-// StopTranslating says "Stop translating"
-// in the language of msgs.
-//
-// The home page's button while translating.
-func (msgs Messages) StopTranslating() string {
-	return Catalog.Format(msgs.locale, "stopTranslating", nil)
-}
-
-// StopSubtitles says "Stop subtitles"
-// in the language the app shows.
-//
-// The button that stops, in place of stopTranslating, while the subtitles
-// show the original only.
-func StopSubtitles() string { return In(i18n.Locale()).StopSubtitles() }
-
-// StopSubtitles says "Stop subtitles"
-// in the language of msgs.
-//
-// The button that stops, in place of stopTranslating, while the subtitles
-// show the original only.
-func (msgs Messages) StopSubtitles() string {
-	return Catalog.Format(msgs.locale, "stopSubtitles", nil)
-}
-
 // HomeStats says "Numbers"
 // in the language the app shows.
 //
@@ -6127,13 +6041,13 @@ func (msgs Messages) GuideShortcutsTitle() string {
 	return Catalog.Format(msgs.locale, "guideShortcutsTitle", nil)
 }
 
-// GuideShortcutsBody says "Press it anywhere to start or stop translating. Try it now."
+// GuideShortcutsBody says "Press it anywhere to start or pause translating. Try it now."
 // in the language the app shows.
 //
 // Guide, shortcuts step.
 func GuideShortcutsBody() string { return In(i18n.Locale()).GuideShortcutsBody() }
 
-// GuideShortcutsBody says "Press it anywhere to start or stop translating. Try it now."
+// GuideShortcutsBody says "Press it anywhere to start or pause translating. Try it now."
 // in the language of msgs.
 //
 // Guide, shortcuts step.

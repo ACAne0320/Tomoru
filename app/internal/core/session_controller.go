@@ -17,7 +17,6 @@ import (
 // reports in a synchronized accumulator, then enqueue display updates.
 type SessionController struct {
 	Running bool
-	Paused  bool
 	Err     error
 	State   live.State
 	NoteAt  time.Time
@@ -53,7 +52,7 @@ func (s *SessionController) start(r sessionRequest) {
 	s.stop()
 	s.run++
 	run := s.run
-	s.Paused, s.Err, s.Started = false, r.Err, true
+	s.Err, s.Started = r.Err, true
 	s.State, s.Since = live.State{Phase: "starting"}, 0
 	defer s.changed()
 	if r.Err != nil {

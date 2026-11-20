@@ -21,9 +21,9 @@ lantern's paper at night:
 
 Principles:
 
-1. **State first, then actions.** The first thing on the home page is "Translating" and the stop
+1. **State first, then actions.** The first thing on the home page is "Translating" and the pause
    button; settings come after.
-2. **Plain.** Buttons say the action (Start translating, Stop translating, Use Model Studio
+2. **Plain.** Buttons say the action (Start translating, Pause translating, Use Model Studio
    instead); no metaphors (not "put out the lantern"), no icons the user has to guess.
 3. **No repeats.** Say each thing in one place. If the button already shows the state, don't add a
    label; if the sentence already names the languages, the stage doesn't name them again.
@@ -184,6 +184,18 @@ translation comes in. The pane of the step's choice is lit: brighter glass and a
 the others dim only their content; choosing another engine flashes its pane once. Trying it, the
 same panes run on what is really heard, each check ticking as the light reaches its pane.
 
+While no subtitles show, a notice floats over them, a capsule of its own in the toolbar's glass
+and shade, never in the block: hovered, the toolbar takes its place and it rises above it. Ready,
+listening and paused show for 4 s, however translating was started or paused, then go; getting
+ready and what went wrong, for as long as they last. Its `StatusMark` comes before its words:
+Tomoru's eyes opening, blinking and looking aside when she is ready; dots with a slow light passing
+along them while she gets ready; while listening, five bars moving with what is heard, from the
+middle out, the dots breathing together while it is quiet; the two bars of a pause. A new pill
+comes from a blur, its dots spreading from the middle, and its words follow 320 ms after the
+mark; while it shows, the mark goes from state to state and the words change one at a time. It asks
+for no frame while nothing in it moves. Its timings are its own, in `kit/statusmark.go` and the
+overlay. With Reduce Motion it holds still: the eyes open, still dots, a still pause.
+
 The stage's stars and its glow don't move.
 
 ### Icons
@@ -204,7 +216,7 @@ The stage's stars and its glow don't move.
   translating, open while translating. Sources are `assets/tray-idle.svg` and `tray-on.svg`;
   `swift scripts/tray-icons.swift` makes the PNGs.
 - A click on it opens the menu bar panel, Tomoru's own; a right-click (Control-click on macOS) the
-  system's menu, on macOS and Windows alike: start or stop translating and Screenshot, each with its
+  system's menu, on macOS and Windows alike: start or pause translating and Screenshot, each with its
   shortcut, Open Tomoru and About Tomoru, then Quit Tomoru. It does one thing at once, or quits,
   without the panel; what one adjusts stays in the panel, which quits too, for those who never
   right-click.
@@ -231,7 +243,7 @@ The stage's stars and its glow don't move.
 
 | Component | Use | Built on |
 |---|---|---|
-| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo, a state switched: Stop translating), `Plain` (raised: Download, Adjust position, New scene, Learn names, Show in Finder), `Soft` (light amber: the panel's lock while locked), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete or a discard). `Off` disables one with kit's own face: the track's fill, a faint label | `ButtonBase` |
+| `Button` | `Primary` (amber, at most one per screen: Start translating, Use instead, Use this scene), `Strong` (indigo, a state switched: Pause translating), `Plain` (raised: Download, Adjust position, New scene, Learn names, Show in Finder), `Soft` (light amber: the panel's lock while locked), `Quiet` (ground only on hover: actions beside list rows), `Danger` (red: only on the button confirming a delete or a discard). `Off` disables one with kit's own face: the track's fill, a faint label | `ButtonBase` |
 | `IconButton` | Round, three sizes 30 / 36 / 46: manage, all, reset | `ButtonBase` + `Tooltip` |
 | `DeleteButton` / `CancelButton` | The one delete, a trash can, and the one cancel, a cross: Quiet until hovered, then red. Models, records, names, everything | `IconButton` |
 
@@ -252,6 +264,7 @@ The stage's stars and its glow don't move.
 | `ChoiceList` | A list of families, beside what it shows: under its heads (On device, Cloud), each row its radio, its name and tag over a line of its state (in red for what keeps it from working); in use is said by its radio alone, a download's bar under them; the radio uses it (dashed and disabled while nothing of it can be), the rest of the row shows it, on `Shown`. To assistive technology the rows are tabs, selected while shown, beside radio buttons named "Use …" | `ButtonBase` (tab and radio roles) |
 | `ListCard` / `MenuRow` | The panel's source and scene rows, which open system menus; a row's icon is `MenuIcon`, or `MenuLevels` for the source while listening | `MenuButton` |
 | `Levels` | A few bars rising and falling as speech does while a voice is heard (the engine's voice detection), low and still-ish while not; still with Reduce Motion. On the guide's stage, and in place of the source's icon in the panel | `Draw` |
+| `StatusMark` | What listening does, at a glance, in a given color: Tomoru's eyes (ready), five dots with a light passing (getting ready), five bars as loud as what is heard (listening), a pause; moving from one to the next. Still with Reduce Motion, and no frames while nothing moves. In the subtitles' notice | `Draw` |
 
 **Input**
 
@@ -259,7 +272,7 @@ The stage's stars and its glow don't move.
 |---|---|---|
 | `TextField` / `TextBox` | Paper-style input and multi-line input (scene description, API key) | `TextInputBase`, `TextAreaBase` |
 | `CellInput` | A table cell: looks like text, shows a ground on hover, an amber outline with focus | `TextInputBase` |
-| `ShortcutField` | Recording a shortcut; shared by the start/stop and image shortcuts, which can't be the same | |
+| `ShortcutField` | Recording a shortcut; shared by the start/pause and image shortcuts, which can't be the same | |
 
 **Display**
 
@@ -317,7 +330,7 @@ Statistics; at the bottom, Preferences and About. The settings window opens at 1
 
 | Page | Contents |
 |---|---|
-| Home | Title (Translating / Not translating yet) and Start / Stop, which with the original only are of subtitles (Showing subtitles / Subtitles off, Start / Stop subtitles), as the panel, the menu bar icon's menu, the subtitles' toolbar and notices are; one row of menus: what is heard (Sound from, as the panel says: all system sound or an app), then the scene (each with its languages, then New scene… and Manage scenes…) and its languages, spoken and translation, with the swap button between them as in the panel, the two groups wrapping whole in a narrow window; why translating stopped, if it did, in red, with the one button that resolves it beside it: Open Speech & translation, Open System Settings, or Try again (`shared.ErrorFix`); live statistics (sentences translated, or heard while the subtitles show the original only, speech time, characters translated, and today's totals); lines by day as a `Heatmap`, as many weeks as fit up to a year, its squares growing to fill the card, its total and a button to Statistics at the top right; clicking a day opens Statistics on the shortest period with it, its bar chosen (no subtitles here: they show over the screen); the last two sessions, as History's `List` rows, each with Learn names at its end; one clicked opens it in History |
+| Home | Title (Translating / Not translating yet) and Start / Pause, which with the original only are of subtitles (Showing subtitles / Subtitles off, Start / Pause subtitles), as the panel, the menu bar icon's menu and the subtitles' toolbar are; one row of menus: what is heard (Sound from, as the panel says: all system sound or an app), then the scene (each with its languages, then New scene… and Manage scenes…) and its languages, spoken and translation, with the swap button between them as in the panel, the two groups wrapping whole in a narrow window; why translating stopped, if it did, in red, with the one button that resolves it beside it: Open Speech & translation, Open System Settings, or Try again (`shared.ErrorFix`); live statistics (sentences translated, or heard while the subtitles show the original only, speech time, characters translated, and today's totals); lines by day as a `Heatmap`, as many weeks as fit up to a year, its squares growing to fill the card, its total and a button to Statistics at the top right; clicking a day opens Statistics on the shortest period with it, its bar chosen (no subtitles here: they show over the screen); the last two sessions, as History's `List` rows, each with Learn names at its end; one clicked opens it in History |
 | Subtitle style | Preview; two cards side by side, five rows each, their rules and control column lined up: look (background, box opacity, greyed while immersive, edges, alignment, font: System, Serif, Rounded, a font of the system's chosen before, then More fonts…, a dialog of the system's fonts with a search field, each a line in the language on top of the subtitles, bold, its name under it; a font no longer installed shows as System, which draws the subtitles) and text (the original's size, the translation's, text opacity, which is on top, color scheme); with the translation only, the original's size and the order stay, greyed, and with the original only, the translation's size and the order, and the translation language and the swap button grey on Home and in the panel; with Custom, a card across the page under them: the original's, the translation's and, with an edge or a box, the edge's color; showing (sentences at once, earlier subtitles' opacity, greyed with one at a time, hide when no new subtitles come, and after how many seconds, or keep them, hide from screen recordings); adjust position on screen (a plain button), reset |
 | Speech & translation | A card each for recognition and translation, one above the other, split in two (`SplitCard`). On the left, its families (`ChoiceList`) under On device and Cloud, no note under either, translation's ending with Add API, each API of the user's a row of its own: a radio, the family's name and tag (Built in; Recommended on one a kind: the local family's size this computer runs, else the cloud's translation, else none), and its state in a line: in use, its size and one downloading, else its service as set up or what it costs; Doesn't hear French, in red; a download's progress, with its bar while another family shows; Add an API key to use it; not downloaded; the sizes downloaded. The radio uses the family at once, at its size in use, else its size to recommend, else the largest downloaded, and is dashed, doing nothing, while nothing of it is downloaded or set up; clicking the rest of the row shows the family on the right, on `Shown`. On the right: its name, at its right where it is from (GitHub, or the service's page of its models) or, an API of the user's, Delete (undone by its toast), and under it what is worth knowing before using it, if anything: what it costs, or how the system's does (in use is said by the radios, no label); a recognizer that doesn't hear the spoken language, what using it changes; a model's sizes as `Options` under Size (Model for one), on the pane with no card of their own, as the list's rows are, each used by its row once downloaded where this computer runs it, Recommended and Downloaded, quicker or more accurate where measured so against the other size, its size and, where this computer is known to run it, that it does, else what it needs, or in red what it needs and what this computer has, with no Download; Download only downloads, then Cancel with its progress, then Delete (asked as in [Deleting](#deleting)); a recognizer's languages; the system's recognition a row of its own under Model, Built in, used by it; Index-Translate's cloud (bilibili) its sizes under Size, 2B, 9B and 35B, each used by its row; or a cloud service: a service of the user's key (Qwen ASR, OpenAI, Hy-MT2 on Tencent Cloud) not set up shows its form at once, its API key first, the note under it linking to the page where the service makes keys, then its model (a segmented control where the service has models of its own) and address folded under Model and address (`Disclosure`), open where they were changed; set up, a service or an API is a line under Service, "model · host · key saved" or "model · host", with Use while another is in use and Edit, which opens its form in its place (a service's with Cancel, an API's with Test, Cancel and Save); Add API shows an empty form. Saving uses nothing: the radio does. A model downloaded says so in a toast, with Use. Then Picture translation: a card of its engine, a `Picker` of the engines that read pictures (the cloud's and the local models downloaded, a separator, the user's APIs), and its shortcut, both in the `Control` column; then a card of two settings: translate ahead and, with local models, the model folder: its path, Show and Change…, which moves the models into a "Tomoru Models" folder in the folder chosen, a progress bar under the path in place of the buttons and the models' own actions held while they move |
 | Scenes | New scene (Plain) by the title; the scene `List` on the left, the scene in use marked `InUse`; its card on the right: name, In use (`InUseLabel`) or Use this scene, the page's one Primary; then three parts headed alike, a bold name with its controls at the end: languages, description (what it is for under the field), glossary (an editable table of `CellInput`s, its text lined up with the description's; learned names starred; Learn from history and + both Plain). See [scenes](scenes.md) |
@@ -325,12 +338,12 @@ Statistics; at the bottom, Preferences and About. The settings window opens at 1
 | Statistics | Laid out as Screen Time: range (last 7 days / 30 days / all); Usage, one card of recognition or translation (switched at the end of its title, translation first): the total (listening hours or lines) with a day's average and speech time or characters beside it (and the pictures translated, on the translation side), and how much more or less than the 7 or 30 days before (not for all, nor with nothing before), a bar per day (or month) stacked by engine, and the engines as `ShareRow`s, each with `Facts` of what it did and how soon (clicking one shows it alone in the chart, the others dimmed; clicking it again shows all); listening time in hours, minutes or seconds throughout; then Latency: `PickTiles` of the five (what you wait; recognition's first words and settling; translation's first words and whole line), each with its median, to look into one; what it measures, and its median against the days before (faster in green, slower in red, about the same within 5% or 0.05 s); and its `Histogram`, or by day (or month) a `WhiskerChart`. Numbers only, never what was said |
 | Preferences | Appearance (system / light / dark), UI language; start on open, open at login, shortcuts |
 | About | The icon, name and tagline; a card of rows: the version with Check for updates…, the first-run guide with Run again, the logs with Show in Finder; then the license and credits in a sand card |
-| Menu bar panel | Header: the mascot's sticker, state, live statistics (the time, then the count with its unit, going on to a second line between the two, never inside one), Start / Stop; why translating stopped, if it did, in red, with the button that resolves it under it, as on Home; one card: the scene, its two languages and swap under it with no rule between (the scene keeps them), then, after a rule, the source; footer: a row of Quiet icon buttons, each named in its tooltip: Screenshot (translating a part of the screen, as its shortcut does; the panel steps out of the way first; its tooltip adds the shortcut), a rule, Move subtitles (their frame shows, to find and move them while no subtitles show; unlocks them first), the lock (open while unlocked; shut on the lantern's tint while locked, named for what a click does: Lock subtitles / Unlock subtitles), then at the far end Open Settings and Quit Tomoru (a power icon, red when hovered), apart from Stop so that quitting is never a slip. Show original and sentences at once are in Subtitle style, About in the menu bar icon's menu and the settings window. While listening, the source's icon is `Levels`, rising while a voice is heard: with no lines yet, it tells whether sound comes. The shortcuts are not spelled out, for want of room: hovering Start / Stop and Screenshot shows theirs |
+| Menu bar panel | Header: the mascot's sticker, state, live statistics (the time, then the count with its unit, going on to a second line between the two, never inside one), Start / Pause; why translating stopped, if it did, in red, with the button that resolves it under it, as on Home; one card: the scene, its two languages and swap under it with no rule between (the scene keeps them), then, after a rule, the source; footer: a row of Quiet icon buttons, each named in its tooltip: Screenshot (translating a part of the screen, as its shortcut does; the panel steps out of the way first; its tooltip adds the shortcut), a rule, Move subtitles (their frame shows, to find and move them while no subtitles show; unlocks them first), the lock (open while unlocked; shut on the lantern's tint while locked, named for what a click does: Lock subtitles / Unlock subtitles), then at the far end Open Settings and Quit Tomoru (a power icon, red when hovered), apart from Pause so that quitting is never a slip. Show original and sentences at once are in Subtitle style, About in the menu bar icon's menu and the settings window. While listening, the source's icon is `Levels`, rising while a voice is heard: with no lines yet, it tells whether sound comes. The shortcuts are not spelled out, for want of room: hovering Start / Pause and Screenshot shows theirs |
 
 **First-run guide**: 800×580, paper on the left, the night sky stage on the right. Three phases,
 "Set up › Try it › Start", with the phase's name at the top and an amber progress bar beneath.
 Eight steps: welcome and languages, permission, speech recognition, translation (each one choice, a family a row, as the settings list them: recognition only on this device, the system's, SenseVoice and Qwen3-ASR, the cloud's being set up in Settings; translation "On device" then "Cloud", Index-Translate and Hy-MT2, then Index-Translate 35B, chosen to begin with; Recommended as in the settings. A family's size is picked for the user, its size to recommend where this computer runs it, else the largest it runs, else the smallest; choosing a model not downloaded downloads it, and it is used once it is in, as in the settings it is not. A model's row says its size's name and its size, then for SenseVoice that it runs on the CPU, with no GPU needed, and for Qwen3-ASR and the translation models the memory they need, the GPU's on Windows (Qwen3-ASR's also that it runs on the GPU); under the cloud's, what it receives; the stage lights the engine the step chooses); try subtitles, the
-start/stop shortcut, select-to-translate (can be skipped; once on, two checks one after the other: press the shortcut, then press it again and select the sample dialogue on the stage, which is translated for real, its translation under the check; until then the stage says to select it); ready.
+start/pause shortcut, select-to-translate (can be skipped; once on, two checks one after the other: press the shortcut, then press it again and select the sample dialogue on the stage, which is translated for real, its translation under the check; until then the stage says to select it); ready.
 
 - The permission page has one row per permission, checked once granted; on the right, "Your
   privacy": nothing is recorded, your screen isn't seen (only images you capture yourself are
@@ -373,14 +386,14 @@ after a few seconds of a still pointer, so a pointer left over a video wakes not
 
 ## Wording
 
-- Buttons say the action, titles the state: "Stop translating", "Translating", "Use Model Studio
+- Buttons say the action, titles the state: "Pause translating", "Translating", "Use Model Studio
   instead".
 - At most one sentence of explanation, and none if it can go; say it with numbers when you can
   (12 names, 1.2 GB).
 - No metaphors or brand words in place of a feature's name (not "put out the lantern", "light
   up", "hear and translate").
 - The text of all five UI languages lives in `locales/`; add new text in all of them. Buttons must
-  fit in all five (the panel's "Start" pairs with "Stop", not "Start translating", or the live
+  fit in all five (the panel's "Start" pairs with "Pause", not "Start translating", or the live
   numbers beside it are squeezed into an ellipsis).
 
 ## Deleting

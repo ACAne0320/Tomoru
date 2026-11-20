@@ -212,16 +212,6 @@ func (c *Core) Stop() {
 	}
 }
 
-// Pause stops translating from the subtitles, which then offer to go on, and the local models with
-// it.
-func (c *Core) Pause() {
-	if c.stop() {
-		c.freeModels()
-	}
-	c.Paused = true
-	c.changed()
-}
-
 func (c *Core) stop() bool { return c.SessionController.stop() }
 
 // freeModels stops the local models' llama-servers, which give their memory back (8.6 GB for

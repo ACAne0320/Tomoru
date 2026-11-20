@@ -67,29 +67,34 @@ func TestNotice(t *testing.T) {
 	k.Prefs.ASR = "apple" // recognition that needs no download, whatever the system
 	keys := kit.ShortcutText("Alt+Shift+T")
 	tt := ui.NewTester(o.View, 1400, 900)
-	if !tt.HasText(locales.NoticeReady(keys)) {
+	tt.Advance(time.Second) // the words come after the mark
+	if !tt.HasText(locales.NoticeReady()) {
 		t.Errorf("at launch: %q", tt.Texts())
 	}
 	k.Start()
 	tt.Frame()
-	if !tt.HasText(locales.NoticeStatus(locales.StatusPreparing(), shared.Langs("ja", "zh"))) {
+	tt.Advance(time.Second)
+	if !tt.HasText(locales.StatusPreparing()) || !tt.HasText(shared.Langs("ja", "zh")) {
 		t.Errorf("starting: %q", tt.Texts())
 	}
 	// With the original only, there is no language translated into to name.
 	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
 	tt.Frame()
-	if !tt.HasText(locales.NoticeStatus(locales.StatusPreparing(), shared.LangName("ja"))) {
+	tt.Advance(time.Second)
+	if !tt.HasText(shared.LangName("ja")) {
 		t.Errorf("starting with the original only: %q", tt.Texts())
 	}
 	k.Stop()
-	k.NoteAt = time.Now()
+	k.NoteAt = tt.Now()
 	tt.Frame()
-	if !tt.HasText(locales.NoticeStoppedSubtitles(keys)) {
-		t.Errorf("stopped with the original only: %q", tt.Texts())
+	tt.Advance(time.Second)
+	if !tt.HasText(locales.NoticePaused()) {
+		t.Errorf("paused: %q", tt.Texts())
 	}
 	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplayBoth })
 	k.Err = &engine.Error{Code: "no-permission"}
 	tt.Frame()
+	tt.Advance(time.Second)
 	if !tt.HasText(locales.NoticeRetry(locales.StatusNoPermission(), keys)) {
 		t.Errorf("after an error: %q", tt.Texts())
 	}
@@ -97,8 +102,72 @@ func TestNotice(t *testing.T) {
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: "listening", Slow: true}
 	tt.Frame()
+	tt.Advance(time.Second)
 	if !tt.HasText(locales.NoticeSlowNetwork()) {
 		t.Errorf("slow: %q", tt.Texts())
+	}
+}
+
+// TestNoticeAtRest draws no frame once nothing in the notice moves: after the ready notice's eyes
+// have looked around while it still shows, once the listening notice has gone, and with Reduce
+// Motion while a voice is heard.
+func TestNoticeAtRest(t *testing.T) {
+	k := coretest.New()
+	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
+	k.NoteAt = time.Now()
+	tt := ui.NewTester(o.View, 1000, 600)
+	tt.Advance(3900 * time.Millisecond)
+	if !tt.HasText(locales.NoticeReady()) || tt.FramePending() {
+		t.Errorf("ready, its eyes still: %q, a frame pending %v", tt.Texts(), tt.FramePending())
+	}
+
+	k.Running, k.Started = true, true
+	k.State = live.State{Phase: "listening", Voice: true}
+	k.NoteAt = tt.Now()
+	tt.Frame()
+	tt.Advance(time.Second)
+	if !tt.HasText(locales.NoticeListening()) || !tt.FramePending() {
+		t.Errorf("listening to a voice: %q, a frame pending %v", tt.Texts(), tt.FramePending())
+	}
+	tt.Advance(4 * time.Second)
+	if tt.HasText(locales.NoticeListening()) || tt.FramePending() {
+		t.Errorf("listening, after a while: %q, a frame pending %v", tt.Texts(), tt.FramePending())
+	}
+
+	tt.SetPreferences(ui.Preferences{ReduceMotion: true})
+	k.NoteAt = tt.Now()
+	tt.Frame()
+	tt.Advance(time.Second)
+	if !tt.HasText(locales.NoticeListening()) || tt.FramePending() {
+		t.Errorf("listening to a voice with Reduce Motion: %q, a frame pending %v", tt.Texts(), tt.FramePending())
+	}
+}
+
+// TestPausedNotice pauses from the subtitles' toolbar as from anywhere: the notice says so for a
+// while, then the screen is clear and the empty block lets the pointer through.
+func TestPausedNotice(t *testing.T) {
+	k := coretest.New()
+	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1400, Height: 820}}
+	k.Prefs.ASR = "apple"
+	k.Start()
+	k.Updated = time.Now()
+	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	tt := ui.NewTester(o.View, 1400, 900)
+	o.hover = true
+	tt.Frame()
+	tt.Advance(time.Second) // the toolbar fades in
+	if err := tt.Click(shared.PauseText(k.Prefs)); err != nil {
+		t.Fatal(err)
+	}
+	o.hover = false
+	tt.Frame()
+	tt.Advance(time.Second)
+	if k.Running || !tt.HasText(locales.NoticePaused()) {
+		t.Errorf("paused from the toolbar: running %v, %q", k.Running, tt.Texts())
+	}
+	tt.Advance(4 * time.Second)
+	if tt.HasText(locales.NoticePaused()) || o.grabbable.Load() {
+		t.Errorf("paused a while ago: %q, takes the pointer %v", tt.Texts(), o.grabbable.Load())
 	}
 }
 

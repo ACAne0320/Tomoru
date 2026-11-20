@@ -348,7 +348,7 @@
     "lines": "{n} lines",
     "linesOne": "{n} line",
     "start": "Start",
-    "stop": "Stop",
+    "pause": "Pause",
     "scene": "Scene",
     "general": "General",
     "sceneGame": "FFVII",

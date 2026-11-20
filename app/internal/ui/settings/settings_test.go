@@ -1100,7 +1100,7 @@ func TestOriginalOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !k.Running || !tt.HasText(locales.HomeSubtitling()) || !tt.HasText(locales.StopSubtitles()) {
+	if !k.Running || !tt.HasText(locales.HomeSubtitling()) || !tt.HasText(locales.PauseSubtitles()) {
 		t.Errorf("running %v: %q", k.Running, tt.Texts())
 	}
 	k.Stop()

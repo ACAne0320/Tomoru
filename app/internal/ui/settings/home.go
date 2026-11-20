@@ -18,7 +18,7 @@ import (
 )
 
 // home is the window's first page (docs/design-system.md): whether it translates, and the button
-// to start or stop; the scenes, and under them what it hears and the scene's languages, in a
+// to start or pause; the scenes, and under them what it hears and the scene's languages, in a
 // sentence whose values are menus; its numbers; its lines day by day; the records. The subtitles
 // show over the screen, not here.
 func (s *Settings) home(c *ui.Context) {
@@ -32,7 +32,7 @@ func (s *Settings) home(c *ui.Context) {
 			ui.Text(c, shared.Title(k.Preferences(), k.Running)).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(2)
 			ui.Column(c).AlignItems(ui.End).Gap(kit.Space(2)).Children(func() {
 				if k.Running {
-					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Stop, shared.StopText(k.Preferences())).Clicked() {
+					if kit.Button(c, kit.Destructive(kit.Strong), kit.Large, assets.Pause, shared.PauseText(k.Preferences())).Clicked() {
 						k.Stop()
 					}
 				} else if kit.Button(c, kit.Primary, kit.Large, assets.Play, shared.StartText(k.Preferences())).Clicked() {

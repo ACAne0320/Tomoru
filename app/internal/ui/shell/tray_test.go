@@ -35,17 +35,17 @@ func TestTrayMenu(t *testing.T) {
 		t.Error("not started")
 	}
 	k.Running = true
-	if got := s.trayMenu().Items()[0].Label; got != locales.StopTranslating() {
+	if got := s.trayMenu().Items()[0].Label; got != locales.Pause() {
 		t.Errorf("translating: %q", got)
 	}
-	// With the original only, it starts and stops subtitles.
+	// With the original only, it starts and pauses subtitles.
 	k.Prefs.Display = prefs.DisplaySrc
-	if got := s.trayMenu().Items()[0].Label; got != locales.StopSubtitles() {
+	if got := s.trayMenu().Items()[0].Label; got != locales.PauseSubtitles() {
 		t.Errorf("subtitles: %q", got)
 	}
 	k.Running = false
 	if got := s.trayMenu().Items()[0].Label; got != locales.StartSubtitles() {
-		t.Errorf("subtitles stopped: %q", got)
+		t.Errorf("subtitles paused: %q", got)
 	}
 }
 

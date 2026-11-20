@@ -18,7 +18,7 @@ separate OCR is needed: the image goes with the prompt, and the translation come
 | Translation | An engine of its own, chosen in Speech & translation › Picture translation, among those that read pictures, with the current scene's whole glossary ([scenes](scenes.md)), which got the names right in the experiment. See [Which engine](#which-engine) |
 | Result | A floating card: the thumbnail above, the translation below, streamed with MyGo's `markdown.Stream` (an even pace, a character at a time, fading in), as GitHub Flavored Markdown, which a model may write of a page it reads, its single line breaks kept, as a game's dialogue has one a speaker; can be copied; closed with Esc or the close button |
 | Keeping | Neither the image nor its translation is kept. The statistics count how many were translated, a translation got for each, by day, under the engine that translated them; never what they said |
-| Shortcut | ⌥⇧S by default (`prefs.ImageShortcut`), customizable; it can't be the same as the start/stop shortcut. The menu bar panel's Screenshot button does the same |
+| Shortcut | ⌥⇧S by default (`prefs.ImageShortcut`), customizable; it can't be the same as the start/pause shortcut. The menu bar panel's Screenshot button does the same |
 | Automatic detection | No: capturing every so often and translating changes costs more and translates the wrong things more often |
 
 ## Getting the image

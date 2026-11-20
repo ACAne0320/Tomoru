@@ -148,9 +148,9 @@ func TestStartStop(t *testing.T) {
 		t.Error("took a stale report")
 	}
 
-	c.Pause()
-	if c.Running || !c.Paused || !f.sessions[1].stopped {
-		t.Errorf("paused: running %v, paused %v", c.Running, c.Paused)
+	c.Stop()
+	if c.Running || !f.sessions[1].stopped {
+		t.Errorf("paused: running %v", c.Running)
 	}
 }
 

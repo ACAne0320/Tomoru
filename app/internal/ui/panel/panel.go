@@ -65,7 +65,7 @@ func (p *Panel) View(c *ui.Context) {
 	}
 }
 
-// head is the night's band: the sticker, whether it translates and its numbers, start or stop.
+// head is the night's band: the sticker, whether it translates and its numbers, start or pause.
 func (p *Panel) head(c *ui.Context) {
 	k := p.core
 	pal := kit.Colors(c)
@@ -82,10 +82,10 @@ func (p *Panel) head(c *ui.Context) {
 	})
 	keys := kit.ShortcutText(k.Preferences().Shortcut) // on hovering it, as the foot has no room to say it
 	if k.Running {
-		if kit.Button(c, kit.Destructive(kit.Plain), kit.Small, assets.Stop, locales.Stop()).Tooltip(keys).Clicked() {
+		if kit.Button(c, kit.Destructive(kit.Plain), kit.Small, assets.Pause, locales.PauseShort()).Tooltip(keys).Clicked() {
 			k.Stop()
 		}
-	} else if kit.Button(c, kit.Primary, kit.Small, assets.Play, locales.Start()).Tooltip(keys).Clicked() { // short, as Stop: the title says what
+	} else if kit.Button(c, kit.Primary, kit.Small, assets.Play, locales.Start()).Tooltip(keys).Clicked() { // short, as Pause: the title says what
 		k.Start()
 	}
 }
@@ -167,7 +167,7 @@ func (p *Panel) scene(c *ui.Context) {
 
 // foot is icons alone, each named as it is hovered: translating a part of the screen; the
 // subtitles, found to move them while nothing shows, and locked or unlocked; the window, and
-// quitting, apart from Stop so that none quits by mistake.
+// quitting, apart from Pause so that none quits by mistake.
 func (p *Panel) foot(c *ui.Context) {
 	k := p.core
 	screen := locales.TranslateScreen()

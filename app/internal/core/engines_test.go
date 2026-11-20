@@ -493,7 +493,7 @@ func TestStopFreesModels(t *testing.T) {
 	f.flush(t, 1)
 	c.Image = ImageView{PNG: []byte{1}, Via: "local-2b"}
 	mt, asr = stops()
-	c.Pause()
+	c.Stop()
 	if m2, a2 := stops(); m2 != mt || a2 == asr {
 		t.Errorf("paused with a picture on translation's server: translation %d, recognition %d times", m2-mt, a2-asr)
 	}
