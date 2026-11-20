@@ -251,9 +251,29 @@ func capsule(p prefs.Prefs, e ui.Element) ui.Element {
 	e = e.Border(1, ui.RGBA(255, 255, 255, .12))
 	if hasGlass() {
 		bg := hoverShade(p)
-		return e.Background(ui.RGBA(bg.R, bg.G, bg.B, float32(bg.A)/255+.12))
+		return e.Material(onGlass{ui.RGBA(bg.R, bg.G, bg.B, float32(bg.A)/255+.12)})
 	}
 	return e.Background(ui.RGBA(24, 24, 28, .72)).Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, .28))
+}
+
+// onGlass fills an element with the system's clear glass and shade over it, a ui.Material. MyGo
+// puts the glass, a view of the system's, under the frame where the element is, and has the frame
+// present with Core Animation's transaction: placed by hand as the overlay was built, the glass
+// moved before the frame, presented on its own, showed, and dragged, it ran ahead of the block and
+// the toolbar (2026-11-20).
+type onGlass struct{ shade ui.Color }
+
+// NativeGlass asks for the clear glass, as over photos and video: what plays shows through, barely
+// frosted.
+func (onGlass) NativeGlass() (ui.NativeGlassSpec, bool) { return ui.NativeGlassSpec{Style: 1}, true }
+
+func (g onGlass) PaintMaterial(p *ui.Painter, box ui.Rect, radii [4]float32) {
+	if p.NativeGlassSupported() && !p.Preferences().ReduceTransparency {
+		p.Hole(box, radii)
+	}
+	if g.shade.A > 0 {
+		p.FillRadii(box, radii, g.shade)
+	}
 }
 
 // barIcon is a button of the capsule: round, lit on hover, the capsule its background.

@@ -55,11 +55,9 @@ type Overlay struct {
 	sample  time.Time // sample subtitles show until then
 	resize  *resize
 	textTop float32   // the top of the subtitles in the overlay, as last laid out
-	glass   panes     // under the block and the toolbar while they show
 	barW    float32   // the width of the toolbar's capsule, as last laid out
 	notes   int       // the notices shown: one that shows after none did is a new pill
 	noted   time.Time // when the notice showing appeared, zero while none does
-	noteBox ui.Rect   // the notice's pill, as last laid out: the glass goes under it
 }
 
 // New makes the overlay's window, on the display the subtitles were put on, and shows it.
@@ -71,6 +69,7 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 	area := o.area
 	o.win = mygo.NewWindow(windowOptions(area, ui.View(o.View)))
 	toolWindow(o.win)
+	looksActive(o.win)
 	o.win.SetVisibleOnAllWorkspaces(true)
 	o.win.SetContentProtection(k.Preferences().HideFromCapture)
 	o.win.ShowInactive()
@@ -239,7 +238,7 @@ func (o *Overlay) View(c *ui.Context) {
 	minH := subtitle.SlotHeight(p, 1, true) + 16 // the same size empty as with one sentence
 	note := o.notice(c)
 	if shown := !show && note.title != ""; !shown {
-		o.noted, o.noteBox = time.Time{}, ui.Rect{}
+		o.noted = time.Time{}
 	} else if o.noted.IsZero() {
 		o.notes++
 		o.noted = c.Now()
@@ -269,6 +268,10 @@ func (o *Overlay) View(c *ui.Context) {
 	var hit ui.Rect // what the pointer finds: the block, and the toolbar above it while hovered
 	column := ui.Box(c.Key("column")).Absolute().Left(left).Width(width).Top(0).Bottom(0)
 	column.Children(func() {
+		if hasGlass() && (hover || adjusting) {
+			// The glass under the block, apart from it: the block's shade fades in over it.
+			ui.Box(c.Key("glass")).Absolute().Left(0).Right(0).Bottom(bottom).Height(h).Radius(14).Material(onGlass{})
+		}
 		block := ui.Box(c.Key("block")).Absolute().Left(0).Right(0).Bottom(bottom).Height(h).Radius(14).
 			Background(ui.Transparent).Border(1, ui.Transparent).Transition(subtitle.Follows)
 		switch {
@@ -279,13 +282,15 @@ func (o *Overlay) View(c *ui.Context) {
 		}
 		if show {
 			// Hovered, the text stays within the block: rolling up, it goes under its top edge, not
-			// the toolbar. The column keeps its height, which the text's own takes nothing from.
+			// the toolbar. The column keeps its height, which the text's own takes nothing from, and
+			// where the block is: moved, the sentences keep their place in it, which they animate
+			// as it changes, and go with the block at once rather than trailing it.
 			clip := float32(0)
 			if hover {
 				clip = wh - bottom - h // the block's top
 			}
 			ui.Box(c).Absolute().Left(0).Right(0).Top(clip).Bottom(0).Clip().Children(func() {
-				ui.Column(c.Key("captions")).Absolute().Left(12).Right(12).Top(-clip).Bottom(bottom + 8).
+				ui.Column(c.Key("captions")).Absolute().Left(12).Right(12).Bottom(bottom + 8).Height(wh).
 					Justify(ui.End).Gap(8).Transition(appears).Children(func() {
 					if sample > 0 {
 						ui.Row(c).Justify(ui.Center).Margin(0, 0, 4, 0).Children(func() { pill(c, o.sampleNote()) })
@@ -350,7 +355,7 @@ func (o *Overlay) View(c *ui.Context) {
 			lift := column.AnimateTo("lift", up, ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}})
 			noteBottom += lift * (toolbarH + 8)
 			ui.Row(c).Absolute().Left(0).Right(0).Bottom(noteBottom).Justify(ui.Center).Children(func() {
-				o.noteBox = o.notePill(c, note).Bounds()
+				o.notePill(c, note)
 			})
 		}
 		if until := time.Until(o.toast); until > 0 {
@@ -359,21 +364,6 @@ func (o *Overlay) View(c *ui.Context) {
 				pill(c, locales.LockedToast())
 			})
 		}
-		// The glass under them, where they are this frame, not where they were laid out in the
-		// last: dragged, the glass would trail them. The toolbar's capsule is centered over the
-		// block, as wide as it was.
-		var glass []pane
-		if hover || adjusting {
-			glass = append(glass, pane{ui.Rect{X: left, Y: wh - bottom - h, W: width, H: h}, 14})
-		}
-		// The notice's, as wide and tall as it was.
-		if r := o.noteBox; r.W > 0 {
-			glass = append(glass, pane{ui.Rect{X: left + (width-r.W)/2, Y: wh - noteBottom - r.H, W: r.W, H: r.H}, r.H / 2})
-		}
-		if (hover || peek) && o.barW > 0 {
-			glass = append(glass, pane{ui.Rect{X: left + (width-o.barW)/2, Y: wh - barBottom - toolbarH, W: o.barW, H: toolbarH}, toolbarH / 2})
-		}
-		o.glass.set(o.win, wh, glass...)
 		o.mu.Lock()
 		o.block, o.lock = hit, lock
 		o.mu.Unlock()
@@ -472,8 +462,8 @@ func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 		pill.Padding(6, 14) // what went wrong can take more than a line
 	}
 	// A capsule as the toolbar is. Its place in its row moves with its width, so that it stays
-	// centered over its glass as it grows; the row, not the pill, goes with the block. It comes and
-	// goes only through a blur: the glass under it does not scale.
+	// centered as it grows; the row, not the pill, goes with the block. It comes and goes only
+	// through a blur: the system's glass under it does not scale.
 	return capsule(o.core.Preferences(), pill).Gap(10).AlignItems(ui.Center).Clip().
 		Transition(ui.ElementTransition{Animation: &fits, Position: true, Size: true, Enter: &ui.Motion{Blur: 4}, Exit: &ui.Motion{Blur: 4}}).
 		Children(func() {
