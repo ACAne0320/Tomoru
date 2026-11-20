@@ -223,6 +223,23 @@ func TestMoveTakesText(t *testing.T) {
 	}
 }
 
+// TestToolbarLine keeps the scene's name and its languages on one line in the toolbar, whatever
+// fonts the system draws them with: a "▾" from a fallback font made the languages' line taller
+// on Linux, and centered, they sat higher than the name.
+func TestToolbarLine(t *testing.T) {
+	k := coretest.New()
+	area := mygo.Rectangle{Width: 1400, Height: 820}
+	o := &Overlay{core: k, nav: &coretest.Nav{}, area: area, display: mygo.Display{Bounds: area, WorkArea: area}}
+	o.hover = true
+	tt := ui.NewTester(o.View, 1400, 900)
+	tt.Advance(time.Second)
+	name, _ := tt.Find(shared.CurrentSceneName(k))
+	langs, ok := tt.Find(shared.LangsOf(k.Preferences()))
+	if !ok || name.Y != langs.Y || name.H != langs.H {
+		t.Errorf("the name at %+v, its languages at %+v (found %v)", name, langs, ok)
+	}
+}
+
 // TestDisplays puts the subtitles on the display they were moved to, by its name, or on the primary
 // one while it is not connected; their bottom edge is kept from their display's top.
 func TestDisplays(t *testing.T) {
