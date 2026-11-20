@@ -156,7 +156,11 @@ func (s *SessionController) apply(st live.State) {
 		}
 		s.Updated = time.Now()
 	}
-	s.changed()
+	// The engine's clock reports several times a second with nothing new to show: redrawing the
+	// windows for those is all cost.
+	if st.Phase == "stopped" || !sameShown(st, prev) {
+		s.changed()
+	}
 }
 
 var errExited = exitedError{}
@@ -168,6 +172,14 @@ func IsExited(err error) bool     { return err == errExited }
 func sameText(a, b live.State) bool {
 	return a.Pending == b.Pending && a.Draft == b.Draft && slices.Equal(a.Lines, b.Lines)
 }
+
+// sameShown tells whether the windows show a and b alike: the clock's time, the latencies and the
+// audio billed change without showing.
+func sameShown(a, b live.State) bool {
+	return a.Phase == b.Phase && sameText(a, b) && a.PendingLang == b.PendingLang && a.Voice == b.Voice && a.Slow == b.Slow &&
+		a.Err == b.Err && a.Stats.Lines == b.Stats.Lines && a.Stats.Speech == b.Stats.Speech && a.Stats.Chars == b.Stats.Chars
+}
+
 func lastID(lines []live.Line) int {
 	if len(lines) == 0 {
 		return 0

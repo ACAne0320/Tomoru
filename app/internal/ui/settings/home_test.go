@@ -54,6 +54,36 @@ func TestHome(t *testing.T) {
 	}
 }
 
+// TestHomeClock shows each second of the running time as it passes, with nothing else redrawing
+// the page, even after a frame between two seconds.
+func TestHomeClock(t *testing.T) {
+	var tt *ui.Tester
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Now = func() time.Time {
+			if tt == nil { // the tester's first frame, while it is made
+				return time.Now()
+			}
+			return tt.Now()
+		}
+	})
+	tt = ui.NewTester(New(k, &coretest.Nav{}).View, Width, Height)
+	k.Start()
+	if !k.Running {
+		t.Fatalf("not running: %v", k.Err)
+	}
+	k.State = live.State{Phase: "listening"}
+	tt.Advance(300 * time.Millisecond)
+	tt.Frame()
+	tt.Advance(700 * time.Millisecond)
+	if !tt.HasText("0:01") {
+		t.Errorf("a second in: %q", tt.Texts())
+	}
+	tt.Advance(time.Second)
+	if !tt.HasText("0:02") {
+		t.Errorf("two seconds in: %q", tt.Texts())
+	}
+}
+
 // TestHomeError says why translating stopped, with the action that resolves it: an engine to set
 // up opens Speech & translation; anything else tries again.
 func TestHomeError(t *testing.T) {

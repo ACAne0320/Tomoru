@@ -25,7 +25,7 @@ func (s *Settings) home(c *ui.Context) {
 	k := s.core
 	p := kit.Colors(c)
 	if k.Running {
-		c.After(time.Second) // the numbers count on
+		c.After(time.Second - k.RunFor()%time.Second) // the running time shows its next second
 	}
 	ui.Column(c).Gap(kit.Space(4)).Children(func() {
 		ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Start).Children(func() {
