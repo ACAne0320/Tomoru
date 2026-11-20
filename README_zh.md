@@ -139,7 +139,12 @@ go tool mygo build            # 打包到 app/build/linux-amd64/
 
 各项目的版本、许可证和声明见[第三方许可证清单](docs/third-party-licenses_zh.md)。
 
-感谢 [LINUX DO](https://linux.do) 与 [小众软件](https://www.appinn.com) 社区对开源项目的支持，感谢 [Awesome MyGo](https://awesomemygo.dev/apps/tomoru) 收录 Tomoru。
+特别感谢：
+
+- [LINUX DO](https://linux.do) 社区对开源项目的支持
+- [小众软件](https://www.appinn.com) 对开源项目的支持
+- [Awesome MyGo](https://awesomemygo.dev/apps/tomoru) 收录 Tomoru
+- [阮一峰科技爱好者周刊（第 420 期）](https://www.ruanyifeng.com/blog/2026/11/weekly-issue-420.html) 介绍 Tomoru
 
 ## Tomoru 和 ルビ
 
