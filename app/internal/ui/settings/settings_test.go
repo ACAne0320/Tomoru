@@ -102,6 +102,29 @@ func TestScheme(t *testing.T) {
 	}
 }
 
+// TestStyleTellsOverlay tells the core's listeners, as the overlay is, of a style chosen, and of
+// nothing while the preview rolls: the overlay redraws only when what it shows changed.
+func TestStyleTellsOverlay(t *testing.T) {
+	k := coretest.New()
+	changes := 0
+	k.OnChange(func() { changes++ })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "subtitles"
+	tt := ui.NewTester(s.View, Width, 1400)
+	for range 10 {
+		tt.Advance(time.Second)
+	}
+	if changes != 0 {
+		t.Errorf("%d changes while the preview rolled", changes)
+	}
+	if err := tt.Click(locales.SchemeSakura()); err != nil {
+		t.Fatal(err)
+	}
+	if changes == 0 || k.Preferences().TgtColor != "#ffb3cf" {
+		t.Errorf("%d changes, translation color %s", changes, k.Preferences().TgtColor)
+	}
+}
+
 // TestShortcut records new global shortcuts: starting and stopping's, then the picture's, which
 // cannot be the same.
 func TestShortcut(t *testing.T) {
