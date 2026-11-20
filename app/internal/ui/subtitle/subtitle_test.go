@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -42,6 +43,10 @@ func TestVisible(t *testing.T) {
 	}
 	if !got[2].Pending || got[2].Key != 4 || got[2].Tgt != "评论也" {
 		t.Errorf("the pending sentence: %+v", got[2])
+	}
+
+	if got := Visible(live.State{Lines: []live.Line{{ID: 1, Src: "a", Tgt: "A"}, {ID: 2, Src: "b", Tgt: "B", Done: true}}}, 0, p); !got[0].Grows || got[1].Grows {
+		t.Errorf("only a translation still streaming in grows: %+v", got)
 	}
 
 	// Since: the lines before it went with the last pause.
@@ -225,5 +230,54 @@ func TestOpacity(t *testing.T) {
 	}
 	if black > 5 || white < 250 {
 		t.Errorf("beside the text, an opaque box %d, none %d", black, white)
+	}
+}
+
+// TestBalance wraps a sentence said in lines of about the same length, as wide as the overlay is
+// by default, a band as wide as they are; one being said, or a translation streaming in, wraps as
+// it comes.
+func TestBalance(t *testing.T) {
+	const zh = "既然你已经决定独自去北方的雪原找她，那就带上这把剑吧，它一定会保护你的。"
+	width := float32(.62*1512 - 24)
+	draw := func(style int, e Entry) (lines [2]int, r ui.Rect, img *image.RGBA) {
+		p := prefs.Default("zh-Hans")
+		p.Style = style
+		e.Key, e.Src = 1, "Take this sword."
+		tt := ui.NewTester(func(c *ui.Context) { Draw(c, []Entry{e}, p, 1, width, NoBlock) }, int(width)+24, 400)
+		r, ok := tt.Find(zh)
+		if !ok {
+			t.Fatalf("texts %q", tt.Texts())
+		}
+		img = tt.Image()
+		// How wide the ink of each line is: the translation's ice blue, on the tester's white page or
+		// a gray band.
+		for i := range lines {
+			left, right := int(r.X+r.W), 0
+			for y := int(r.Y + r.H*float32(i)/2); y < int(r.Y+r.H*float32(i+1)/2); y++ {
+				for x := int(r.X); x < int(r.X+r.W); x++ {
+					if px := img.RGBAAt(x, y); int(px.B)-int(px.R) > 60 {
+						left, right = min(left, x), max(right, x)
+					}
+				}
+			}
+			lines[i] = max(right-left, 0)
+		}
+		return lines, r, img
+	}
+	similar := func(l [2]int) bool { return min(l[0], l[1])*10 >= max(l[0], l[1])*8 }
+
+	for _, style := range []int{1, 0} {
+		l, r, img := draw(style, Entry{Tgt: zh})
+		if !similar(l) {
+			t.Errorf("style %d: lines %v wide, want about the same", style, l)
+		}
+		if beside := img.RGBAAt(int(r.X+r.W)+30, int(r.Y+r.H/2)); style == 0 && beside.R < 250 {
+			t.Errorf("the band reaches past its lines: %v beside them", beside)
+		}
+	}
+	for _, e := range []Entry{{Tgt: zh, Pending: true, Draft: true}, {Tgt: zh, Grows: true}} {
+		if l, _, _ := draw(1, e); similar(l) || l[0] < l[1] {
+			t.Errorf("%+v: lines %v wide, want the first full", e, l)
+		}
 	}
 }

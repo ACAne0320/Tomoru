@@ -63,6 +63,9 @@ type Entry struct {
 	// Swaps says that Tgt changes whole, as a draft does to the next, or to the translation: it
 	// cross-fades, where a translation streaming in grows.
 	Swaps bool
+	// Grows says that Tgt is a translation still streaming in: its lines fill as it comes, and are
+	// balanced once it is done, rather than broken anew with each word.
+	Grows bool
 }
 
 // Visible is what shows of st, oldest first, like scrolling lyrics: the lines since the
@@ -90,6 +93,8 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 			e.Tgt, e.Draft = l.Draft, true
 		case l.Err != nil:
 			e.Tgt, e.DimTgt, e.Note = Failure(l.Err), true, true
+		default:
+			e.Grows = !l.Done
 		}
 		if p.Display != prefs.DisplayTgt || e.Tgt != "" {
 			all = append(all, e)
@@ -114,7 +119,7 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	}
 	if k := len(all); p.Display == prefs.DisplayBoth && n == 1 && k >= 2 && all[k-1].Tgt == "" && all[k-2].Tgt != "" {
 		cur, prev := all[k-1], all[k-2]
-		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Note: prev.Note, Draft: prev.Draft, Swaps: true}}
+		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Note: prev.Note, Draft: prev.Draft, Swaps: true, Grows: prev.Grows}}
 	}
 	return all[max(0, len(all)-n):]
 }
@@ -240,6 +245,10 @@ const NoBlock = 1e9
 // Music's lyrics do. A sentence comes in from a little below, fading in; the oldest goes a
 // little up, fading out. Each spans the width, and only goes up and down: a centered sentence
 // growing does not move sideways.
+//
+// A sentence said wraps in lines of about the same length, as films' subtitles do, rather than a
+// full line and a word or two alone under it; one being said, or a translation streaming in, wraps
+// as it comes.
 func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow float32) (top float32) {
 	align := Align(p)
 	band := p.Style == 0
@@ -300,7 +309,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 						n, dim = 1, .8
 						text = fitTail(c, p, text, srcLang, float32(p.SrcSize)*k, width-36*k)
 					}
-					line(c, p, text, srcLang, float32(p.SrcSize)*k, ui.Hex(p.SrcColor), n).Opacity(dim * opacity)
+					line(c, p, text, srcLang, float32(p.SrcSize)*k, ui.Hex(p.SrcColor), n, !e.Pending, width-28*k).Opacity(dim * opacity)
 				}
 				tgt := func() {
 					if e.Tgt == "" || p.Display == prefs.DisplaySrc {
@@ -314,7 +323,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					if e.Note {
 						tgtLang = "" // the app's
 					}
-					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, ui.Hex(p.TgtColor), n)
+					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, ui.Hex(p.TgtColor), n, !e.Pending && !e.Grows, width-28*k)
 					if e.Swaps {
 						t.ContentTransition(swap)
 					}
@@ -382,18 +391,49 @@ func fitTail(c *ui.Context, p prefs.Prefs, s, code string, size, width float32) 
 }
 
 // line draws one subtitle line in language lang ("" for the app's) with the chosen edge, which the
-// GPU draws from the text as it renders (edgeShader). The language picks the glyphs of the Han
-// characters that Chinese and Japanese draw apart, so that Japanese in a Chinese app reads as
-// Japanese.
-func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Color, lines int) ui.Element {
+// GPU draws from the text as it renders (edgeShader), its lines balanced if balance, in room as wide
+// as width on a band. The language picks the glyphs of the Han characters that Chinese and Japanese
+// draw apart, so that Japanese in a Chinese app reads as Japanese.
+func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Color, lines int, balance bool, width float32) ui.Element {
 	t := ui.Text(c, s).Lang(lang).FontSize(size).Bold().TextAlign(Align(p)).TextColor(col).MaxLines(lines)
 	if f := family(p); f != "" {
 		t = t.Font(f)
+	}
+	switch {
+	case balance && p.Style == 0:
+		// Balanced lines leave a text as wide as its room, and its band with it: wrapped at the
+		// width that balances them, the band is as wide as they are.
+		t = t.MaxWidth(balanced(c, ui.Span{Text: s, Font: family(p), Size: size, Weight: 700, Lang: lang}, width, lines))
+	case balance:
+		t = t.Balance()
 	}
 	if p.Edge == 1 || p.Edge == 2 {
 		t = t.Effect(edgeFor(p, size))
 	}
 	return t
+}
+
+// balanced is the narrowest width, up to width, at which text wraps in as many lines as at width:
+// where they are about as long, as Balance wraps them. Text cut at lines wraps at width.
+func balanced(c *ui.Context, text ui.Span, width float32, lines int) float32 {
+	one, lineH := c.MeasureText(0, text)
+	if one <= width {
+		return width
+	}
+	_, h := c.MeasureText(width, text)
+	if n := int(h/lineH + .5); n > lines {
+		return width
+	}
+	lo, hi := one/float32(lines)/2, width
+	for hi-lo > .5 {
+		mid := (lo + hi) / 2
+		if _, mh := c.MeasureText(mid, text); mh > h {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return hi
 }
 
 // edgeShader draws a line's edge from the line as it renders: an outline Width wide around the
