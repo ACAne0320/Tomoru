@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
 	"tomoru/internal/ui/guide"
@@ -36,7 +37,7 @@ func (s *Shell) OpenPanel(anchor *mygo.Rectangle) {
 	// As tall as it measures: it shows before it fits itself, and changing its height then made it
 	// jump as it opened, the first time after launch too, when it had not fitted itself yet.
 	opts := mygo.FlyoutOptions{Width: panel.Width, Height: panel.Measure(s.core, s), Focusable: true, Shadow: true, Gap: 6,
-		Content: s.view(panel.New(s.core, s).View)}
+		Content: ui.View(panel.New(s.core, s).View)}
 	if anchor == nil {
 		opts.Tray, opts.Placement = s.tray, mygo.PlacementBottom
 	} else {
@@ -95,7 +96,7 @@ func (s *Shell) ShowSettingsPage(page string) {
 			Title: locales.SettingsTitle(), Width: settings.Width, Height: settings.Height, MinWidth: settings.MinWidth, MinHeight: settings.MinHeight,
 			TitleBarStyle: mygo.TitleBarHidden, // the frame draws under the window's controls
 			StateKey:      "settings",
-			Content:       s.view(s.pages.View),
+			Content:       ui.View(s.pages.View),
 		})
 		// Its controls are on the night's band, dark in either appearance: drawn light (Windows).
 		w.SetWindowButtonsTheme(mygo.ThemeDark)
@@ -127,7 +128,7 @@ func (s *Shell) ShowGuide() {
 	if s.guide == nil {
 		opts := mygo.WindowOptions{
 			Title: locales.GuideTitle(), Width: guide.Width, Height: guide.Height, DisableResize: true, DisableMaximize: true,
-			Content: s.view(guide.New(s.core, s).View),
+			Content: ui.View(guide.New(s.core, s).View),
 		}
 		if shared.Windows {
 			// Windows' title bar is white: the guide draws its own on the paper, under the controls.

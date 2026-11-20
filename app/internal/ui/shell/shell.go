@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
 	"tomoru/internal/ui/assets"
@@ -103,14 +102,6 @@ func (s *Shell) redraw() {
 		}
 	}
 	s.overlay.Redraw()
-}
-
-// view refreshes the overlay after a surface renders. Application actions own persistence.
-func (s *Shell) view(fn func(*ui.Context)) *ui.Content {
-	return ui.View(func(c *ui.Context) {
-		fn(c)
-		s.overlay.Redraw()
-	})
 }
 
 // relabel sets again what windows took once, in the language the app now shows.

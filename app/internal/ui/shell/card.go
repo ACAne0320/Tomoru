@@ -49,7 +49,7 @@ func (s *Shell) showImage() {
 		MinWidth: imagecard.MinWidth, MinHeight: imagecard.MinHeight,
 		UseContentSize: true, Panel: true, TitleBarStyle: mygo.TitleBarHidden, HideWindowButtons: true,
 		DisableMinimize: true, DisableMaximize: true, DisableFullScreen: true,
-		Content: s.view(d.View)})
+		Content: ui.View(d.View)})
 	s.image = card
 	resized := false // by the user: its size is kept, the screen's room for it not
 	card.OnResize(func() {
@@ -154,7 +154,7 @@ func (s *Shell) peek(card *mygo.Window) {
 	win = mygo.NewWindow(mygo.WindowOptions{Title: locales.ImageTitle(), X: r.X, Y: r.Y, Width: r.Width, Height: r.Height,
 		MinWidth: 160, MinHeight: 100, UseContentSize: true, Panel: true, TitleBarStyle: mygo.TitleBarHidden,
 		HideWindowButtons: true, DisableMinimize: true, DisableMaximize: true, DisableFullScreen: true,
-		Content: s.view(func(c *ui.Context) {
+		Content: ui.View(func(c *ui.Context) {
 			c.Root().Background(kit.Colors(c).Paper)
 			pane := ui.Box(c).Fill().DragWindow()
 			pane.Children(func() {
