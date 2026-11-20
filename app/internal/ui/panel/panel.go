@@ -52,7 +52,7 @@ func (m *measure) FitPanel(h int) { m.h = h }
 func (p *Panel) View(c *ui.Context) {
 	k := p.core
 	if k.Running {
-		c.After(time.Second) // the numbers count on
+		c.After(time.Second - k.RunFor()%time.Second) // the running time shows its next second
 	}
 	panel := kit.PanelFrame(c, func() { p.head(c) }, func() { p.body(c) }, func() { p.foot(c) })
 	// The panel's height is known once it is laid out: the next frame fits the flyout to it.

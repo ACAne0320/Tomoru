@@ -132,8 +132,8 @@ func TestStartStop(t *testing.T) {
 
 	s.report(live.State{Phase: "listening"})
 	f.flush(t, 1)
-	if c.State.Phase != "listening" || c.NoteAt.IsZero() || c.ASR["en"] != "ready" {
-		t.Errorf("listening: %+v", c)
+	if c.State.Phase != "listening" || c.NoteAt.IsZero() || c.ASR["en"] != "ready" || changes != 3 {
+		t.Errorf("listening: %d changes, %+v", changes, c)
 	}
 
 	// Changing a language restarts; the old session's reports are dropped.
@@ -313,5 +313,59 @@ func TestVoiceKeepsSubtitles(t *testing.T) {
 	f.flush(t, 1)
 	if !c.Updated.Equal(at) || !c.State.Voice {
 		t.Errorf("updated moved by voice: %v → %v, voice %v", at, c.Updated, c.State.Voice)
+	}
+}
+
+// TestClockRedrawsNothing: the engine's clock reports, which change only numbers no window shows
+// as they come, redraw nothing; a change to what a window shows redraws once.
+func TestClockRedrawsNothing(t *testing.T) {
+	base := live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Done: true}}, Stats: live.Stats{Lines: 1, Speech: 2, Chars: 1}}
+	// listening reports base and then counts the changes that follow.
+	listening := func(t *testing.T) (report func(live.State), changes *int) {
+		c, f := newCore(t)
+		c.Start()
+		f.flush(t, 1)
+		s := f.sessions[0]
+		s.report(base)
+		f.flush(t, 1)
+		changes = new(int)
+		c.OnChange(func() { *changes++ })
+		return func(st live.State) { s.report(st); f.flush(t, 1) }, changes
+	}
+
+	report, changes := listening(t)
+	for i := range 3 {
+		tick := base
+		tick.StatsAt, tick.SpeechEnd = time.Now(), time.Now()
+		tick.Stats.Audio, tick.Stats.InTokens, tick.Stats.OutTokens = float64(i+1), 40*i, 50*i
+		tick.Stats.Latency.Final.Add(time.Duration(i+1) * 300 * time.Millisecond)
+		report(tick)
+	}
+	if *changes != 0 {
+		t.Errorf("%d changes for clock ticks", *changes)
+	}
+
+	for name, edit := range map[string]func(*live.State){
+		"phase":    func(st *live.State) { st.Phase = "stopped" },
+		"line":     func(st *live.State) { st.Lines = append(slices.Clone(st.Lines), live.Line{ID: 2, Src: "b"}) },
+		"pending":  func(st *live.State) { st.Pending = "b" },
+		"language": func(st *live.State) { st.PendingLang = "ja" },
+		"draft":    func(st *live.State) { st.Draft = "び" },
+		"voice":    func(st *live.State) { st.Voice = true },
+		"slow":     func(st *live.State) { st.Slow = true },
+		"error":    func(st *live.State) { st.Err = errors.New("lost") },
+		"lines":    func(st *live.State) { st.Stats.Lines++ },
+		"speech":   func(st *live.State) { st.Stats.Speech++ },
+		"chars":    func(st *live.State) { st.Stats.Chars++ },
+	} {
+		t.Run(name, func(t *testing.T) {
+			report, changes := listening(t)
+			st := base
+			edit(&st)
+			report(st)
+			if *changes != 1 {
+				t.Errorf("%d changes", *changes)
+			}
+		})
 	}
 }
