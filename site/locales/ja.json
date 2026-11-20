@@ -312,8 +312,8 @@
   "footer": {
     "tagline": "PCで流れる音を、二言語の字幕に。",
     "product": "製品",
-    "helpInstall": "インストールと権限（英語）",
-    "helpOffline": "オンデバイスのモデル（英語）",
+    "helpInstall": "インストールと権限",
+    "helpOffline": "オンデバイスのモデル",
     "changelog": "更新履歴",
     "openSource": "オープンソース",
     "contributing": "コントリビューション",
@@ -329,9 +329,9 @@
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
     "trademarks": "https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md",
     "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
-    "helpInstall": "/en/help/install/",
-    "helpOffline": "/en/help/offline/",
-    "helpLang": "en"
+    "helpInstall": "/ja/help/install/",
+    "helpOffline": "/ja/help/offline/",
+    "helpLang": "ja"
   },
   "notFound": {
     "title": "ページが見つかりません | Tomoru",

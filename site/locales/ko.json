@@ -313,8 +313,8 @@
   "footer": {
     "tagline": "컴퓨터에서 재생되는 소리를 이중 언어 자막으로 바꿉니다.",
     "product": "제품",
-    "helpInstall": "설치와 권한(영어)",
-    "helpOffline": "온디바이스 모델(영어)",
+    "helpInstall": "설치와 권한",
+    "helpOffline": "기기 내 모델",
     "changelog": "변경 기록",
     "openSource": "오픈소스",
     "contributing": "기여하기",
@@ -330,9 +330,9 @@
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY.md",
     "trademarks": "https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS.md",
     "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses.md",
-    "helpInstall": "/en/help/install/",
-    "helpOffline": "/en/help/offline/",
-    "helpLang": "en"
+    "helpInstall": "/ko/help/install/",
+    "helpOffline": "/ko/help/offline/",
+    "helpLang": "ko"
   },
   "notFound": {
     "title": "페이지를 찾을 수 없습니다 | Tomoru",
