@@ -23,9 +23,10 @@ import (
 
 var (
 	// presets are the families of the fonts of prefs.Fonts, by key: the first family with a glyph
-	// draws it, of macOS's then Windows's. Windows has no rounded one: the system's draws it there.
+	// draws it, of macOS's, then Windows's, then Linux's (noto-fonts-cjk, which most desktops
+	// install). Windows and Linux have no rounded one: the system's draws it there.
 	presets = map[string]string{
-		"serif":   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang",
+		"serif":   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang, Noto Serif CJK SC",
 		"rounded": "Yuanti SC, Hiragino Maru Gothic ProN",
 	}
 	// TextColors and EdgeColors are the colors to choose from: light ones for the text, to read
