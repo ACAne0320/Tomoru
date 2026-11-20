@@ -39,9 +39,9 @@ models, with the version filled in from `app/mygo.json`.
 
 The pages are listed in `build.mjs`. The help pages, `/help/install/` and `/help/offline/`, also
 take `locales/help/<language>.json`, under the key `help`. They are built only in the languages
-that have that file in full, now zh-Hans and en, and their hreflang links, language menu and
-sitemap entries name only those. What they say follows the app: check it against the code when
-the app changes (models, sizes, settings names, permissions).
+that have that file in full, now zh-Hans, zh-Hant, en, ja and ko, and their hreflang links,
+language menu and sitemap entries name only those. What they say follows the app: check it against
+the code when the app changes (models, sizes, settings names, permissions).
 
 ## Downloads
 

@@ -313,8 +313,8 @@
   "footer": {
     "tagline": "把電腦播放的聲音變成雙語字幕。",
     "product": "產品",
-    "helpInstall": "安裝與權限（簡體中文）",
-    "helpOffline": "本機離線模型（簡體中文）",
+    "helpInstall": "安裝與權限",
+    "helpOffline": "本機離線模型",
     "changelog": "更新記錄",
     "openSource": "開源",
     "contributing": "參與貢獻",
@@ -330,9 +330,9 @@
     "security": "https://github.com/ACAne0320/Tomoru/blob/main/SECURITY_zh.md",
     "trademarks": "https://github.com/ACAne0320/Tomoru/blob/main/TRADEMARKS_zh.md",
     "licenses": "https://github.com/ACAne0320/Tomoru/blob/main/docs/third-party-licenses_zh.md",
-    "helpInstall": "/help/install/",
-    "helpOffline": "/help/offline/",
-    "helpLang": "zh-Hans"
+    "helpInstall": "/zh-hant/help/install/",
+    "helpOffline": "/zh-hant/help/offline/",
+    "helpLang": "zh-Hant"
   },
   "notFound": {
     "title": "找不到此頁面 | Tomoru",

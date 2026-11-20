@@ -1,0 +1,65 @@
+{
+  "common": {
+    "crumbLabel": "パンくずリスト",
+    "toc": "このページの内容",
+    "moreTitle": "それでも解決しないときは",
+    "more": "アプリの設定 › 情報 › フィードバックと提案に書くか、<a href=\"https://github.com/ACAne0320/Tomoru/issues\">GitHub</a> で報告してください。",
+    "see": "あわせて見る："
+  },
+  "install": {
+    "meta": {
+      "title": "インストールと権限：動作環境、初回起動が止まるとき、録音の許可 | Tomoru",
+      "description": "Tomoru は macOS 26（Apple シリコン）、Windows 11（x64）、Linux（x64）で動きます。インストール方法、初回起動を macOS や SmartScreen に止められたときの対処、必要な許可、字幕が出ないときに確認すること。"
+    },
+    "title": "インストールと権限",
+    "lead": "どのシステムで動くか、どうインストールするか、初回起動を止められたらどうするか、どの許可が必要か、字幕が出ないときに何を確認するか。",
+    "requirements": {
+      "title": "動作環境",
+      "body": "<table><thead><tr><th>システム</th><th>必要なもの</th></tr></thead><tbody><tr><td>macOS</td><td>macOS 26 以降、Apple シリコン</td></tr><tr><td>Windows</td><td>Windows 11、x64</td></tr><tr><td>Linux</td><td>x64。Ubuntu 22.04、または同程度に新しいディストリビューション。GNOME または KDE、PipeWire または PulseAudio</td></tr></tbody></table><p>Intel の Mac と Windows 10 には対応していません。Windows 版がパソコンの音を聞くのに使うシステム API は Windows build 20348 以降が必要で、Windows 10 にはありません。</p><p>パソコン上で動かすモデルには、メモリや VRAM の条件が別にあります。詳しくは<a href=\"/ja/help/offline/\">オンデバイスのモデル</a>。</p>"
+    },
+    "download": {
+      "title": "インストール",
+      "body": "<p>使っているシステム用のインストーラーをダウンロードします。<a href=\"/download/mac\">macOS（.dmg）</a>、<a href=\"/download/windows\">Windows（.exe）</a>、<a href=\"/download/linux\">Linux（.deb、Debian と Ubuntu 向け）</a>。すべてのバージョンは <a href=\"https://github.com/ACAne0320/Tomoru/releases\">GitHub Releases</a> にもあります。インストールしたあとは、アプリが自分で更新します。Linux の .deb パッケージだけは例外で、新しいバージョンはダウンロードして入れ直します。</p><p>ターミナルの 1 行でもインストールできます。スクリプトが最新版をダウンロードし、検証してからインストールします。Mac では「アプリケーション」に入ります。この方法なら、初回起動で止められません。</p><p>Linux ではこの 1 行がおすすめです。root は不要で、<code>~/.local/tomoru.app</code> に入り、どのディストリビューションでも使え、入れたあとは自分で更新します。システムのライブラリは入れません。トレイアイコンには <code>libayatana-appindicator3</code> が必要で、GNOME では AppIndicator 拡張機能も必要です（Ubuntu には入っています）。</p>"
+    },
+    "blocked": {
+      "title": "初回起動が止まる",
+      "body": "<p>Tomoru はまだ Apple の公証を受けておらず、Windows 版にも署名がありません。インストーラーから入れると、初回起動にもう一手間要ります。</p><ul><li><strong>macOS</strong>：Tomoru を開きます。検証できないと言われたら、システム設定 › プライバシーとセキュリティ を開き、Tomoru の横にある「このまま開く」をクリックします。</li><li><strong>Windows</strong>：SmartScreen の警告では、「詳細情報」をクリックしてから「実行」をクリックします。</li></ul><p>上のターミナルコマンドでインストールした場合は、この手順はありません。</p>"
+    },
+    "permissions": {
+      "title": "権限",
+      "body": "<p>Tomoru が聞くのは、パソコンが再生している音だけです。マイクは使わず、仮想オーディオデバイスも要りません。</p><p><strong>macOS</strong>：初回ガイドで、システムオーディオの録音を許可するよう求められます。許可は システム設定 › プライバシーとセキュリティ › 画面収録とシステムオーディオ録音 にあり、Tomoru は「システムオーディオ録音のみ」の下に表示されます。そのとき許可しなかった場合は、そこで Tomoru をオンにしてから、Tomoru を開き直してください。</p><p>画面上の文字を範囲選択して翻訳する（<kbd>⌥⇧S</kbd>）には、同じ場所にある画面収録も必要です。取り込むのは選んだ範囲だけです。この機能を使わないなら、オンにする必要はありません。</p><p><strong>Windows</strong>：許可するものはありません。</p><p><strong>Linux</strong>：音を聞くのに許可は要りません。Wayland では、画面上の文字を翻訳する（<kbd>Alt+Shift+S</kbd>）のを初めて使う前に、ガイドか「画像の翻訳」のカードで「範囲選択をオンにする」をクリックします。デスクトップが、Tomoru にスクリーンショットを許可するか一度だけ尋ねます。X11 では何も要りません。</p>"
+    },
+    "trouble": {
+      "title": "字幕が出ない",
+      "body": "<ul><li>macOS が「Tomoru が Mac の音声を聞き取れません」と表示するときは、システムオーディオの録音がオフです。上の手順でオンにしてから、Tomoru を開き直してください。</li><li>音声ソースを一つのアプリにすると、そのアプリの音だけを翻訳します。たとえばブラウザだけを聞いていると、ゲームの声には字幕が出ません。</li><li>Apple 音声認識では、言語ごとに最初の一度だけ認識データをダウンロードします。およそ 20 秒です。</li><li>「この Mac の音声認識はこの言語に対応していません」と出たら、設定 › 認識と翻訳 でオンデバイスのモデルかクラウドの認識に切り替えます。</li><li>認識または翻訳のモデルがまだダウンロードされていないときは、設定 › 認識と翻訳 でダウンロードします。詳しくは<a href=\"/ja/help/offline/\">オンデバイスのモデル</a>。</li><li>Windows の「システムのすべての音」は、既定の再生デバイスをキャプチャし、既定の出力が変わるとそれに追従します。Teams などの通話をアプリ指定で聞いても字幕が出ないときは、「システムのすべての音」にし、通話のスピーカーを同じデバイスに設定してください。別のデバイスに出力しているアプリは、このモードではキャプチャされません。</li><li>Linux で聞けるのは「システムのすべての音」、つまり既定の出力デバイスが再生する音だけです。一つのアプリだけを聞くことは、まだできません。</li><li>Linux で Tomoru のアイコンが出ないときは、GNOME に AppIndicator 拡張機能が必要です（Ubuntu には入っています。Fedora と Arch では自分で入れます）。<code>libayatana-appindicator3</code> もインストールされている必要があります。アイコンをクリックするとメニューが開き、最初の項目「パネルを表示」でパネルが開きます。</li><li>KDE など GNOME 以外のデスクトップで字幕がほかのウィンドウに隠れるときは、<code>libgtk-layer-shell0</code> をインストールして（.deb パッケージはこれを自動で入れます）、Tomoru を開き直してください。</li></ul>"
+    }
+  },
+  "offline": {
+    "meta": {
+      "title": "オンデバイスのモデル：音声認識と翻訳、サイズ、メモリ、保存場所 | Tomoru",
+      "description": "Tomoru は音声認識と翻訳を、どちらもパソコンの中だけで実行できます。ダウンロードできるモデル、必要なディスクとメモリと VRAM、保存場所、ダウンロードが遅いときの対処。"
+    },
+    "title": "オンデバイスのモデル",
+    "lead": "音声認識と翻訳は、どちらもパソコンの中だけで実行でき、音声も文字も外に出ません。ダウンロードできるモデル、必要な容量とメモリ、保存場所をまとめます。",
+    "setup": {
+      "title": "すべてをパソコンの中で実行する",
+      "body": "<p>設定 › 認識と翻訳 で、認識と翻訳の両方にオンデバイスのエンジンを選びます。モデルは選んだときにダウンロードが始まり、終われば使えます。実行にインターネットは要りません。</p><p>macOS では、音声認識は標準でシステムの Apple 音声認識です。これも Mac 上で動きます。Windows と Linux にはシステムの認識がないので、オンデバイスのモデルかクラウドの認識を選びます。翻訳は標準で無料のクラウド Index-Translate です。オフラインにするには、下のモデルに切り替えます。画面上の文字を翻訳するエンジンは、別に選びます。</p><p>モデルをダウンロードしたくないときは、クラウドでも使えます。翻訳は標準で無料のクラウドで、クラウドの認識には自分の API キーが必要です。</p>"
+    },
+    "asr": {
+      "title": "音声認識のモデル",
+      "body": "<table><thead><tr><th>モデル</th><th>サイズ</th><th>動作</th><th>言語</th></tr></thead><tbody><tr><td>Apple 音声認識（macOS のみ）</td><td>標準搭載</td><td>この Mac</td><td>システムが対応する言語</td></tr><tr><td>SenseVoice Small</td><td>228 MB</td><td>CPU で動作。GPU は不要</td><td>中国語、英語、日本語、韓国語、広東語</td></tr><tr><td>Qwen3-ASR 0.6B</td><td>972 MB</td><td>GPU。Mac はメモリ 2 GB。Windows と Linux は VRAM 2 GB 以上</td><td>30 言語</td></tr><tr><td>Qwen3-ASR 1.7B</td><td>2.3 GB</td><td>GPU。Mac はメモリ 4 GB。Windows と Linux は VRAM 3 GB 以上</td><td>30 言語</td></tr></tbody></table><p>SenseVoice はどのパソコンでも動きます。Qwen3-ASR には GPU が必要です。1.7B のほうが正確で、0.6B のほうが速いです。Apple 音声認識は、ある言語を初めて聞くときに、その言語の認識データをダウンロードします。およそ 20 秒です。</p>"
+    },
+    "mt": {
+      "title": "翻訳のモデル",
+      "body": "<table><thead><tr><th>モデル</th><th>サイズ</th><th>Mac のメモリ / Windows と Linux の VRAM</th><th>画面上の文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>できる</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>できる</td></tr><tr><td>Hy-MT2 1.8B</td><td>1.1 GB</td><td>8 GB / 4 GB</td><td>できない</td></tr><tr><td>Hy-MT2 7B</td><td>4.3 GB</td><td>16 GB / 8 GB</td><td>できない</td></tr></tbody></table><p>大きいほど正確で、小さいほど速いです。Mac の GPU はシステムとメモリを共有するので、見るのはメモリです。Windows と Linux ではモデルがグラフィックボード上で動くので、見るのはその VRAM です。数値は目安で、容量が足りないときはアプリが知らせます。</p>"
+    },
+    "where": {
+      "title": "モデルの保存場所",
+      "body": "<p>標準では次の場所です。</p><ul><li>macOS：<code>~/Library/Application Support/Tomoru/models</code></li><li>Windows：<code>%LOCALAPPDATA%\\Tomoru\\models</code></li><li>Linux：<code>~/.local/share/Tomoru/models</code></li></ul><p>ディスクの空きが少ないときは、設定 › 認識と翻訳 › モデルの保存先 で「変更…」をクリックし、別のフォルダ（外付けドライブなど）を選びます。Tomoru はその中に「Tomoru Models」フォルダを作り、ダウンロード済みのモデルを移します。使わなくなったモデルは同じページで削除でき、また必要になったらダウンロードし直します。</p>"
+    },
+    "download": {
+      "title": "ダウンロードが遅い、または失敗する",
+      "body": "<ul><li>システムの言語が中国語のときは ModelScope から先にダウンロードし、それ以外は Hugging Face から先にダウンロードします。片方に接続できないときは、もう片方を試します。</li><li>プロキシを使うには、設定 › 環境設定 › プロキシを使う で設定します。クラウドの認識と翻訳、それにモデルのダウンロードがプロキシを通ります。パソコン上で動くモデルは通りません。</li><li>中断したダウンロードは続きから再開できます。ダウンロード後にファイルを検証し、壊れていれば削除します。その場合はもう一度ダウンロードしてください。</li></ul>"
+    }
+  }
+}

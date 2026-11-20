@@ -21,7 +21,7 @@
 
 `/llms.txt` 由 `src/llms.txt` 生成：给语言模型看的一段短的事实说明，版本号取自 `app/mygo.json`。
 
-页面列在 `build.mjs` 里。帮助页 `/help/install/` 和 `/help/offline/` 还要用 `locales/help/<语言>.json`，放在 `help` 键下，只在这个文件完整的语言里生成，目前是简体中文和英文；它们的 hreflang、语言菜单和 sitemap 也只列这些语言。帮助页的内容跟着 app 走：app 改了模型、大小、设置项名称或权限时，对照代码一起改。
+页面列在 `build.mjs` 里。帮助页 `/help/install/` 和 `/help/offline/` 还要用 `locales/help/<语言>.json`，放在 `help` 键下，只在这个文件完整的语言里生成，目前是简体中文、繁体中文、英文、日文和韩文；它们的 hreflang、语言菜单和 sitemap 也只列这些语言。帮助页的内容跟着 app 走：app 改了模型、大小、设置项名称或权限时，对照代码一起改。
 
 ## 下载
 

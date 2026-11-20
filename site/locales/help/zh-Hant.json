@@ -1,0 +1,65 @@
+{
+  "common": {
+    "crumbLabel": "位置",
+    "toc": "本頁內容",
+    "moreTitle": "還有問題？",
+    "more": "在 app 的 設定 › 關於 › 回饋與建議 裡寫下來，或者直接在 <a href=\"https://github.com/ACAne0320/Tomoru/issues\">GitHub</a> 上回報。",
+    "see": "另見："
+  },
+  "install": {
+    "meta": {
+      "title": "安裝與權限：系統需求、第一次打開被擋住、錄音權限 | Tomoru",
+      "description": "Tomoru 支援 macOS 26（Apple 晶片）、Windows 11（x64）和 Linux（x64）。怎麼安裝，第一次打開被 macOS 或 SmartScreen 擋住怎麼辦，要開哪些權限，字幕沒出來時先查什麼。"
+    },
+    "title": "安裝與權限",
+    "lead": "支援哪些系統，怎麼安裝，第一次打開被擋住怎麼辦，要開哪些權限，以及字幕沒出來時先查什麼。",
+    "requirements": {
+      "title": "系統需求",
+      "body": "<table><thead><tr><th>系統</th><th>需求</th></tr></thead><tbody><tr><td>macOS</td><td>macOS 26 或更新，Apple 晶片</td></tr><tr><td>Windows</td><td>Windows 11，x64</td></tr><tr><td>Linux</td><td>x64，Ubuntu 22.04 或同樣新的發行版；GNOME 或 KDE 桌面，PipeWire 或 PulseAudio</td></tr></tbody></table><p>Intel 晶片的 Mac 和 Windows 10 不支援。Windows 版聽電腦聲音用的系統 API 需要 Windows build 20348 或更新，Windows 10 沒有它。</p><p>在本機執行模型對記憶體或顯示記憶體另有需求，見<a href=\"/zh-hant/help/offline/\">本機離線模型</a>。</p>"
+    },
+    "download": {
+      "title": "安裝",
+      "body": "<p>下載對應系統的安裝檔：<a href=\"/download/mac\">macOS（.dmg）</a>、<a href=\"/download/windows\">Windows（.exe）</a>或 <a href=\"/download/linux\">Linux（.deb，Debian 和 Ubuntu）</a>。所有版本也可以在 <a href=\"https://github.com/ACAne0320/Tomoru/releases\">GitHub Releases</a> 下載。裝好之後，app 會自己更新；Linux 的 .deb 套件除外，新版本要重新下載安裝。</p><p>也可以在終端機裡用一行指令安裝。指令碼會下載最新版本，驗證後安裝，Mac 上裝進「應用程式」。這樣裝的，第一次打開不會被系統擋住。</p><p>Linux 上建議用這一行：不需要 root，裝在 <code>~/.local/tomoru.app</code>，各發行版都能用，裝好後會自己更新。它不安裝系統函式庫：系統匣圖示要用 <code>libayatana-appindicator3</code>，GNOME 上還要有 AppIndicator 擴充功能（Ubuntu 內建）。</p>"
+    },
+    "blocked": {
+      "title": "第一次打開被擋住",
+      "body": "<p>Tomoru 還沒經過 Apple 公證，Windows 版也還沒有簽章，所以用安裝檔安裝時，第一次打開要多一步：</p><ul><li><strong>macOS</strong>：打開 Tomoru，系統提示無法驗證它時，打開「系統設定 › 隱私權與安全性」，點 Tomoru 旁邊的「仍要打開」。</li><li><strong>Windows</strong>：SmartScreen 警告時，點「其他資訊」，再點「仍要執行」。</li></ul><p>用上面的終端機指令安裝的，不會遇到這一步。</p>"
+    },
+    "permissions": {
+      "title": "權限",
+      "body": "<p>Tomoru 只聽電腦播放的聲音，不用麥克風，也不需要安裝虛擬音訊裝置。</p><p><strong>macOS</strong>：第一次使用的引導會請你允許 Tomoru 錄製系統聲音。這項權限在「系統設定 › 隱私權與安全性 › 螢幕與系統錄音」裡，Tomoru 列在「僅系統錄音」下面。當時沒有允許的話，在那裡打開 Tomoru 的開關，再重新打開 Tomoru。</p><p>框選翻譯螢幕上的文字（<kbd>⌥⇧S</kbd>）另外需要「螢幕錄製」，也在「螢幕與系統錄音」裡。它只截你框住的那一塊，不用這個功能就不必打開。</p><p><strong>Windows</strong>：不用授予任何權限。</p><p><strong>Linux</strong>：聽聲音不需要權限。在 Wayland 上，框選翻譯（<kbd>Alt+Shift+S</kbd>）第一次用之前，在引導或圖片翻譯的卡片裡點「開啟一鍵框選」，桌面會問一次是否允許 Tomoru 截圖；X11 上不用。</p>"
+    },
+    "trouble": {
+      "title": "字幕沒有出來",
+      "body": "<ul><li>macOS 提示「Tomoru 聽不到電腦的聲音」：錄製系統聲音的權限沒有打開，按上一節打開後重新打開 Tomoru。</li><li>音源選了某個應用程式時，只翻譯那個應用程式的聲音。例如只聽瀏覽器，遊戲裡的語音就不會出字幕。</li><li>用 Apple 語音辨識時，每種語言第一次要下載辨識資源，大約 20 秒。</li><li>提示「這台 Mac 的語音辨識不支援這種語言」：在 設定 › 辨識與翻譯 裡換成本機模型或雲端辨識。</li><li>提示辨識或翻譯模型還沒下載：在 設定 › 辨識與翻譯 裡下載，見<a href=\"/zh-hant/help/offline/\">本機離線模型</a>。</li><li>Windows 的「所有系統聲音」擷取預設播放裝置，並跟隨預設輸出切換。Teams 等通話在指定應用程式模式下沒有字幕時，改選「所有系統聲音」，並把通話的喇叭設為同一裝置。單獨輸出到其他裝置的應用程式不會被這個模式擷取到。</li><li>Linux 上只能聽「所有系統聲音」，也就是預設輸出裝置播放的聲音，還不能只聽一個應用程式。</li><li>Linux 上看不到 Tomoru 的圖示：GNOME 要有 AppIndicator 擴充功能（Ubuntu 內建，Fedora 和 Arch 要自己裝），還要裝了 <code>libayatana-appindicator3</code>。點圖示會出現選單，第一項「顯示面板」打開面板。</li><li>在 KDE 等 GNOME 以外的桌面上，字幕被其他視窗擋住：裝上 <code>libgtk-layer-shell0</code>（.deb 套件會自動裝），再重新打開 Tomoru。</li></ul>"
+    }
+  },
+  "offline": {
+    "meta": {
+      "title": "本機離線模型：語音辨識和翻譯的大小、記憶體與存放位置 | Tomoru",
+      "description": "Tomoru 的語音辨識和翻譯都可以只在你的電腦上執行。可下載的本機模型有哪些，各要多少空間、記憶體和顯示記憶體，存在哪裡，下載慢時怎麼辦。"
+    },
+    "title": "本機離線模型",
+    "lead": "語音辨識和翻譯都可以只在你的電腦上執行，聲音和文字不離開電腦。下面是可以下載的模型，它們要多少空間和記憶體，存在哪裡。",
+    "setup": {
+      "title": "怎樣全部在本機執行",
+      "body": "<p>在 設定 › 辨識與翻譯 裡，把語音辨識和翻譯都選成本機的引擎。本機模型在選取時開始下載，下載完就能用，執行時不用連網。</p><p>macOS 上，語音辨識預設用系統內建的 Apple 語音辨識，它也在本機執行。Windows 和 Linux 沒有系統內建的辨識，要選一個本機模型或雲端辨識。翻譯預設用免費的雲端 Index-Translate，要離線就換成下面的本機模型。框選翻譯螢幕文字用的引擎另外選擇。</p><p>不想下載模型，也可以都用雲端：翻譯預設就是免費的雲端，雲端辨識要用你自己的 API key。</p>"
+    },
+    "asr": {
+      "title": "語音辨識模型",
+      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>執行於</th><th>語言</th></tr></thead><tbody><tr><td>Apple 語音辨識（僅 macOS）</td><td>系統內建</td><td>本機</td><td>由系統決定</td></tr><tr><td>SenseVoice Small</td><td>228 MB</td><td>CPU，無需顯示卡</td><td>中文、英文、日文、韓文、粵語</td></tr><tr><td>Qwen3-ASR 0.6B</td><td>972 MB</td><td>顯示卡。Mac 需要 2 GB 記憶體，Windows 和 Linux 建議 2 GB 以上顯示記憶體</td><td>30 種語言</td></tr><tr><td>Qwen3-ASR 1.7B</td><td>2.3 GB</td><td>顯示卡。Mac 需要 4 GB 記憶體，Windows 和 Linux 建議 3 GB 以上顯示記憶體</td><td>30 種語言</td></tr></tbody></table><p>SenseVoice 在任何電腦上都能執行。Qwen3-ASR 要用顯示卡：1.7B 更準，0.6B 更快。Apple 語音辨識第一次用一種語言時，要先下載這種語言的辨識資源，大約 20 秒。</p>"
+    },
+    "mt": {
+      "title": "翻譯模型",
+      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>Mac 記憶體 / Windows、Linux 顯示記憶體</th><th>翻譯螢幕文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>能</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>能</td></tr><tr><td>Hy-MT2 1.8B</td><td>1.1 GB</td><td>8 GB / 4 GB</td><td>不能</td></tr><tr><td>Hy-MT2 7B</td><td>4.3 GB</td><td>16 GB / 8 GB</td><td>不能</td></tr></tbody></table><p>大的更準，小的更快。Mac 的顯示卡和系統共用記憶體，所以看記憶體；Windows 和 Linux 上模型在顯示卡上執行，看的是顯示記憶體。這些是估計值，電腦不夠時 app 會提示。</p>"
+    },
+    "where": {
+      "title": "模型存在哪裡",
+      "body": "<p>預設位置：</p><ul><li>macOS：<code>~/Library/Application Support/Tomoru/models</code></li><li>Windows：<code>%LOCALAPPDATA%\\Tomoru\\models</code></li><li>Linux：<code>~/.local/share/Tomoru/models</code></li></ul><p>磁碟空間不夠時，在 設定 › 辨識與翻譯 › 模型資料夾 裡點「變更…」，選另一個資料夾，例如外接硬碟。Tomoru 會在那裡建一個「Tomoru Models」資料夾，把已下載的模型移過去。不用的模型可以在同一頁刪除，要再用時重新下載。</p>"
+    },
+    "download": {
+      "title": "下載慢或下載失敗",
+      "body": "<ul><li>系統語言是中文時，模型優先從 ModelScope 下載，否則優先從 Hugging Face 下載。一個來源連不上時會改試另一個。</li><li>需要代理的話，在 設定 › 偏好設定 › 使用代理 裡填寫。雲端辨識、翻譯和模型下載都會經過代理，本機模型執行時不經過。</li><li>下載中斷後可以接續下載。下載完會驗證檔案，損壞的會刪掉，重新下載即可。</li></ul>"
+    }
+  }
+}
