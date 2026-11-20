@@ -44,6 +44,8 @@ type Overlay struct {
 	mu        sync.Mutex  // guards block, which the pointer watcher reads
 	block     ui.Rect     // the subtitle block in the overlay, with its toolbar, as last laid out
 	lock      ui.Rect     // the lock above the locked block while it shows, as last laid out
+	// woken wakes the pointer watcher, asleep while nothing shows to grab (wake).
+	woken chan struct{}
 
 	adjust  time.Time // the block shows its frame, to be moved, until then
 	hover   bool
@@ -62,14 +64,13 @@ type Overlay struct {
 
 // New makes the overlay's window, on the display the subtitles were put on, and shows it.
 func New(k *core.Core, nav shared.Nav) *Overlay {
-	o := &Overlay{core: k, nav: nav}
+	o := &Overlay{core: k, nav: nav, woken: make(chan struct{}, 1)}
 	o.display = displayNamed(mygo.Screen.Displays(), k.Preferences().Screen)
 	o.area = o.display.WorkArea
 	o.locked.Store(k.Preferences().Locked)
 	area := o.area
 	o.win = mygo.NewWindow(windowOptions(area, ui.View(o.View)))
 	toolWindow(o.win)
-	o.win.SetInputRegion([]mygo.Rectangle{}) // none, until the pointer rests on the subtitles
 	o.win.SetVisibleOnAllWorkspaces(true)
 	o.win.SetContentProtection(k.Preferences().HideFromCapture)
 	o.win.ShowInactive()
@@ -83,14 +84,15 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 }
 
 // windowOptions makes the overlay's window: the work area, plus below for the newest line sliding
-// in, with content drawn there. DisableFullScreen keeps the window out of full screen itself; with
+// in, with content drawn there, letting the mouse through until something shows to grab
+// (watchPointer). DisableFullScreen keeps the window out of full screen itself; with
 // SetVisibleOnAllWorkspaces, MyGo then makes it an auxiliary of other apps' full-screen Spaces
 // (egoist/mygo#309), the way macOS documents for showing over them.
 func windowOptions(area mygo.Rectangle, content mygo.Content) mygo.WindowOptions {
 	return mygo.WindowOptions{
 		Title: "Tomoru", X: area.X, Y: area.Y,
 		Width: area.Width, Height: area.Height + below, Hidden: true,
-		Frameless: true, Transparent: true, AlwaysOnTop: true, SkipTaskbar: true,
+		Frameless: true, Transparent: true, AlwaysOnTop: true, SkipTaskbar: true, IgnoreMouseEvents: true,
 		DisableFullScreen: true, DisableShadow: true, DisableResize: true,
 		Content: content,
 	}
@@ -156,7 +158,7 @@ func (o *Overlay) SetLocked(v bool) {
 	o.locked.Store(v)
 	if v {
 		o.hover, o.adjust = false, time.Time{}
-		o.win.SetInputRegion([]mygo.Rectangle{})
+		o.wake() // to stop taking the mouse
 		o.toast = time.Now().Add(2600 * time.Millisecond)
 	} else {
 		o.peek = false
@@ -228,8 +230,10 @@ func (o *Overlay) View(c *ui.Context) {
 	if adjusting {
 		c.After(adjust)
 	}
-	o.grabbable.Store(show || adjusting)
 	o.adjusting.Store(adjusting)
+	if g := show || adjusting; o.grabbable.Swap(g) != g && g {
+		o.wake()
+	}
 	ww, wh := c.Size()
 	left, width := float32(p.AreaX-p.AreaW/2)*ww, float32(p.AreaW)*ww
 	minH := subtitle.SlotHeight(p, 1, true) + 16 // the same size empty as with one sentence

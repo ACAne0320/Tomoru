@@ -350,3 +350,57 @@ func TestInputRegion(t *testing.T) {
 		t.Errorf("none takes it, not all: %v", got)
 	}
 }
+
+// While nothing can be grabbed, the pointer watcher sleeps and the window lets all of the mouse
+// through, as it starts; hovered, or showing the lock, it goes on watching, though the subtitles
+// went.
+func TestParks(t *testing.T) {
+	if !windowOptions(mygo.Rectangle{Width: 1000, Height: 520}, nil).IgnoreMouseEvents {
+		t.Error("the window takes the mouse before anything shows to grab")
+	}
+	for _, c := range []struct {
+		grabbable, hover, peek, parks bool
+	}{
+		{false, false, false, true},
+		{true, false, false, false},
+		{false, true, false, false},
+		{false, false, true, false},
+		{true, true, false, false},
+	} {
+		if got := parks(c.grabbable, c.hover, c.peek); got != c.parks {
+			t.Errorf("grabbable %v, hovered %v, the lock shown %v: parks %v", c.grabbable, c.hover, c.peek, got)
+		}
+	}
+}
+
+// The subtitles appearing wake the pointer watcher, asleep, so that resting on them works at once;
+// they wake it only as they appear, and never wait for it.
+func TestWakesWatcher(t *testing.T) {
+	k := coretest.New()
+	o := &Overlay{core: k, nav: &coretest.Nav{}, woken: make(chan struct{}, 1)}
+	tt := ui.NewTester(o.View, 1400, 900)
+	if len(o.woken) != 0 {
+		t.Fatal("woken with nothing to grab")
+	}
+	k.Running, k.Updated = true, time.Now()
+	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	tt.Frame()
+	if len(o.woken) != 1 {
+		t.Fatal("subtitles appeared, the watcher not woken")
+	}
+	<-o.woken
+	tt.Frame()
+	if len(o.woken) != 0 {
+		t.Error("woken again while the same subtitles show")
+	}
+	// They go and come again twice, the watcher not looking: View goes on.
+	for range 2 {
+		k.Updated = time.Now().Add(-time.Minute)
+		tt.Frame()
+		k.Updated = time.Now()
+		tt.Frame()
+	}
+	if len(o.woken) != 1 {
+		t.Errorf("%d wakes waiting, not one", len(o.woken))
+	}
+}
