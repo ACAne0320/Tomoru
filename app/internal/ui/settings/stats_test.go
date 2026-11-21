@@ -288,3 +288,23 @@ func TestStatsUntranslated(t *testing.T) {
 		t.Errorf("translation: %q", tt.Texts())
 	}
 }
+
+func TestDaysBetween(t *testing.T) {
+	ny, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Skip(err)
+	}
+	for _, tc := range []struct {
+		from, to time.Time
+		want     int
+	}{
+		{time.Date(2026, 3, 7, 0, 0, 0, 0, ny), time.Date(2026, 3, 9, 0, 0, 0, 0, ny), 2},
+		{time.Date(2026, 10, 31, 0, 0, 0, 0, ny), time.Date(2026, 11, 2, 0, 0, 0, 0, ny), 2},
+		{time.Date(2026, 11, 21, 23, 30, 0, 0, ny), time.Date(2026, 11, 22, 0, 10, 0, 0, ny), 1},
+		{time.Date(2026, 11, 21, 0, 0, 0, 0, ny), time.Date(2026, 11, 21, 23, 0, 0, 0, ny), 0},
+	} {
+		if got := daysBetween(tc.from, tc.to); got != tc.want {
+			t.Errorf("%v to %v: %d days, want %d", tc.from, tc.to, got, tc.want)
+		}
+	}
+}

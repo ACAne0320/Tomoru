@@ -291,6 +291,7 @@ func TestDownloadThenUse(t *testing.T) {
 		t.Fatalf("downloads %q, in use %q, chosen %q", m.Downloads, k.Prefs.MT, k.Chosen(core.MT))
 	}
 	m.St["local-2b"] = models.Status{State: models.Downloading, Done: 400 << 20, Total: models.All[0].Size}
+	k.Changed()
 	tt.Frame()
 	if !tt.HasText(locales.Downloading(shared.Size(400<<20), shared.Size(models.All[0].Size))) {
 		t.Fatalf("no progress: %q", tt.Texts())
@@ -849,7 +850,7 @@ func TestHistoryEmpty(t *testing.T) {
 	}
 
 	k.History.Records[0].Head.Scene = id
-	s.Tab, s.sceneEdit.scene, s.sceneEdit.id = "scenes", id, true
+	s.Tab, s.sceneEdit.scene = "scenes", id
 	tt.Frame()
 	if !tt.HasText(locales.NoTermsLearn()) || !tt.HasText(locales.LearnFromRecords()) {
 		t.Errorf("texts %q", tt.Texts())
@@ -885,7 +886,7 @@ func TestLearn(t *testing.T) {
 	}}
 	s := New(k, &coretest.Nav{})
 	s.Tab = "scenes"
-	s.sceneEdit = sceneEdit{id: true, scene: id}
+	s.sceneEdit = sceneEdit{scene: id}
 	tt := ui.NewTester(s.View, Width, 1000)
 	if err := tt.Click(locales.LearnFromRecords()); err != nil {
 		t.Fatalf("%v: %q", err, tt.Texts())
@@ -981,14 +982,14 @@ func TestGeneralGlossary(t *testing.T) {
 	k.AddTerm("", scene.Term{Src: "Faker", Tgt: "Faker"})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "scenes"
-	s.sceneEdit = sceneEdit{id: true, scene: ""}
+	s.sceneEdit = sceneEdit{scene: ""}
 	tt := ui.NewTester(s.View, Width, 1000)
 	if !tt.HasText(locales.TermSrc()) || tt.HasText(locales.TermHeard()) {
 		t.Errorf("texts %q", tt.Texts())
 	}
 	id := k.AddScene("LoL")
 	k.AddTerm(id, scene.Term{Src: "Faker", Tgt: "Faker"})
-	s.sceneEdit = sceneEdit{id: true, scene: id}
+	s.sceneEdit = sceneEdit{scene: id}
 	tt.Frame()
 	if !tt.HasText(locales.TermHeard()) {
 		t.Errorf("texts %q", tt.Texts())
@@ -1142,6 +1143,7 @@ func TestModelsFolder(t *testing.T) {
 	}
 
 	m.MoveStatus = models.Move{Active: true, Done: 1 << 30, Total: 4 << 30}
+	k.Changed()
 	tt.Frame()
 	if !tt.HasText(locales.ModelsMoving(shared.Size(1<<30), shared.Size(4<<30))) || tt.HasText(locales.ModelsFolderChange()) {
 		t.Fatalf("moving: texts %q", tt.Texts())
@@ -1151,6 +1153,7 @@ func TestModelsFolder(t *testing.T) {
 	}
 
 	m.MoveStatus = models.Move{Done: 4 << 30, Total: 4 << 30}
+	k.Changed()
 	tt.Frame()
 	if !tt.HasText(locales.ModelsMoved()) || !tt.HasText(locales.ModelsFolderChange()) {
 		t.Fatalf("moved: texts %q", tt.Texts())

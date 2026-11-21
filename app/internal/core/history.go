@@ -8,14 +8,12 @@ import (
 )
 
 type HistoryView struct {
-	Loaded    bool
-	Loading   bool
-	Records   []history.Record
-	Err       error
-	Shown     string
-	Lines     []history.Entry
-	Exports   int
-	ExportErr error
+	Loaded  bool
+	Loading bool
+	Records []history.Record
+	Err     error
+	Shown   string
+	Lines   []history.Entry
 }
 
 func (c *Core) HistoryOn() bool { return c.deps.HistoryDir != "" }
@@ -97,7 +95,7 @@ func (c *HistoryService) ExportHistory(path, data string) {
 			log.Println("history:", err)
 		}
 		c.work.Post(func() {
-			c.History.Exports, c.History.ExportErr = c.History.Exports+1, err
+			c.finished.add(Finished{What: HistoryExported, Err: err})
 			c.changed()
 		})
 	})

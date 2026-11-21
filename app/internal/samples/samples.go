@@ -13,6 +13,8 @@ var Lines = []map[string]string{
 	{"zh": "这个 Boss 的第二阶段超强的。", "ja": "このボスの第二形態がめっちゃ強いんだよね。", "en": "This boss's second phase is really tough.", "ko": "이 보스 2페이즈가 진짜 강해요.", "zh-Hant": "這個 Boss 的第二階段超強的。"},
 }
 
+const MixedScript = 8
+
 func Has(lang string) bool {
 	_, ok := Lines[0][lang]
 	return ok

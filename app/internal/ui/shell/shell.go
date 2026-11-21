@@ -8,7 +8,6 @@ import (
 
 	"tomoru/internal/core"
 	"tomoru/internal/ui/assets"
-	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/overlay"
 	"tomoru/internal/ui/settings"
 	"tomoru/locales"
@@ -33,7 +32,7 @@ type Shell struct {
 }
 
 func New(k *core.Core) *Shell {
-	mygo.Theme.SetSource(kit.ThemeSource(k.Preferences().Appearance))
+	mygo.Theme.SetSource(themeSource(k.Preferences().Appearance))
 	s := &Shell{core: k}
 	s.overlay = overlay.New(k, s)
 	icon, template := trayIcon(assets.TrayIdle)

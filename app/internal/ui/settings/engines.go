@@ -40,7 +40,6 @@ func (s *Settings) engines(c *ui.Context) {
 			s.modelsFolder(c, dir)
 		}
 	})
-	s.watchModels(c)
 }
 
 type enginesEdit struct {
@@ -132,10 +131,6 @@ func (s *Settings) pictures(c *ui.Context) {
 func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 	k := s.core
 	mv := k.ModelsMoving()
-	if s.modelsMoving && !mv.Active && mv.Err == nil {
-		c.Toast(locales.ModelsMoved())
-	}
-	s.modelsMoving = mv.Active
 	var under func()
 	switch {
 	case mv.Active:
@@ -572,28 +567,6 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 	default:
 		head(c, locales.Service())
 		s.serviceForm(c, d, true)
-	}
-}
-
-func (s *Settings) watchModels(c *ui.Context) {
-	k := s.core
-	for _, e := range append(k.Engines(core.ASR), k.Engines(core.MT)...) {
-		if e.Model == nil {
-			continue
-		}
-		st := k.ModelStatus(e.ID).State
-		if was, ok := s.models[e.ID]; ok && was != st && st == models.Ready && (was == models.Downloading || was == models.Verifying) {
-			name, kind, id := shared.EngineName(e), e.Kind, e.ID
-			switch {
-			case k.InUse(kind) == id:
-				c.Toast(locales.ModelReadyInUse(name))
-			case k.Usable(e):
-				c.ToastAction(locales.ModelDownloaded(name), locales.Use(), func() { k.Use(kind, id) })
-			default:
-				c.Toast(locales.ModelDownloaded(name))
-			}
-		}
-		s.models[e.ID] = st
 	}
 }
 

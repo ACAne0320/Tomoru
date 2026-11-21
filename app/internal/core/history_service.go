@@ -15,6 +15,7 @@ type HistoryService struct {
 	dir            string
 	work           *tasks
 	changed        func()
+	finished       *finishedLog
 	policy         atomic.Pointer[historyPolicy]
 	recording      *historyRun
 	retryRuns      []*historyRun

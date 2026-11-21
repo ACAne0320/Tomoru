@@ -109,7 +109,7 @@ func (d *Card) head(c *ui.Context) {
 func (d *Card) allow(c *ui.Context) {
 	k, p := d.core, kit.Colors(c)
 	k.CheckScreen()
-	c.After(core.ListEvery)
+	c.After(core.RefreshEvery)
 	ui.Column(c).Grow(1).Justify(ui.Center).AlignItems(ui.Center).Gap(kit.Space(2)).Padding(0, kit.Space(4), kit.Space(8)).Children(func() {
 		ui.Text(c, locales.GuideSelectTitle()).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(p.Ink)
 		switch {

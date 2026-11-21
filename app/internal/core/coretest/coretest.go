@@ -62,18 +62,18 @@ type Nav struct {
 
 func (n *Nav) OpenPanel() { n.Went = append(n.Went, "panel") }
 
-func (n *Nav) OpenPanelAbove(mygo.Rectangle)  { n.Went = append(n.Went, "panel") }
-func (n *Nav) FitPanel(h int)                 { n.PanelHeight = h }
-func (n *Nav) ShowSettings()                  { n.Went = append(n.Went, "settings") }
-func (n *Nav) ShowSettingsPage(p shared.Page) { n.Went = append(n.Went, "settings "+string(p)) }
-func (n *Nav) ShowGuide()                     { n.Went = append(n.Went, "guide") }
-func (n *Nav) FinishGuide()                   { n.Went = append(n.Went, "finish") }
-func (n *Nav) StartAdjust()                   { n.Went = append(n.Went, "adjust") }
-func (n *Nav) TranslateImage()                { n.Went = append(n.Went, "image") }
-func (n *Nav) SetLocked(bool)                 { n.Went = append(n.Went, "lock") }
-func (n *Nav) SetHideFromCapture(bool)        { n.Went = append(n.Went, "capture") }
-func (n *Nav) Focus()                         { n.Went = append(n.Went, "focus") }
-func (n *Nav) SetAppearance(a string)         { n.Went = append(n.Went, "appearance "+a) }
+func (n *Nav) OpenPanelAbove(mygo.Rectangle)    { n.Went = append(n.Went, "panel") }
+func (n *Nav) FitPanel(h int)                   { n.PanelHeight = h }
+func (n *Nav) ShowSettings()                    { n.Went = append(n.Went, "settings") }
+func (n *Nav) ShowSettingsPage(p shared.Page)   { n.Went = append(n.Went, "settings "+string(p)) }
+func (n *Nav) ShowGuide()                       { n.Went = append(n.Went, "guide") }
+func (n *Nav) FinishGuide()                     { n.Went = append(n.Went, "finish") }
+func (n *Nav) StartAdjust()                     { n.Went = append(n.Went, "adjust") }
+func (n *Nav) TranslateImage()                  { n.Went = append(n.Went, "image") }
+func (n *Nav) SetLocked(bool)                   { n.Went = append(n.Went, "lock") }
+func (n *Nav) SetHideFromCapture(bool)          { n.Went = append(n.Went, "capture") }
+func (n *Nav) Focus()                           { n.Went = append(n.Went, "focus") }
+func (n *Nav) SetAppearance(a prefs.Appearance) { n.Went = append(n.Went, "appearance "+string(a)) }
 
 func (n *Nav) SetShortcut(acc string) error {
 	if acc == Taken {

@@ -273,7 +273,7 @@ func (c *Core) SelectImage(shown func()) {
 }
 
 func (c *Core) CheckScreen() {
-	if c.ScreenAsking || time.Since(c.screenCheckedAt) < ListEvery {
+	if c.ScreenAsking || time.Since(c.screenCheckedAt) < RefreshEvery {
 		return
 	}
 	c.screenCheckedAt = time.Now()

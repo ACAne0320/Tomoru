@@ -208,7 +208,7 @@ func (s *Settings) statsDay(day, now time.Time) {
 	e := &s.statsEdit
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location())
-	ago := int(math.Round(today.Sub(day).Hours() / 24))
+	ago := daysBetween(day, today)
 	e.span = spanAll
 	for i, span := range statsSpans {
 		if span > ago {
@@ -319,7 +319,7 @@ func statsDays(l usage.Ledger, span int, now time.Time) int {
 	if err != nil || !first.Before(today) {
 		return 1
 	}
-	return int(math.Round(today.Sub(first).Hours()/24)) + 1
+	return daysBetween(first, today) + 1
 }
 
 func engineColors(p *kit.Palette, engines []usage.Use, id func(usage.Use) string) []ui.Color {
@@ -383,7 +383,7 @@ func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth
 		if first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Date, now.Location()); err == nil && first.Before(today) {
 			from = first
 		}
-		byMonth = today.Sub(from) > maxDailyBars*24*time.Hour
+		byMonth = daysBetween(from, today) > maxDailyBars
 	}
 	if byMonth {
 		from = time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, now.Location())
@@ -671,4 +671,12 @@ func faster(c *ui.Context, span int, now, then time.Duration) {
 		text, ink = locales.LatSlower(span, kit.Seconds(d)), p.Danger
 	}
 	ui.Text(c, text).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(ink).Shrink(0).SingleLine()
+}
+
+func daysBetween(from, to time.Time) int {
+	date := func(t time.Time) time.Time {
+		y, m, d := t.Date()
+		return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	}
+	return int(date(to).Sub(date(from)) / (24 * time.Hour))
 }

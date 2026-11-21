@@ -133,3 +133,17 @@ func TestLoadScenes(t *testing.T) {
 		t.Errorf("in use %q, %+v", c.Prefs.Scene, c.Scenes)
 	}
 }
+
+func TestSceneLangsWhereTheyLive(t *testing.T) {
+	c, _ := scenesCore(t)
+	id := c.AddScene("FF7")
+	c.SetSceneSrc(id, "ja")
+	if src, tgt := c.SceneLangs(id); src != "ja" || tgt != "zh" || c.Prefs.Src != "en" {
+		t.Fatalf("not in use: %s→%s, prefs %s", src, tgt, c.Prefs.Src)
+	}
+	c.SetScene(id)
+	c.SetSceneTgt(id, "en")
+	if src, tgt := c.SceneLangs(id); src != "ja" || tgt != "en" || c.Prefs.Src != "ja" || c.Prefs.Tgt != "en" {
+		t.Errorf("in use: %s→%s, prefs %s→%s", src, tgt, c.Prefs.Src, c.Prefs.Tgt)
+	}
+}

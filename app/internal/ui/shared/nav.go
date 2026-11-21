@@ -1,6 +1,10 @@
 package shared
 
-import "github.com/egoist/mygo"
+import (
+	"github.com/egoist/mygo"
+
+	"tomoru/internal/prefs"
+)
 
 type Nav interface {
 	OpenPanel()
@@ -17,7 +21,7 @@ type Nav interface {
 	SetShortcut(acc string) error
 	SetImageShortcut(acc string) error
 	Focus()
-	SetAppearance(appearance string)
+	SetAppearance(appearance prefs.Appearance)
 }
 
 type Page string

@@ -137,13 +137,13 @@ func monday(t time.Time) time.Time {
 func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lines []float64) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from = monday(now).AddDate(0, 0, -7*(weeks-1))
-	lines = make([]float64, int((today.Sub(from)+12*time.Hour)/(24*time.Hour))+1)
+	lines = make([]float64, daysBetween(from, today)+1)
 	for _, d := range l.Days {
 		t, err := time.ParseInLocation(time.DateOnly, d.Date, now.Location())
 		if err != nil || t.Before(from) || t.After(today) {
 			continue
 		}
-		lines[(t.Sub(from)+12*time.Hour)/(24*time.Hour)] += float64(d.Total().Lines)
+		lines[daysBetween(from, t)] += float64(d.Total().Lines)
 	}
 	return from, lines
 }
@@ -155,7 +155,7 @@ func homeLine(c *ui.Context, s *Settings) {
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
 			label(locales.Source())
 			k.ListApps()
-			c.After(core.ListEvery)
+			c.After(core.RefreshEvery)
 			kit.Picker(c, shared.SourceName(k), s.source.Build(k)).Label(locales.Source())
 		})
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
@@ -203,7 +203,7 @@ func homeRecent(c *ui.Context, s *Settings) {
 		}
 		if i := kit.List(c, items); i >= 0 {
 			e := &s.historyEdit
-			e.scene, e.chosen, e.record = allScenes, true, recs[i].Path
+			e.filter, e.recordPath = sceneFilter{}, recs[i].Path
 			s.Tab = shared.PageHistory
 		}
 	})

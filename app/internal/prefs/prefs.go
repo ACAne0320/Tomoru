@@ -23,6 +23,16 @@ const (
 
 var Fonts = []Font{FontSystem, FontSerif, FontRounded}
 
+type Appearance string
+
+const (
+	AppearanceSystem Appearance = ""
+	AppearanceLight  Appearance = "light"
+	AppearanceDark   Appearance = "dark"
+)
+
+var Appearances = []Appearance{AppearanceSystem, AppearanceLight, AppearanceDark}
+
 func (f Font) Builtin() bool { return slices.Contains(Fonts, f) }
 
 const MaxShown = 10
@@ -109,7 +119,7 @@ type Prefs struct {
 	ImageMT          string
 	ModelsDir        string
 	UILang           string
-	Appearance       string
+	Appearance       Appearance
 	Scene            string
 	History          bool
 	NoProxy          bool

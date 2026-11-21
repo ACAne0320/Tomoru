@@ -8,8 +8,8 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
+	"tomoru/internal/prefs"
 	"tomoru/internal/ui/guide"
-	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/panel"
 	"tomoru/internal/ui/settings"
 	"tomoru/internal/ui/shared"
@@ -169,7 +169,17 @@ func (s *Shell) SetHideFromCapture(hide bool) { s.overlay.SetHideFromCapture(hid
 
 func (s *Shell) Focus() { mygo.App.Focus() }
 
-func (s *Shell) SetAppearance(a string) { mygo.Theme.SetSource(kit.ThemeSource(a)) }
+func (s *Shell) SetAppearance(a prefs.Appearance) { mygo.Theme.SetSource(themeSource(a)) }
+
+func themeSource(a prefs.Appearance) mygo.ThemeSource {
+	switch a {
+	case prefs.AppearanceLight:
+		return mygo.ThemeLight
+	case prefs.AppearanceDark:
+		return mygo.ThemeDark
+	}
+	return mygo.ThemeSystem
+}
 
 func (s *Shell) SetShortcut(acc string) error {
 	return bind(&s.shortcut, acc, locales.Shortcut(), func() {
