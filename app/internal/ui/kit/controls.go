@@ -2,6 +2,7 @@ package kit
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -40,12 +41,15 @@ func Slider(c *ui.Context, v *float64, lo, hi float64, unit, label string) ui.El
 	if row.IsDisabled() {
 		row = row.Opacity(offOpacity)
 	}
+	widest, _ := c.MeasureText(0, ui.Span{Text: widestSliderValue, Size: TextControl, Weight: WeightBold})
 	return row.Children(func() {
 		ui.Slider(c, v, lo, hi).Step(1).Grow(1).Label(label)
 		ui.Text(c, strconv.Itoa(int(*v))+unit).FontSize(TextControl).FontWeight(WeightBold).FontFeatures(Tabular).
-			TextColor(Colors(c).InkMuted).MinWidth(Space(10)).TextAlign(ui.End)
+			TextColor(Colors(c).InkMuted).MinWidth(float32(math.Ceil(float64(widest)))).TextAlign(ui.End)
 	})
 }
+
+const widestSliderValue = "000%"
 
 const offOpacity = .45
 

@@ -3,7 +3,7 @@ package shared
 import (
 	"errors"
 	"fmt"
-	"slices"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -100,16 +100,19 @@ func TestErrorFix(t *testing.T) {
 
 func TestLangChoices(t *testing.T) {
 	t.Cleanup(func() { i18n.SetLocaleFunc(nil) })
-	for locale, want := range map[string][]string{
-		"en":      {"zh", "en", "ja", "ko", "", "fr", "de", "es"},
-		"zh-Hans": {"zh", "en", "ja", "ko", "", "de", "fr", "es"},
+	for locale, want := range map[string][][]string{
+		"en":      {{"zh", "en", "ja", "ko"}, {"fr", "de", "es"}},
+		"zh-Hans": {{"zh", "en", "ja", "ko"}, {"de", "fr", "es"}},
 	} {
 		i18n.SetLocaleFunc(func() string { return locale })
-		if got := LangChoices([]string{"zh", "en", "ja", "ko", "de", "es", "fr"}); !slices.Equal(got, want) {
+		if got := LangChoices([]string{"zh", "en", "ja", "ko", "de", "es", "fr"}); !reflect.DeepEqual(got, want) {
 			t.Errorf("%s: %q, want %q", locale, got, want)
 		}
 	}
-	if got := LangChoices([]string{"zh", "en"}); !slices.Equal(got, []string{"zh", "en"}) {
+	if got := LangChoices([]string{"zh", "en"}); !reflect.DeepEqual(got, [][]string{{"zh", "en"}}) {
 		t.Errorf("no others: %q", got)
+	}
+	if got := LangChoices([]string{"auto", "zh"}); !reflect.DeepEqual(got, [][]string{{"auto"}, {"zh"}}) {
+		t.Errorf("auto detect: %q", got)
 	}
 }

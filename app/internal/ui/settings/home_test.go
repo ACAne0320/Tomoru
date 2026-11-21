@@ -2,7 +2,6 @@ package settings
 
 import (
 	"errors"
-	"math"
 	"strings"
 	"testing"
 	"time"
@@ -176,16 +175,11 @@ func TestActivityDays(t *testing.T) {
 	l.Add("2026-09-28", usage.Engines{}, usage.Counts{Lines: 4})
 	l.Add("2026-09-27", usage.Engines{}, usage.Counts{Lines: 5})
 	from, lines := activityDays(l, 4, now)
-	if from.Format(time.DateOnly) != "2026-09-28" || len(lines) != 28 {
+	if from.Format(time.DateOnly) != "2026-09-28" || len(lines) != 24 {
 		t.Fatalf("from %s, %d days", from.Format(time.DateOnly), len(lines))
 	}
 	if lines[0] != 4 || lines[21] != 3 || lines[23] != 2 || lines[22] != 0 {
 		t.Errorf("lines %v", lines)
-	}
-	for i := 24; i < 28; i++ {
-		if !math.IsNaN(lines[i]) {
-			t.Errorf("day %d after today: %v", i, lines[i])
-		}
 	}
 }
 

@@ -1,7 +1,6 @@
 package kit
 
 import (
-	"math"
 	"time"
 
 	"github.com/egoist/mygo/ui"
@@ -22,7 +21,7 @@ type BarPart struct {
 
 const chartHeight = 180
 
-const chartLabels = 8
+const maxAxisLabels = 8
 
 func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) string, chosen *int) ui.Element {
 	p := Colors(c)
@@ -30,9 +29,7 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 	values := make([]float64, 0, len(bars))
 	for i, b := range bars {
 		labels[i] = b.Label
-		if !math.IsNaN(b.Value) {
-			values = append(values, b.Value)
-		}
+		values = append(values, b.Value)
 	}
 	x := chart.NewBand(labels...).Padding(.3, .1)
 	_, hi := chart.Extent(values...)
@@ -43,7 +40,7 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 	ticks := y.Ticks(4)
 	unitLast(ticks, format)
 	var under []chart.Tick
-	every := (len(bars) + chartLabels - 1) / chartLabels
+	every := (len(bars) + maxAxisLabels - 1) / maxAxisLabels
 	for i, t := range x.Ticks() {
 		if i%max(every, 1) == 0 {
 			under = append(under, t)
@@ -64,9 +61,6 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 		})
 		chart.Select(c, area, chosen, xs, func(i int) string { return bars[i].Tip })
 		for i, b := range bars {
-			if math.IsNaN(b.Value) {
-				continue
-			}
 			dim := func(col ui.Color) ui.Color {
 				if *chosen >= 0 && *chosen != i {
 					return p.Dim(col)

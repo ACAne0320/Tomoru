@@ -7,8 +7,9 @@ import (
 )
 
 type HeatDay struct {
-	Value float64
-	Tip   string
+	Value  float64
+	Future bool
+	Tip    string
 }
 
 const heatLevels = len(Palette{}.Amber) - 1
@@ -26,13 +27,14 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 	p := Colors(c)
 	top := 0.0
 	for _, d := range days {
-		if !math.IsNaN(d.Value) {
+		if !d.Future {
 			top = max(top, d.Value)
 		}
 	}
-	level := func(v float64) ui.Color {
+	level := func(d HeatDay) ui.Color {
+		v := d.Value
 		switch {
-		case math.IsNaN(v):
+		case d.Future:
 			return ui.Transparent
 		case v <= 0 || top <= 0:
 			return p.Amber[0]
@@ -72,8 +74,8 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 						if i >= len(days) {
 							continue
 						}
-						sq.Background(level(days[i].Value))
-						if math.IsNaN(days[i].Value) {
+						sq.Background(level(days[i]))
+						if days[i].Future {
 							continue
 						}
 						sq.Label(days[i].Tip).Tooltip(days[i].Tip)

@@ -215,7 +215,7 @@ func (s *Settings) inUse(f []core.Engine) bool {
 func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice {
 	k := s.core
 	name := shared.FamilyName(f)
-	r := kit.Choice{Key: f[0].Family(), Shown: shown, Title: name, Use: locales.UseEngine(name), Progress: -1}
+	r := kit.Choice{Key: f[0].Family(), Shown: shown, Title: name, Use: locales.UseEngine(name)}
 	_, usable := k.Pick(f)
 	r.On, r.Off = s.inUse(f), !usable
 	switch {
@@ -277,7 +277,7 @@ func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice
 	}
 	if loading != nil && !shown {
 		c.After(250 * time.Millisecond)
-		r.Progress = float64(st.Done) / float64(max(st.Total, 1))
+		r.Downloading, r.Progress = true, float64(st.Done)/float64(max(st.Total, 1))
 	}
 	return r
 }

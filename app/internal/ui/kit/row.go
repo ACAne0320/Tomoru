@@ -16,13 +16,21 @@ const (
 
 const ControlWidth = 220
 
+const (
+	segmentHeight = 28
+	trackInset    = 4
+	trackHeight   = segmentHeight + 2*trackInset
+)
+
+var rowGap = Space(3)
+
 func ControlCardWidth(c *ui.Context, labels ...string) float32 {
 	w := float32(0)
 	for _, l := range labels {
 		lw, _ := c.MeasureText(0, ui.Span{Text: l, Size: TextBody})
 		w = max(w, lw)
 	}
-	return float32(math.Ceil(float64(2*Space(5) + 2 + w + Space(3) + ControlWidth)))
+	return float32(math.Ceil(float64(2*cardPadX + 2*cardBorder + w + rowGap + ControlWidth)))
 }
 
 func Control(c *ui.Context, fn func()) ui.Element {
@@ -56,7 +64,7 @@ func settingRow(c *ui.Context, i int, label, desc string, off bool, control, und
 		col = col.BorderWidth(1, 0, 0).BorderColor(p.LineSoft)
 	}
 	return col.Children(func() {
-		ui.Row(c).Height(h).Gap(Space(3)).AlignItems(ui.Center).Children(func() {
+		ui.Row(c).Height(h).Gap(rowGap).AlignItems(ui.Center).Children(func() {
 			ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
 				if label != "" {
 					ui.Text(c, label).FontSize(TextBody).TextColor(ink).MaxLines(1)
@@ -77,7 +85,7 @@ func settingRow(c *ui.Context, i int, label, desc string, off bool, control, und
 
 func Stepper(c *ui.Context, v *float64, lo, hi float64, less, more string) ui.Element {
 	p := Colors(c)
-	const h, in = 36, 4
+	const h, in = trackHeight, trackInset
 	return ui.Row(c).Height(h).Padding(in).Gap(Space(1)).Radius(RadiusField).Background(p.Fill).AlignItems(ui.Center).Children(func() {
 		step := func(icon *ui.SVG, label string, d float64, off bool) {
 			b := ui.ButtonBase(c).Size(h-2*in, h-2*in).Radius(RadiusInner).Label(label).Tooltip(label).Disabled(off).TextColor(p.Ink)

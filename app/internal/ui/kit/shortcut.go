@@ -43,24 +43,26 @@ var keySymbols = map[string]string{
 	"PageUp": "⇞", "PageDown": "⇟", "Left": "←", "Right": "→", "Up": "↑", "Down": "↓",
 }
 
+type ShortcutCap struct {
+	Label string
+	Mod   ui.Modifiers
+}
+
 func ShortcutKeys(acc string) []string {
-	keys, _ := shortcutKeys(acc)
+	var keys []string
+	for _, k := range ShortcutCaps(acc) {
+		keys = append(keys, k.Label)
+	}
 	return keys
 }
 
-func ShortcutMods(acc string) []ui.Modifiers {
-	_, ms := shortcutKeys(acc)
-	return ms
-}
-
-func shortcutKeys(acc string) ([]string, []ui.Modifiers) {
+func ShortcutCaps(acc string) []ShortcutCap {
 	parts := strings.Split(acc, "+")
 	key := parts[len(parts)-1]
 	if strings.HasSuffix(acc, "++") {
 		parts, key = parts[:len(parts)-1], "+"
 	}
-	var keys []string
-	var ms []ui.Modifiers
+	var caps []ShortcutCap
 	for _, m := range mods {
 		for _, p := range parts[:len(parts)-1] {
 			if strings.EqualFold(p, m.name) || m.name == "Cmd" && (strings.EqualFold(p, "Super") || strings.EqualFold(p, "Command")) ||
@@ -69,7 +71,7 @@ func shortcutKeys(acc string) ([]string, []ui.Modifiers) {
 				if macKeys {
 					label = m.symbol
 				}
-				keys, ms = append(keys, label), append(ms, m.mod)
+				caps = append(caps, ShortcutCap{label, m.mod})
 				break
 			}
 		}
@@ -79,7 +81,7 @@ func shortcutKeys(acc string) ([]string, []ui.Modifiers) {
 	} else if len(key) == 1 {
 		key = strings.ToUpper(key)
 	}
-	return append(keys, key), append(ms, 0)
+	return append(caps, ShortcutCap{Label: key})
 }
 
 func ShortcutText(acc string) string {

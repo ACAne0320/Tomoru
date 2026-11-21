@@ -504,10 +504,10 @@ func latencyDays(buckets []bucket, l latency) []kit.Whisker {
 			sum.Add(d.Total())
 		}
 		h := l.hist(sum.Latency)
-		ws[i] = kit.Whisker{Label: b.label, Mid: math.NaN(), Hi: math.NaN(), Tip: b.label + " · —"}
+		ws[i] = kit.Whisker{Label: b.label, Empty: true, Tip: b.label + " · —"}
 		if mid, ok := h.Quantile(.5); ok {
 			p90, _ := h.Quantile(.9)
-			ws[i].Mid, ws[i].Hi = mid.Seconds(), p90.Seconds()
+			ws[i].Mid, ws[i].Hi, ws[i].Empty = mid.Seconds(), p90.Seconds(), false
 			ws[i].Tip = b.label + " · " + kit.Seconds(mid) + " · " + locales.LatP90(kit.Seconds(p90))
 		}
 	}

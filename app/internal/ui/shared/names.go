@@ -48,11 +48,11 @@ func LangName(code string) string {
 	return lang.Name(code, i18n.Locale())
 }
 
-func LangChoices(codes []string) []string {
+func LangChoices(codes []string) [][]string {
 	var auto, first, rest []string
 	for _, code := range codes {
 		if code == lang.Auto {
-			auto = []string{code, ""}
+			auto = []string{code}
 		} else if slices.Contains(lang.Featured, code) {
 			first = append(first, code)
 		} else {
@@ -61,10 +61,13 @@ func LangChoices(codes []string) []string {
 	}
 	col := collate.New(language.Make(i18n.Locale()))
 	slices.SortFunc(rest, func(a, b string) int { return col.CompareString(LangName(a), LangName(b)) })
-	if len(first) > 0 && len(rest) > 0 {
-		first = append(first, "")
+	var groups [][]string
+	for _, g := range [][]string{auto, first, rest} {
+		if len(g) > 0 {
+			groups = append(groups, g)
+		}
 	}
-	return append(auto, append(first, rest...)...)
+	return groups
 }
 
 func FontName(font string) string {

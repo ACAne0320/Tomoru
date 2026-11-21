@@ -8,7 +8,7 @@ import (
 
 func Picker(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element {
 	p := Colors(c)
-	const h = 36
+	const h = trackHeight
 	b := ui.ButtonBase(c).Height(h).Padding(0, Space(3)).Gap(Space(2)).Radius(RadiusField).
 		FontSize(TextControl).FontWeight(WeightMedium).Shrink(0).Cursor(ui.CursorPointer)
 	col := p.Fill
@@ -21,15 +21,16 @@ func Picker(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element {
 	})
 }
 
-func Choices(value string, options []string, name func(string) string, choose func(string)) func(m *ui.Menu) {
+func Choices(value string, groups [][]string, name func(string) string, choose func(string)) func(m *ui.Menu) {
 	return func(m *ui.Menu) {
-		for _, o := range options {
-			if o == "" {
+		for i, group := range groups {
+			if i > 0 {
 				m.Separator()
-				continue
 			}
-			if m.Item(name(o)).Checked(o == value).Chosen() && o != value {
-				choose(o)
+			for _, o := range group {
+				if m.Item(name(o)).Checked(o == value).Chosen() && o != value {
+					choose(o)
+				}
 			}
 		}
 	}

@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/draw"
 	"image/png"
-	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -103,7 +102,7 @@ func (g *gallery) view(c *ui.Context) {
 		section("BarChart · StatStrip", func() {
 			Card(c).Width(340).Children(func() {
 				var bars []Bar
-				for i, v := range []float64{1.5, 3.2, math.NaN(), 0.4, 2.8, 4.1, 2.2} {
+				for i, v := range []float64{1.5, 3.2, 0, 0.4, 2.8, 4.1, 2.2} {
 					bar := Bar{Label: fmt.Sprintf("10/%d", 15+i), Value: v, Tip: fmt.Sprintf("10/%d · %.1f 小时", 15+i, v)}
 					if i >= 4 {
 						bar.Parts = []BarPart{{v * .6, p.Series[0]}, {v * .3, p.Series[1]}, {v * .1, p.LineStrong}}
@@ -125,8 +124,8 @@ func (g *gallery) view(c *ui.Context) {
 				Histogram(c, "说完到出译文", bins, []HistMark{{At: 1.1, Label: "一半在 1.1 秒内", Strong: true}, {At: 1.8, Label: "90% 在 1.8 秒内"}},
 					func(v float64) string { return fmt.Sprintf("%g 秒", v) }, &g.bin)
 				var ws []Whisker
-				for i, v := range []float64{1.2, math.NaN(), 1.4, 1.1, 1.3} {
-					ws = append(ws, Whisker{Label: fmt.Sprintf("10/%d", 15+i), Mid: v, Hi: v * 1.5, Tip: fmt.Sprintf("%.1f 秒", v)})
+				for i, v := range []float64{1.2, 0, 1.4, 1.1, 1.3} {
+					ws = append(ws, Whisker{Label: fmt.Sprintf("10/%d", 15+i), Mid: v, Hi: v * 1.5, Empty: v == 0, Tip: fmt.Sprintf("%.1f 秒", v)})
 				}
 				WhiskerChart(c, "每天", ws, func(v float64) string { return fmt.Sprintf("%g 秒", v) }, &g.day)
 				ShareRow(c, Share{Color: p.Series[1], Name: "OpenRouter", Sub: "qwen/qwen3-30b-a3b", Value: "610", Unit: "句", Share: .3}, true)
@@ -141,7 +140,7 @@ func (g *gallery) view(c *ui.Context) {
 					}
 					days = append(days, HeatDay{Value: v, Tip: fmt.Sprintf("%d 句", int(v))})
 				}
-				days[len(days)-1].Value = math.NaN()
+				days[len(days)-1].Future = true
 				Heatmap(c, "每日句数", days, []string{"9月", "", "", "", "10月", "", "", ""}, [7]string{0: "周一", 2: "周三", 4: "周五"}, "少", "多", func(int) {})
 			})
 			Facts(c, []Fact{{Label: "译文", Value: "6,039 字"}, {Label: "输入 tokens", Value: "130,423"}, {Label: "输出 tokens", Value: "11,424"}, {Label: "失败", Value: "1 句"}}).Width(340)
@@ -172,12 +171,12 @@ func (g *gallery) view(c *ui.Context) {
 		Group(c, "语音识别", nil, SplitCard, func() {
 			SplitList(c, func() {
 				ChoiceList(c, "语音识别", []Choice{
-					{Key: "apple", Head: "本地", Title: "Apple 语音识别", Tag: "系统自带", Use: "使用 Apple", Meta: "延迟低，擅长日英韩", Progress: -1},
-					{Key: "sv", On: true, Title: "SenseVoice", Use: "使用 SenseVoice", Meta: "Small", Progress: -1},
-					{Key: "q3", Shown: true, Off: true, Title: "Qwen3-ASR", Tag: "推荐", Accent: true, Use: "使用 Qwen3-ASR", Meta: "下载中 · 0.6B", Progress: -1},
-					{Key: "hy", Off: true, Title: "Hy-MT2", Use: "使用 Hy-MT2", Meta: "下载中 · 7B", Progress: .3},
-					{Key: "qc", Head: "云端", Off: true, Title: "Qwen ASR（阿里云）", Use: "使用 Qwen ASR", Meta: "填好 API Key 后可用", Progress: -1},
-					{Key: "fr", Title: "OpenAI", Use: "使用 OpenAI", Meta: "听不懂法语", Warn: true, Progress: -1},
+					{Key: "apple", Head: "本地", Title: "Apple 语音识别", Tag: "系统自带", Use: "使用 Apple", Meta: "延迟低，擅长日英韩"},
+					{Key: "sv", On: true, Title: "SenseVoice", Use: "使用 SenseVoice", Meta: "Small"},
+					{Key: "q3", Shown: true, Off: true, Title: "Qwen3-ASR", Tag: "推荐", Accent: true, Use: "使用 Qwen3-ASR", Meta: "下载中 · 0.6B"},
+					{Key: "hy", Off: true, Title: "Hy-MT2", Use: "使用 Hy-MT2", Meta: "下载中 · 7B", Downloading: true, Progress: .3},
+					{Key: "qc", Head: "云端", Off: true, Title: "Qwen ASR（阿里云）", Use: "使用 Qwen ASR", Meta: "填好 API Key 后可用"},
+					{Key: "fr", Title: "OpenAI", Use: "使用 OpenAI", Meta: "听不懂法语", Warn: true},
 				})
 				AddRow(c, "添加接口")
 			})
@@ -195,7 +194,7 @@ func (g *gallery) view(c *ui.Context) {
 		ui.Row(c).Gap(CardGap).AlignItems(ui.Start).Children(func() {
 			OptionsCard(c).Width(300).Children(func() {
 				List(c, []ListItem{
-					{Key: 1, On: true, Title: "最终幻想7 重制版", Meta: []string{"日语 → 中文", "12 个专名"}, Trail: func() { InUse(c) }},
+					{Key: 1, Shown: true, Title: "最终幻想7 重制版", Meta: []string{"日语 → 中文", "12 个专名"}, Trail: func() { InUse(c) }},
 					{Key: 2, Title: "雷军演讲", Meta: []string{"中文 → 英语", "4 个专名"}},
 					{Key: 3, Title: "Final Fantasy VII Remake, the stream", Meta: []string{"Japanese → Chinese", "412 lines", "Safari"}},
 				})

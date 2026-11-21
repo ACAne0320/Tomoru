@@ -2,7 +2,9 @@ package kit
 
 import "github.com/egoist/mygo/ui"
 
-const swatchSize = 28
+const swatchesPerRow = 7
+
+var swatchSize = (ControlWidth - (swatchesPerRow-1)*Space(1)) / swatchesPerRow
 
 func SchemeSwatch(c *ui.Context, name string, ground, src, tgt ui.Color, on bool) ui.Element {
 	return swatchDisc(c, name, on).Background(ground).Children(func() {

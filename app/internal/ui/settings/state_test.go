@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
@@ -182,5 +183,22 @@ func TestInactiveSceneLanguageMenuPersists(t *testing.T) {
 	}
 	if k.Preferences().Src != original {
 		t.Fatal("editing an inactive scene changed the live language")
+	}
+}
+
+func TestUILanguageBackToSystem(t *testing.T) {
+	k := coretest.New()
+	k.UpdatePrefs(func(p *prefs.Prefs) { p.UILang = "ja" })
+	s := New(k, &coretest.Nav{})
+	s.Tab = "general"
+	tt := ui.NewTester(s.View, Width, 1400)
+	if err := tt.Click(i18n.Autonym("ja")); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.ChooseMenuItem(locales.UiLanguageSystem()); err != nil {
+		t.Fatalf("%v: menu %q", err, tt.Menu())
+	}
+	if got := k.Preferences().UILang; got != "" {
+		t.Fatalf("UI language %q, want the system's", got)
 	}
 }

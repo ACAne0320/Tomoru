@@ -16,11 +16,18 @@ func NavWidth(c *ui.Context, entries ...[]NavEntry) float32 {
 			longest = max(longest, w)
 		}
 	}
-	w := longest + 2*navItemPad + IconSizeNav + navItemGap + 2*navPad + 4
+	w := longest + 2*navItemPad + IconSizeNav + navItemGap + 2*navPad + navTextSlack
 	return min(max(float32(math.Ceil(float64(w))), navMin), navMax)
 }
 
 var navPad, navItemPad, navItemGap = Space(2), Space(3), Space(2)
+
+const navTextSlack = 4
+
+const (
+	paperScrollEnd = 9
+	myGoTrackPad   = 2
+)
 
 type NavEntry struct {
 	ID    string
@@ -56,7 +63,7 @@ func AppFrame(c *ui.Context, selected *string, top, bottom []NavEntry, page func
 				top = 0
 			}
 			ui.Column(c).Grow(1).MinWidth(0).Margin(top, Space(2), Space(2), 0).Radius(RadiusPaper).Background(p.Paper).Clip().Children(func() {
-				end := float32(7)
+				end := float32(paperScrollEnd - myGoTrackPad)
 				ui.Scroll(c).Grow(1).ScrollbarInsets(end, Space(1), end).Children(func() {
 					ui.Column(c.Key(*selected)).Padding(Space(8)).Gap(SectionGap).Children(page)
 				})

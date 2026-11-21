@@ -9,7 +9,7 @@ import (
 func Segmented(c *ui.Context, selected *int, labels ...string) ui.Element {
 	p := Colors(c)
 	parts := ui.SegmentedBase(c, selected, len(labels))
-	const h, in, gap = 28, 4, 2
+	const h, in, gap = segmentHeight, trackInset, 2
 	w := float32(0)
 	for _, label := range labels {
 		lw, _ := c.MeasureText(0, ui.Span{Text: label, Size: TextControl, Weight: WeightMedium})

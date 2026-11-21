@@ -34,7 +34,7 @@ func (s *Settings) fontMenu(font string) func(m *ui.Menu) {
 	}
 	choose := func(f string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f }) }
 	return func(m *ui.Menu) {
-		kit.Choices(font, fonts, shared.FontName, choose)(m)
+		kit.Choices(font, [][]string{fonts}, shared.FontName, choose)(m)
 		m.Separator()
 		if m.Item(locales.FontMore() + "…").Chosen() {
 			s.openFonts()
