@@ -107,7 +107,7 @@ function vars(lang, page) {
   const links = alternates(page).map(([id, url]) => `<link rel="alternate" hreflang="${id}" href="${url}">`).join('\n  ');
   const menu = langs.map((l) => `<li><a href="${href(l, page)}" hreflang="${l.id}" lang="${l.id}"${l === lang ? ' aria-current="page"' : ''}>${l.name}</a></li>`).join('');
   return {
-    lang: lang.id, og: lang.og, url: site + href(lang, page), home: home(lang), homeUrl: site + home(lang),
+    site, lang: lang.id, og: lang.og, url: site + href(lang, page), home: home(lang), homeUrl: site + home(lang),
     version: appVersion,
     alternates: links, name: lang.name, menu, single: langs.length < 2 ? ' hidden' : '',
   };
@@ -141,11 +141,13 @@ writeFileSync(join(root, 'public', 'sitemap.xml'), `<?xml version="1.0" encoding
 ${urls.join('\n')}
 </urlset>
 `);
-const llms = readFileSync(join(root, 'src', 'llms.txt'), 'utf8').replaceAll('{{version}}', appVersion);
-if (llms.includes('{{')) {
-  console.error('src/llms.txt: an unfilled placeholder');
-  process.exit(1);
+for (const name of ['llms.txt', 'robots.txt']) {
+  const text = readFileSync(join(root, 'src', name), 'utf8').replaceAll('{{version}}', appVersion).replaceAll('{{site}}', site);
+  if (text.includes('{{')) {
+    console.error(`src/${name}: an unfilled placeholder`);
+    process.exit(1);
+  }
+  writeFileSync(join(root, 'public', name), text);
 }
-writeFileSync(join(root, 'public', 'llms.txt'), llms);
 console.log(pages.map((p) => `${p.src}: ${langsOf(p).map((l) => l.id).join(', ')}`).join('\n'));
 console.log(`llms.txt: ${appVersion}`);

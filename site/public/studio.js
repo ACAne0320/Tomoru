@@ -38,13 +38,13 @@
   const fadeIn = (el, ms = 200) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: 'ease-out' });
 
   const vtuber = (() => {
-    const TW = 300, TH = 360, STEP = 308;
+    const tileWidth = 300, tileHeight = 360, tileStride = 308;
     const views = new Set();
     let gl, glc, video, tex, size, last = -1;
     function init() {
       glc = document.createElement('canvas');
-      glc.width = TW * 2;
-      glc.height = TH;
+      glc.width = tileWidth * 2;
+      glc.height = tileHeight;
       gl = glc.getContext('webgl', { premultipliedAlpha: true, preserveDrawingBuffer: true });
       if (!gl) return false;
       const shader = (type, code) => {
@@ -57,9 +57,9 @@
       gl.attachShader(prog, shader(gl.VERTEX_SHADER, 'attribute vec2 p; varying vec2 v; void main() { v = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }'));
       gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, `precision mediump float; varying vec2 v; uniform sampler2D t; uniform vec2 k;
         void main() {
-          float tile = step(0.5, v.x), x = fract(v.x * 2.0) * ${TW}.0, y = (1.0 - v.y) * ${TH}.0;
-          vec3 c = texture2D(t, vec2(tile * ${STEP}.0 + x, y) * k).rgb;
-          float a = clamp((texture2D(t, vec2(${STEP * 2}.0 + x, y) * k).r - 0.02) / 0.96, 0.0, 1.0); // 压缩后遮罩的黑白不纯
+          float tile = step(0.5, v.x), x = fract(v.x * 2.0) * ${tileWidth}.0, y = (1.0 - v.y) * ${tileHeight}.0;
+          vec3 c = texture2D(t, vec2(tile * ${tileStride}.0 + x, y) * k).rgb;
+          float a = clamp((texture2D(t, vec2(${tileStride * 2}.0 + x, y) * k).r - 0.02) / 0.96, 0.0, 1.0); // 压缩后遮罩的黑白不纯
           gl_FragColor = vec4(c * a, a);
         }`));
       gl.linkProgram(prog);
@@ -94,14 +94,14 @@
       if (video.readyState < 2) return;
       if (video.currentTime !== last) {
         last = video.currentTime;
-        gl.viewport(0, 0, TW * 2, TH);
+        gl.viewport(0, 0, tileWidth * 2, tileHeight);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
         gl.uniform2f(size, 1 / video.videoWidth, 1 / video.videoHeight);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
       for (const v of views) {
-        v.ctx.clearRect(0, 0, TW, TH);
-        v.ctx.drawImage(glc, v.talking ? TW : 0, 0, TW, TH, 0, 0, TW, TH);
+        v.ctx.clearRect(0, 0, tileWidth, tileHeight);
+        v.ctx.drawImage(glc, v.talking ? tileWidth : 0, 0, tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
         v.el.parentElement.classList.add('on');
       }
     }
@@ -141,12 +141,13 @@
     await swap(tgt, line.tgt);
   }
   const clock = (sec) => (sec >= 3600 ? `${Math.floor(sec / 3600)}:${String(Math.floor(sec / 60) % 60).padStart(2, '0')}` : Math.floor(sec / 60)) + `:${String(sec % 60).padStart(2, '0')}`;
-  const stats = (el, label, sec, n) => {
+  const wrapBetween = (el, head, tail) => {
     const a = document.createElement('span'), b = document.createElement('span');
-    a.textContent = `${label} ${clock(sec)} ·`;
-    b.textContent = (n === 1 ? el.dataset.one : el.dataset.lines).replace('{n}', n);
+    a.textContent = head;
+    b.textContent = tail;
     el.replaceChildren(a, ' ', b);
   };
+  const stats = (el, label, sec, n) => wrapBetween(el, `${label} ${clock(sec)} ·`, (n === 1 ? el.dataset.one : el.dataset.lines).replace('{n}', n));
   const fillStats = (root) => root.querySelectorAll('[data-stats][data-sec]').forEach((el) => stats(el, el.dataset.session, +el.dataset.sec, +el.dataset.n));
   fillStats(document);
 
@@ -187,7 +188,8 @@
       const c = cam.getBoundingClientRect(), k = c.width / W;
       return [(r.left - c.left + r.width * fx) / k, (r.top - c.top + r.height * fy) / k];
     };
-    const at = (x, y) => `translate(${x - 6}px, ${y - 3}px)`;
+    const tip = { x: 6, y: 3 };
+    const at = (x, y) => `translate(${x - tip.x}px, ${y - tip.y}px)`;
     let run = 0;
     const tween = (ms, frame) => new Promise((done) => {
       const id = ++run, t0 = performance.now();
@@ -266,6 +268,7 @@
     })();
   }
 
+  let heroLine = 0;
   const scripts = {
     async hero(s) {
       const roll = s.q('[data-roll]'), tray = s.q('[data-tray]'), panel = s.q('[data-panel]'), notice = s.q('[data-notice]');
@@ -326,7 +329,7 @@
       notice.classList.remove('show');
       for (let i = 0; i < 6; i++) {
         if (i === 4 && !s.small) await s.unzoom();
-        await say(s, roll, t.roll[n++ % t.roll.length], talk);
+        await say(s, roll, t.roll[heroLine++ % t.roll.length], talk);
         run.n++;
         count();
         await s.wait(1500);
@@ -549,6 +552,5 @@
     },
   };
 
-  let n = 0;
   document.querySelectorAll('.studio[data-demo]').forEach((el) => studio(el, scripts[el.dataset.demo]));
 })();

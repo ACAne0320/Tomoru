@@ -19,14 +19,14 @@
   <meta property="og:title" content="{{meta.ogTitle|plain}}">
   <meta property="og:description" content="{{meta.ogDescription|plain}}">
   <meta property="og:url" content="{{$url}}">
-  <meta property="og:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta property="og:image" content="{{$site}}/assets/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="600">
   <meta property="og:image:alt" content="{{meta.ogImageAlt|plain}}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{meta.ogTitle|plain}}">
   <meta name="twitter:description" content="{{meta.ogDescription|plain}}">
-  <meta name="twitter:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta name="twitter:image" content="{{$site}}/assets/og-image.jpg">
 
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
@@ -46,13 +46,13 @@
         "name": {{meta.title|json}},
         "description": {{meta.description|json}},
         "inLanguage": "{{$lang}}",
-        "isPartOf": { "@id": "https://tomoru.acane.dev/#website" },
-        "about": { "@id": "https://tomoru.acane.dev/#app" },
-        "mainEntity": { "@id": "https://tomoru.acane.dev/#app" }
+        "isPartOf": { "@id": "{{$site}}/#website" },
+        "about": { "@id": "{{$site}}/#app" },
+        "mainEntity": { "@id": "{{$site}}/#app" }
       },
       {
         "@type": "SoftwareApplication",
-        "@id": "https://tomoru.acane.dev/#app",
+        "@id": "{{$site}}/#app",
         "name": "Tomoru",
         "alternateName": "灯る",
         "softwareVersion": "{{$version}}",
@@ -63,8 +63,8 @@
         "url": "{{$homeUrl}}",
         "mainEntityOfPage": { "@id": "{{$url}}#webpage" },
         "downloadUrl": "https://github.com/ACAne0320/Tomoru/releases/latest",
-        "image": "https://tomoru.acane.dev/assets/og-image.jpg",
-        "screenshot": "https://tomoru.acane.dev/assets/guide-light.webp",
+        "image": "{{$site}}/assets/og-image.jpg",
+        "screenshot": "{{$site}}/assets/guide-light.webp",
         "license": "https://www.gnu.org/licenses/gpl-3.0.html",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -74,9 +74,9 @@
       },
       {
         "@type": "WebSite",
-        "@id": "https://tomoru.acane.dev/#website",
+        "@id": "{{$site}}/#website",
         "name": "Tomoru",
-        "url": "https://tomoru.acane.dev/",
+        "url": "{{$site}}/",
         "inLanguage": ["zh-Hans", "zh-Hant", "en", "ja", "ko"],
         "publisher": { "@id": "https://acane.dev/#person" }
       },
