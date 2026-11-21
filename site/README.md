@@ -10,7 +10,7 @@ The site at <https://tomoru.acane.dev>, served as Cloudflare Workers static asse
 - `locales/`: their text, one file per language. `zh-Hans.json` is the source. `locales/help/`
   holds the help pages' text the same way.
 - `public/`: styles, script, images and other static files. `build.mjs` writes the pages,
-  `sitemap.xml` and `llms.txt` here; they are not committed.
+  `sitemap.xml`, `llms.txt` and `robots.txt` here; they are not committed.
 - `build.mjs`: fills the pages for each language, with no dependencies. Wrangler runs it before
   `wrangler dev` and `wrangler deploy`.
 
@@ -35,7 +35,9 @@ and rendered to `assets/vtuber.mp4`: each frame holds three tiles, idle, talking
 `studio.js` composites them with WebGL, showing the talking tile while a line is being said.
 
 `/llms.txt` is generated from `src/llms.txt`: a short factual description of Tomoru for language
-models, with the version filled in from `app/mygo.json`.
+models, with the version filled in from `app/mygo.json`. The site's address is written once, as
+`site` in `build.mjs`: pages take it as `{{$site}}`, `src/llms.txt` and `src/robots.txt` as
+`{{site}}`. `app/design_test.go` holds the colors of `public/styles.css` to the app's light palette.
 
 The pages are listed in `build.mjs`. The help pages, `/help/install/` and `/help/offline/`, also
 take `locales/help/<language>.json`, under the key `help`. They are built only in the languages

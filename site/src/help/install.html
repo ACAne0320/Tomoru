@@ -19,11 +19,11 @@
   <meta property="og:title" content="{{help.install.meta.title|plain}}">
   <meta property="og:description" content="{{help.install.meta.description|plain}}">
   <meta property="og:url" content="{{$url}}">
-  <meta property="og:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta property="og:image" content="{{$site}}/assets/og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{help.install.meta.title|plain}}">
   <meta name="twitter:description" content="{{help.install.meta.description|plain}}">
-  <meta name="twitter:image" content="https://tomoru.acane.dev/assets/og-image.jpg">
+  <meta name="twitter:image" content="{{$site}}/assets/og-image.jpg">
 
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
@@ -43,8 +43,8 @@
         "inLanguage": "{{$lang}}",
         "url": "{{$url}}",
         "mainEntityOfPage": "{{$url}}",
-        "about": { "@id": "https://tomoru.acane.dev/#app" },
-        "isPartOf": { "@id": "https://tomoru.acane.dev/#website" },
+        "about": { "@id": "{{$site}}/#app" },
+        "isPartOf": { "@id": "{{$site}}/#website" },
         "author": { "@id": "https://acane.dev/#person" },
         "publisher": { "@id": "https://acane.dev/#person" }
       },

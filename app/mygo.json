@@ -5,6 +5,7 @@
   "copyright": "Copyright © 2026 Tomoru contributors. Licensed under GPL-3.0-or-later.",
   "icon": "internal/ui/assets/icon.png",
   "out": "build",
+  "resourcesExclude": ["*/llama.files"],
   "updates": {
     "github": "ACAne0320/Tomoru",
     "publicKey": "6DlHxc5DY4SdzO8UBBtEBj5RbNyTE+3Zy2UyjbhwCaQ="

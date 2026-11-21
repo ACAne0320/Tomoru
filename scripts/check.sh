@@ -32,12 +32,18 @@ tool() {
     echo "$dir/$1"
 }
 
+test_adapters='^internal/core/coretest/'
+
+has_program() {
+    [ -n "$(go list -f '{{if eq .Name "main"}}main{{end}}' ./...)" ]
+}
+
 analyze() {
     go vet ./...
     "$lint" run ./...
-    [ -n "$(go list -f '{{if eq .Name "main"}}main{{end}}' ./...)" ] || return 0
+    has_program || return 0
     unreachable=$("$deadcode" ./...)
-    unreachable=$(echo "$unreachable" | grep -v '^internal/core/coretest/' || true)
+    unreachable=$(echo "$unreachable" | grep -v "$test_adapters" || true)
     if [ -n "$unreachable" ]; then
         echo "Nothing reaches these${GOOS:+ on $GOOS}: remove them, or move a test's helper to a _test.go file." >&2
         echo "$unreachable" >&2

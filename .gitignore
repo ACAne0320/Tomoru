@@ -9,6 +9,7 @@ build/
 /app/resources/*/bin/
 /app/resources/*/licenses/
 /app/resources/*/vad/
+/app/resources/*/llama.files
 /bench/media/
 /bench/runs/
 .venv/

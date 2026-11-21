@@ -42,24 +42,24 @@ Tomoru (灯る, “to light up”) captures system audio, not the microphone, re
 
 ## Links
 
-- [Home, Simplified Chinese](https://tomoru.acane.dev/): site root
-- [English](https://tomoru.acane.dev/en/)
-- [Traditional Chinese](https://tomoru.acane.dev/zh-hant/)
-- [Japanese](https://tomoru.acane.dev/ja/)
-- [Korean](https://tomoru.acane.dev/ko/)
-- [Install and permissions, Simplified Chinese](https://tomoru.acane.dev/help/install/)
-- [Install and permissions, Traditional Chinese](https://tomoru.acane.dev/zh-hant/help/install/)
-- [Install and permissions, English](https://tomoru.acane.dev/en/help/install/)
-- [Install and permissions, Japanese](https://tomoru.acane.dev/ja/help/install/)
-- [Install and permissions, Korean](https://tomoru.acane.dev/ko/help/install/)
-- [On-device models, Simplified Chinese](https://tomoru.acane.dev/help/offline/)
-- [On-device models, Traditional Chinese](https://tomoru.acane.dev/zh-hant/help/offline/)
-- [On-device models, English](https://tomoru.acane.dev/en/help/offline/)
-- [On-device models, Japanese](https://tomoru.acane.dev/ja/help/offline/)
-- [On-device models, Korean](https://tomoru.acane.dev/ko/help/offline/)
-- [Download macOS](https://tomoru.acane.dev/download/mac): .dmg, Apple silicon
-- [Download Windows](https://tomoru.acane.dev/download/windows): .exe, x64
-- [Download Linux](https://tomoru.acane.dev/download/linux): .deb, x64
+- [Home, Simplified Chinese]({{site}}/): site root
+- [English]({{site}}/en/)
+- [Traditional Chinese]({{site}}/zh-hant/)
+- [Japanese]({{site}}/ja/)
+- [Korean]({{site}}/ko/)
+- [Install and permissions, Simplified Chinese]({{site}}/help/install/)
+- [Install and permissions, Traditional Chinese]({{site}}/zh-hant/help/install/)
+- [Install and permissions, English]({{site}}/en/help/install/)
+- [Install and permissions, Japanese]({{site}}/ja/help/install/)
+- [Install and permissions, Korean]({{site}}/ko/help/install/)
+- [On-device models, Simplified Chinese]({{site}}/help/offline/)
+- [On-device models, Traditional Chinese]({{site}}/zh-hant/help/offline/)
+- [On-device models, English]({{site}}/en/help/offline/)
+- [On-device models, Japanese]({{site}}/ja/help/offline/)
+- [On-device models, Korean]({{site}}/ko/help/offline/)
+- [Download macOS]({{site}}/download/mac): .dmg, Apple silicon
+- [Download Windows]({{site}}/download/windows): .exe, x64
+- [Download Linux]({{site}}/download/linux): .deb, x64
 - [GitHub](https://github.com/ACAne0320/Tomoru)
 - [Latest release](https://github.com/ACAne0320/Tomoru/releases/latest)
 - [Changelog](https://github.com/ACAne0320/Tomoru/blob/main/app/CHANGELOG.md)

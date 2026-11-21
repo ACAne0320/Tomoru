@@ -27,7 +27,10 @@ curl -fL --progress-bar -o "$tmp/llama" "$URL"
 echo "$SHA256  $tmp/llama" | sha256sum --strict -c -
 mkdir "$tmp/x"
 mkdir -p "$res/bin" "$res/licenses"
-rm -f "$res"/bin/llama-server* "$res"/bin/*llama* "$res"/bin/*ggml* "$res"/bin/*mtmd* "$res"/bin/libomp*
+fetched="$res/llama.files"
+if [ -f "$fetched" ]; then
+	while read -r f; do rm -f "$res/bin/$f"; done <"$fetched"
+fi
 
 if [ "$platform" = linux-amd64 ]; then
 	tar -xzf "$tmp/llama" -C "$tmp/x"
@@ -96,5 +99,6 @@ else
 		xattr -c "$res/bin/$f"
 	done
 fi
+printf '%s\n' $need >"$fetched"
 scripts/package-licenses.sh "$platform"
 echo "put $(echo $need | wc -w | tr -d ' ') files in $res/bin"

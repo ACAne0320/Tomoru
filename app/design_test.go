@@ -9,9 +9,15 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/egoist/mygo/ui"
+
+	"tomoru/internal/prefs"
+	"tomoru/internal/ui/kit"
 )
 
 var unstyled = []string{
@@ -230,4 +236,43 @@ func TestDependencies(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("go.mod requires %q, want %q", got, want)
 	}
+}
+
+func TestSiteColors(t *testing.T) {
+	css, err := os.ReadFile(filepath.Join("..", "site", "public", "styles.css"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, _, _ := strings.Cut(strings.SplitN(string(css), ":root {", 2)[1], "}")
+	light := reflect.ValueOf(kit.Light)
+	for _, decl := range strings.Split(root, ";") {
+		name, value, ok := strings.Cut(strings.TrimSpace(decl), ":")
+		value = strings.TrimSpace(value)
+		if !ok || !strings.HasPrefix(value, "#") {
+			continue
+		}
+		name = strings.TrimPrefix(name, "--")
+		want := ui.Hex(value)
+		var got ui.Color
+		switch field := light.FieldByName(camel(name)); {
+		case name == "edge":
+			got = ui.Hex(prefs.Default("en").EdgeColor)
+		case field.IsValid():
+			got = field.Interface().(ui.Color)
+		default:
+			t.Errorf("site --%s: no color of kit.Light named %s", name, camel(name))
+			continue
+		}
+		if got != want {
+			t.Errorf("site --%s is %s, the app's is %v", name, value, got)
+		}
+	}
+}
+
+func camel(kebab string) string {
+	var b strings.Builder
+	for part := range strings.SplitSeq(kebab, "-") {
+		b.WriteString(strings.ToUpper(part[:1]) + part[1:])
+	}
+	return b.String()
 }
