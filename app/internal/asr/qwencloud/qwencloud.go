@@ -162,7 +162,7 @@ func (s *Session) Audio(ev engine.Event) error {
 	}
 	c := chunk{ev.T, pcm}
 	s.mu.Lock()
-	s.heard = ev.T + float64(len(pcm))/32000
+	s.heard = ev.T + float64(len(pcm))/batch.BytesPerSecond
 	clock := s.heard-s.clocked >= .1
 	if clock {
 		s.clocked = s.heard
@@ -210,7 +210,7 @@ func (s *Session) Voice(ev engine.Event) {
 func (s *Session) callAgain(t float64) {
 	s.calling = true
 	for _, c := range s.recent {
-		if c.t+float64(len(c.pcm))/32000 > t-preroll {
+		if c.t+float64(len(c.pcm))/batch.BytesPerSecond > t-preroll {
 			s.put(c)
 		}
 	}
@@ -249,7 +249,7 @@ func (s *Session) send(c *websocket.Conn, pcm []byte) error {
 		s.emit(ev)
 	}
 	s.mu.Lock()
-	s.sent += float64(len(pcm)) / 32000
+	s.sent += float64(len(pcm)) / batch.BytesPerSecond
 	s.mu.Unlock()
 	return nil
 }

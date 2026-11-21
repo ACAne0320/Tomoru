@@ -21,6 +21,8 @@ import (
 
 const rate = 16000
 
+const BytesPerSecond = 2 * rate
+
 const (
 	window     = 512
 	minSpeech  = 0.25

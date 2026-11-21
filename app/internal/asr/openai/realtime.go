@@ -28,24 +28,30 @@ var RealtimeModels = []string{LiveModel, "gpt-realtime-whisper"}
 func Realtimed(model string) bool { return model == "" || slices.Contains(RealtimeModels, model) }
 
 const (
-	rate       = 16000
-	rtRate     = 24000
-	minSpeech  = .25
-	preroll    = .4
-	gap        = .5
-	longest    = 8.0
-	undetected = 1.0
-	late       = 2 * time.Second
-	finishing  = 5 * time.Second
+	engineRate  = 16000
+	serviceRate = 24000
+	rateUnit    = 8000
+	minSpeech   = .25
+	preroll     = .4
+	gap         = .5
+	longest     = 8.0
+	undetected  = 1.0
+	late        = 2 * time.Second
+	finishing   = 5 * time.Second
 )
 
+type RealtimeConfig struct {
+	Config
+	About string
+}
+
 type Realtime struct {
-	cfg  Config
+	cfg  RealtimeConfig
 	lang string
 	on   func(engine.Event)
 
 	in       chan rtInput
-	srv      chan rtEvent
+	srv      chan serverMsg
 	quit     chan struct{}
 	stopOnce sync.Once
 	done     chan struct{}
@@ -56,27 +62,41 @@ type Realtime struct {
 	mu   sync.Mutex
 	sent float64
 
-	conn      *websocket.Conn
-	gen       int
-	total     int64
-	clocked   int64
-	detect    int
-	voiceOn   bool
-	onAt      int64
-	offAt     int64
-	recent    []byte
-	recentAt  int64
-	open      bool
-	sentTo    int64
-	up        upsampler
-	turns     []*turn
-	lateTurns map[string]time.Time
+	loopOwned
 }
 
+type loopOwned struct {
+	conn        *websocket.Conn
+	gen         int
+	total       samples
+	clocked     samples
+	detect      batch.Detection
+	voiceOn     bool
+	onAt        samples
+	offAt       samples
+	recent      []byte
+	recentAt    samples
+	inTurn      bool
+	sentTo      samples
+	up          upsampler
+	turns       []*turn
+	lateCommits map[itemID]time.Time
+}
+
+type samples int64
+
+func samplesOf(sec float64) samples { return samples(sec*engineRate + .5) }
+
+func (n samples) sec() float64 { return batch.Round(float64(n) / engineRate) }
+
+func (n samples) bytes() int { return 2 * int(n) }
+
+type itemID string
+
 type turn struct {
-	id         string
+	id         itemID
 	acked      bool
-	start, end int64
+	start, end samples
 	committed  time.Time
 	text       strings.Builder
 	final      *string
@@ -87,11 +107,15 @@ type rtInput struct {
 	voice *engine.Event
 }
 
+type serverMsg struct {
+	gen int
+	err error
+	ev  rtEvent
+}
+
 type rtEvent struct {
-	gen        int
-	err        error
 	Type       string `json:"type"`
-	ItemID     string `json:"item_id"`
+	ItemID     itemID `json:"item_id"`
 	Delta      string `json:"delta"`
 	Transcript string `json:"transcript"`
 	Error      struct {
@@ -99,11 +123,11 @@ type rtEvent struct {
 	} `json:"error"`
 }
 
-func StartRealtime(cfg Config, lang string, on func(engine.Event)) *Realtime {
+func StartRealtime(cfg RealtimeConfig, lang string, on func(engine.Event)) *Realtime {
 	ctx, cancel := context.WithCancel(context.Background())
-	r := &Realtime{cfg: cfg, lang: iso639(lang), on: on, in: make(chan rtInput, 600), srv: make(chan rtEvent, 256),
+	r := &Realtime{cfg: cfg, lang: iso639(lang), on: on, in: make(chan rtInput, 600), srv: make(chan serverMsg, 256),
 		quit: make(chan struct{}), done: make(chan struct{}), ctx: ctx, cancel: cancel}
-	r.lateTurns = map[string]time.Time{}
+	r.lateCommits = map[itemID]time.Time{}
 	go r.loop()
 	return r
 }
@@ -163,8 +187,8 @@ func (r *Realtime) run() error {
 			if err := r.take(x); err != nil {
 				return err
 			}
-		case ev := <-r.srv:
-			r.server(ev)
+		case m := <-r.srv:
+			r.server(m)
 		case <-tick.C:
 			r.overdue()
 		case <-r.quit:
@@ -189,7 +213,7 @@ func (r *Realtime) connect() error {
 	return nil
 }
 
-func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error) {
+func dial(ctx context.Context, cfg RealtimeConfig, lang string) (*websocket.Conn, error) {
 	u, err := cfg.realtime()
 	if err != nil {
 		return nil, err
@@ -227,7 +251,7 @@ func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error)
 	b, _ := json.Marshal(map[string]any{"type": "session.update", "session": map[string]any{
 		"type": "transcription",
 		"audio": map[string]any{"input": map[string]any{
-			"format":         map[string]any{"type": "audio/pcm", "rate": rtRate},
+			"format":         map[string]any{"type": "audio/pcm", "rate": serviceRate},
 			"transcription":  tr,
 			"turn_detection": nil,
 		}},
@@ -292,9 +316,8 @@ func (r *Realtime) read(c *websocket.Conn, gen int) {
 	for {
 		var ev rtEvent
 		err := readEvent(r.ctx, c, &ev)
-		ev.gen, ev.err = gen, err
 		select {
-		case r.srv <- ev:
+		case r.srv <- serverMsg{gen, err, ev}:
 		case <-r.ctx.Done():
 			return
 		}
@@ -306,7 +329,7 @@ func (r *Realtime) read(c *websocket.Conn, gen int) {
 
 func TestRealtime(ctx context.Context, cfg Config) (time.Duration, error) {
 	t := time.Now()
-	c, err := dial(ctx, cfg, "")
+	c, err := dial(ctx, RealtimeConfig{Config: cfg}, "")
 	if err != nil {
 		return time.Since(t), err
 	}
@@ -317,8 +340,8 @@ func TestRealtime(ctx context.Context, cfg Config) (time.Duration, error) {
 
 func (r *Realtime) take(x rtInput) error {
 	if x.voice != nil {
-		r.detect = 1
-		t := int64(x.voice.T*rate + .5)
+		r.detect = batch.DetectionOn
+		t := samplesOf(x.voice.T)
 		switch {
 		case x.voice.On && !r.voiceOn:
 			r.voiceOn, r.onAt = true, t
@@ -327,87 +350,85 @@ func (r *Realtime) take(x rtInput) error {
 		}
 		return nil
 	}
-	n := int64(len(x.pcm) / 2)
-	r.recent = append(r.recent, x.pcm[:2*n]...)
+	n := samples(len(x.pcm) / 2)
+	r.recent = append(r.recent, x.pcm[:n.bytes()]...)
 	r.total += n
-	if r.open {
-		if err := r.send(r.total - n); err != nil {
-			return err
-		}
+	if r.inTurn {
+		r.send(r.total - n)
 	}
 	if err := r.step(); err != nil {
 		return err
 	}
-	if keep := int64(2 * rate); r.total-r.recentAt > 2*keep {
+	if keep := samplesOf(2); r.total-r.recentAt > 2*keep {
 		cut := r.total - keep
-		r.recent = append(r.recent[:0], r.recent[2*(cut-r.recentAt):]...)
+		r.recent = append(r.recent[:0], r.recent[(cut-r.recentAt).bytes():]...)
 		r.recentAt = cut
 	}
-	if r.total-r.clocked >= rate/10 {
+	if r.total-r.clocked >= engineRate/10 {
 		r.clocked = r.total
-		r.on(engine.Event{Type: engine.EventClock, T: sec(r.total)})
+		r.on(engine.Event{Type: engine.EventClock, T: r.total.sec()})
 	}
 	return nil
 }
 
 func (r *Realtime) step() error {
-	if r.detect == 0 && r.total >= int64(undetected*rate) {
-		r.detect = -1
+	if r.detect == batch.DetectionUnknown && r.total >= samplesOf(undetected) {
+		r.detect = batch.DetectionNone
 		log.Printf("openai: the engine detects no voice: one turn every %g s", longest)
 	}
 	var cur *turn
-	if r.open {
+	if r.inTurn {
 		cur = r.turns[len(r.turns)-1]
 	}
 	switch {
-	case r.detect == 0:
-	case !r.open && (r.detect < 0 || r.voiceOn && r.total >= r.onAt+int64(minSpeech*rate)):
+	case r.detect == batch.DetectionUnknown:
+	case !r.inTurn && (r.detect == batch.DetectionNone || r.voiceOn && r.total >= r.onAt+samplesOf(minSpeech)):
 		start := max(r.sentTo, r.recentAt)
-		if r.detect > 0 {
-			start = max(start, r.onAt-int64(preroll*rate))
+		if r.detect == batch.DetectionOn {
+			start = max(start, r.onAt-samplesOf(preroll))
 		}
 		if r.conn == nil {
 			if err := r.connect(); err != nil {
 				return err
 			}
 		}
-		r.open, r.up = true, upsampler{}
+		r.inTurn, r.up = true, upsampler{}
 		r.turns = append(r.turns, &turn{start: start})
-		r.on(engine.Event{Type: engine.EventVoice, On: true, T: sec(max(start, r.onAt))})
-		return r.send(start)
-	case r.open && r.total-cur.start >= int64(2*longest*rate):
-		return r.commit(r.total)
-	case r.open && r.detect > 0 && !r.voiceOn:
+		r.on(engine.Event{Type: engine.EventVoice, On: true, T: max(start, r.onAt).sec()})
+		r.send(start)
+	case r.inTurn && r.total-cur.start >= samplesOf(2*longest):
+		r.commit(r.total)
+	case r.inTurn && r.detect == batch.DetectionOn && !r.voiceOn:
 		g := gap
-		if r.total-cur.start >= int64(longest*rate) || strings.ContainsAny(cur.text.String(), "。．.！!？?") {
+		if r.total-cur.start >= samplesOf(longest) || strings.ContainsAny(cur.text.String(), "。．.！!？?") {
 			g = 0
 		}
-		if r.total >= r.offAt+int64(g*rate) {
-			return r.commit(r.offAt)
+		if r.total >= r.offAt+samplesOf(g) {
+			r.commit(r.offAt)
 		}
-	case r.open && r.detect < 0 && r.total-cur.start >= int64(longest*rate):
-		return r.commit(r.total)
+	case r.inTurn && r.detect == batch.DetectionNone && r.total-cur.start >= samplesOf(longest):
+		r.commit(r.total)
 	}
 	return nil
 }
 
-func (r *Realtime) send(from int64) error {
+func (r *Realtime) send(from samples) {
 	from = max(from, r.sentTo, r.recentAt)
 	if from >= r.total || r.conn == nil {
-		return nil
+		return
 	}
-	pcm := r.up.convert(r.recent[2*(from-r.recentAt):])
+	pcm := r.up.convert(r.recent[(from - r.recentAt).bytes():])
 	r.sentTo = r.total
 	r.mu.Lock()
-	r.sent += float64(r.total-from) / rate
+	r.sent += float64(r.total-from) / engineRate
 	r.mu.Unlock()
 	b, _ := json.Marshal(map[string]string{"type": "input_audio_buffer.append", "audio": base64.StdEncoding.EncodeToString(pcm)})
-	return r.write(b)
+	r.write(b)
 }
 
-func (r *Realtime) write(b []byte) error {
+func (r *Realtime) write(b []byte) {
 	if r.conn == nil {
-		return nil
+		return
 	}
 	ctx, cancel := context.WithTimeout(r.ctx, 5*time.Second)
 	defer cancel()
@@ -420,44 +441,44 @@ func (r *Realtime) write(b []byte) error {
 		log.Printf("openai: realtime: %v", err)
 		r.drop()
 	}
-	return nil
 }
 
-func (r *Realtime) commit(end int64) error {
+func (r *Realtime) commit(end samples) {
 	t := r.turns[len(r.turns)-1]
-	r.open = false
+	r.inTurn = false
 	t.end, t.committed = max(end, t.start), time.Now()
-	r.on(engine.Event{Type: engine.EventVoice, On: false, T: sec(t.end)})
+	r.on(engine.Event{Type: engine.EventVoice, On: false, T: t.end.sec()})
 	if r.conn == nil {
 		r.finalize(t)
 		r.flush()
-		return nil
-	}
-	return r.write([]byte(`{"type":"input_audio_buffer.commit"}`))
-}
-
-func (r *Realtime) server(ev rtEvent) {
-	if ev.gen != r.gen {
 		return
 	}
-	if ev.err != nil {
-		log.Printf("openai: realtime: the connection ended: %v", ev.err)
+	r.write([]byte(`{"type":"input_audio_buffer.commit"}`))
+}
+
+func (r *Realtime) server(m serverMsg) {
+	if m.gen != r.gen {
+		return
+	}
+	if m.err != nil {
+		log.Printf("openai: realtime: the connection ended: %v", m.err)
 		r.drop()
 		return
 	}
+	ev := m.ev
 	switch ev.Type {
 	case "conversation.item.input_audio_transcription.delta":
-		if t := r.turnFor(ev.ItemID, false); t != nil {
+		if t := r.turnForDelta(ev.ItemID); t != nil {
 			t.text.WriteString(ev.Delta)
 			r.volatile()
 		}
 	case "conversation.item.input_audio_transcription.completed":
-		if at, ok := r.lateTurns[ev.ItemID]; ok {
-			delete(r.lateTurns, ev.ItemID)
+		if at, ok := r.lateCommits[ev.ItemID]; ok {
+			delete(r.lateCommits, ev.ItemID)
 			r.on(batch.Took(time.Since(at)))
 			return
 		}
-		if t := r.turnFor(ev.ItemID, false); t != nil {
+		if t := r.turnForDelta(ev.ItemID); t != nil {
 			if !t.committed.IsZero() && t.final == nil {
 				r.on(batch.Took(time.Since(t.committed)))
 			}
@@ -467,32 +488,29 @@ func (r *Realtime) server(ev rtEvent) {
 		}
 	case "conversation.item.input_audio_transcription.failed":
 		log.Printf("openai: realtime: a turn's transcription failed: %s", ev.Error.Message)
-		if t := r.turnFor(ev.ItemID, false); t != nil {
+		if t := r.turnForDelta(ev.ItemID); t != nil {
 			r.finalize(t)
 			r.flush()
 		}
 	case "input_audio_buffer.committed":
-		r.turnFor(ev.ItemID, true)
+		r.ackCommit(ev.ItemID)
 	case "error":
 		log.Printf("openai: realtime: %s: %s", ev.Error.Code, ev.Error.Message)
 	}
 }
 
-func (r *Realtime) turnFor(id string, committed bool) *turn {
+func (r *Realtime) known(id itemID) *turn {
 	for _, t := range r.turns {
 		if t.id == id {
-			t.acked = t.acked || committed
 			return t
 		}
 	}
-	if committed {
-		for _, t := range r.turns {
-			if !t.committed.IsZero() && !t.acked && t.id == "" {
-				t.id, t.acked = id, true
-				return t
-			}
-		}
-		return nil
+	return nil
+}
+
+func (r *Realtime) turnForDelta(id itemID) *turn {
+	if t := r.known(id); t != nil {
+		return t
 	}
 	for i := len(r.turns) - 1; i >= 0; i-- {
 		if r.turns[i].id == "" {
@@ -503,16 +521,29 @@ func (r *Realtime) turnFor(id string, committed bool) *turn {
 	return nil
 }
 
+func (r *Realtime) ackCommit(id itemID) {
+	if t := r.known(id); t != nil {
+		t.acked = true
+		return
+	}
+	for _, t := range r.turns {
+		if !t.committed.IsZero() && !t.acked && t.id == "" {
+			t.id, t.acked = id, true
+			return
+		}
+	}
+}
+
 func (r *Realtime) drop() {
 	if r.conn == nil {
 		return
 	}
 	r.conn.CloseNow()
 	r.conn, r.gen = nil, r.gen+1
-	clear(r.lateTurns)
-	if r.open {
-		r.open = false
-		r.on(engine.Event{Type: engine.EventVoice, On: false, T: sec(r.total)})
+	clear(r.lateCommits)
+	if r.inTurn {
+		r.inTurn = false
+		r.on(engine.Event{Type: engine.EventVoice, On: false, T: r.total.sec()})
 	}
 	for _, t := range r.turns {
 		r.finalize(t)
@@ -525,7 +556,7 @@ func (r *Realtime) overdue() {
 		if !t.committed.IsZero() && t.final == nil && time.Since(t.committed) > late {
 			log.Printf("openai: realtime: a turn's final text did not come in %v", late)
 			if t.id != "" {
-				r.lateTurns[t.id] = t.committed
+				r.lateCommits[t.id] = t.committed
 			}
 			r.finalize(t)
 		}
@@ -570,18 +601,18 @@ func (r *Realtime) volatile() {
 	if text == "" {
 		return
 	}
-	r.on(engine.Event{Type: engine.EventResult, Start: sec(r.turns[0].start), End: sec(r.total), Tokens: []engine.Token{{Text: text}}})
+	r.on(engine.Event{Type: engine.EventResult, Start: r.turns[0].start.sec(), End: r.total.sec(), Tokens: []engine.Token{{Text: text}}})
 }
 
 func (r *Realtime) finish() error {
-	if r.open {
+	if r.inTurn {
 		r.commit(r.total)
 	}
 	deadline := time.After(finishing)
 	for len(r.turns) > 0 && r.conn != nil {
 		select {
-		case ev := <-r.srv:
-			r.server(ev)
+		case m := <-r.srv:
+			r.server(m)
 		case <-deadline:
 			r.drop()
 		}
@@ -595,7 +626,7 @@ func (r *Realtime) finish() error {
 
 func final(t *turn) engine.Event {
 	pieces := batch.Spaced(batch.Pieces(*t.final))
-	t0, t1 := float64(t.start)/rate, float64(t.end)/rate
+	t0, t1 := float64(t.start)/engineRate, float64(t.end)/engineRate
 	batch.Spread(pieces, t1-t0)
 	tokens := []engine.Token{}
 	for i, p := range pieces {
@@ -616,12 +647,15 @@ func spaced(s string) string {
 	return batch.Spaced([]batch.Piece{{Text: s}})[0].Text
 }
 
-func sec(n int64) float64 { return batch.Round(float64(n) / rate) }
+const (
+	phasePerInput  = serviceRate / rateUnit
+	phasePerOutput = engineRate / rateUnit
+)
 
 type upsampler struct {
-	last int16
-	have bool
-	pos  int
+	last  int16
+	have  bool
+	phase int
 }
 
 func (u *upsampler) convert(pcm []byte) []byte {
@@ -630,14 +664,14 @@ func (u *upsampler) convert(pcm []byte) []byte {
 	for i := 0; i+1 < len(pcm); i += 2 {
 		x := int16(binary.LittleEndian.Uint16(pcm[i:]))
 		if !u.have {
-			u.last, u.have, u.pos = x, true, 2
+			u.last, u.have, u.phase = x, true, phasePerOutput
 			put(int(x))
 			continue
 		}
-		for ; u.pos <= 3; u.pos += 2 {
-			put(int(u.last) + (int(x)-int(u.last))*u.pos/3)
+		for ; u.phase <= phasePerInput; u.phase += phasePerOutput {
+			put(int(u.last) + (int(x)-int(u.last))*u.phase/phasePerInput)
 		}
-		u.pos -= 3
+		u.phase -= phasePerInput
 		u.last = x
 	}
 	return out
