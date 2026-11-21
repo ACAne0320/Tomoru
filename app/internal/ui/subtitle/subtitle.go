@@ -40,16 +40,36 @@ var Schemes = []Scheme{
 }
 
 type Entry struct {
-	Key      any
+	Key      EntryKey
 	Src, Tgt string
 	Lang     string
 	Pending  bool
-	DimTgt   bool
-	Note     bool
-	Draft    bool
+	TgtKind  TgtKind
+	Earlier  bool
 	Swaps    bool
 	Grows    bool
 }
+
+type EntryKey struct {
+	rolled bool
+	n      int64
+}
+
+func LineKey(id int) EntryKey { return EntryKey{n: int64(id)} }
+
+func rollKey(n int64) EntryKey { return EntryKey{rolled: true, n: n} }
+
+type TgtKind int
+
+const (
+	TgtTranslation TgtKind = iota
+	TgtDraft
+	TgtNote
+)
+
+func (e Entry) DimTgt() bool { return e.Earlier || e.TgtKind == TgtNote }
+
+const appLang = ""
 
 func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	n := int(p.Shown)
@@ -58,16 +78,16 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		if l.ID < since {
 			continue
 		}
-		e := Entry{Key: l.ID, Src: l.Src, Tgt: l.Tgt, Lang: l.Lang, Swaps: l.Draft != ""}
+		e := Entry{Key: LineKey(l.ID), Src: l.Src, Tgt: l.Tgt, Lang: spoken(l.Lang, p), Swaps: l.Draft != ""}
 		switch {
 		case p.Display == prefs.DisplaySrc:
 			e.Tgt, e.Swaps = "", false
 		case l.AsSaid:
 			e.Src, e.Tgt = "", l.Src
 		case l.Draft != "" && !l.Done():
-			e.Tgt, e.Draft = l.Draft, true
+			e.Tgt, e.TgtKind = l.Draft, TgtDraft
 		case l.Err != nil:
-			e.Tgt, e.DimTgt, e.Note = Failure(l.Err), true, true
+			e.Tgt, e.TgtKind = Failure(l.Err), TgtNote
 		default:
 			e.Grows = !l.Done()
 		}
@@ -84,7 +104,10 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		if k := len(st.Lines); k > 0 {
 			next = st.Lines[k-1].ID + 1
 		}
-		e := Entry{Key: next, Src: st.Pending, Lang: st.PendingLang, Pending: true, Tgt: draft, Draft: draft != "", Swaps: draft != ""}
+		e := Entry{Key: LineKey(next), Src: st.Pending, Lang: spoken(st.PendingLang, p), Pending: true, Tgt: draft, Swaps: draft != ""}
+		if draft != "" {
+			e.TgtKind = TgtDraft
+		}
 		if st.PendingLang == p.Tgt && p.Display != prefs.DisplaySrc {
 			e.Src, e.Tgt = "", st.Pending
 		}
@@ -94,9 +117,16 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	}
 	if k := len(all); p.Display == prefs.DisplayBoth && n == 1 && k >= 2 && all[k-1].Tgt == "" && all[k-2].Tgt != "" {
 		cur, prev := all[k-1], all[k-2]
-		return []Entry{{Key: cur.Key, Src: cur.Src, Pending: cur.Pending, Tgt: prev.Tgt, DimTgt: true, Note: prev.Note, Draft: prev.Draft, Swaps: true, Grows: prev.Grows}}
+		return []Entry{{Key: cur.Key, Src: cur.Src, Lang: cur.Lang, Pending: cur.Pending, Tgt: prev.Tgt, TgtKind: prev.TgtKind, Earlier: true, Swaps: true, Grows: prev.Grows}}
 	}
 	return all[max(0, len(all)-n):]
+}
+
+func spoken(heard string, p prefs.Prefs) string {
+	if heard == "" && p.Src != lang.Auto {
+		return p.Src
+	}
+	return heard
 }
 
 func Failure(err error) string {
@@ -121,7 +151,7 @@ func Samples(p prefs.Prefs) []Entry {
 	var out []Entry
 	from := len(samples.Lines) - min(int(p.Shown), len(samples.Lines))
 	for i, s := range samples.Lines[from:] {
-		out = append(out, Entry{Key: -1 - from - i, Src: samples.In(s, sampleSrc(p)), Lang: sampleSrc(p), Tgt: samples.In(s, p.Tgt)})
+		out = append(out, Entry{Key: EntryKey{n: int64(-1 - from - i)}, Src: samples.In(s, sampleSrc(p)), Lang: sampleSrc(p), Tgt: samples.In(s, p.Tgt)})
 	}
 	return out
 }
@@ -137,8 +167,6 @@ func sampleSrc(p prefs.Prefs) string {
 }
 
 const RollEvery = 2400 * time.Millisecond
-
-type rollKey int64
 
 func Sample(p prefs.Prefs, n int64) Entry {
 	l := int64(len(samples.Lines))
@@ -158,6 +186,8 @@ func Rolling(p prefs.Prefs, now time.Time) ([]Entry, time.Duration) {
 
 const lineHeight = 1.35
 
+const bandPadY, bandPadX = 6, 14
+
 func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 	h := float32(p.SrcSize*2+p.TgtSize*2)*lineHeight*k + 2*k
 	switch p.Display {
@@ -167,7 +197,7 @@ func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 		h = float32(p.SrcSize*2) * lineHeight * k
 	}
 	if boxed && p.Style == prefs.StyleBox {
-		h += 12 * k
+		h += 2 * bandPadY * k
 	}
 	return h
 }
@@ -191,9 +221,6 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 	opacity := float32(p.TextOpacity) / 100
 	for i, e := range entries {
 		srcLang := e.Lang
-		if srcLang == "" && p.Src != lang.Auto {
-			srcLang = p.Src
-		}
 		age := len(entries) - 1 - i
 		roll := ui.ElementTransition{
 			Position:  true,
@@ -222,7 +249,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 				if boxed {
 					bg = ui.RGBA(0, 0, 0, float32(p.BoxOpacity)/100)
 				}
-				lines = lines.Background(bg).Radius(8*k).Padding(6*k, 14*k).Transition(Follows)
+				lines = lines.Background(bg).Radius(8*k).Padding(bandPadY*k, bandPadX*k).Transition(Follows)
 			}
 			lines.Children(func() {
 				src := func() {
@@ -248,8 +275,8 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 						n = 3
 					}
 					tgtLang := p.Tgt
-					if e.Note {
-						tgtLang = ""
+					if e.TgtKind == TgtNote {
+						tgtLang = appLang
 					}
 					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, ui.Hex(p.TgtColor), n, !e.Pending && !e.Grows, width-28*k)
 					if e.Swaps {
@@ -257,9 +284,9 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					}
 					dim := float32(1)
 					switch {
-					case e.DimTgt:
+					case e.DimTgt():
 						dim = .5
-					case e.Draft:
+					case e.TgtKind == TgtDraft:
 						dim = .72
 					}
 					t.Opacity(dim * opacity)

@@ -19,54 +19,50 @@ import (
 )
 
 type try struct {
-	started                       bool
-	firstLineAfter                int
-	sayWhenListening              bool
-	waitingForModel               bool
+	on                            bool
+	after                         int
+	sample                        bool
+	wait                          bool
 	heard, recognized, translated bool
-	recognizedAt, translatedAt    arrival
-	src, tgt                      arrival
+	recognizedAt, translatedAt    time.Time
+	srcKey, tgtKey                any
+	srcAt, tgtAt                  time.Time
 }
-
-type arrival struct {
-	key any
-	at  time.Time
-}
-
-func (a arrival) arrived(now time.Time) bool { return !a.at.IsZero() && !now.Before(a.at.Add(travel)) }
 
 const travel = srcAt - toASR
 
 func (t *try) works() bool { return t.heard && t.recognized && t.translated }
 
+func arrived(at, now time.Time) bool { return !at.IsZero() && !now.Before(at.Add(travel)) }
+
 func (t *try) shown(now time.Time) (recognized, translated bool) {
-	return t.recognized && t.recognizedAt.arrived(now), t.translated && t.translatedAt.arrived(now)
+	return t.recognized && arrived(t.recognizedAt, now), t.translated && arrived(t.translatedAt, now)
 }
 
 func (g *Guide) tryStep(c *ui.Context, showing bool) {
 	k := g.core
 	switch {
-	case showing && !g.try.started:
-		wait := g.pending() != nil
-		g.try = try{started: true, firstLineAfter: lastID(k.State.Lines), waitingForModel: wait}
+	case showing && !g.try.on:
+		_, _, wait := g.pending()
+		g.try = try{on: true, after: lastID(k.State.Lines), wait: wait}
 		if !wait && !k.Running {
 			k.Start()
 		}
-	case !showing && g.try.started:
-		g.try.started = false
+	case !showing && g.try.on:
+		g.try.on = false
 		k.StopSpeaking()
 		if g.Step < stepTry && k.Running {
 			k.Stop()
 		}
 	}
-	if !g.try.started {
+	if !g.try.on {
 		return
 	}
-	if g.try.waitingForModel {
-		if wait := g.pending() != nil; wait {
+	if g.try.wait {
+		if _, _, wait := g.pending(); wait {
 			return
 		}
-		g.try.waitingForModel = false
+		g.try.wait = false
 		if !k.Running {
 			k.Start()
 		}
@@ -84,21 +80,20 @@ func (g *Guide) tryStep(c *ui.Context, showing bool) {
 	if !k.Preferences().Translates() {
 		g.try.translated = g.try.recognized
 	}
-	g.flowing(now, subtitle.Visible(st, max(k.Since, g.try.firstLineAfter+1), k.Preferences()))
+	g.flowing(now, subtitle.Visible(st, max(k.Since, g.try.after+1), k.Preferences()))
 	if g.try.recognized && !recognized {
-		g.try.recognizedAt = arrival{at: now}
+		g.try.recognizedAt = now
 	}
 	if g.try.translated && !translated {
-		g.try.translatedAt = arrival{at: later(now, g.try.recognizedAt.at.Add(travel))}
+		g.try.translatedAt = later(now, g.try.recognizedAt.Add(travel))
 	}
-	for _, a := range []arrival{g.try.recognizedAt, g.try.translatedAt, g.try.src, g.try.tgt} {
-		at := a.at
+	for _, at := range []time.Time{g.try.recognizedAt, g.try.translatedAt, g.try.srcAt, g.try.tgtAt} {
 		if d := at.Add(travel).Sub(now); !at.IsZero() && d > 0 {
 			c.After(d)
 		}
 	}
-	if g.try.sayWhenListening && k.Running && st.Phase == live.PhaseListening {
-		g.try.sayWhenListening = false
+	if g.try.sample && k.Running && st.Phase == live.PhaseListening {
+		g.try.sample = false
 		k.Speak()
 	}
 }
@@ -107,13 +102,13 @@ func (g *Guide) flowing(now time.Time, entries []subtitle.Entry) {
 	if len(entries) == 0 {
 		return
 	}
-	if e := entries[len(entries)-1]; e.Key != g.try.src.key {
-		g.try.src = arrival{e.Key, now}
+	if e := entries[len(entries)-1]; e.Key != g.try.srcKey {
+		g.try.srcKey, g.try.srcAt = e.Key, now
 	}
 	for i := len(entries) - 1; i >= 0; i-- {
-		if e := entries[i]; e.Tgt != "" && !e.DimTgt {
-			if e.Key != g.try.tgt.key {
-				g.try.tgt = arrival{e.Key, later(now, g.try.src.at.Add(travel))}
+		if e := entries[i]; e.Tgt != "" && !e.DimTgt() {
+			if e.Key != g.try.tgtKey {
+				g.try.tgtKey, g.try.tgtAt = e.Key, later(now, g.try.srcAt.Add(travel))
 			}
 			return
 		}
@@ -127,24 +122,19 @@ func later(a, b time.Time) time.Time {
 	return a
 }
 
-type pendingModel struct {
-	model  models.Model
-	status models.Status
-}
-
-func (g *Guide) pending() *pendingModel {
+func (g *Guide) pending() (models.Model, models.Status, bool) {
 	k := g.core
 	id := k.Chosen(core.ASR)
 	m, ok := models.ByID(id)
 	if !ok || id == k.InUse(core.ASR) {
-		return nil
+		return models.Model{}, models.Status{}, false
 	}
-	return &pendingModel{m, k.ModelStatus(id)}
+	return m, k.ModelStatus(id), true
 }
 
 func (g *Guide) lines(st live.State) []live.Line {
 	for i, l := range st.Lines {
-		if l.ID > g.try.firstLineAfter {
+		if l.ID > g.try.after {
 			return st.Lines[i:]
 		}
 	}
@@ -161,7 +151,7 @@ func lastID(lines []live.Line) int {
 func (g *Guide) trying(c *ui.Context) {
 	k := g.core
 	src := spokenName(k.Preferences().Src)
-	saying := k.Speaking || g.try.sayWhenListening
+	saying := k.Speaking || g.try.sample
 	g.part(c, 0, func() { g.tryIntro(c, src, saying) })
 	g.part(c, 1, func() { g.tryChecks(c, saying) })
 }
@@ -186,11 +176,11 @@ func (g *Guide) tryIntro(c *ui.Context, src string, saying bool) {
 		}
 		if kit.Button(c, kit.Plain, kit.Small, icon, label).AlignSelf(ui.Start).Clicked() {
 			if saying {
-				g.try.sayWhenListening = false
+				g.try.sample = false
 				k.StopSpeaking()
 			} else {
-				g.try.sayWhenListening = true
-				if !k.Running && !g.try.waitingForModel {
+				g.try.sample = true
+				if !k.Running && !g.try.wait {
 					k.Start()
 				}
 			}
@@ -211,23 +201,23 @@ func (g *Guide) tryChecks(c *ui.Context, saying bool) {
 	pal := kit.Colors(c)
 	g.checks(c, saying)
 
-	pm := g.pending()
+	m, st, wait := g.pending()
 	switch {
-	case pm != nil && pm.status.Err != nil:
+	case wait && st.Err != nil:
 		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
-			kit.Warning(c, shared.DownloadError(pm.status.Err)).Grow(1)
+			kit.Warning(c, shared.DownloadError(st.Err)).Grow(1)
 			if kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.Retry()).Clicked() {
-				k.Download(pm.model.ID)
+				k.Download(m.ID)
 			}
 		})
-	case pm == nil && k.Err != nil:
+	case !wait && k.Err != nil:
 		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			kit.Warning(c, shared.ErrorText(k.Err)).Grow(1)
 			if kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.Retry()).Clicked() {
 				k.Start()
 			}
 		})
-	case g.try.heard && g.try.recognized && g.try.translated && g.try.translatedAt.arrived(c.Now()):
+	case g.try.heard && g.try.recognized && g.try.translated && arrived(g.try.translatedAt, c.Now()):
 		ui.Row(c.Key("works")).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(3)).Radius(kit.RadiusInner).Background(pal.OkTint).AlignItems(ui.Center).
 			Transition(ui.ElementTransition{Animation: &kit.Spring, Enter: &ui.Motion{Y: kit.RiseBy, Scale: .96}}).Children(func() {
 			ui.Icon(c, assets.Check).FontSize(kit.TextBody).TextColor(pal.OkText)
@@ -249,23 +239,18 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 		}
 		check(c, g.try.heard, listening && saying, false, shared.MacOr(locales.TryHearing(), locales.TryHearingWin()), detail)
 
-		pm := g.pending()
-		wait := pm != nil
-		var failedDownload bool
-		if wait {
-			failedDownload = pm.status.Err != nil
-			if pm.status.State == models.Downloading {
-				c.After(250 * time.Millisecond)
-			}
+		m, st, wait := g.pending()
+		if wait && st.State == models.Downloading {
+			c.After(250 * time.Millisecond)
 		}
 		detail = ""
 		switch {
 		case g.try.recognized:
-		case failedDownload:
-		case wait && pm.status.State == models.Verifying:
+		case wait && st.Err != nil:
+		case wait && st.State == models.Verifying:
 			detail = locales.Verifying()
 		case wait:
-			detail = locales.TryModelDownloading(shared.Size(pm.status.Done), shared.Size(pm.model.Size))
+			detail = locales.TryModelDownloading(shared.Size(st.Done), shared.Size(m.Size))
 		case running && k.State.Phase == live.PhaseDownloading:
 			detail = locales.StatusDownloading()
 		case running && k.State.Phase != live.PhaseListening:
@@ -273,7 +258,7 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 		default:
 			detail = locales.TryRecognizingWait(src)
 		}
-		check(c, recognized, running && !listening || wait && !failedDownload, failedDownload, locales.TryRecognizing(src), detail)
+		check(c, recognized, running && !listening || wait && st.Err == nil, wait && st.Err != nil, locales.TryRecognizing(src), detail)
 
 		failed := false
 		for _, l := range g.lines(k.State) {
@@ -311,10 +296,10 @@ func (g *Guide) tryStage(c *ui.Context) {
 	k := g.core
 	p := k.Preferences()
 	now := c.Now()
-	entries := subtitle.Visible(k.State, max(k.Since, g.try.firstLineAfter+1), p)
+	entries := subtitle.Visible(k.State, max(k.Since, g.try.after+1), p)
 	recognized, translated := g.try.shown(now)
 	status := ""
-	wait := g.pending() != nil
+	_, _, wait := g.pending()
 	switch {
 	case g.try.heard:
 	case wait:
@@ -344,18 +329,18 @@ func (g *Guide) tryStage(c *ui.Context) {
 				ui.Text(c, status).FontSize(kit.TextControl).TextColor(pal.Starlight.Alpha(.6)).MaxLines(2).ContentTransition(ui.ContentTransition{})
 			}
 		})
-		flow(c, "to-asr", leaving(g.try.src.at))
+		flow(c, "to-asr", leaving(g.try.srcAt))
 		node(c, "asr", recognized, 0, assets.Captions, shared.EngineName(asr), "", func(bool) {
 			if len(entries) > 0 {
 				e := entries[len(entries)-1]
-				sentence(c, e.Key, e.Src, kit.TextBody, pal.Starlight.Alpha(.94), false, g.try.src.at.Add(travel).Sub(now))
+				sentence(c, e.Key, e.Src, kit.TextBody, pal.Starlight.Alpha(.94), false, g.try.srcAt.Add(travel).Sub(now))
 			}
 		})
-		flow(c, "to-mt", leaving(g.try.tgt.at))
+		flow(c, "to-mt", leaving(g.try.tgtAt))
 		node(c, "mt", translated, 0, icon, shared.EngineName(mt), "", func(bool) {
 			for i := len(entries) - 1; i >= 0; i-- {
-				if e := entries[i]; e.Tgt != "" && !e.DimTgt {
-					sentence(c, e.Key, e.Tgt, kit.TextSection, pal.SubTgt, false, g.try.tgt.at.Add(travel).Sub(now)).FontWeight(kit.WeightBold)
+				if e := entries[i]; e.Tgt != "" && !e.DimTgt() {
+					sentence(c, e.Key, e.Tgt, kit.TextSection, pal.SubTgt, false, g.try.tgtAt.Add(travel).Sub(now)).FontWeight(kit.WeightBold)
 					return
 				}
 			}

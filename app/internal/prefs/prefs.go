@@ -66,6 +66,8 @@ const (
 	EdgeShadow
 )
 
+const ScreenPrimary = ""
+
 type Prefs struct {
 	Onboarded        bool
 	GuideStep        int

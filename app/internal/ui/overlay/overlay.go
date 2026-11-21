@@ -26,30 +26,35 @@ type Overlay struct {
 	display mygo.Display
 	area    mygo.Rectangle
 
+	pointerShared
+
+	adjustUntil      time.Time
+	hover            bool
+	showingUnlock    bool
+	hoverH           float32
+	toastUntil       time.Time
+	sampleUntil      time.Time
+	resize           *resize
+	textTopLastFrame float32
+	barW             float32
+	noticeCount      int
+	noted            time.Time
+}
+
+type pointerShared struct {
 	locked    atomic.Bool
 	grabbable atomic.Bool
 	adjusting atomic.Bool
 	pointerOn atomic.Bool
-	mu        sync.Mutex
-	block     ui.Rect
-	lock      ui.Rect
 	woken     chan struct{}
 
-	adjust  time.Time
-	hover   bool
-	peek    bool
-	hoverH  float32
-	toast   time.Time
-	sample  time.Time
-	resize  *resize
-	textTop float32
-	barW    float32
-	notes   int
-	noted   time.Time
+	mu    sync.Mutex
+	block ui.Rect
+	lock  ui.Rect
 }
 
 func New(k *core.Core, nav shared.Nav) *Overlay {
-	o := &Overlay{core: k, nav: nav, woken: make(chan struct{}, 1)}
+	o := &Overlay{core: k, nav: nav, pointerShared: pointerShared{woken: make(chan struct{}, 1)}}
 	o.display = displayNamed(mygo.Screen.Displays(), k.Preferences().Screen)
 	o.area = o.display.WorkArea
 	o.locked.Store(k.Preferences().Locked)
@@ -79,7 +84,7 @@ func windowOptions(area mygo.Rectangle, content mygo.Content) mygo.WindowOptions
 
 func displayNamed(ds []mygo.Display, name string) mygo.Display {
 	for _, d := range ds {
-		if name != "" && d.Label == name {
+		if name != prefs.ScreenPrimary && d.Label == name {
 			return d
 		}
 	}
@@ -96,7 +101,7 @@ func displayNamed(ds []mygo.Display, name string) mygo.Display {
 
 func screenName(d mygo.Display) string {
 	if d.Primary {
-		return ""
+		return prefs.ScreenPrimary
 	}
 	return d.Label
 }
@@ -118,7 +123,7 @@ func (o *Overlay) Redraw() { o.win.Update(func() {}) }
 func (o *Overlay) SetHideFromCapture(hide bool) { o.win.SetContentProtection(hide) }
 
 func (o *Overlay) ShowSample(d time.Duration) {
-	o.sample = time.Now().Add(d)
+	o.sampleUntil = time.Now().Add(d)
 	o.Redraw()
 }
 
@@ -126,11 +131,11 @@ func (o *Overlay) SetLocked(v bool) {
 	o.core.UpdatePrefs(func(p *prefs.Prefs) { p.Locked = v })
 	o.locked.Store(v)
 	if v {
-		o.hover, o.adjust = false, time.Time{}
+		o.hover, o.adjustUntil = false, time.Time{}
 		o.wake()
-		o.toast = time.Now().Add(2600 * time.Millisecond)
+		o.toastUntil = time.Now().Add(2600 * time.Millisecond)
 	} else {
-		o.peek = false
+		o.showingUnlock = false
 		o.StartAdjust()
 	}
 	o.Redraw()
@@ -141,7 +146,7 @@ func (o *Overlay) StartAdjust() {
 		o.SetLocked(false)
 		return
 	}
-	o.adjust = time.Now().Add(15 * time.Second)
+	o.adjustUntil = time.Now().Add(15 * time.Second)
 	o.Redraw()
 }
 
@@ -167,20 +172,21 @@ var (
 func (o *Overlay) View(c *ui.Context) {
 	k, p := o.core, o.core.Preferences()
 	c.Root().Background(ui.Transparent)
-	hover, peek := o.hover && !p.Locked, o.peek && p.Locked
+	hover, peek := o.hover && !p.Locked, o.showingUnlock && p.Locked
 	entries := subtitle.Visible(k.State, k.Since, p)
-	idle := time.Since(k.Updated)
+	now := c.Now()
+	idle := now.Sub(k.Updated)
 	hideAfter := k.HideAfter()
 	show := k.Running && len(entries) > 0 && (hideAfter == 0 || idle < hideAfter)
 	if show && hideAfter > 0 {
 		c.After(hideAfter - idle)
 	}
-	sample := time.Until(o.sample)
+	sample := o.sampleUntil.Sub(now)
 	if !show && sample > 0 {
 		show, entries = true, subtitle.Samples(p)
 		c.After(sample)
 	}
-	adjust := time.Until(o.adjust)
+	adjust := o.adjustUntil.Sub(now)
 	adjusting := adjust > 0 && !p.Locked
 	if adjusting {
 		c.After(adjust)
@@ -196,14 +202,14 @@ func (o *Overlay) View(c *ui.Context) {
 	if shown := !show && note.title != ""; !shown {
 		o.noted = time.Time{}
 	} else if o.noted.IsZero() {
-		o.notes++
+		o.noticeCount++
 		o.noted = c.Now()
 	}
 	bottom := float32(o.area.Y + int(wh) - o.blockBottom())
 
 	h := minH
-	if show && o.textTop != 0 {
-		h = max(h, min(wh-bottom-o.textTop+8, wh-bottom-26))
+	if show && o.textTopLastFrame != 0 {
+		h = max(h, min(wh-bottom-o.textTopLastFrame+8, wh-bottom-26))
 	}
 	switch {
 	case !hover && !peek:
@@ -243,10 +249,7 @@ func (o *Overlay) View(c *ui.Context) {
 					if hover {
 						bareBelow = clip
 					}
-					if top := subtitle.Draw(c, entries, p, 1, width-24, bareBelow); top != o.textTop {
-						o.textTop = top
-						c.After(16 * time.Millisecond)
-					}
+					o.fitToText(c, subtitle.Draw(c, entries, p, 1, width-24, bareBelow))
 				})
 			})
 		}
@@ -293,7 +296,7 @@ func (o *Overlay) View(c *ui.Context) {
 				o.notePill(c, note)
 			})
 		}
-		if until := time.Until(o.toast); until > 0 {
+		if until := o.toastUntil.Sub(now); until > 0 {
 			c.After(until)
 			ui.Row(c).Absolute().Left(0).Right(0).Bottom(bottom + h + 12).Justify(ui.Center).Transition(fades).Children(func() {
 				pill(c, locales.LockedToast())
@@ -304,6 +307,13 @@ func (o *Overlay) View(c *ui.Context) {
 		o.mu.Unlock()
 	})
 	o.pointerOn.Store(column.Hovered())
+}
+
+func (o *Overlay) fitToText(c *ui.Context, top float32) {
+	if top != o.textTopLastFrame {
+		o.textTopLastFrame = top
+		c.After(16 * time.Millisecond)
+	}
 }
 
 func hoverShade(p prefs.Prefs) ui.Color {
@@ -378,7 +388,7 @@ func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 			words = true
 		}
 	}
-	pill := ui.Row(c.Key(appearance(o.notes))).MinHeight(30).Radius(15).Padding(0, 14, 0, 12)
+	pill := ui.Row(c.Key(noticeKey(o.noticeCount))).MinHeight(30).Radius(15).Padding(0, 14, 0, 12)
 	if !n.marked {
 		pill.Padding(6, 14)
 	}
@@ -403,7 +413,7 @@ func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 		})
 }
 
-type appearance int
+type noticeKey int
 
 func (o *Overlay) level(t time.Time) float32 {
 	if !o.core.State.Voice {

@@ -18,7 +18,7 @@ import (
 func (o *Overlay) watchPointer() {
 	const tick = 50 * time.Millisecond
 	const dwell, still, linger, peekFor = 400 * time.Millisecond, 8, 500 * time.Millisecond, 3 * time.Second
-	hover, peek, armed := false, false, false
+	hover, peek, leftSinceLock := false, false, false
 	parked := true
 	var taking []mygo.Rectangle
 	var left, restAt, movedAt time.Time
@@ -58,17 +58,17 @@ func (o *Overlay) watchPointer() {
 		rested := time.Since(restAt) >= dwell
 		h, pk, onLock := false, false, false
 		if locked {
-			armed = armed || !over
+			leftSinceLock = leftSinceLock || !over
 			onLock = peek && within(p, lock)
-			pk = armed && (in && (peek || rested) && (onLock || time.Since(restAt) < dwell+peekFor) ||
+			pk = leftSinceLock && (in && (peek || rested) && (onLock || time.Since(restAt) < dwell+peekFor) ||
 				peek && !in && time.Since(left) < linger)
 		} else {
-			armed = false
+			leftSinceLock = false
 			h = (in && (hover || rested || o.adjusting.Load())) || (hover && time.Since(left) < linger)
 		}
 		park := parks(grabbable, h, pk)
 		if park {
-			armed = true
+			leftSinceLock = true
 		}
 		if park != parked {
 			if park {
@@ -85,7 +85,7 @@ func (o *Overlay) watchPointer() {
 				if o.core.Context().Err() != nil {
 					return
 				}
-				o.hover, o.peek = h, pk
+				o.hover, o.showingUnlock = h, pk
 				switch {
 				case park:
 					o.win.SetIgnoreMouseEvents(true)
@@ -207,7 +207,11 @@ func capsule(p prefs.Prefs, e ui.Element) ui.Element {
 
 type onGlass struct{ shade ui.Color }
 
-func (onGlass) NativeGlass() (ui.NativeGlassSpec, bool) { return ui.NativeGlassSpec{Style: 1}, true }
+const clearGlass = 1
+
+func (onGlass) NativeGlass() (ui.NativeGlassSpec, bool) {
+	return ui.NativeGlassSpec{Style: clearGlass}, true
+}
 
 func (g onGlass) PaintMaterial(p *ui.Painter, box ui.Rect, radii [4]float32) {
 	if p.NativeGlassSupported() && !p.Preferences().ReduceTransparency {
@@ -271,10 +275,10 @@ const (
 )
 
 type resize struct {
-	kind         int
-	x0, y0       float32
-	areaX, areaW float64
-	dx, dy       int
+	kind                            int
+	x0, y0                          float32
+	areaX, areaW                    float64
+	grabFromCenter, grabAboveBottom int
 }
 
 func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
@@ -297,7 +301,7 @@ func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 	}
 	if o.resize == nil {
 		o.resize = &resize{kind: kind, x0: x, y0: y, areaX: p.AreaX, areaW: p.AreaW,
-			dx: at.X - o.area.X - int(p.AreaX*float64(o.area.Width)), dy: o.blockBottom() - at.Y}
+			grabFromCenter: at.X - o.area.X - int(p.AreaX*float64(o.area.Width)), grabAboveBottom: o.blockBottom() - at.Y}
 	}
 	r := o.resize
 	dx := float64((x - r.x0) / ww)
@@ -307,8 +311,8 @@ func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 			o.moveTo(d)
 			p.Screen = screenName(d)
 		}
-		p.AreaX = float64(at.X-r.dx-o.area.X) / float64(o.area.Width)
-		p.Bottom = o.onScreen(at.Y+r.dy) - o.display.Bounds.Y
+		p.AreaX = float64(at.X-r.grabFromCenter-o.area.X) / float64(o.area.Width)
+		p.Bottom = o.onScreen(at.Y+r.grabAboveBottom) - o.display.Bounds.Y
 	case resizeLeft:
 		p.AreaW = min(.95, max(.3, r.areaW-2*dx))
 	case resizeRight:

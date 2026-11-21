@@ -32,16 +32,16 @@ func TestVisible(t *testing.T) {
 	if len(got) != 3 {
 		t.Fatalf("%+v", got)
 	}
-	if got[0].Tgt != "B draft" || !got[0].Draft {
+	if got[0].Tgt != "B draft" || got[0].TgtKind != TgtDraft {
 		t.Errorf("a translation streaming in shows the draft: %+v", got[0])
 	}
-	if got[1].Tgt != locales.TranslationFailed() || !got[1].DimTgt || !got[1].Note {
+	if got[1].Tgt != locales.TranslationFailed() || !got[1].DimTgt() || got[1].TgtKind != TgtNote {
 		t.Errorf("a failed line says why, in the app's language: %+v", got[1])
 	}
-	if got[0].Note || got[2].Note {
+	if got[0].TgtKind == TgtNote || got[2].TgtKind == TgtNote {
 		t.Errorf("translations are not notes: %+v", got)
 	}
-	if !got[2].Pending || got[2].Key != 4 || got[2].Tgt != "评论也" {
+	if !got[2].Pending || got[2].Key != LineKey(4) || got[2].Tgt != "评论也" {
 		t.Errorf("the pending sentence: %+v", got[2])
 	}
 
@@ -55,7 +55,7 @@ func TestVisible(t *testing.T) {
 
 	p.Shown = 1
 	st.Draft = ""
-	if got := Visible(st, 0, p); len(got) != 1 || got[0].Src != "コメントも" || !got[0].DimTgt {
+	if got := Visible(st, 0, p); len(got) != 1 || got[0].Src != "コメントも" || !got[0].DimTgt() {
 		t.Errorf("one at a time: %+v", got)
 	}
 
@@ -71,7 +71,7 @@ func TestVisible(t *testing.T) {
 		t.Fatalf("the original only: %+v", got)
 	}
 	for _, e := range got {
-		if e.Tgt != "" || e.Draft || e.DimTgt || e.Swaps {
+		if e.Tgt != "" || e.TgtKind == TgtDraft || e.DimTgt() || e.Swaps {
 			t.Errorf("the original only: %+v", e)
 		}
 	}
@@ -85,7 +85,7 @@ func TestOriginalOnly(t *testing.T) {
 	p := prefs.Default("en")
 	p.Display = prefs.DisplaySrc
 	tt := ui.NewTester(func(c *ui.Context) {
-		Draw(c, []Entry{{Key: 1, Src: "こんばんは", Tgt: "晚上好"}}, p, 1, 600, NoBlock)
+		Draw(c, []Entry{{Key: LineKey(1), Src: "こんばんは", Tgt: "晚上好"}}, p, 1, 600, NoBlock)
 	}, 640, 300)
 	if _, ok := tt.Find("こんばんは"); !ok || tt.HasText("晚上好") {
 		t.Errorf("texts %q", tt.Texts())
@@ -108,7 +108,7 @@ func TestAsSaid(t *testing.T) {
 	if len(got) != 3 || got[0].Src != "Hello." || got[0].Lang != "en" {
 		t.Fatalf("%+v", got)
 	}
-	if got[1].Src != "" || got[1].Tgt != "我们BLG就是最强的。" || got[1].DimTgt || got[1].Note {
+	if got[1].Src != "" || got[1].Tgt != "我们BLG就是最强的。" || got[1].DimTgt() || got[1].TgtKind == TgtNote {
 		t.Errorf("said in the language translated into: %+v", got[1])
 	}
 	if got[2].Src != "" || got[2].Tgt != "我们BLG" || !got[2].Pending {
@@ -171,7 +171,7 @@ func TestOrder(t *testing.T) {
 		p := prefs.Default("en")
 		p.TgtFirst = tgtFirst
 		tt := ui.NewTester(func(c *ui.Context) {
-			Draw(c, []Entry{{Key: 1, Src: "こんばんは", Tgt: "晚上好"}}, p, 1, 600, NoBlock)
+			Draw(c, []Entry{{Key: LineKey(1), Src: "こんばんは", Tgt: "晚上好"}}, p, 1, 600, NoBlock)
 		}, 640, 300)
 		src, ok1 := tt.Find("こんばんは")
 		tgt, ok2 := tt.Find("晚上好")
@@ -187,7 +187,7 @@ func TestOpacity(t *testing.T) {
 		p.Display, p.Style, p.Edge, p.SrcColor = prefs.DisplaySrc, 0, 0, "#ff0000"
 		p.TextOpacity, p.BoxOpacity = text, box
 		tt := ui.NewTester(func(c *ui.Context) {
-			Draw(c, []Entry{{Key: 1, Src: "こんばんは", Pending: true}}, p, 1, 600, NoBlock)
+			Draw(c, []Entry{{Key: LineKey(1), Src: "こんばんは", Pending: true}}, p, 1, 600, NoBlock)
 		}, 640, 300)
 		r, ok := tt.Find("こんばんは")
 		if !ok {
@@ -227,7 +227,7 @@ func TestBalance(t *testing.T) {
 	draw := func(style prefs.Style, e Entry) (lines [2]int, r ui.Rect, img *image.RGBA) {
 		p := prefs.Default("zh-Hans")
 		p.Style = style
-		e.Key, e.Src = 1, "Take this sword."
+		e.Key, e.Src = LineKey(1), "Take this sword."
 		tt := ui.NewTester(func(c *ui.Context) { Draw(c, []Entry{e}, p, 1, width, NoBlock) }, int(width)+24, 400)
 		r, ok := tt.Find(zh)
 		if !ok {
@@ -258,7 +258,7 @@ func TestBalance(t *testing.T) {
 			t.Errorf("the band reaches past its lines: %v beside them", beside)
 		}
 	}
-	for _, e := range []Entry{{Tgt: zh, Pending: true, Draft: true}, {Tgt: zh, Grows: true}} {
+	for _, e := range []Entry{{Tgt: zh, Pending: true, TgtKind: TgtDraft}, {Tgt: zh, Grows: true}} {
 		if l, _, _ := draw(1, e); similar(l) || l[0] < l[1] {
 			t.Errorf("%+v: lines %v wide, want the first full", e, l)
 		}
