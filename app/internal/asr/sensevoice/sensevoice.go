@@ -45,6 +45,9 @@ func (d *Decoder) event(ev engine.Event) {
 }
 
 func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	ch := make(chan engine.Event, 1)
 	d.mu.Lock()
 	d.n++
