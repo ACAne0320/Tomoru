@@ -95,19 +95,19 @@ type Session struct {
 	cancel context.CancelFunc
 	done   chan struct{}
 
-	mu      sync.Mutex
-	err     error
-	t0      float64
-	heard   float64
-	clocked float64
-	recent  []chunk
-	calling bool
-	behind  bool
-	gated   bool
-	speak   bool
-	quiet   float64
-	sound   float64
-	sent    float64
+	mu             sync.Mutex
+	err            error
+	callEpoch      float64
+	heard          float64
+	clocked        float64
+	recent         []chunk
+	calling        bool
+	behind         bool
+	engineDetects  bool
+	speak          bool
+	voiceStoppedAt float64
+	soundAt        float64
+	sent           float64
 }
 
 const (
@@ -116,8 +116,9 @@ const (
 )
 
 type chunk struct {
-	t   float64
-	pcm []byte
+	t      float64
+	pcm    []byte
+	hangUp bool
 }
 
 func Start(cfg Config, lang string, onEvent func(engine.Event)) *Session {
@@ -160,7 +161,7 @@ func (s *Session) Audio(ev engine.Event) error {
 	if err != nil {
 		return err
 	}
-	c := chunk{ev.T, pcm}
+	c := chunk{t: ev.T, pcm: pcm}
 	s.mu.Lock()
 	s.heard = ev.T + float64(len(pcm))/batch.BytesPerSecond
 	clock := s.heard-s.clocked >= .1
@@ -169,25 +170,19 @@ func (s *Session) Audio(ev engine.Event) error {
 	}
 	heard := s.heard
 	if peak(pcm) >= loud {
-		s.sound = heard
+		s.soundAt = heard
 		if !s.calling {
-			s.callAgain(ev.T)
+			s.callAgainLocked(ev.T)
 		}
-	}
-	s.recent = append(s.recent, c)
-	for len(s.recent) > 0 && s.recent[0].t < heard-keep {
-		s.recent = s.recent[1:]
 	}
 	if s.calling {
-		s.put(c)
-		if s.gated && !s.speak && heard-max(s.quiet, s.sound) >= idle {
-			select {
-			case s.audio <- chunk{t: heard}:
-				s.calling = false
-			default:
-			}
+		s.putLocked(c)
+		if s.engineDetects && !s.speak && heard-max(s.voiceStoppedAt, s.soundAt) >= idle {
+			s.putLocked(chunk{t: heard, hangUp: true})
+			s.calling = false
 		}
 	}
+	s.rememberLocked(c)
 	s.mu.Unlock()
 	if clock {
 		s.emit(engine.Event{Type: engine.EventClock, T: batch.Round(heard)})
@@ -197,26 +192,33 @@ func (s *Session) Audio(ev engine.Event) error {
 
 func (s *Session) Voice(ev engine.Event) {
 	s.mu.Lock()
-	s.gated, s.speak = true, ev.On
+	s.engineDetects, s.speak = true, ev.On
 	if !ev.On {
-		s.quiet = ev.T
+		s.voiceStoppedAt = ev.T
 	} else if !s.calling {
-		s.callAgain(ev.T)
+		s.callAgainLocked(ev.T)
 	}
 	s.mu.Unlock()
 	s.emit(ev)
 }
 
-func (s *Session) callAgain(t float64) {
+func (s *Session) callAgainLocked(t float64) {
 	s.calling = true
 	for _, c := range s.recent {
 		if c.t+float64(len(c.pcm))/batch.BytesPerSecond > t-preroll {
-			s.put(c)
+			s.putLocked(c)
 		}
 	}
 }
 
-func (s *Session) put(c chunk) {
+func (s *Session) rememberLocked(c chunk) {
+	s.recent = append(s.recent, c)
+	for len(s.recent) > 0 && s.recent[0].t < s.heard-keep {
+		s.recent = s.recent[1:]
+	}
+}
+
+func (s *Session) putLocked(c chunk) {
 	select {
 	case s.audio <- c:
 	default:
@@ -288,7 +290,7 @@ func (s *Session) run() error {
 			case <-s.ctx.Done():
 				return nil
 			case a := <-s.audio:
-				if a.pcm != nil {
+				if !a.hangUp {
 					first = &a
 				}
 			}
@@ -299,7 +301,7 @@ func (s *Session) run() error {
 
 func (s *Session) start(c *websocket.Conn, first chunk) error {
 	s.mu.Lock()
-	s.t0 = first.t - lead/16000.
+	s.callEpoch = first.t - lead/16000.
 	s.mu.Unlock()
 	for _, pcm := range [][]byte{make([]byte, 2*lead), first.pcm} {
 		if err := s.send(c, pcm); err != nil {
@@ -332,7 +334,7 @@ func (s *Session) call(c *websocket.Conn, first *chunk) error {
 			return err
 		case a := <-s.audio:
 			switch {
-			case a.pcm == nil:
+			case a.hangUp:
 				c.Close(websocket.StatusNormalClosure, "")
 				<-read
 				return nil
@@ -506,7 +508,7 @@ func (s *Session) read(c *websocket.Conn) error {
 			continue
 		}
 		s.mu.Lock()
-		t0, heard := s.t0, s.heard
+		t0, heard := s.callEpoch, s.heard
 		s.mu.Unlock()
 		at := func(ms float64) float64 { return batch.Round(t0 + ms/1000) }
 		if !sen.Final {
