@@ -9,7 +9,6 @@ import (
 type Nav interface {
 	OpenPanel()
 	OpenPanelAbove(r mygo.Rectangle)
-	FitPanel(h int)
 	ShowSettings()
 	ShowSettingsPage(page Page)
 	ShowGuide()

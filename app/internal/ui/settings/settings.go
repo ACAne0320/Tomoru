@@ -18,7 +18,6 @@ type Settings struct {
 	core             *core.Core
 	nav              shared.Nav
 	Tab              shared.Page
-	source           shared.SourceMenu
 	learnAPI         endpointEdit
 	startStopKeys    shared.ShortcutRecorder
 	imageKeys        shared.ShortcutRecorder

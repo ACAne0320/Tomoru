@@ -156,7 +156,7 @@ func homeLine(c *ui.Context, s *Settings) {
 			label(locales.Source())
 			k.ListApps()
 			c.After(core.RefreshEvery)
-			kit.Picker(c, shared.SourceName(k), s.source.Build(k)).Label(locales.Source())
+			kit.Picker(c, shared.SourceName(k), shared.SourceMenu(k)).Label(locales.Source())
 		})
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
 			label(locales.Scene())

@@ -32,8 +32,8 @@ func (s *Shell) openPanel(anchor *mygo.Rectangle) {
 	if s.panel != nil {
 		s.panel.Close()
 	}
-	opts := mygo.FlyoutOptions{Width: panel.Width, Height: panel.Measure(s.core, s), Focusable: true, Shadow: true, Gap: 6,
-		Content: ui.View(panel.New(s.core, s).View)}
+	opts := mygo.FlyoutOptions{Width: panel.Width, FitContent: true, MinWidth: panel.Width, MaxWidth: panel.Width,
+		Focusable: true, Shadow: true, Gap: 6, Content: ui.View(panel.New(s.core, s).View)}
 	if anchor == nil {
 		opts.Tray, opts.Placement = s.tray, mygo.PlacementBottom
 	} else {
@@ -46,12 +46,6 @@ func (s *Shell) openPanel(anchor *mygo.Rectangle) {
 			s.panel = nil
 		}
 	})
-}
-
-func (s *Shell) FitPanel(h int) {
-	if s.panel != nil {
-		s.panel.SetContentSize(panel.Width, h)
-	}
 }
 
 func (s *Shell) TranslateImage() {

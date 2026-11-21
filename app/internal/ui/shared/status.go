@@ -1,9 +1,6 @@
 package shared
 
 import (
-	"slices"
-	"time"
-
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
@@ -20,25 +17,16 @@ func SourceName(k *core.Core) string {
 	return p.SourceName
 }
 
-type SourceMenu struct {
-	apps []core.App
-	at   time.Time
-}
-
-func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
+func SourceMenu(k *core.Core) func(menu *ui.Menu) {
 	return func(menu *ui.Menu) {
 		p := k.Preferences()
-		if time.Since(m.at) > 15*time.Second {
-			m.apps = slices.Clone(k.Apps)
-		}
-		m.at = time.Now()
-		if menu.Item(locales.SourceAll()).Checked(p.HearsAll()).Chosen() {
+		if menu.Item(locales.SourceAll()).ID("all").Checked(p.HearsAll()).Chosen() {
 			k.SetSource("", "")
 		}
 		running := false
 		section := func(title string, playing bool) {
 			first := true
-			for _, a := range m.apps {
+			for _, a := range k.Apps {
 				if a.Playing != playing {
 					continue
 				}
@@ -48,7 +36,7 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 					first = false
 				}
 				running = running || a.ID == p.Source
-				if menu.Item(a.Name).Checked(a.ID == p.Source).Chosen() {
+				if menu.Item(a.Name).ID("app:" + a.ID).Checked(a.ID == p.Source).Chosen() {
 					k.SetSource(a.ID, a.Name)
 				}
 			}
@@ -57,7 +45,7 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 		section(locales.SourceOtherApps(), false)
 		if !running && !p.HearsAll() {
 			menu.Separator()
-			menu.Item(locales.SourceNotRunning(p.SourceName)).Checked(true)
+			menu.Item(locales.SourceNotRunning(p.SourceName)).ID("gone").Checked(true)
 		}
 	}
 }

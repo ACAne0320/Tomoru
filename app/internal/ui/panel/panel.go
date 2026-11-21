@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"math"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -14,45 +13,25 @@ import (
 	"tomoru/locales"
 )
 
-const Width, Height = 340, 297
+const Width = 340
 
 type Panel struct {
-	core   *core.Core
-	nav    shared.Nav
-	source shared.SourceMenu
+	core *core.Core
+	nav  shared.Nav
 }
 
 func New(k *core.Core, nav shared.Nav) *Panel { return &Panel{core: k, nav: nav} }
-
-func Measure(k *core.Core, nav shared.Nav) int {
-	m := &measure{Nav: nav}
-	ui.NewTester(New(k, m).View, Width, 2*Height)
-	if m.h == 0 {
-		return Height
-	}
-	return m.h
-}
-
-type measure struct {
-	shared.Nav
-	h int
-}
-
-func (m *measure) FitPanel(h int) { m.h = h }
 
 func (p *Panel) View(c *ui.Context) {
 	k := p.core
 	if k.Running {
 		c.After(time.Second - k.RunFor()%time.Second)
 	}
-	panel := kit.PanelFrame(c, func() { p.head(c) }, func() { p.body(c) }, func() { p.foot(c) })
-	_, now := c.Size()
-	switch h := int(math.Ceil(float64(panel.Bounds().H))); {
-	case h == 0:
-		c.Invalidate()
-	case h != int(now):
-		p.nav.FitPanel(h)
-	}
+	p.frame(c)
+}
+
+func (p *Panel) frame(c *ui.Context) ui.Element {
+	return kit.PanelFrame(c, func() { p.head(c) }, func() { p.body(c) }, func() { p.foot(c) })
 }
 
 func (p *Panel) head(c *ui.Context) {
@@ -125,7 +104,7 @@ func (p *Panel) body(c *ui.Context) {
 			} else {
 				kit.MenuIcon(c, assets.Waves)
 			}
-		}, locales.Source(), shared.SourceName(k), nil, p.source.Build(k))
+		}, locales.Source(), shared.SourceName(k), nil, shared.SourceMenu(k))
 	})
 }
 
