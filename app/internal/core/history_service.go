@@ -120,15 +120,8 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 		current := s.policy.Load()
 		keep := !alreadyKept && p != nil && p.enabled && current != nil && current.enabled && p.epoch == current.epoch
 		if keep {
-			if s.hist == nil || s.writing != p || s.writingRun != r {
-				s.closeHistory()
-				head := p.head
-				head.Start = time.Now()
-				if !l.Start.IsZero() && l.Start.Before(head.Start) {
-					head.Start = l.Start
-				}
-				s.hist = history.NewWriter(s.dir, head)
-				s.writing, s.writingRun = p, r
+			if s.hist == nil || s.hist.Broken() || s.writing != p || s.writingRun != r {
+				s.replaceWriter(p, r, l.Start)
 			}
 			tgt, errText := l.Tgt, ""
 			switch l.Outcome {
@@ -148,7 +141,6 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.BeforeGlossary, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err
 				log.Println("history:", err)
-				s.closeHistory()
 				return false
 			}
 			s.History.Err = nil
@@ -161,6 +153,17 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 		}
 		r.mu.Unlock()
 	}
+}
+
+func (s *HistoryService) replaceWriter(p *historyPolicy, r *historyRun, said time.Time) {
+	s.closeHistory()
+	head := p.head
+	head.Start = time.Now()
+	if !said.IsZero() && said.Before(head.Start) {
+		head.Start = said
+	}
+	s.hist = history.NewWriter(s.dir, head)
+	s.writing, s.writingRun = p, r
 }
 
 func (s *HistoryService) closeHistory() {

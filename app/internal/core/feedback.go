@@ -20,10 +20,10 @@ func (c *Core) setup() (version, system, engines string) {
 	p := &c.Prefs
 	version = c.deps.Version
 	system = c.deps.OS + " (" + runtime.GOARCH + ")"
-	if mem := c.deps.Memory; mem != nil && mem() > 0 {
-		system += fmt.Sprintf(", %d GB memory", mem()>>30)
+	if mem, known := c.memory(); known {
+		system += fmt.Sprintf(", %d GB memory", mem>>30)
 	}
-	if g := c.gpu(); g > 0 {
+	if g, known := c.gpu(); known && g > 0 {
 		system += fmt.Sprintf(", %d GB GPU memory", g>>30)
 	}
 	engines = fmt.Sprintf("%s → %s, %s → %s", asrName(p), mtName(p, p.MT), p.Src, p.Tgt)

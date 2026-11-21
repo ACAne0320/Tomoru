@@ -12,8 +12,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-var imageCloud = translate.Cloud
-
 func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
 		return !m.ASR && m.Vision != ""
@@ -241,7 +239,21 @@ func (s *ImageService) selectImage(done func([]byte, image.Rectangle, error)) {
 	})
 }
 
-func (c *Core) CanSelect() bool { return c.Screen == "granted" && c.ImageService.selectPicture != nil }
+func (c *Core) CanSelect() bool {
+	return c.Screen == PermissionGranted && c.ImageService.selectPicture != nil
+}
+
+func (c *Core) chooseImageEngineOnce() {
+	if c.Prefs.ImageMT == "" {
+		c.Prefs.ImageMT = imageEngineFrom(c.Prefs.MT, c.Prefs.Endpoints)
+	}
+}
+
+const (
+	screenDialogWait = time.Hour
+	accessDialogWait = 2 * time.Minute
+	prepareWait      = 2 * time.Minute
+)
 
 func (c *Core) SelectImage(shown func()) {
 	c.ImageService.selectImage(func(pic []byte, at image.Rectangle, err error) {
@@ -272,12 +284,12 @@ func (c *Core) RequestScreen() {
 	}
 	c.ScreenAsking = true
 	c.changed()
-	c.ask(time.Hour, func(evs []engine.Event) { c.ScreenAsking = false; c.setScreen(evs) }, "request-screen-access")
+	c.ask(screenDialogWait, func(evs []engine.Event) { c.ScreenAsking = false; c.setScreen(evs) }, "request-screen-access")
 }
 
 func (c *Core) setScreen(evs []engine.Event) {
 	c.screenCheckedAt = time.Now()
 	if len(evs) > 0 {
-		c.Screen = string(evs[len(evs)-1].State)
+		c.Screen = Permission(evs[len(evs)-1].State)
 	}
 }

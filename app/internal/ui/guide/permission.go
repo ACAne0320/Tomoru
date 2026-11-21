@@ -6,6 +6,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"tomoru/internal/core"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
 	"tomoru/locales"
@@ -13,7 +14,7 @@ import (
 
 func (g *Guide) permission(c *ui.Context) {
 	k := g.core
-	granted := k.Access == "granted"
+	granted := k.Access == core.PermissionGranted
 	if k.Asking {
 		g.asked = true
 	} else if g.asked {
@@ -31,7 +32,7 @@ func (g *Guide) permission(c *ui.Context) {
 	g.part(c, 1, func() {
 		ui.Column(c).Gap(kit.Space(3)).Margin(6, 0, 0, 0).Children(func() {
 			permissionRow(c, assets.Sound, locales.SystemAudioOnly(), locales.SystemAudioOnlyDescription(), func() {
-				mark(c, 22, granted, k.Asking || k.Checking && k.Access == "", k.Access == "denied")
+				mark(c, 22, granted, k.Asking || k.Checking && k.Access == core.PermissionUnchecked, k.Access == core.PermissionDenied)
 			})
 		})
 	})
@@ -39,7 +40,7 @@ func (g *Guide) permission(c *ui.Context) {
 	switch {
 	case k.Asking:
 		text = locales.AccessNoteAsking()
-	case k.Access == "denied":
+	case k.Access == core.PermissionDenied:
 		text = locales.AccessNoteDenied()
 	}
 	if text == "" {
@@ -47,7 +48,7 @@ func (g *Guide) permission(c *ui.Context) {
 	}
 	g.part(c, 2, func() {
 		note(c.Key(text), text).Transition(kit.Rise(0))
-		if k.Access == "denied" && kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.ReopenApp()).AlignSelf(ui.Start).Clicked() {
+		if k.Access == core.PermissionDenied && kit.Button(c, kit.Plain, kit.Small, assets.Reset, locales.ReopenApp()).AlignSelf(ui.Start).Clicked() {
 			mygo.App.Relaunch()
 		}
 	})
@@ -80,7 +81,7 @@ func (g *Guide) permissionStage(c *ui.Context) {
 			ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 				ui.Image(c, assets.AppIcon).Size(26, 26).Margin(-2)
 				onStage(c, "Tomoru", kit.TextBody, .95).Grow(1)
-				toggle(c, k.Access == "granted")
+				toggle(c, k.Access == core.PermissionGranted)
 			})
 		})
 		glass(c, ui.Column(c).Width(300).Padding(kit.Space(4)).Gap(kit.Space(4))).Children(func() {

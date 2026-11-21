@@ -482,7 +482,7 @@ func TestRecommended(t *testing.T) {
 		t.Errorf("no GPU known: %q", got)
 	}
 	gpu := uint64(0)
-	c.deps.GPU = func() uint64 { return gpu }
+	c.deps.GPU = func() (uint64, bool) { return gpu, true }
 	for _, tc := range []struct {
 		gpu  uint64
 		want []string
@@ -498,7 +498,7 @@ func TestRecommended(t *testing.T) {
 			t.Errorf("a GPU of %d MiB: %q, want %q", tc.gpu>>20, got, tc.want)
 		}
 	}
-	c.deps.Memory = func() uint64 { return 8 << 30 }
+	c.deps.Memory = func() (uint64, bool) { return 8 << 30, true }
 	if got := recommended(); !slices.Equal(got, []string{"qwen3-asr-1.7b", "cloud"}) {
 		t.Errorf("8 GB of memory: %q", got)
 	}
@@ -511,12 +511,12 @@ func TestShortfall(t *testing.T) {
 		t.Errorf("nothing known: %+v", got)
 	}
 	mem, gpu := uint64(8<<30), uint64(16<<30)
-	c.deps.Memory, c.deps.GPU = func() uint64 { return mem }, func() uint64 { return gpu }
-	if got := c.Shortfall(large); got != (Shortfall{Need: 16, Has: 8}) {
+	c.deps.Memory, c.deps.GPU = func() (uint64, bool) { return mem, true }, func() (uint64, bool) { return gpu, true }
+	if got := c.Shortfall(large); got != (Shortfall{NeedGB: 16, HasGB: 8}) {
 		t.Errorf("8 GB of memory: %+v", got)
 	}
 	mem, gpu = 32<<30, 6<<30
-	if got := c.Shortfall(large); got != (Shortfall{Need: 8, Has: 6, GPU: true}) {
+	if got := c.Shortfall(large); got != (Shortfall{NeedGB: 8, HasGB: 6, GPU: true}) {
 		t.Errorf("a GPU of 6 GB: %+v", got)
 	}
 	mem, gpu = 16<<30-200<<20, 7895<<20
@@ -551,7 +551,7 @@ func TestPick(t *testing.T) {
 		t.Errorf("the 2B in use: %q", got)
 	}
 	c.SetEngine("cloud")
-	c.deps.Memory = func() uint64 { return 8 << 30 }
+	c.deps.Memory = func() (uint64, bool) { return 8 << 30, true }
 	if got := pick(); got != "local-2b" {
 		t.Errorf("the 9B too large: %q", got)
 	}
@@ -564,7 +564,7 @@ func TestSuggested(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	index, hy := c.Families(MT)[0], c.Families(MT)[1]
 	mem := uint64(16 << 30)
-	c.deps.Memory = func() uint64 { return mem }
+	c.deps.Memory = func() (uint64, bool) { return mem, true }
 	for _, tc := range []struct {
 		mem       uint64
 		index, hy string

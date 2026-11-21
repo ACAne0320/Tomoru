@@ -20,7 +20,7 @@ func feedbackCore(edit func(*prefs.Prefs)) *Core {
 		edit(&p)
 	}
 	return New(p, Deps{Post: func(fn func()) { fn() }, Version: "0.1.5", OS: "macOS 26.1", LogPath: "/Users/me/Library/Logs/Tomoru/tomoru.log",
-		Memory: func() uint64 { return 16 << 30 }})
+		Memory: func() (uint64, bool) { return 16 << 30, true }})
 }
 
 func TestFeedbackSaysTheSetupWithoutSecrets(t *testing.T) {

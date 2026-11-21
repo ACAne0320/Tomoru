@@ -189,11 +189,10 @@ func TestImageEngines(t *testing.T) {
 	defer cloud.Close()
 	defer local.Close()
 	defer api.Close()
-	defer func(f func() *translate.Endpoint) { imageCloud = f }(imageCloud)
-	imageCloud = func() *translate.Endpoint {
+	c, f, m, srv, sec := engineCore(t)
+	c.EngineService.imageCloud = func() *translate.Endpoint {
 		return &translate.Endpoint{URL: cloud.URL, Model: "m", Format: translate.Index}
 	}
-	c, f, m, srv, sec := engineCore(t)
 	srv.url = local.URL
 	var b bytes.Buffer
 	png.Encode(&b, image.NewRGBA(image.Rect(0, 0, 8, 8)))

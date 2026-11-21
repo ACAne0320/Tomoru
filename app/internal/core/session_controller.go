@@ -94,8 +94,7 @@ func (s *SessionController) start(r sessionRequest) {
 				})
 			}
 			if err != nil {
-				s.run++
-				cancel()
+				s.retire()
 				s.onStopped()
 				s.prepare, s.reports, s.Running, s.Err, s.State = nil, nil, false, err, live.State{}
 			}
@@ -103,14 +102,18 @@ func (s *SessionController) start(r sessionRequest) {
 	})
 }
 
-func (s *SessionController) stop() bool {
-	if !s.Running {
-		return false
-	}
+func (s *SessionController) retire() {
 	s.run++
 	if s.prepare != nil {
 		s.prepare()
 	}
+}
+
+func (s *SessionController) stop() bool {
+	if !s.Running {
+		return false
+	}
+	s.retire()
 	if s.session != nil {
 		s.session.Close()
 	}

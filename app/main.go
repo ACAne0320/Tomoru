@@ -99,7 +99,9 @@ func main() {
 			}
 			deps.Server, deps.ASRServer = server, hearing
 			var gpu atomic.Uint64
-			deps.GPU, deps.Memory = gpu.Load, models.Memory
+			var gpuKnown atomic.Bool
+			deps.GPU = func() (uint64, bool) { return gpu.Load(), gpuKnown.Load() }
+			deps.Memory = func() (uint64, bool) { m := models.Memory(); return m, m > 0 }
 			go func() {
 				ds, err := models.Devices(ctx, bin)
 				if err != nil {
@@ -108,6 +110,7 @@ func main() {
 				for _, d := range ds {
 					gpu.Store(max(gpu.Load(), d.Memory))
 				}
+				gpuKnown.Store(err == nil)
 				post(func() { k.Changed() })
 			}()
 		} else {

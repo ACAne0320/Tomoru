@@ -34,14 +34,14 @@ func (c *Core) ask(timeout time.Duration, done func([]engine.Event), args ...str
 }
 
 func (c *Core) PrepareASR(code string) {
-	if c.ASR[code] != "" || prefs.SystemASR() == "" || !slices.Contains(c.SourceLangs(), code) {
+	if c.ASR[code] != ASRUnprepared || prefs.SystemASR() == "" || !slices.Contains(c.SourceLangs(), code) {
 		return
 	}
-	c.ASR[code] = "preparing"
-	c.ask(2*time.Minute, func(evs []engine.Event) {
-		c.ASR[code] = "error"
-		if len(evs) > 0 && evs[len(evs)-1].State == "ready" {
-			c.ASR[code] = "ready"
+	c.ASR[code] = ASRPreparing
+	c.ask(prepareWait, func(evs []engine.Event) {
+		c.ASR[code] = ASRFailed
+		if len(evs) > 0 && evs[len(evs)-1].State == engine.StateReady {
+			c.ASR[code] = ASRReady
 		}
 	}, "prepare", "--locale", lang.Locale(code))
 }
@@ -62,13 +62,13 @@ func (c *Core) RequestAccess() {
 	}
 	c.Asking = true
 	c.changed()
-	c.ask(2*time.Minute, func(evs []engine.Event) { c.Asking = false; c.setAccess(evs) }, "request-access")
+	c.ask(accessDialogWait, func(evs []engine.Event) { c.Asking = false; c.setAccess(evs) }, "request-access")
 }
 
 func (c *Core) setAccess(evs []engine.Event) {
-	c.Access, c.CheckedAt = "denied", time.Now()
+	c.Access, c.CheckedAt = PermissionDenied, time.Now()
 	if len(evs) > 0 {
-		c.Access = string(evs[len(evs)-1].State)
+		c.Access = Permission(evs[len(evs)-1].State)
 	}
 }
 

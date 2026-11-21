@@ -22,10 +22,7 @@ func (r *sessionReports) store(st live.State, now func() time.Time) live.State {
 	if st.StatsAt.IsZero() {
 		st.StatsAt = now()
 	}
-	delta := st.Stats.Since(r.latest.Stats)
-	delta.Run = 0
-	speech := delta.Speech
-	delta.Speech = 0
+	delta, speech := daily(st.Stats.Since(r.latest.Stats))
 	if delta != (usage.Counts{}) {
 		r.days.Add(usage.DayOf(st.StatsAt), usage.Engines{}, delta)
 	}
@@ -37,6 +34,12 @@ func (r *sessionReports) store(st live.State, now func() time.Time) live.State {
 	st.Lines = slices.Clone(st.Lines)
 	r.latest, r.received = st, true
 	return st
+}
+
+func daily(session usage.Counts) (counts usage.Counts, speech float64) {
+	counts, speech = session, session.Speech
+	counts.Speech = 0
+	return counts, speech
 }
 
 func (r *sessionReports) endAt(now time.Time) time.Time {

@@ -117,7 +117,7 @@ func (d *Card) allow(c *ui.Context) {
 			if kit.Button(c, kit.Primary, kit.Small, assets.Picture, locales.TranslateScreen()).Margin(kit.Space(2), 0, 0).Clicked() {
 				d.pick()
 			}
-		case k.Screen == "denied":
+		case k.Screen == core.PermissionDenied:
 			kit.Caption(c, locales.GuideSelectSettings()).TextAlign(ui.Center)
 			if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).Margin(kit.Space(2), 0, 0).Clicked() {
 				kit.GuideScreenRecording()
@@ -128,7 +128,7 @@ func (d *Card) allow(c *ui.Context) {
 			if k.ScreenAsking {
 				label = locales.ScreenSelectAsking()
 			}
-			if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").Margin(kit.Space(2), 0, 0).Clicked() {
+			if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == core.PermissionUnchecked).Margin(kit.Space(2), 0, 0).Clicked() {
 				k.RequestScreen()
 			}
 		}

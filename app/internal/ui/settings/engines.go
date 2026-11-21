@@ -392,9 +392,9 @@ func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 		short := k.Shortfall(m)
 		if short != (core.Shortfall{}) {
 			o.Warn = true
-			o.Meta = locales.TooLarge(int(short.Need), int(short.Has))
+			o.Meta = locales.TooLarge(int(short.NeedGB), int(short.HasGB))
 			if short.GPU {
-				o.Meta = locales.TooLargeGpu(int(short.Need), int(short.Has))
+				o.Meta = locales.TooLargeGpu(int(short.NeedGB), int(short.HasGB))
 			}
 		}
 		o.Action = func() { s.download(c, e, st, short == core.Shortfall{}) }

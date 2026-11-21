@@ -222,16 +222,16 @@ func (g *Guide) stepButton(c *ui.Context) {
 		}
 	case stepPermission:
 		switch k.Access {
-		case "granted":
+		case core.PermissionGranted:
 			if next(c, locales.Continue()).Clicked() {
 				g.goTo(c, stepRecognition)
 			}
-		case "denied":
+		case core.PermissionDenied:
 			if next(c, locales.OpenSystemSettings()).Clicked() {
 				kit.OpenScreenSettings()
 			}
 		default:
-			if kit.Off(c, next(c, locales.Allow()), k.Asking || k.Access == "").Clicked() {
+			if kit.Off(c, next(c, locales.Allow()), k.Asking || k.Access == core.PermissionUnchecked).Clicked() {
 				k.RequestAccess()
 			}
 		}
