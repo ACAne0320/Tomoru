@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/image/draw"
@@ -24,9 +24,27 @@ const MinSide = 1000
 
 const imageTimeout = 2 * time.Minute
 
-var pictureClient = sync.OnceValue(func() *http.Client {
-	return (&Endpoint{}).anew(imageTimeout)
-})
+var sharedPictures atomic.Pointer[http.Client]
+
+func (e *Endpoint) pictureClient() *http.Client {
+	if c := e.pictures.Load(); c != nil {
+		return c
+	}
+	if e.Client != nil {
+		return e.Client
+	}
+	sharedPictures.CompareAndSwap(nil, (&Endpoint{}).anew(imageTimeout))
+	return sharedPictures.Load()
+}
+
+func (e *Endpoint) switchPictureClient(stalled, fresh *http.Client) {
+	if e.Client != nil || e.pictures.Load() != nil {
+		e.pictures.Store(fresh)
+	} else {
+		sharedPictures.CompareAndSwap(stalled, fresh)
+	}
+	stalled.CloseIdleConnections()
+}
 
 var errLooping = errors.New("translate: the model repeats itself")
 
@@ -53,15 +71,11 @@ func (e *Endpoint) readImage(ctx context.Context, body chatRequest, onDelta func
 	if e.ImageWait <= 0 {
 		return e.readOne(ctx, body, nil, onDelta)
 	}
-	reused := e.Client
-	if reused == nil {
-		reused = pictureClient()
-	}
+	reused := e.pictureClient()
 	var fresh *http.Client
 	defer func() {
 		if fresh != nil {
-			fresh.CloseIdleConnections()
-			reused.CloseIdleConnections()
+			e.switchPictureClient(reused, fresh)
 		}
 	}()
 	stalled := time.NewTimer(6 * e.ImageWait)

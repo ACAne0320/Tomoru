@@ -89,6 +89,7 @@ type Endpoint struct {
 	ImageWait               time.Duration
 
 	refusedOptional atomic.Bool
+	pictures        atomic.Pointer[http.Client]
 	used            atomic.Int64
 	limited         atomic.Int64
 }
