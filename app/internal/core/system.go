@@ -68,7 +68,7 @@ func (c *Core) RequestAccess() {
 func (c *Core) setAccess(evs []engine.Event) {
 	c.Access, c.CheckedAt = "denied", time.Now()
 	if len(evs) > 0 {
-		c.Access = evs[len(evs)-1].State
+		c.Access = string(evs[len(evs)-1].State)
 	}
 }
 
@@ -83,7 +83,7 @@ func (c *Core) ListApps() {
 		}
 		var apps []App
 		for _, ev := range evs {
-			if ev.Type == "app" {
+			if ev.Type == engine.EventApp {
 				apps = append(apps, App{Name: ev.Name, ID: ev.ID, Playing: ev.Playing})
 			}
 		}

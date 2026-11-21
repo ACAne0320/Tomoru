@@ -114,6 +114,8 @@ go test ./...
 | `TOMORU_E2E_ASR` | 一个识别模型的目录：由 tomoru-asr 而不是引擎识别 |
 | `TOMORU_E2E_CLOUD` | 由千问云端的一个模型识别，需要 `DASHSCOPE_API_KEY` 和 `DASHSCOPE_API_HOST` |
 
+`segment` 的 `TestLive` 在外放一段录音时用真实引擎运行断句，记录每句在说话人停顿后多久提交。`TOMORU_LIVE` 指定录音和它的语言，`zh:/path/to/zh.wav`；`TOMORU_LIVE_VOICE=0` 不用引擎的人声检测断句。
+
 ## 修改的落点
 
 - UI 控件编辑副本；持久化、词表更新、会话切换放到应用命令。新增菜单需验证回调在绘制结束后仍能提交。

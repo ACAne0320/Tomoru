@@ -32,7 +32,7 @@ func Start(bin, dir, lang string) (*Decoder, error) {
 }
 
 func (d *Decoder) event(ev engine.Event) {
-	if ev.Type != "decoded" {
+	if ev.Type != engine.EventDecoded {
 		return
 	}
 	d.mu.Lock()

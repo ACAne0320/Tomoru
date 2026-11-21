@@ -15,11 +15,19 @@ type Token struct {
 
 type Segment struct {
 	Text       string
-	Timed      bool
+	Final      bool
 	Start, End float64
-	Reason     string
+	Reason     Reason
 	Seq        int
 }
+
+type Reason string
+
+const (
+	Sentence Reason = "sentence"
+	Pause    Reason = "pause"
+	Length   Reason = "length"
+)
 
 type Ended struct {
 	Seq int
@@ -81,29 +89,7 @@ func (s *Segmenter) Final(incoming []Token) []Action {
 		}
 	}
 	if s.volCommitted != "" && len(toks) > 0 {
-		finalText := joinTokens(toks)
-		s.timeVolSegs(toks, finalText)
-		if !hasSpeech(finalText) {
-			s.committedUntil = toks[len(toks)-1].End
-			s.volCommitted, s.volSegs, toks = "", nil, nil
-		} else if len(norm(finalText)) < len(norm(s.volCommitted)) {
-			vc := []rune(s.volCommitted)
-			d := alignEnd(finalText, s.volCommitted)
-			s.volCommitted = string(vc[d:])
-			for i := range s.volSegs {
-				s.volSegs[i].end = max(0, s.volSegs[i].end-d)
-			}
-			s.committedUntil = toks[len(toks)-1].End
-			toks = nil
-		} else {
-			cut := alignEnd(s.volCommitted, finalText)
-			k := tokenCount(toks, cut)
-			if k > 0 {
-				s.committedUntil = toks[k-1].End
-			}
-			toks = toks[k:]
-			s.volCommitted, s.volSegs = "", nil
-		}
+		toks = s.reconcile(toks)
 	}
 	s.stable = append(s.stable, toks...)
 	s.vol = ""
@@ -118,6 +104,43 @@ func (s *Segmenter) Final(incoming []Token) []Action {
 	}
 	s.clock = max(s.clock, s.volEnd)
 	return s.evaluate()
+}
+
+func (s *Segmenter) reconcile(toks []Token) []Token {
+	finalText := joinTokens(toks)
+	s.timeVolSegs(toks, finalText)
+	switch {
+	case !hasSpeech(finalText):
+		return s.finalsWithoutSpeech(toks)
+	case len(norm(finalText)) < len(norm(s.volCommitted)):
+		return s.finalsInsideCommitted(toks, finalText)
+	}
+	return s.finalsPastCommitted(toks, finalText)
+}
+
+func (s *Segmenter) finalsWithoutSpeech(toks []Token) []Token {
+	s.committedUntil = toks[len(toks)-1].End
+	s.volCommitted, s.volSegs = "", nil
+	return nil
+}
+
+func (s *Segmenter) finalsInsideCommitted(toks []Token, finalText string) []Token {
+	d := alignEnd(finalText, s.volCommitted)
+	s.volCommitted = string([]rune(s.volCommitted)[d:])
+	for i := range s.volSegs {
+		s.volSegs[i].end = max(0, s.volSegs[i].end-d)
+	}
+	s.committedUntil = toks[len(toks)-1].End
+	return nil
+}
+
+func (s *Segmenter) finalsPastCommitted(toks []Token, finalText string) []Token {
+	k := tokenCount(toks, alignEnd(s.volCommitted, finalText))
+	if k > 0 {
+		s.committedUntil = toks[k-1].End
+	}
+	s.volCommitted, s.volSegs = "", nil
+	return toks[k:]
 }
 
 func (s *Segmenter) timeVolSegs(toks []Token, finalText string) {
@@ -174,27 +197,43 @@ func (s *Segmenter) volPending() string {
 }
 
 func (s *Segmenter) evaluate() []Action {
-	var out []Action
-	commit := func(seg *Segment) {
-		if seg != nil {
-			out = append(out, Action{Commit: seg})
-		}
+	var segs []*Segment
+	segs = append(segs, s.commitSentences()...)
+	if seg := s.commitTail(); seg != nil {
+		segs = append(segs, seg)
 	}
+	segs = append(segs, s.cutLong()...)
+	out := make([]Action, len(segs))
+	for i, seg := range segs {
+		out[i] = Action{Commit: seg}
+	}
+	return out
+}
 
+func (s *Segmenter) commitSentences() []*Segment {
+	var out []*Segment
 	for seg := s.commitFirstSentence(); seg != nil; seg = s.commitFirstSentence() {
-		commit(seg)
+		out = append(out, seg)
 	}
+	return out
+}
 
-	if hasSpeech(s.stableText()) && (s.cfg.FinalsEnd || !hasSpeech(s.volPending()) && s.quiet()) {
-		commit(s.commitStable("pause"))
+func (s *Segmenter) commitTail() *Segment {
+	if !hasSpeech(s.stableText()) || !s.cfg.FinalsEnd && (hasSpeech(s.volPending()) || !s.quiet()) {
+		return nil
 	}
+	st := []rune(s.stableText())
+	return s.commit(st, len(st), len(st), Pause)
+}
 
+func (s *Segmenter) cutLong() []*Segment {
+	var out []*Segment
 	for Width(clean(s.stableText()+s.volPending())) > s.cfg.MaxWidth {
 		seg := s.commitWithin()
 		if seg == nil {
 			break
 		}
-		commit(seg)
+		out = append(out, seg)
 	}
 	return out
 }
@@ -221,12 +260,7 @@ func (s *Segmenter) commitFirstSentence() *Segment {
 			return seg
 		}
 	}
-	return s.commit(full, len(st), b, "sentence")
-}
-
-func (s *Segmenter) commitStable(reason string) *Segment {
-	st := []rune(s.stableText())
-	return s.commit(st, len(st), len(st), reason)
+	return s.commit(full, len(st), b, Sentence)
 }
 
 func (s *Segmenter) commitWithin() *Segment {
@@ -247,11 +281,11 @@ func (s *Segmenter) commitWithin() *Segment {
 	}
 	switch {
 	case clause > 0 && Width(clean(string(full[:clause])))*3 >= s.cfg.MaxWidth:
-		return s.commit(full, len(st), clause, "length")
+		return s.commit(full, len(st), clause, Length)
 	case word > 0:
-		return s.commit(full, len(st), word, "length")
+		return s.commit(full, len(st), word, Length)
 	case clause > 0:
-		return s.commit(full, len(st), clause, "length")
+		return s.commit(full, len(st), clause, Length)
 	}
 	return nil
 }
@@ -269,14 +303,14 @@ func Width(text string) int {
 	return w
 }
 
-func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segment {
+func (s *Segmenter) commit(full []rune, stableLen, cut int, reason Reason) *Segment {
 	seg := &Segment{Reason: reason}
 	if cut <= stableLen {
 		k := tokenCount(s.stable, cut)
 		if k == 0 {
 			return nil
 		}
-		seg.Timed, seg.Start, seg.End = true, s.stable[0].Start, s.stable[k-1].End
+		seg.Final, seg.Start, seg.End = true, s.stable[0].Start, s.stable[k-1].End
 		s.committedUntil = seg.End
 		s.stable = s.stable[k:]
 	} else {
@@ -293,7 +327,7 @@ func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segm
 	}
 	s.seq++
 	seg.Seq = s.seq
-	if !seg.Timed {
+	if !seg.Final {
 		s.volSegs = append(s.volSegs, volSeg{seq: seg.Seq, end: len([]rune(s.volCommitted))})
 	}
 	return seg

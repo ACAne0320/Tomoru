@@ -101,7 +101,7 @@ func run(t *testing.T, spans [][2]float64, seconds float64) ([]engine.Event, *fa
 	return evs, dec, r
 }
 
-func of(evs []engine.Event, typ string) []engine.Event {
+func of(evs []engine.Event, typ engine.EventType) []engine.Event {
 	var out []engine.Event
 	for _, e := range evs {
 		if e.Type == typ {

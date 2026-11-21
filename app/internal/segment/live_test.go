@@ -17,7 +17,7 @@ import (
 func TestLive(t *testing.T) {
 	spec := os.Getenv("TOMORU_LIVE")
 	if spec == "" {
-		t.Skip(`set TOMORU_LIVE="zh:/path/to/zh.wav" to run`)
+		t.Skip(`set TOMORU_LIVE="zh:/path/to/zh.wav" to run, TOMORU_LIVE_VOICE=0 for no voice activity (docs/development.md); it plays the recording aloud`)
 	}
 	code, wav, _ := strings.Cut(spec, ":")
 	bin, err := engine.Path(filepath.Join("..", "..", "resources"))
@@ -34,7 +34,7 @@ func TestLive(t *testing.T) {
 			log = append(log, fmt.Sprintf("%-8s +%.2fs  %s", a.Commit.Reason, s.clock-lastOff, a.Commit.Text))
 		}
 	}
-	proc, err := engine.Listen(bin, lang.Locale(code), "", "", false, func(ev engine.Event) {
+	proc, err := engine.Listen(bin, engine.ListenOptions{Locale: lang.Locale(code)}, func(ev engine.Event) {
 		mu.Lock()
 		defer mu.Unlock()
 		switch ev.Type {

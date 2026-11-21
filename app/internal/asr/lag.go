@@ -59,12 +59,12 @@ func watched(build func(Env) (Factory, error)) func(Env) (Factory, error) {
 		return func(lang string, on func(engine.Event)) (Recognizer, error) {
 			l := &lag{}
 			return f(lang, func(ev engine.Event) {
-				if ev.Type != "lag" {
+				if ev.Type != engine.EventLag {
 					on(ev)
 					return
 				}
 				if slow, changed := l.note(ev); changed {
-					on(engine.Event{Type: "slow", On: slow})
+					on(engine.Event{Type: engine.EventSlow, On: slow})
 				}
 			})
 		}, nil

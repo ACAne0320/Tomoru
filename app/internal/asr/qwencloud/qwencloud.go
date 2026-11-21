@@ -190,7 +190,7 @@ func (s *Session) Audio(ev engine.Event) error {
 	}
 	s.mu.Unlock()
 	if clock {
-		s.emit(engine.Event{Type: "clock", T: batch.Round(heard)})
+		s.emit(engine.Event{Type: engine.EventClock, T: batch.Round(heard)})
 	}
 	return nil
 }
@@ -513,7 +513,7 @@ func (s *Session) read(c *websocket.Conn) error {
 			text := steady(prev, sen.Text, s.lang)
 			prev = sen.Text
 			if text != "" {
-				s.emit(engine.Event{Type: "result", Start: at(sen.Begin), End: batch.Round(heard), Tokens: []engine.Token{{Text: text}}})
+				s.emit(engine.Event{Type: engine.EventResult, Start: at(sen.Begin), End: batch.Round(heard), Tokens: []engine.Token{{Text: text}}})
 			}
 			continue
 		}
@@ -528,7 +528,7 @@ func (s *Session) read(c *websocket.Conn) error {
 		if sen.End != nil {
 			end = at(*sen.End)
 		}
-		s.emit(engine.Event{Type: "result", Final: true, Start: at(sen.Begin), End: batch.Round(end), Tokens: toks})
+		s.emit(engine.Event{Type: engine.EventResult, Final: true, Start: at(sen.Begin), End: batch.Round(end), Tokens: toks})
 	}
 }
 

@@ -88,18 +88,24 @@ func TestFilter(t *testing.T) {
 		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Auto: true},
 		{Src: "ニンフィア", Tgt: "仙子伊布"},
 	}, Rejected: []string{"개미"}}
-	fs := []found{
-		{Heard: "개미들", Src: "개미", Tgt: "散户", Sure: true},
-		{Heard: "엔터주로", Src: "엔터주", Tgt: "娱乐股", Sure: true},
-		{Heard: "private cloud compute", Src: "Private Cloud Compute", Tgt: "私有云计算", Sure: true},
-		{Heard: "インフィア", Src: "ニンフィア", Tgt: "仙女伊布", Sure: true},
-		{Heard: "メデオ", Src: "メテオ", Tgt: "陨石", Sure: true},
-		{Heard: "シュート", Src: "キュート", Tgt: "可爱", Sure: true},
-	}
-	got := Filter(fs, c, lines)
-	want := []Suggestion{{Src: "엔터주", Tgt: "娱乐股", Count: 1, Example: lines[1].Src}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got  %+v\nwant %+v", got, want)
+	for _, tc := range []struct {
+		why  string
+		f    found
+		want []Suggestion
+	}{
+		{"a particle after a name turned down", found{Heard: "개미들", Src: "개미", Tgt: "散户", Sure: true}, nil},
+		{"a particle after a name, translated only", found{Heard: "엔터주로", Src: "엔터주", Tgt: "娱乐股", Sure: true},
+			[]Suggestion{{Src: "엔터주", Tgt: "娱乐股", Count: 1, Example: lines[1].Src}}},
+		{"heard right but for case, and translated right", found{Heard: "private cloud compute", Src: "Private Cloud Compute", Tgt: "私有云计算", Sure: true}, nil},
+		{"the user's own term", found{Heard: "インフィア", Src: "ニンフィア", Tgt: "仙女伊布", Sure: true}, nil},
+		{"already in the glossary", found{Heard: "メデオ", Src: "メテオ", Tgt: "陨石", Sure: true}, nil},
+		{"not in the lines", found{Heard: "シュート", Src: "キュート", Tgt: "可爱", Sure: true}, nil},
+	} {
+		t.Run(tc.why, func(t *testing.T) {
+			if got := Filter([]found{tc.f}, c, lines); !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got  %+v\nwant %+v", got, tc.want)
+			}
+		})
 	}
 }
 

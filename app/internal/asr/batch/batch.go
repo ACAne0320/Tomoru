@@ -214,7 +214,7 @@ func (r *Runner) take(x input) error {
 	}
 	if r.total-r.clocked >= rate/10 {
 		r.clocked = r.total
-		r.send(engine.Event{Type: "clock", T: sec(r.total)})
+		r.send(engine.Event{Type: engine.EventClock, T: sec(r.total)})
 	}
 	return nil
 }
@@ -263,7 +263,7 @@ func (r *Runner) step() error {
 		r.start = max(r.base, on-int64(preroll*rate))
 		r.decoded = r.stepped
 		r.last, r.agreed = nil, nil
-		r.send(engine.Event{Type: "voice", On: true, T: sec(on)})
+		r.send(engine.Event{Type: engine.EventVoice, On: true, T: sec(on)})
 	case speaking && !r.caps.Untimed && r.stepped-r.start >= int64(r.caps.Longest*rate):
 		return r.long()
 	case speaking && r.caps.Untimed && r.stepped-r.start >= int64(2*r.caps.Longest*rate):
@@ -293,7 +293,7 @@ func (r *Runner) step() error {
 		}
 	case !speaking && r.open:
 		r.open = false
-		r.send(engine.Event{Type: "voice", On: false, T: sec(r.offAt)})
+		r.send(engine.Event{Type: engine.EventVoice, On: false, T: sec(r.offAt)})
 		return r.final(context.Background(), r.stepped)
 	}
 	if !r.open {
@@ -309,7 +309,7 @@ func (r *Runner) finish() error {
 		return nil
 	}
 	r.open = false
-	r.send(engine.Event{Type: "voice", On: false, T: sec(r.total)})
+	r.send(engine.Event{Type: engine.EventVoice, On: false, T: sec(r.total)})
 	ctx, cancel := context.WithTimeout(context.Background(), finishing)
 	defer cancel()
 	return r.final(ctx, r.total)
@@ -478,7 +478,7 @@ func result(final bool, from, to int64, pieces []Piece) engine.Event {
 		}
 		tokens = []engine.Token{}
 	}
-	ev := engine.Event{Type: "result", Final: final, Start: Round(t0), End: Round(t1), Tokens: tokens}
+	ev := engine.Event{Type: engine.EventResult, Final: final, Start: Round(t0), End: Round(t1), Tokens: tokens}
 	for _, p := range pieces {
 		if p.Lang != "" {
 			ev.Lang = p.Lang

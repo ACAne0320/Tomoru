@@ -34,14 +34,14 @@ type hint struct {
 
 func (h *hint) event(ev engine.Event) (float64, bool) {
 	switch ev.Type {
-	case "clock":
+	case engine.EventClock:
 		h.clock = max(h.clock, ev.T)
-	case "voice":
+	case engine.EventVoice:
 		h.voiceKnown, h.voiceOn = true, ev.On
 		if !ev.On {
 			h.offAt = ev.T
 		}
-	case "result":
+	case engine.EventResult:
 		text := ev.Text()
 		if hasSpeech(text) {
 			h.heard = true

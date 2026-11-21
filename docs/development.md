@@ -165,6 +165,11 @@ the terminal needs System Audio Recording (or Screen Recording):
 | `TOMORU_E2E_ASR` | A recognition model's directory: tomoru-asr recognizes instead of the engine |
 | `TOMORU_E2E_CLOUD` | A Qwen cloud model recognizes, with `DASHSCOPE_API_KEY` and `DASHSCOPE_API_HOST` |
 
+`segment`'s `TestLive` runs the segmenter on the real engine while a recording plays out loud,
+and logs each sentence with how long after the speaker's pause it came. `TOMORU_LIVE` names the
+recording and its language, `zh:/path/to/zh.wav`; `TOMORU_LIVE_VOICE=0` segments without the
+engine's voice activity.
+
 ## Where changes go
 
 - UI controls edit copies; persisting, updating the glossary and switching sessions belong in app
