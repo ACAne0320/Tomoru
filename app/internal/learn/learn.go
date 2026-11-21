@@ -7,12 +7,13 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"tomoru/internal/lang"
 	"tomoru/internal/scene"
 )
 
-const Chunk = 120
+const Chunk = 2 * time.Minute
 
 type Line struct{ Src, Tgt string }
 
@@ -110,6 +111,12 @@ func parse(reply string) ([]found, error) {
 	return v.Terms, nil
 }
 
+func withParticle(heard, src string) bool { return strings.HasPrefix(norm(heard), norm(src)) }
+
+func translatedRight(in []Line, tgt string) bool {
+	return !slices.ContainsFunc(in, func(l Line) bool { return !strings.Contains(norm(l.Tgt), norm(tgt)) })
+}
+
 func Filter(fs []found, c Context, lines []Line) []Suggestion {
 	var out []Suggestion
 	for _, f := range fs {
@@ -117,7 +124,7 @@ func Filter(fs []found, c Context, lines []Line) []Suggestion {
 		if !f.Sure || h == "" || src == "" || tgt == "" {
 			continue
 		}
-		if scene.Same(h, src) || strings.HasPrefix(norm(h), norm(src)) {
+		if scene.Same(h, src) || withParticle(h, src) {
 			h = src
 		}
 		var in []Line
@@ -129,7 +136,7 @@ func Filter(fs []found, c Context, lines []Line) []Suggestion {
 		if len(in) == 0 || h != src && !scene.Distinct(h) || rejected(c, h) || mine(c, src) {
 			continue
 		}
-		if h == src && slices.IndexFunc(in, func(l Line) bool { return !strings.Contains(norm(l.Tgt), norm(tgt)) }) < 0 {
+		if h == src && translatedRight(in, tgt) {
 			continue
 		}
 		if have(c, src, tgt, h) {

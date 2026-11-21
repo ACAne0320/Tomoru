@@ -345,7 +345,7 @@ func (r *Realtime) take(x rtInput) error {
 	}
 	if r.total-r.clocked >= rate/10 {
 		r.clocked = r.total
-		r.on(engine.Event{Type: "clock", T: sec(r.total)})
+		r.on(engine.Event{Type: engine.EventClock, T: sec(r.total)})
 	}
 	return nil
 }
@@ -373,7 +373,7 @@ func (r *Realtime) step() error {
 		}
 		r.open, r.up = true, upsampler{}
 		r.turns = append(r.turns, &turn{start: start})
-		r.on(engine.Event{Type: "voice", On: true, T: sec(max(start, r.onAt))})
+		r.on(engine.Event{Type: engine.EventVoice, On: true, T: sec(max(start, r.onAt))})
 		return r.send(start)
 	case r.open && r.total-cur.start >= int64(2*longest*rate):
 		return r.commit(r.total)
@@ -427,7 +427,7 @@ func (r *Realtime) commit(end int64) error {
 	t := r.turns[len(r.turns)-1]
 	r.open = false
 	t.end, t.committed = max(end, t.start), time.Now()
-	r.on(engine.Event{Type: "voice", On: false, T: sec(t.end)})
+	r.on(engine.Event{Type: engine.EventVoice, On: false, T: sec(t.end)})
 	if r.conn == nil {
 		r.finalize(t)
 		r.flush()
@@ -512,7 +512,7 @@ func (r *Realtime) drop() {
 	clear(r.lateTurns)
 	if r.open {
 		r.open = false
-		r.on(engine.Event{Type: "voice", On: false, T: sec(r.total)})
+		r.on(engine.Event{Type: engine.EventVoice, On: false, T: sec(r.total)})
 	}
 	for _, t := range r.turns {
 		r.finalize(t)
@@ -570,7 +570,7 @@ func (r *Realtime) volatile() {
 	if text == "" {
 		return
 	}
-	r.on(engine.Event{Type: "result", Start: sec(r.turns[0].start), End: sec(r.total), Tokens: []engine.Token{{Text: text}}})
+	r.on(engine.Event{Type: engine.EventResult, Start: sec(r.turns[0].start), End: sec(r.total), Tokens: []engine.Token{{Text: text}}})
 }
 
 func (r *Realtime) finish() error {
@@ -606,7 +606,7 @@ func final(t *turn) engine.Event {
 		start, until := batch.Round(t0+p.At), batch.Round(min(end, t1))
 		tokens = append(tokens, engine.Token{Text: p.Text, Start: &start, End: &until})
 	}
-	return engine.Event{Type: "result", Final: true, Start: batch.Round(t0), End: batch.Round(t1), Tokens: tokens}
+	return engine.Event{Type: engine.EventResult, Final: true, Start: batch.Round(t0), End: batch.Round(t1), Tokens: tokens}
 }
 
 func spaced(s string) string {

@@ -249,7 +249,7 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 	}
 	locale := lang.Locale(cfg.Src)
 	if cfg.Recognize == nil {
-		p, err := engine.Listen(cfg.Engine, locale, cfg.App, cfg.File, false, s.handle)
+		p, err := engine.Listen(cfg.Engine, engine.ListenOptions{Locale: locale, App: cfg.App, File: cfg.File}, s.handle)
 		if err != nil {
 			return nil, err
 		}
@@ -260,11 +260,11 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 			return nil, err
 		}
 		s.installProcesses(nil, rec)
-		hear, err := engine.Listen(cfg.Engine, locale, cfg.App, cfg.File, true, func(ev engine.Event) {
+		hear, err := engine.Listen(cfg.Engine, engine.ListenOptions{Locale: locale, App: cfg.App, File: cfg.File, NoRecognition: true}, func(ev engine.Event) {
 			switch ev.Type {
-			case "audio":
+			case engine.EventAudio:
 				rec.Audio(ev)
-			case "voice":
+			case engine.EventVoice:
 				if v, ok := rec.(asr.VoiceHearer); ok {
 					v.Voice(ev)
 				}
@@ -364,16 +364,16 @@ func (s *Session) handle(ev engine.Event) {
 	var acts []segment.Action
 	var lat usage.Latency
 	switch ev.Type {
-	case "state":
+	case engine.EventState:
 		s.update(func(st *State) { st.Phase = Phase(ev.State) })
 		return
-	case "slow":
+	case engine.EventSlow:
 		s.update(func(st *State) { st.Slow = ev.On })
 		return
-	case "clock":
+	case engine.EventClock:
 		s.clockT, s.clockAt = ev.T, s.cfg.Now()
 		acts = s.seg.Tick(ev.T)
-	case "voice":
+	case engine.EventVoice:
 		acts = s.seg.Voice(ev.On, ev.T)
 		spoke := 0.0
 		if s.voiceOn && !ev.On {
@@ -404,7 +404,7 @@ func (s *Session) handle(ev engine.Event) {
 				st.SpeechEnd = speechEnd
 			}
 		})
-	case "result":
+	case engine.EventResult:
 		s.noteHeard(ev)
 		if d, ok := since(s.heardAt); ok && strings.TrimSpace(ev.Text()) != "" {
 			if d <= firstTextWait {
@@ -442,14 +442,14 @@ func (s *Session) handle(ev engine.Event) {
 	heard := s.spoken(s.heard)
 	for _, a := range acts {
 		l := heard
-		if a.Commit.Timed {
+		if a.Commit.Final {
 			l = s.spoken(s.heardFinal)
 		}
 		q := queued{Line: Line{Src: a.Commit.Text, Lang: l}, seq: a.Commit.Seq, at: now}
 		if src, _ := s.terms(q.Src); src != q.Src {
 			q.Src, q.BeforeGlossary = src, q.Src
 		}
-		if a.Commit.Timed {
+		if a.Commit.Final {
 			spoke = append(spoke, ended{q.seq, s.wall(a.Commit.End)})
 		}
 		added, segs = append(added, q), append(segs, a.Commit)
@@ -526,7 +526,7 @@ func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
 	total := 0
 	for i, seg := range segs {
 		start, end := s.wall(seg.Start), s.wall(seg.End)
-		if !seg.Timed || start.IsZero() || start.After(end) {
+		if !seg.Final || start.IsZero() || start.After(end) {
 			untimed = append(untimed, i)
 			total += max(1, utf8.RuneCountInString(seg.Text))
 			continue

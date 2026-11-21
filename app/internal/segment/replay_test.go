@@ -118,7 +118,7 @@ func TestEnded(t *testing.T) {
 				}
 				for _, e := range s.Ended() {
 					sg := &segs[e.Seq-1]
-					if sg.Timed || sg.ended >= 0 {
+					if sg.Final || sg.ended >= 0 {
 						t.Errorf("%q timed again", sg.Text)
 					}
 					if e.End < sg.Start || e.End > s.clock {
@@ -130,7 +130,7 @@ func TestEnded(t *testing.T) {
 			})
 			timed := 0
 			for _, sg := range segs {
-				if sg.Timed {
+				if sg.Final {
 					timed++
 				} else if sg.ended < 0 {
 					t.Logf("never timed: %q", sg.Text)

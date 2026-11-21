@@ -75,7 +75,7 @@ func (c *Core) ListLangs() {
 	c.ask(10*time.Second, func(evs []engine.Event) {
 		var hears []string
 		for _, ev := range evs {
-			if ev.Type == "locale" {
+			if ev.Type == engine.EventLocale {
 				hears = append(hears, sysLang(ev.ID))
 			}
 		}

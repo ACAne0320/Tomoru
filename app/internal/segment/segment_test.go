@@ -44,7 +44,7 @@ func TestFinal(t *testing.T) {
 		if !slices.Equal(texts(got), []string{"皆さん、こんばんは。", "今日は頑張ります。"}) {
 			t.Fatalf("%q", texts(got))
 		}
-		if !got[0].Timed || got[0].Start != 0 || got[0].End != 1.5 {
+		if !got[0].Final || got[0].Start != 0 || got[0].End != 1.5 {
 			t.Errorf("%+v", got[0])
 		}
 	})
@@ -102,7 +102,7 @@ func TestVolatile(t *testing.T) {
 	t.Run("a sentence end commits at once, and revisions before it repeat nothing", func(t *testing.T) {
 		s := zhVol()
 		got := commits(s.Volatile("大家好。欢迎来到", 0, 2))
-		if !slices.Equal(texts(got), []string{"大家好。"}) || got[0].Timed {
+		if !slices.Equal(texts(got), []string{"大家好。"}) || got[0].Final {
 			t.Fatalf("%+v", got)
 		}
 		got = commits(s.Volatile("大家好！欢迎来到今天的直播。我们", 0, 3))
@@ -149,7 +149,7 @@ func TestVolatile(t *testing.T) {
 		if got := commits(s.Volatile("大家好。欢迎来到", 0, 2)); len(got) > 0 || s.Pending() != "大家好。欢迎来到" {
 			t.Fatalf("committed %q, pending %q", texts(got), s.Pending())
 		}
-		if got := commits(s.Final(chars("大家好。欢迎来到", 0))); !slices.Equal(texts(got), []string{"大家好。"}) || !got[0].Timed {
+		if got := commits(s.Final(chars("大家好。欢迎来到", 0))); !slices.Equal(texts(got), []string{"大家好。"}) || !got[0].Final {
 			t.Errorf("%+v", got)
 		}
 	})
@@ -221,7 +221,7 @@ func TestVoice(t *testing.T) {
 	}
 	s.Voice(true, 1.35)
 	got := commits(s.Final(chars("あの世のことを覚えておらぬのか。", 1.7)))
-	if !slices.Equal(texts(got), []string{"その後とはあの世のことを覚えておらぬのか。"}) || !got[0].Timed || got[0].Start != 0 {
+	if !slices.Equal(texts(got), []string{"その後とはあの世のことを覚えておらぬのか。"}) || !got[0].Final || got[0].Start != 0 {
 		t.Fatalf("%+v", got)
 	}
 	s.Final(chars("はい", 4.2))

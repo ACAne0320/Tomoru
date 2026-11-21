@@ -19,14 +19,45 @@ import (
 
 const Protocol = 1
 
+type EventType string
+
+const (
+	EventHello   EventType = "hello"
+	EventState   EventType = "state"
+	EventResult  EventType = "result"
+	EventClock   EventType = "clock"
+	EventVoice   EventType = "voice"
+	EventAudio   EventType = "audio"
+	EventError   EventType = "error"
+	EventAccess  EventType = "access"
+	EventApp     EventType = "app"
+	EventArea    EventType = "area"
+	EventLocale  EventType = "locale"
+	EventDecoded EventType = "decoded"
+	EventSlow    EventType = "slow"
+	EventLag     EventType = "lag"
+)
+
+type State string
+
+const (
+	StateDownloading State = "downloading"
+	StateReady       State = "ready"
+	StateListening   State = "listening"
+	StateSpeaking    State = "speaking"
+	AccessGranted    State = "granted"
+	AccessDenied     State = "denied"
+	AccessUnknown    State = "unknown"
+)
+
 type Event struct {
-	Type string `json:"type"`
+	Type EventType `json:"type"`
 
 	Protocol int    `json:"protocol,omitempty"`
 	Engine   string `json:"engine,omitempty"`
 	Version  string `json:"version,omitempty"`
 
-	State string `json:"state,omitempty"`
+	State State `json:"state,omitempty"`
 
 	Final  bool    `json:"final,omitempty"`
 	Start  float64 `json:"start,omitempty"`
@@ -97,15 +128,22 @@ type Process struct {
 
 const shutdownGrace = time.Second
 
-func Listen(bin, locale, app, file string, hearOnly bool, onEvent func(Event)) (*Process, error) {
-	args := []string{"listen", "--locale", locale}
-	if app != "" {
-		args = append(args, "--app", app)
+type ListenOptions struct {
+	Locale        string
+	App           string
+	File          string
+	NoRecognition bool
+}
+
+func Listen(bin string, o ListenOptions, onEvent func(Event)) (*Process, error) {
+	args := []string{"listen", "--locale", o.Locale}
+	if o.App != "" {
+		args = append(args, "--app", o.App)
 	}
-	if file != "" {
-		args = append(args, "--file", file)
+	if o.File != "" {
+		args = append(args, "--file", o.File)
 	}
-	if hearOnly {
+	if o.NoRecognition {
 		args = append(args, "--asr", "none")
 	}
 	return start(bin, args, onEvent)
@@ -160,12 +198,12 @@ func read(r io.Reader, onEvent func(Event)) error {
 		}
 		if first {
 			first = false
-			if ev.Type != "hello" || ev.Protocol != Protocol {
+			if ev.Type != EventHello || ev.Protocol != Protocol {
 				return fmt.Errorf("engine: speaks protocol %d, not %d", ev.Protocol, Protocol)
 			}
 			continue
 		}
-		if ev.Type == "error" {
+		if ev.Type == EventError {
 			return &Error{ev.Code, ev.Message}
 		}
 		onEvent(ev)

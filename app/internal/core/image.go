@@ -279,6 +279,6 @@ func (c *Core) RequestScreen() {
 func (c *Core) setScreen(evs []engine.Event) {
 	c.screenCheckedAt = time.Now()
 	if len(evs) > 0 {
-		c.Screen = evs[len(evs)-1].State
+		c.Screen = string(evs[len(evs)-1].State)
 	}
 }

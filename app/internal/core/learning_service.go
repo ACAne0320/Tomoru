@@ -340,7 +340,7 @@ func chunk(entries []history.Entry) [][]learn.Line {
 	var current []learn.Line
 	var start time.Time
 	for _, entry := range entries {
-		if len(current) > 0 && (entry.At.Sub(start) >= learn.Chunk*time.Second || len(current) == 60) {
+		if len(current) > 0 && (entry.At.Sub(start) >= learn.Chunk || len(current) == 60) {
 			out, current = append(out, current), nil
 		}
 		if len(current) == 0 {
