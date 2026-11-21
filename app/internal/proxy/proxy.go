@@ -74,6 +74,12 @@ func For(req *http.Request) (*url.URL, error) {
 	return netproxy.Proxy(req)
 }
 
+func Transport() *http.Transport {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.Proxy = For
+	return t
+}
+
 func Install() {
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 		t.Proxy = For

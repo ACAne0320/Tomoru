@@ -37,10 +37,10 @@ func TestSteps(t *testing.T) {
 		{stepPermission, locales.SystemAudioOnlyDescription(), locales.Continue()},
 		{stepRecognition, "Qwen3-ASR", locales.Continue()},
 		{stepTranslation, shared.CloudName, locales.Continue()},
-		{stepTry, shared.OnWindows(locales.TryHearing(), locales.TryHearingWin()), locales.Skip()},
+		{stepTry, shared.MacOr(locales.TryHearing(), locales.TryHearingWin()), locales.Skip()},
 		{stepShortcuts, locales.GuideShortcutsBody(), locales.Continue()},
 		{stepPicture, locales.GuideSelectAsk(), locales.Skip()},
-		{stepReady, shared.OnWindows(locales.GuideReadyMenuBar(), locales.GuideReadyTray()), locales.Done()},
+		{stepReady, shared.MacOr(locales.GuideReadyMenuBar(), locales.GuideReadyTray()), locales.Done()},
 	} {
 		if skipped(step.step) {
 			continue
@@ -110,8 +110,8 @@ func TestShortcuts(t *testing.T) {
 		t.Errorf("%s %s, %q", k.Prefs.Shortcut, nav.Shortcut, tt.Texts())
 	}
 
-	if !k.Held[core.StartStop] || tt.HasText(locales.ShortcutWorks()) {
-		t.Fatalf("held %v; %q", k.Held, tt.Texts())
+	if !k.Holds(core.StartStop) || tt.HasText(locales.ShortcutWorks()) {
+		t.Fatalf("held %v; %q", k.Holds(core.StartStop), tt.Texts())
 	}
 	if !k.Press(core.StartStop) {
 		t.Error("not held: it would start or stop translating")
@@ -124,7 +124,7 @@ func TestShortcuts(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if k.Held[core.StartStop] {
+	if k.Holds(core.StartStop) {
 		t.Errorf("still held on step %d", g.Step)
 	}
 }
@@ -156,13 +156,13 @@ func TestSelect(t *testing.T) {
 	k.Screen = "granted"
 	tt.Frame()
 	keys := kit.ShortcutText("Alt+Shift+S")
-	if !tt.HasText(locales.GuideSelectPress(keys)) || tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.Continue()) || !k.Held[core.PictureShortcut] {
-		t.Fatalf("on: held %v; %q", k.Held, tt.Texts())
+	if !tt.HasText(locales.GuideSelectPress(keys)) || tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.Continue()) || !k.Holds(core.PictureShortcut) {
+		t.Fatalf("on: held %v; %q", k.Holds(core.PictureShortcut), tt.Texts())
 	}
 	k.Press(core.PictureShortcut)
 	tt.Frame()
-	if !tt.HasText(locales.ShortcutWorks()) || !tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.GuideSelectHere()) || k.Held[core.PictureShortcut] {
-		t.Fatalf("works: held %v; %q", k.Held, tt.Texts())
+	if !tt.HasText(locales.ShortcutWorks()) || !tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.GuideSelectHere()) || k.Holds(core.PictureShortcut) {
+		t.Fatalf("works: held %v; %q", k.Holds(core.PictureShortcut), tt.Texts())
 	}
 	k.Image = core.ImageView{PNG: assets.SamplePicture("ja"), Text: "艾露娜：克劳德……"}
 	tt.Frame()

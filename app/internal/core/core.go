@@ -107,7 +107,7 @@ type Core struct {
 	*SessionController
 	*EngineService
 	Pressed map[Shortcut]time.Time
-	Held    map[Shortcut]bool
+	held    map[Shortcut]bool
 
 	Screen          Permission
 	ScreenAsking    bool
@@ -160,7 +160,7 @@ func New(p prefs.Prefs, d Deps) *Core {
 		d.RunEngine = engine.Run
 	}
 	c := &Core{PreferencesService: &PreferencesService{Prefs: p.Clone(), saved: p.Clone()}, SceneService: &SceneService{}, deps: d, ASR: map[string]ASRState{},
-		Pressed: map[Shortcut]time.Time{}, Held: map[Shortcut]bool{}}
+		Pressed: map[Shortcut]time.Time{}, held: map[Shortcut]bool{}}
 	c.work = newTasks(d.Context, d.Post)
 	c.EngineService = newEngineService(c.work, d.Models, d.Server, d.ASRServer, d.Secrets, c.changed)
 	if d.ImageCloud != nil {

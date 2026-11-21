@@ -69,10 +69,17 @@ func NewManager(dir string, mirrors MirrorOrder, onChange func()) *Manager {
 	return NewManagerContext(context.Background(), dir, mirrors, onChange)
 }
 
-func NewManagerContext(parent context.Context, dir string, mirrors MirrorOrder, onChange func()) *Manager {
+type ManagerOption func(*Manager)
+
+func WithClient(c *http.Client) ManagerOption { return func(m *Manager) { m.client = c } }
+
+func NewManagerContext(parent context.Context, dir string, mirrors MirrorOrder, onChange func(), opts ...ManagerOption) *Manager {
 	ctx, cancel := context.WithCancel(parent)
 	m := &Manager{dir: dir, mirrors: mirrors, minMirrorSpeed: 1 << 20, sampleInterval: 10 * time.Second, client: &http.Client{},
 		ctx: ctx, cancel: cancel, jobs: map[string]*job{}, errs: map[string]error{}, rename: os.Rename, notices: make(chan struct{}, 1)}
+	for _, o := range opts {
+		o(m)
+	}
 	if onChange != nil {
 		go m.notify(onChange)
 	}

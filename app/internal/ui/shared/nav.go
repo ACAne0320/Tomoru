@@ -3,7 +3,8 @@ package shared
 import "github.com/egoist/mygo"
 
 type Nav interface {
-	OpenPanel(anchor *mygo.Rectangle)
+	OpenPanel()
+	OpenPanelAbove(r mygo.Rectangle)
 	FitPanel(h int)
 	ShowSettings()
 	ShowSettingsPage(page string)

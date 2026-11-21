@@ -21,7 +21,7 @@ func (s *Shell) trayMenu() *mygo.Menu {
 	}
 	var items []*mygo.MenuItem
 	if menuOnly {
-		items = append(items, &mygo.MenuItem{Label: locales.OpenPanel(), Click: func(*mygo.MenuItem, *mygo.Window) { s.OpenPanel(nil) }})
+		items = append(items, &mygo.MenuItem{Label: locales.OpenPanel(), Click: func(*mygo.MenuItem, *mygo.Window) { s.OpenPanel() }})
 	}
 	return mygo.NewMenu(append(items,
 		toggle,

@@ -112,7 +112,7 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 		case im.Err != nil:
 			detail = locales.ImageFailed()
 		default:
-			detail = shared.OnWindows(locales.GuideSelectAllow(), "")
+			detail = shared.MacOr(locales.GuideSelectAllow(), "")
 		}
 		ui.Column(c.Key("select")).Transition(kit.Rise(0)).Children(func() {
 			check(c, done, im.Running && !done, im.Err != nil && !done, locales.GuideSelectFrame(), detail)

@@ -21,10 +21,14 @@ func (s *Shell) togglePanel() {
 		s.panel.Close()
 		return
 	}
-	s.OpenPanel(nil)
+	s.OpenPanel()
 }
 
-func (s *Shell) OpenPanel(anchor *mygo.Rectangle) {
+func (s *Shell) OpenPanel() { s.openPanel(nil) }
+
+func (s *Shell) OpenPanelAbove(r mygo.Rectangle) { s.openPanel(&r) }
+
+func (s *Shell) openPanel(anchor *mygo.Rectangle) {
 	if s.panel != nil {
 		s.panel.Close()
 	}
@@ -124,7 +128,7 @@ func (s *Shell) ShowGuide() {
 			if s.guide == w {
 				s.guide = nil
 			}
-			clear(s.core.Held)
+			s.core.ReleaseShortcuts()
 			if k := s.core; !k.Preferences().Onboarded {
 				k.StopSpeaking()
 				k.Stop()

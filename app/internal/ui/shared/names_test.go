@@ -26,8 +26,8 @@ func TestModelNote(t *testing.T) {
 	sv, _ := models.ByID("sensevoice-small")
 	for id, want := range map[string]string{
 		"sensevoice-small": Size(sv.Size) + " · " + locales.ModelRunsOnCpu(),
-		"qwen3-asr-1.7b":   OnWindows(locales.AsrNeedsMemory(4), locales.AsrNeedsVram(3)),
-		"local-2b":         OnWindows(locales.NeedsMemory(8), locales.NeedsVram(4)),
+		"qwen3-asr-1.7b":   MacOr(locales.AsrNeedsMemory(4), locales.AsrNeedsVram(3)),
+		"local-2b":         MacOr(locales.NeedsMemory(8), locales.NeedsVram(4)),
 	} {
 		if got := note(id); !strings.HasSuffix(got, want) {
 			t.Errorf("%s: %q, want it to end with %q", id, got, want)
