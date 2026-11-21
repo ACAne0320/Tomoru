@@ -11,12 +11,17 @@ import (
 const rate = 16000
 
 type Recognizer interface {
-	Decode(samples []float32) ([]Piece, string)
+	Decode(samples []float32) Decoded
+}
+
+type Decoded struct {
+	Pieces    []Piece
+	HeardLang string
 }
 
 type Piece struct {
-	Text string
-	At   float64
+	Text      string
+	AtSeconds float64
 }
 
 func decode(rec Recognizer, lang string, c Command) (Event, error) {
@@ -34,12 +39,12 @@ func decode(rec Recognizer, lang string, c Command) (Event, error) {
 	tokens := []Token{}
 	spoken := ""
 	if len(samples) > 0 {
-		pieces, heard := rec.Decode(samples)
+		d := rec.Decode(samples)
 		if spoken = lang; lang == "auto" {
-			spoken = heard
+			spoken = d.HeardLang
 		}
-		for _, p := range clean(pieces, spoken) {
-			at := round(p.At)
+		for _, p := range clean(d.Pieces, spoken) {
+			at := round(p.AtSeconds)
 			tokens = append(tokens, Token{Text: p.Text, Start: &at})
 		}
 	}

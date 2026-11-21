@@ -18,7 +18,7 @@ func speak(locale string, lines []string) {
 	runtime.LockOSThread()
 	var name [256]uint16
 	switch hr := C.tc_speak_open(wide(locale), (*C.wchar_t)(unsafe.Pointer(&name[0])), C.int(len(name))); {
-	case hr == 1:
+	case hr == C.TC_NO_VOICE:
 		shared.Fail("no-voice", "no voice for %s", locale)
 	case hr < 0:
 		shared.Fail("internal", "SAPI: %v", hresult(hr))

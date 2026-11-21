@@ -32,9 +32,9 @@ func newSenseVoice(dir, lang string, threads int) (*senseVoice, error) {
 	return &senseVoice{r}, nil
 }
 
-func (v *senseVoice) Decode(samples []float32) ([]Piece, string) {
+func (v *senseVoice) Decode(samples []float32) Decoded {
 	if len(samples) == 0 {
-		return nil, ""
+		return Decoded{}
 	}
 	s := sherpa.NewOfflineStream(v.r)
 	defer sherpa.DeleteOfflineStream(s)
@@ -47,9 +47,9 @@ func (v *senseVoice) Decode(samples []float32) ([]Piece, string) {
 		if i < len(res.Timestamps) {
 			at = float64(res.Timestamps[i])
 		}
-		out = append(out, Piece{Text: t, At: at})
+		out = append(out, Piece{Text: t, AtSeconds: at})
 	}
-	return out, heard(res.Lang)
+	return Decoded{Pieces: out, HeardLang: heard(res.Lang)}
 }
 
 func heard(tag string) string {

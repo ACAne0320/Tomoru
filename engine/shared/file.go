@@ -46,6 +46,12 @@ func (f *FileSource) Start(feed func([]int16)) error {
 	return nil
 }
 
+const (
+	wavePCM        = 1
+	waveFloat      = 3
+	waveExtensible = 0xfffe
+)
+
 func decodeWAV(b []byte) ([]int16, error) {
 	if len(b) < 12 || string(b[:4]) != "RIFF" || string(b[8:12]) != "WAVE" {
 		return nil, errors.New("not a WAV file")
@@ -65,7 +71,7 @@ func decodeWAV(b []byte) ([]int16, error) {
 			}
 			format, channels = binary.LittleEndian.Uint16(body), binary.LittleEndian.Uint16(body[2:])
 			srcRate, bits = binary.LittleEndian.Uint32(body[4:]), binary.LittleEndian.Uint16(body[14:])
-			if format == 0xfffe && len(body) >= 26 {
+			if format == waveExtensible && len(body) >= 26 {
 				format = binary.LittleEndian.Uint16(body[24:])
 			}
 		case "data":
@@ -81,7 +87,7 @@ func decodeWAV(b []byte) ([]int16, error) {
 		return nil, io.ErrUnexpectedEOF
 	}
 	width := int(bits) / 8
-	if format == 1 && (width < 1 || width > 4) || format == 3 && width != 4 || format != 1 && format != 3 {
+	if format == wavePCM && (width < 1 || width > 4) || format == waveFloat && width != 4 || format != wavePCM && format != waveFloat {
 		return nil, fmt.Errorf("unsupported format %d, %d bits", format, bits)
 	}
 	frame := width * int(channels)
@@ -91,7 +97,7 @@ func decodeWAV(b []byte) ([]int16, error) {
 		for c := range int(channels) {
 			s := data[i*frame+c*width:]
 			switch {
-			case format == 3:
+			case format == waveFloat:
 				sum += float64(math.Float32frombits(binary.LittleEndian.Uint32(s)))
 			case width == 1:
 				sum += (float64(s[0]) - 128) / 128

@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"image"
@@ -15,11 +16,16 @@ type Platform struct {
 	App    string
 
 	Source       func(app string) Source
+	HearsOneApp  bool
 	Apps         func()
 	Speak        func(locale string, lines []string)
-	Select       func(path string) (*image.Rectangle, error)
-	ScreenAccess func(request bool) string
+	Select       func(path string) (image.Rectangle, error)
+	ScreenAccess func(request bool) Access
 }
+
+var ErrCancelled = errors.New("cancelled")
+
+func noScreenPermission(bool) Access { return AccessGranted }
 
 func Run(p Platform) {
 	log.SetFlags(0)
@@ -33,19 +39,20 @@ func Run(p Platform) {
 		usage()
 	}
 	noASR := p.System + " has no speech recognition for apps"
+	if p.ScreenAccess == nil {
+		p.ScreenAccess = noScreenPermission
+	}
 	switch cmd, args := os.Args[1], os.Args[2:]; cmd {
 	case "screen-access", "request-screen-access":
-		state := "granted"
-		if p.ScreenAccess != nil {
-			state = p.ScreenAccess(cmd == "request-screen-access")
-		}
-		Send(Event{Type: "access", State: state})
+		Send(Event{Type: "access", State: string(p.ScreenAccess(cmd == "request-screen-access"))})
 
 	case "access", "request-access":
-		Send(Event{Type: "access", State: "granted"})
+		Send(Event{Type: "access", State: string(AccessGranted)})
 
 	case "apps":
-		p.Apps()
+		if p.Apps != nil {
+			p.Apps()
+		}
 
 	case "prepare":
 		Fail("unsupported-locale", "%s", noASR)
@@ -61,6 +68,9 @@ func Run(p Platform) {
 		if *locale == "" || len(lines) == 0 {
 			usage()
 		}
+		if p.Speak == nil {
+			Fail("no-voice", "no voice for %s on %s", *locale, p.System)
+		}
 		p.Speak(*locale, lines)
 
 	case "select":
@@ -71,10 +81,11 @@ func Run(p Platform) {
 			usage()
 		}
 		at, err := p.Select(*path)
-		if err != nil {
+		switch {
+		case errors.Is(err, ErrCancelled):
+		case err != nil:
 			Fail("capture-failed", "%v", err)
-		}
-		if at != nil {
+		default:
 			Send(Event{Type: "area", X: at.Min.X, Y: at.Min.Y, Width: at.Dx(), Height: at.Dy()})
 		}
 
@@ -90,7 +101,11 @@ func Run(p Platform) {
 			Fail("unsupported-locale", "%s: listen --asr none", noASR)
 		}
 		var src Source = &FileSource{path: *file}
-		if *file == "" {
+		switch {
+		case *file != "":
+		case *app != "" && !p.HearsOneApp:
+			Fail("capture-failed", "hearing one app alone is not supported on %s yet", p.System)
+		default:
 			src = p.Source(*app)
 		}
 		listen(src, *vad)

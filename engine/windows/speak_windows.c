@@ -45,14 +45,14 @@ long tc_speak_open(const wchar_t *locale, wchar_t *name, int namecap) {
 	}
 	LCID lcid = LocaleNameToLCID(locale, 0);
 	if (lcid == 0) {
-		return 1;
+		return TC_NO_VOICE;
 	}
 	ISpObjectToken *token = NULL;
 	for (int i = 0; i < 2 && !token; i++) {
 		token = findVoice(categories[i], lcid);
 	}
 	if (!token) {
-		return 1;
+		return TC_NO_VOICE;
 	}
 	wchar_t *desc = NULL;
 	if (SUCCEEDED(ISpObjectToken_GetStringValue(token, NULL, &desc)) && desc) {

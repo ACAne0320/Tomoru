@@ -24,13 +24,16 @@ func listApps() {
 	for _, pid := range buf[:C.tc_playing(&buf[0], C.int(len(buf)))] {
 		playing[uint32(pid)] = true
 	}
-	pids := make([]uint32, 0, len(playing))
-	for _, pid := range buf[:C.tc_windowed(&buf[0], C.int(len(buf)))] {
-		pids = append(pids, uint32(pid))
+	type seen struct {
+		pid      uint32
+		windowed bool
 	}
-	windowed := len(pids)
+	var pids []seen
+	for _, pid := range buf[:C.tc_windowed(&buf[0], C.int(len(buf)))] {
+		pids = append(pids, seen{uint32(pid), true})
+	}
 	for pid := range playing {
-		pids = append(pids, pid)
+		pids = append(pids, seen{pid, false})
 	}
 	procs := processes()
 	own := map[string]bool{strings.ToLower(filepath.Base(os.Args[0])): true}
@@ -44,7 +47,8 @@ func listApps() {
 	}
 	var apps []*app
 	byID := map[string]*app{}
-	for i, pid := range pids {
+	for _, s := range pids {
+		pid := s.pid
 		path, name := describe(pid)
 		if path == "" {
 			continue
@@ -59,7 +63,7 @@ func listApps() {
 			byID[id] = a
 			apps = append(apps, a)
 		}
-		if a.name == "" || i < windowed && name != "" {
+		if a.name == "" || s.windowed && name != "" {
 			a.name = name
 		}
 		if a.name == "" {

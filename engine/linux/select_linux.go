@@ -15,9 +15,11 @@ import (
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"tomoru-engine-shared"
 )
 
-func selectArea(path string) (*image.Rectangle, error) {
+func selectArea(path string) (image.Rectangle, error) {
 	runtime.LockOSThread()
 	app, out := C.CString(appID()), C.CString(path)
 	defer C.free(unsafe.Pointer(app))
@@ -25,17 +27,16 @@ func selectArea(path string) (*image.Rectangle, error) {
 	var x, y, w, h C.int
 	var why [256]C.char
 	switch C.tc_select(app, out, &x, &y, &w, &h, &why[0], C.int(len(why))) {
-	case 1:
-		at := image.Rect(int(x), int(y), int(x+w), int(y+h))
-		return &at, nil
-	case 0:
-		return nil, nil
+	case C.TC_SELECTED:
+		return image.Rect(int(x), int(y), int(x+w), int(y+h)), nil
+	case C.TC_SELECT_CANCELLED:
+		return image.Rectangle{}, shared.ErrCancelled
 	default:
-		return nil, errors.New(C.GoString(&why[0]))
+		return image.Rectangle{}, errors.New(C.GoString(&why[0]))
 	}
 }
 
-func screenAccess(request bool) string {
+func screenAccess(request bool) shared.Access {
 	app := C.CString(appID())
 	defer C.free(unsafe.Pointer(app))
 	var why [256]C.char
@@ -44,13 +45,13 @@ func screenAccess(request bool) string {
 		ask = 1
 	}
 	switch C.tc_screen_access(app, ask, &why[0], C.int(len(why))) {
-	case C.TC_GRANTED:
-		return "granted"
-	case C.TC_UNKNOWN:
-		return "unknown"
+	case C.TC_ACCESS_GRANTED:
+		return shared.AccessGranted
+	case C.TC_ACCESS_UNKNOWN:
+		return shared.AccessUnknown
 	default:
 		log.Printf("screen access: %s", C.GoString(&why[0]))
-		return "unknown"
+		return shared.AccessUnknown
 	}
 }
 

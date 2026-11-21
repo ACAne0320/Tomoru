@@ -187,7 +187,7 @@ long tc_default_changed(tc_capture *c) {
 		hr = IMMDevice_GetId(device, &id);
 	}
 	if (SUCCEEDED(hr)) {
-		hr = wcscmp(c->device_id, id) != 0 ? S_FALSE : S_OK;
+		hr = wcscmp(c->device_id, id) != 0 ? TC_DEVICE_CHANGED : TC_DEVICE_SAME;
 	}
 	CoTaskMemFree(id);
 	if (device) {

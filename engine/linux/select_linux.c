@@ -11,15 +11,24 @@
 
 #include "engine_linux.h"
 
+enum { MIN_DRAG = 4 };
+
+enum selecting { SEL_PENDING, SEL_TAKEN, SEL_CANCELLED };
+
 static struct {
 	GdkPixbuf *shot;
-	double ratio;
+	double pixels_per_point;
 	int ox, oy;
 	GtkWidget *from;
 	GdkRectangle at;
 	double fx, fy, tx, ty;
-	int dragging, done;
+	int dragging;
+	enum selecting done;
 } sel;
+
+enum stored { STORED_NONE, STORED_YES, STORED_NO };
+
+enum { PORTAL_OK = 0, PORTAL_CANCELLED = 1, PORTAL_ENDED = 2 };
 
 struct answer {
 	GMainLoop *loop;
@@ -64,7 +73,7 @@ static void responded(GDBusConnection *bus, const char *sender, const char *path
 	g_main_loop_quit(a->loop);
 }
 
-static int stored(const char *app);
+static enum stored stored(const char *app);
 
 static char *portal_file(const char *app, guint *code, char *why, int n) {
 	GError *err = NULL;
@@ -98,9 +107,9 @@ static char *portal_file(const char *app, guint *code, char *why, int n) {
 	}
 	g_variant_unref(r);
 	g_main_loop_run(a.loop);
-	*code = a.code == 2 && stored(app) == TC_DENIED ? 1 : a.code;
-	if (*code != 0 || !a.uri) {
-		snprintf(why, n, *code == 1 ? "the screenshot was not allowed" : "the desktop took no screenshot");
+	*code = a.code == PORTAL_ENDED && stored(app) == STORED_NO ? PORTAL_CANCELLED : a.code;
+	if (*code != PORTAL_OK || !a.uri) {
+		snprintf(why, n, *code == PORTAL_CANCELLED ? "the screenshot was not allowed" : "the desktop took no screenshot");
 		goto out;
 	}
 	file = g_filename_from_uri(a.uri, NULL, NULL);
@@ -127,19 +136,19 @@ static GdkPixbuf *portal_shot(const char *app, char *why, int n) {
 	return shot;
 }
 
-static int stored(const char *app) {
+static enum stored stored(const char *app) {
 	char why[64];
 	GDBusConnection *bus = session_bus(why, sizeof why);
-	if (!bus) return TC_UNKNOWN;
+	if (!bus) return STORED_NONE;
 	GVariant *r = g_dbus_connection_call_sync(bus, "org.freedesktop.impl.portal.PermissionStore",
 		"/org/freedesktop/impl/portal/PermissionStore", "org.freedesktop.impl.portal.PermissionStore", "Lookup",
 		g_variant_new("(ss)", "screenshot", "screenshot"), G_VARIANT_TYPE("(a{sas}v)"), G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
-	int state = TC_UNKNOWN;
+	enum stored state = STORED_NONE;
 	if (!r) return state;
 	GVariant *apps = g_variant_get_child_value(r, 0);
 	const char **answer = NULL;
 	if (g_variant_lookup(apps, app, "^a&s", &answer) && answer && answer[0])
-		state = strcmp(answer[0], "yes") == 0 ? TC_GRANTED : TC_DENIED;
+		state = strcmp(answer[0], "yes") == 0 ? STORED_YES : STORED_NO;
 	g_free(answer);
 	g_variant_unref(apps);
 	g_variant_unref(r);
@@ -156,20 +165,20 @@ static void forget(const char *app) {
 	if (r) g_variant_unref(r);
 }
 
-int tc_screen_access(const char *app, int request, char *why, int n) {
-	if (!g_getenv("WAYLAND_DISPLAY")) return TC_GRANTED;
-	int state = stored(app);
-	if (state == TC_GRANTED) return state;
-	if (!request) return TC_UNKNOWN;
-	if (state == TC_DENIED) forget(app);
+enum tc_access tc_screen_access(const char *app, int request, char *why, int n) {
+	if (!g_getenv("WAYLAND_DISPLAY")) return TC_ACCESS_GRANTED;
+	enum stored state = stored(app);
+	if (state == STORED_YES) return TC_ACCESS_GRANTED;
+	if (!request) return TC_ACCESS_UNKNOWN;
+	if (state == STORED_NO) forget(app);
 	guint code;
 	char *file = portal_file(app, &code, why, n);
 	if (file) {
 		g_unlink(file);
 		g_free(file);
-		return TC_GRANTED;
+		return TC_ACCESS_GRANTED;
 	}
-	return code == 1 ? TC_UNKNOWN : -1;
+	return code == PORTAL_CANCELLED ? TC_ACCESS_UNKNOWN : TC_ACCESS_FAILED;
 }
 
 static GdkPixbuf *root_shot(char *why, int n) {
@@ -189,8 +198,8 @@ static GdkRectangle dragged(void) {
 static gboolean draw(GtkWidget *w, cairo_t *cr, gpointer data) {
 	GdkRectangle *at = data;
 	cairo_save(cr);
-	cairo_scale(cr, 1 / sel.ratio, 1 / sel.ratio);
-	gdk_cairo_set_source_pixbuf(cr, sel.shot, -(at->x - sel.ox) * sel.ratio, -(at->y - sel.oy) * sel.ratio);
+	cairo_scale(cr, 1 / sel.pixels_per_point, 1 / sel.pixels_per_point);
+	gdk_cairo_set_source_pixbuf(cr, sel.shot, -(at->x - sel.ox) * sel.pixels_per_point, -(at->y - sel.oy) * sel.pixels_per_point);
 	cairo_paint(cr);
 	cairo_restore(cr);
 	cairo_set_source_rgba(cr, 0, 0, 0, 0.45);
@@ -200,8 +209,8 @@ static gboolean draw(GtkWidget *w, cairo_t *cr, gpointer data) {
 		cairo_save(cr);
 		cairo_rectangle(cr, r.x, r.y, r.width, r.height);
 		cairo_clip(cr);
-		cairo_scale(cr, 1 / sel.ratio, 1 / sel.ratio);
-		gdk_cairo_set_source_pixbuf(cr, sel.shot, -(at->x - sel.ox) * sel.ratio, -(at->y - sel.oy) * sel.ratio);
+		cairo_scale(cr, 1 / sel.pixels_per_point, 1 / sel.pixels_per_point);
+		gdk_cairo_set_source_pixbuf(cr, sel.shot, -(at->x - sel.ox) * sel.pixels_per_point, -(at->y - sel.oy) * sel.pixels_per_point);
 		cairo_paint(cr);
 		cairo_restore(cr);
 		cairo_set_source_rgb(cr, 1, 1, 1);
@@ -214,7 +223,7 @@ static gboolean draw(GtkWidget *w, cairo_t *cr, gpointer data) {
 
 static gboolean pressed(GtkWidget *w, GdkEventButton *e, gpointer data) {
 	if (e->button == 3) {
-		sel.done = -1;
+		sel.done = SEL_CANCELLED;
 	} else if (e->button == 1) {
 		sel.from = w;
 		sel.at = *(GdkRectangle *)data;
@@ -243,19 +252,19 @@ static gboolean released(GtkWidget *w, GdkEventButton *e, gpointer data) {
 	sel.ty = e->y;
 	sel.dragging = 0;
 	GdkRectangle r = dragged();
-	sel.done = r.width >= 4 && r.height >= 4 ? 1 : -1;
+	sel.done = r.width >= MIN_DRAG && r.height >= MIN_DRAG ? SEL_TAKEN : SEL_CANCELLED;
 	return TRUE;
 }
 
 static gboolean key(GtkWidget *w, GdkEventKey *e, gpointer data) {
 	(void)w, (void)data;
-	if (e->keyval == GDK_KEY_Escape) sel.done = -1;
+	if (e->keyval == GDK_KEY_Escape) sel.done = SEL_CANCELLED;
 	return TRUE;
 }
 
 static gboolean closed(GtkWidget *w, GdkEvent *e, gpointer data) {
 	(void)w, (void)e, (void)data;
-	sel.done = -1;
+	sel.done = SEL_CANCELLED;
 	return TRUE;
 }
 
@@ -266,16 +275,16 @@ static void realized(GtkWidget *w, gpointer data) {
 	if (c) g_object_unref(c);
 }
 
-int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, char *why, int n) {
+enum tc_select_result tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, char *why, int n) {
 	memset(&sel, 0, sizeof sel);
 	int wayland = g_getenv("WAYLAND_DISPLAY") != NULL;
 	if (!gtk_init_check(NULL, NULL)) {
 		snprintf(why, n, "no display to select on");
-		return -1;
+		return TC_SELECT_FAILED;
 	}
 	GdkDisplay *display = gdk_display_get_default();
 	sel.shot = wayland ? portal_shot(app, why, n) : root_shot(why, n);
-	if (!sel.shot) return -1;
+	if (!sel.shot) return TC_SELECT_FAILED;
 
 	int monitors = gdk_display_get_n_monitors(display);
 	int x0 = G_MAXINT, y0 = G_MAXINT, x1 = G_MININT;
@@ -288,7 +297,7 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 	}
 	sel.ox = x0;
 	sel.oy = y0;
-	sel.ratio = (double)gdk_pixbuf_get_width(sel.shot) / (x1 - x0);
+	sel.pixels_per_point = (double)gdk_pixbuf_get_width(sel.shot) / (x1 - x0);
 
 	GtkWidget **windows = g_new(GtkWidget *, monitors);
 	GdkScreen *screen = gdk_display_get_default_screen(display);
@@ -316,13 +325,13 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 	else
 #endif
 		gtk_window_present(GTK_WINDOW(windows[0]));
-	while (!sel.done) gtk_main_iteration();
+	while (sel.done == SEL_PENDING) gtk_main_iteration();
 
-	int result = 0;
-	if (sel.done == 1) {
+	enum tc_select_result result = TC_SELECT_CANCELLED;
+	if (sel.done == SEL_TAKEN) {
 		GdkRectangle r = dragged();
-		int px = (int)((sel.at.x - sel.ox + r.x) * sel.ratio), py = (int)((sel.at.y - sel.oy + r.y) * sel.ratio);
-		int pw = (int)(r.width * sel.ratio), ph = (int)(r.height * sel.ratio);
+		int px = (int)((sel.at.x - sel.ox + r.x) * sel.pixels_per_point), py = (int)((sel.at.y - sel.oy + r.y) * sel.pixels_per_point);
+		int pw = (int)(r.width * sel.pixels_per_point), ph = (int)(r.height * sel.pixels_per_point);
 		pw = MIN(pw, gdk_pixbuf_get_width(sel.shot) - px);
 		ph = MIN(ph, gdk_pixbuf_get_height(sel.shot) - py);
 		GdkPixbuf *part = gdk_pixbuf_new_subpixbuf(sel.shot, px, py, pw, ph);
@@ -334,11 +343,11 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 			*y = (sel.at.y + r.y) * scale;
 			*w = r.width * scale;
 			*h = r.height * scale;
-			result = 1;
+			result = TC_SELECTED;
 		} else {
 			snprintf(why, n, "save the selection: %s", err->message);
 			g_error_free(err);
-			result = -1;
+			result = TC_SELECT_FAILED;
 		}
 		g_object_unref(part);
 	}

@@ -66,9 +66,13 @@ case "prepare":
 case "speak":
     guard let tag = option("--locale"), let i = args.firstIndex(of: "--"), i + 1 < args.count else { usage() }
     signal(SIGINT) { _ in exit(0) }
-    let speaker = Speaker()
-    speaker.speak(Array(args[(i + 1)...]), tag: tag)
-    dispatchMain()
+    let lines = Array(args[(i + 1)...])
+    let speaker = MainActor.assumeIsolated {
+        let s = Speaker()
+        s.speak(lines, tag: tag)
+        return s
+    }
+    withExtendedLifetime(speaker) { dispatchMain() }
 
 case "listen":
     guard let tag = option("--locale") else { usage() }

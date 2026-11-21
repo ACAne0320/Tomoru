@@ -35,9 +35,11 @@ func selectArea(_ path: String) {
     send(.area(r))
 }
 
+let minDrag: CGFloat = 4
+
 func area(_ a: CGPoint, _ b: CGPoint) -> CGRect? {
     let r = CGRect(x: min(a.x, b.x), y: min(a.y, b.y), width: abs(a.x - b.x), height: abs(a.y - b.y))
-    guard r.width >= 4, r.height >= 4 else { return nil }
+    guard r.width >= minDrag, r.height >= minDrag else { return nil }
     let s = scale(at: CGPoint(x: r.midX, y: r.midY))
     return CGRect(x: (r.minX * s).rounded(), y: (r.minY * s).rounded(), width: (r.width * s).rounded(), height: (r.height * s).rounded())
 }

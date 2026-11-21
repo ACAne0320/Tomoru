@@ -41,7 +41,6 @@ final class Listener {
     let (inStream, inCont) = AsyncStream.makeStream(of: AnalyzerInput.self)
     var clockTimer: DispatchSourceTimer?
     var voice: VoiceDetector?
-    let voiceQ = DispatchQueue(label: "voice")
 
     let clockLock = NSLock()
     var fedFrames: Int64 = 0
@@ -112,7 +111,7 @@ final class Listener {
 
     func feed(_ pcm: AVAudioPCMBuffer) {
         if let v = voice, let copy = copyBuffer(pcm) {
-            voiceQ.async { v.feed(copy) }
+            v.feed(copy)
         }
         if converter == nil || converter!.inputFormat != pcm.format {
             converter = AVAudioConverter(from: pcm.format, to: analyzerFormat)
@@ -134,7 +133,8 @@ final class Listener {
         fedFrames += Int64(out.frameLength)
         lastFeedWall = Date()
         clockLock.unlock()
-        quietFrames = peak(pcm) < Self.quietPeak ? quietFrames + Int64(out.frameLength) : 0
+        let quiet = peak(pcm).map { $0 < Self.quietPeak } ?? false
+        quietFrames = quiet ? quietFrames + Int64(out.frameLength) : 0
         if Double(quietFrames) > Self.quietTail * analyzerFormat.sampleRate {
             skipping = true
             return
@@ -169,8 +169,8 @@ final class Listener {
     }
 }
 
-func peak(_ pcm: AVAudioPCMBuffer) -> Float {
-    guard let data = pcm.floatChannelData else { return 1 }
+func peak(_ pcm: AVAudioPCMBuffer) -> Float? {
+    guard let data = pcm.floatChannelData else { return nil }
     var p: Float = 0
     let n = Int(pcm.frameLength) * (pcm.format.isInterleaved ? Int(pcm.format.channelCount) : 1)
     for ch in 0..<(pcm.format.isInterleaved ? 1 : Int(pcm.format.channelCount)) {
