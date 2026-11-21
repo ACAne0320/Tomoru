@@ -28,7 +28,7 @@ func TestSteps(t *testing.T) {
 	}
 	nav := &coretest.Nav{}
 	g := New(k, nav)
-	tt := ui.NewTester(g.View, Width, Height)
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	for _, step := range []struct {
 		step       int
 		want, next string
@@ -64,8 +64,8 @@ func TestSteps(t *testing.T) {
 func TestTry(t *testing.T) {
 	k := coretest.New()
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepTry, stepTry
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepTry, stepTry
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	if !k.Started || g.try.works() || tt.HasText(locales.Continue()) {
 		t.Fatalf("started %v, works %v", k.Started, g.try.works())
 	}
@@ -98,7 +98,7 @@ func TestShortcuts(t *testing.T) {
 	k.Prefs.GuideStep = stepShortcuts
 	nav := &coretest.Nav{}
 	g := New(k, nav)
-	tt := ui.NewTester(g.View, Width, Height)
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	r, ok := tt.Find("T")
 	if !ok {
 		t.Fatalf("no keycaps: %q", tt.Texts())
@@ -138,7 +138,7 @@ func TestSelect(t *testing.T) {
 	k.Prefs.GuideStep = stepPicture
 	k.Screen = "unknown"
 	g := New(k, &coretest.Nav{})
-	tt := ui.NewTester(g.View, Width, Height)
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	if !tt.HasText(locales.GuideSelectAsk()) || !tt.HasText(locales.ScreenSelectWhy()) || !tt.HasText(locales.Skip()) {
 		t.Fatalf("not asked: %q", tt.Texts())
 	}
@@ -185,7 +185,7 @@ func TestAnsweredFocus(t *testing.T) {
 	nav := &coretest.Nav{}
 	g := New(k, nav)
 	k.Asking, k.Access = true, "unknown"
-	tt := ui.NewTester(g.View, Width, Height)
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	if slices.Contains(nav.Went, "focus") {
 		t.Fatalf("focused while asking: %q", nav.Went)
 	}
@@ -200,8 +200,8 @@ func TestAnsweredFocus(t *testing.T) {
 func TestTryCloudFailed(t *testing.T) {
 	k := coretest.New()
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepTry, stepTry
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepTry, stepTry
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: live.PhaseListening, Voice: true,
 		Lines: []live.Line{{ID: 1, Src: "Hello there.", Outcome: live.Failed, Err: errors.New("stream error: INTERNAL_ERROR")}}}
@@ -218,8 +218,8 @@ func TestLocalModel(t *testing.T) {
 		d.Memory = func() (uint64, bool) { return 8 << 30, true }
 	})
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepTranslation, stepTranslation
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepTranslation, stepTranslation
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	local := models.All[0]
 	if err := tt.Click(locales.DownloadModel()); err != nil {
 		t.Fatal(err)
@@ -278,8 +278,8 @@ func TestEnginesNeedRecognition(t *testing.T) {
 	k := coretest.New()
 	k.Prefs.ASR = ""
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepRecognition, stepRecognition
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepRecognition, stepRecognition
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	if tt.HasText(locales.EngineQwenAsr()) || tt.HasText(locales.TagCloud()) {
 		t.Errorf("the cloud's recognition offered: %q", tt.Texts())
 	}
@@ -309,8 +309,8 @@ func TestTryWaitsForModel(t *testing.T) {
 	m.St[sv.ID] = models.Status{State: models.Downloading, Done: 100 << 20, Total: sv.Size}
 	k.Choose(core.ASR, sv.ID)
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepTry, stepTry
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepTry, stepTry
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	if k.Started || k.Err != nil {
 		t.Fatalf("started %v (%v) before the model is downloaded", k.Started, k.Err)
 	}
@@ -343,8 +343,8 @@ func TestFamilyRows(t *testing.T) {
 		d.Memory = func() (uint64, bool) { return mem, true }
 	})
 	g := New(k, &coretest.Nav{})
-	g.Step, g.next = stepTranslation, stepTranslation
-	tt := ui.NewTester(g.View, Width, Height)
+	g.Step, g.pendingStep = stepTranslation, stepTranslation
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	large, _ := models.ByID("local-9b")
 	hy, _ := models.ByID("hy-mt2-7b")
 	for _, want := range []string{"Index-Translate", "Hy-MT2", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large)), "7B · " + shared.ModelNote(hy, models.Status{}, k.Runs(hy))} {

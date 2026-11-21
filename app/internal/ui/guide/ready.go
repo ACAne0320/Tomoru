@@ -14,18 +14,25 @@ import (
 	"tomoru/locales"
 )
 
+const (
+	afterTitle    = 8
+	betweenTips   = 2
+	tipLineHeight = 1.4
+	alignedToTint = (tintSize - kit.TextBody*tipLineHeight) / 2
+)
+
 func (g *Guide) ready(c *ui.Context) {
 	pal := kit.Colors(c)
 	g.part(c, 0, func() { title(c, locales.GuideReadyTitle()) })
 	tip := func(i int, lead func(), s string) {
-		gap := float32(2)
+		gap := float32(betweenTips)
 		if i == 1 {
-			gap = 8
+			gap = afterTitle
 		}
 		g.part(c, i, func() {
 			ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Margin(gap, 0, 0, 0).Children(func() {
-				tint(c, 32, lead)
-				ui.Text(c, s).FontSize(kit.TextBody).TextColor(pal.Ink).LineHeight(1.4).Grow(1).Margin(6, 0, 0, 0)
+				tint(c, tintSize, lead)
+				ui.Text(c, s).FontSize(kit.TextBody).TextColor(pal.Ink).LineHeight(tipLineHeight).Grow(1).Margin(alignedToTint, 0, 0, 0)
 			})
 		})
 	}
@@ -63,7 +70,7 @@ func (g *Guide) readyStage(c *ui.Context) {
 					const period = 1800 * time.Millisecond
 					t := p.Now().Sub(g.shownAt.Add(wakeAt)).Milliseconds()
 					k = float32(t%period.Milliseconds()) / float32(period.Milliseconds())
-					p.After(33 * time.Millisecond)
+					p.After(slowFrame)
 				}
 				grow := 2 + 8*k
 				p.Fill(ui.Rect{X: r.X - grow, Y: r.Y - grow, W: r.W + 2*grow, H: r.H + 2*grow}, pal.Lantern.Alpha(.45*(1-k)), r.W/2+grow)

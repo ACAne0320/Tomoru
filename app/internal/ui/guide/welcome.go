@@ -23,7 +23,7 @@ func (g *Guide) welcome(c *ui.Context) {
 	g.part(c, 2, func() { g.languages(c) })
 }
 
-type language string
+type langFieldKey string
 
 func (g *Guide) languages(c *ui.Context) {
 	k := g.core
@@ -32,8 +32,8 @@ func (g *Guide) languages(c *ui.Context) {
 			lang := func(label, value string, options []string, choose func(string)) {
 				ui.Column(c).Gap(kit.Space(1)).Children(func() {
 					kit.Caption(c, label)
-					kit.PickerField(c.Key(language(value)), shared.LangName(value), kit.Choices(value, shared.LangChoices(options), shared.LangName, choose)).Label(label).
-						Transition(ui.ElementTransition{Animation: &kit.Spring, Match: language(value)})
+					kit.PickerField(c.Key(langFieldKey(value)), shared.LangName(value), kit.Choices(value, shared.LangChoices(options), shared.LangName, choose)).Label(label).
+						Transition(ui.ElementTransition{Animation: &kit.Spring, Match: langFieldKey(value)})
 				})
 			}
 			lang(locales.SpokenLanguage(), k.Preferences().Src, k.SourceLangs(), k.SetSrc)

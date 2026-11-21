@@ -415,7 +415,7 @@ func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 		if st.State == models.Downloading && !moving {
 			c.After(progressRedraw)
 			below = append(below, func() {
-				kit.OptionProgress(c, float64(st.Done)/float64(max(st.Total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(st.Total))).Padding(0, kit.QuietInset, 0, 0)
+				kit.OptionProgress(c, float64(st.Done)/float64(max(st.Total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(st.Total))).Padding(0, kit.ProgressEnd(true), 0, 0)
 			})
 		}
 		if why := shared.DownloadError(st.Err); why != "" && st.State == models.Missing {

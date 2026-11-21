@@ -51,7 +51,7 @@ func (g *Guide) stage(c *ui.Context) {
 			t := float32(0)
 			if !still {
 				t = float32(p.Now().Sub(nightStart).Seconds())
-				p.After(33 * time.Millisecond)
+				p.After(slowFrame)
 			}
 			night.Draw(p, r, shader.Options{Radius: kit.RadiusTile, Uniforms: map[string]any{
 				"Time": t, "Top": pal.SkyTop, "Bottom": pal.SkyBottom, "Glow": pal.Lantern,
@@ -93,6 +93,8 @@ func glass(c *ui.Context, e ui.Element) ui.Element {
 func onStage(c *ui.Context, s string, size float32, alpha float32) ui.Element {
 	return ui.Text(c, s).FontSize(size).TextColor(kit.Colors(c).Starlight.Alpha(alpha))
 }
+
+const slowFrame = time.Second / 30
 
 func tint(c *ui.Context, d float32, icon func()) ui.Element {
 	return ui.Box(c).Size(d, d).Radius(kit.RadiusInner).Background(kit.Colors(c).Lantern.Alpha(.16)).Center().Shrink(0).Children(icon)

@@ -35,9 +35,9 @@ func (g *Guide) sampleBitmap() *ui.Bitmap {
 func (g *Guide) picture(c *ui.Context) {
 	k := g.core
 	if k.ScreenAsking {
-		g.asked = true
-	} else if g.asked {
-		g.asked = false
+		g.awaitingPrompt = true
+	} else if g.awaitingPrompt {
+		g.awaitingPrompt = false
 		g.nav.Focus()
 	}
 	k.CheckScreen()
@@ -76,7 +76,7 @@ func (g *Guide) pictureTry(c *ui.Context) {
 	keys, works := kit.ShortcutText(k.Preferences().ImageShortcut), g.works(core.PictureShortcut)
 	im := k.Image
 	if im.PNG != nil && im.Text != "" {
-		g.selected = im.Text
+		g.sampleTranslation = im.Text
 	}
 	g.part(c, 0, func() {
 		title(c, locales.GuideSelectTitle())
@@ -84,7 +84,7 @@ func (g *Guide) pictureTry(c *ui.Context) {
 	})
 	g.part(c, 1, func() {
 		shortcutRow(c, assets.Picture, locales.ImageShortcut(), func() {
-			shared.ShortcutField(c, k, g.nav, core.PictureShortcut, locales.ImageShortcut(), &g.imageKeys)
+			shared.ShortcutField(c, k, g.nav, core.PictureShortcut, locales.ImageShortcut(), &g.pictureRecorder)
 		})
 	})
 	g.part(c, 2, func() { g.pictureChecks(c, keys, works) })
@@ -103,7 +103,7 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 		if !works {
 			return
 		}
-		done := g.selected != ""
+		done := g.sampleTranslation != ""
 		switch {
 		case im.Running:
 			detail = locales.ImageTranslating()
@@ -121,7 +121,7 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 			return
 		}
 		ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Margin(0, 0, 0, kit.Space(7)).Radius(kit.RadiusTile).Background(pal.Card).Border(1, pal.Line).Children(func() {
-			ui.Text(c, g.selected).FontSize(kit.TextBody).TextColor(pal.Ink).LineHeight(1.4).MaxLines(5)
+			ui.Text(c, g.sampleTranslation).FontSize(kit.TextBody).TextColor(pal.Ink).LineHeight(1.4).MaxLines(5)
 		})
 	})
 }
@@ -176,7 +176,7 @@ func (g *Guide) pictureStage(c *ui.Context) {
 		const w = 340
 		pw, ph := b.Size()
 		pal := kit.Colors(c)
-		translated := cmp.Or(g.core.Image.Text, g.selected)
+		translated := cmp.Or(g.core.Image.Text, g.sampleTranslation)
 		if translated == "" {
 			onStage(c, locales.GuideSelectHere(), kit.TextControl, .9).FontWeight(kit.WeightBold).
 				Background(pal.Glass).Radius(kit.Pill(28)).Padding(kit.Space(2), kit.Space(4)).Margin(0, 0, kit.Space(3), 0)

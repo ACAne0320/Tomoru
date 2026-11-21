@@ -190,3 +190,10 @@ func Warning(c *ui.Context, s string) ui.Element {
 func FieldNote(c *ui.Context, note, link, url string) ui.Element {
 	return Linked(c, note, link, url, TextCaption, Colors(c).Faint)
 }
+
+func ProgressEnd(cancelBeside bool) float32 {
+	if cancelBeside {
+		return QuietInset
+	}
+	return 0
+}
