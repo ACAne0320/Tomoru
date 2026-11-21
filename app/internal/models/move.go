@@ -164,10 +164,14 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 				continue
 			}
 			if !copying {
-				if m.rename(f.from, f.to) == nil {
+				err := m.rename(f.from, f.to)
+				if err == nil {
 					f.how = renamed
 					progress(f.size)
 					continue
+				}
+				if !crossDevice(err) {
+					return err
 				}
 				// Another disk: copy what is left, if it has the room.
 				copying = true

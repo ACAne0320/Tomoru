@@ -63,7 +63,7 @@ type Manager struct {
 	errs   map[string]error
 	move   Move
 	held   map[string]Status           // the statuses as a move found them, until it ends
-	rename func(from, to string) error // os.Rename; tests make it fail, as across disks
+	rename func(from, to string) error // os.Rename; tests make it fail
 }
 
 type job struct {

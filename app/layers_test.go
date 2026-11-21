@@ -217,6 +217,8 @@ var platformFiles = []string{
 	"internal/asr/asr.go",
 	"internal/core/feedback.go",
 	"internal/core/system.go",
+	"internal/models/cross_unix.go",
+	"internal/models/cross_windows.go",
 	"internal/models/memory_darwin.go",
 	"internal/models/memory_linux.go",
 	"internal/models/memory_windows.go",

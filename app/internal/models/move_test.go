@@ -42,7 +42,7 @@ func move(t *testing.T, m *Manager, to string) error {
 
 // noRename has the manager rename as across disks: never.
 func noRename(m *Manager) {
-	m.rename = func(string, string) error { return errors.New("another disk") }
+	m.rename = func(from, to string) error { return anotherDisk(from, to) }
 }
 
 func TestMove(t *testing.T) {
@@ -116,7 +116,7 @@ func TestMoveFails(t *testing.T) {
 			} else {
 				m.rename = func(a, b string) error {
 					if strings.HasSuffix(a, "b.onnx") {
-						return errors.New("another disk")
+						return anotherDisk(a, b)
 					}
 					return os.Rename(a, b)
 				}
@@ -137,6 +137,50 @@ func TestMoveFails(t *testing.T) {
 			}
 			if left, _ := filepath.Glob(filepath.Join(to, "b-1", "*.moving")); len(left) > 0 {
 				t.Error("copies left:", left)
+			}
+		})
+	}
+}
+
+func TestCrossDevice(t *testing.T) {
+	if !crossDevice(anotherDisk("old", "new")) {
+		t.Fatal("across disks")
+	}
+	for _, kind := range []string{"permission", "exists"} {
+		if crossDevice(renameFail(kind)) {
+			t.Fatal(kind)
+		}
+	}
+	if crossDevice(nil) || crossDevice(errors.New("another disk")) {
+		t.Fatal("other")
+	}
+}
+
+// TestMoveRenameError returns permission denied or file exists from a rename, and copies nothing.
+func TestMoveRenameError(t *testing.T) {
+	for _, kind := range []string{"permission", "exists"} {
+		t.Run(kind, func(t *testing.T) {
+			from, to := t.TempDir(), t.TempDir()
+			withTwo(t, from)
+			m := NewManager(from, false, nil)
+			defer m.Close()
+			want := renameFail(kind)
+			m.rename = func(string, string) error { return want }
+			if err := move(t, m, to); !errors.Is(err, want) {
+				t.Fatalf("got %v", err)
+			}
+			if m.Dir() != from || m.Moving().Err == nil || m.Moving().Active {
+				t.Fatalf("dir %s, moving %+v", m.Dir(), m.Moving())
+			}
+			got, err := os.ReadFile(filepath.Join(from, "a.gguf"))
+			if err != nil || string(got) != strings.Repeat("a", 3000) {
+				t.Fatalf("source: %v, %d bytes", err, len(got))
+			}
+			if _, err := os.Stat(filepath.Join(to, "a.gguf")); !os.IsNotExist(err) {
+				t.Fatal("copied:", err)
+			}
+			if _, err := os.Stat(filepath.Join(to, "b-1", "b.onnx")); !os.IsNotExist(err) {
+				t.Fatal("copied b:", err)
 			}
 		})
 	}
