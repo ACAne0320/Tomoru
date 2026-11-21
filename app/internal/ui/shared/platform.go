@@ -6,9 +6,9 @@ var Windows = runtime.GOOS == "windows"
 
 var linux = runtime.GOOS == "linux"
 
-func OnWindows(mac, win string) string {
+func MacOr(mac, other string) string {
 	if Windows || linux {
-		return win
+		return other
 	}
 	return mac
 }
@@ -17,7 +17,7 @@ func OnEach(mac, win, lin string) string {
 	if linux {
 		return lin
 	}
-	return OnWindows(mac, win)
+	return MacOr(mac, win)
 }
 
 var HidesFromCapture = !linux

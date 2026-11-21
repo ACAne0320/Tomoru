@@ -801,7 +801,7 @@ func TestHistory(t *testing.T) {
 	k.History.Lines = []history.Entry{{KeptAt: start, Src: "まずはクラウドの武器", BeforeGlossary: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"},
 		{KeptAt: start, Src: "スキップ", Err: "behind"}, {KeptAt: start, Src: "失敗", Err: "translate: 500 Internal Server Error: down"}}
 	tt.Frame()
-	for _, want := range []string{"先看克劳德的武器", locales.TermFixed("黒ウド"), shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer()),
+	for _, want := range []string{"先看克劳德的武器", locales.TermFixed("黒ウド"), shared.MacOr(locales.ShowInFinder(), locales.ShowInExplorer()),
 		locales.TranslationSkipped(), "translate: 500 Internal Server Error: down"} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())

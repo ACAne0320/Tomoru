@@ -190,7 +190,7 @@ func (g *Guide) tryIntro(c *ui.Context, src string, saying bool) {
 		why := shared.ErrorText(err)
 		var e *engine.Error
 		if errors.As(err, &e) && e.Code == "no-voice" {
-			why = shared.OnWindows(locales.SampleNoVoice(src), locales.SampleNoVoiceWin(src))
+			why = shared.MacOr(locales.SampleNoVoice(src), locales.SampleNoVoiceWin(src))
 		}
 		kit.Warning(c, why)
 	}
@@ -237,7 +237,7 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 		if !g.try.heard {
 			detail = locales.TryHearingWait()
 		}
-		check(c, g.try.heard, listening && saying, false, shared.OnWindows(locales.TryHearing(), locales.TryHearingWin()), detail)
+		check(c, g.try.heard, listening && saying, false, shared.MacOr(locales.TryHearing(), locales.TryHearingWin()), detail)
 
 		m, st, wait := g.pending()
 		if wait && st.State == models.Downloading {
@@ -323,7 +323,7 @@ func (g *Guide) tryStage(c *ui.Context) {
 	}
 	pal := kit.Colors(c)
 	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6)).Children(func() {
-		node(c, "heard", g.try.heard, 0, assets.Waves, shared.OnWindows(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
+		node(c, "heard", g.try.heard, 0, assets.Waves, shared.MacOr(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
 			kit.Levels(c, k.State.Voice, 14, pal.Starlight.Alpha(.8)).Size(120, 18)
 			if status != "" {
 				ui.Text(c, status).FontSize(kit.TextControl).TextColor(pal.Starlight.Alpha(.6)).MaxLines(2).ContentTransition(ui.ContentTransition{})

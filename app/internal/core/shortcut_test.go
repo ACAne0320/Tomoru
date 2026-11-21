@@ -11,7 +11,7 @@ func TestPress(t *testing.T) {
 	if c.Press(StartStop) || !c.PressedSince(StartStop, before) || c.PressedSince(PictureShortcut, before) {
 		t.Errorf("not held: pressed %v", c.Pressed)
 	}
-	c.Held[PictureShortcut] = true
+	c.HoldShortcut(PictureShortcut, true)
 	if !c.Press(PictureShortcut) || !c.PressedSince(PictureShortcut, before) {
 		t.Errorf("held: pressed %v", c.Pressed)
 	}

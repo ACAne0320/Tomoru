@@ -226,7 +226,7 @@ func (g *Guide) enginesStage(c *ui.Context, focus core.Kind) {
 	}
 	pal := kit.Colors(c)
 	ui.Column(c).Fill().Justify(ui.Center).Padding(kit.Space(6)).Children(func() {
-		node(c, "heard", focus == core.ASR, 0, assets.Waves, shared.OnWindows(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
+		node(c, "heard", focus == core.ASR, 0, assets.Waves, shared.MacOr(locales.SystemAudioOnly(), locales.SourceAll()), "", func(lit bool) {
 			ink := pal.Starlight.Alpha(.8)
 			if !lit {
 				ink = pal.Starlight.Alpha(.4)

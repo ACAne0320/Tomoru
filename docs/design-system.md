@@ -350,7 +350,7 @@ start/pause shortcut, select-to-translate (can be skipped; once on, two checks o
   translated), history stays on this computer.
 - Shortcuts are verified before they're used: the keys the user presses light up (`KeyLit`), and
   "That's it" shows on the left once they're right. While verifying, the guide holds the
-  shortcuts (`core.Held`), so they don't start translating or selecting.
+  shortcuts (`core.HoldShortcut`), so they don't start translating or selecting.
 - Quit midway, or relaunched by the system, the guide opens again at the step it stopped on.
 
 **Image translation card** (`ui/imagecard/`): a panel window floating above every app without

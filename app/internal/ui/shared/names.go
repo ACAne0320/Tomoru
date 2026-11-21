@@ -92,9 +92,9 @@ func ModelNote(m models.Model, st models.Status, runs bool) string {
 	case runs:
 		needs = locales.RunsHere()
 	case m.ASR:
-		needs = OnWindows(locales.AsrNeedsMemory(mem), locales.AsrNeedsVram(vram))
+		needs = MacOr(locales.AsrNeedsMemory(mem), locales.AsrNeedsVram(vram))
 	default:
-		needs = OnWindows(locales.NeedsMemory(mem), locales.NeedsVram(vram))
+		needs = MacOr(locales.NeedsMemory(mem), locales.NeedsVram(vram))
 	}
 	size := Size(m.Size)
 	if st.State == models.Missing && st.Done > 0 {

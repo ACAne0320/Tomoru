@@ -147,8 +147,8 @@ func (g *Guide) holdKeys() {
 	if g.Step != g.keysStep || g.keysSince.IsZero() {
 		g.keysStep, g.keysSince = g.Step, time.Now()
 	}
-	k.Held[core.StartStop] = g.Step == stepShortcuts
-	k.Held[core.PictureShortcut] = g.Step == stepPicture && k.CanSelect() && !g.works(core.PictureShortcut)
+	k.HoldShortcut(core.StartStop, g.Step == stepShortcuts)
+	k.HoldShortcut(core.PictureShortcut, g.Step == stepPicture && k.CanSelect() && !g.works(core.PictureShortcut))
 }
 
 func (g *Guide) works(s core.Shortcut) bool { return g.core.PressedSince(s, g.keysSince) }
@@ -270,7 +270,7 @@ func (g *Guide) stepButton(c *ui.Context) {
 		}
 		if b.Clicked() {
 			k.StopSpeaking()
-			clear(k.Held)
+			k.ReleaseShortcuts()
 			k.UpdatePrefs(func(p *prefs.Prefs) { p.Onboarded, p.GuideStep = true, 0 })
 			g.nav.FinishGuide()
 		}

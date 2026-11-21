@@ -165,7 +165,7 @@ func (o *Overlay) toolbar(c *ui.Context, bottom float32, shown bool) ui.Element 
 		}
 		if b := barIcon(c, assets.Settings, locales.Settings()); b.Clicked() {
 			r := b.Bounds()
-			o.nav.OpenPanel(&mygo.Rectangle{X: int(r.X), Y: int(r.Y), Width: int(r.W), Height: int(r.H)})
+			o.nav.OpenPanelAbove(mygo.Rectangle{X: int(r.X), Y: int(r.Y), Width: int(r.W), Height: int(r.H)})
 		}
 	})
 }

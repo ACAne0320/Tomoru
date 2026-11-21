@@ -5,6 +5,7 @@ import (
 	"flag"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +25,6 @@ import (
 	"tomoru/internal/proxy"
 	"tomoru/internal/resource"
 	"tomoru/internal/ui/assets"
-	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shell"
 )
 
@@ -66,7 +66,6 @@ func main() {
 		if *guide {
 			p.Onboarded, p.GuideStep = false, 0
 		}
-		mygo.Theme.SetSource(kit.ThemeSource(p.Appearance))
 		ctx, cancel := context.WithCancel(context.Background())
 		post := shell.Post(ctx)
 		roots := resourceRoots()
@@ -89,7 +88,7 @@ func main() {
 			if strings.HasPrefix(mygo.App.Locale(), "zh") {
 				mirrors = models.ModelScopeFirst
 			}
-			manager = models.NewManagerContext(ctx, dir, mirrors, func() { post(func() { k.Changed() }) })
+			manager = models.NewManagerContext(ctx, dir, mirrors, func() { post(func() { k.Changed() }) }, models.WithClient(&http.Client{Transport: proxy.Transport()}))
 			deps.Models = manager
 		} else {
 			log.Println("models:", err)
