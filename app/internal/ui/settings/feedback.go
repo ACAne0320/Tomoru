@@ -13,10 +13,10 @@ import (
 )
 
 type feedbackEdit struct {
-	open, shown bool
-	kind        int
-	what        string
-	copied      time.Time
+	open, textUnfolded bool
+	kind               core.FeedbackKind
+	what               string
+	copied             time.Time
 }
 
 func (s *Settings) feedbackDialog(c *ui.Context) {
@@ -25,13 +25,13 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 		return
 	}
 	p := kit.Colors(c)
-	kind := core.FeedbackKind(d.kind)
+	kind := d.kind
 	intro, example := locales.FeedbackIntroProblem(), locales.FeedbackPlaceholderProblem()
 	if kind == core.FeedbackIdea {
 		intro, example = locales.FeedbackIntroIdea(), locales.FeedbackPlaceholderIdea()
 	}
 	kit.Dialog(c, &d.open, locales.Feedback(), intro, func() {
-		kit.Segmented(c, &d.kind, locales.FeedbackProblem(), locales.FeedbackIdea()).AlignSelf(ui.Start).Shrink(0).Label(locales.FeedbackKind())
+		kit.Segmented(c, (*int)(&d.kind), locales.FeedbackProblem(), locales.FeedbackIdea()).AlignSelf(ui.Start).Shrink(0).Label(locales.FeedbackKind())
 		kit.TextBox(c, &d.what).Placeholder(example).Label(locales.Feedback()).Height(96).MinHeight(kit.Space(16)).AutoFocus()
 		ui.Column(c).Gap(kit.Space(2)).Shrink(0).Children(func() {
 			app, system := k.Versions()
@@ -49,7 +49,7 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 			kit.ResultMark(c, assets.Lock, locales.FeedbackPrivate(), true)
 		})
 		ui.Column(c).Gap(kit.Space(2)).MinHeight(0).Children(func() {
-			if kit.Disclosure(c, &d.shown, locales.FeedbackShow()) {
+			if kit.Disclosure(c, &d.textUnfolded, locales.FeedbackShow()) {
 				ui.Scroll(c).MaxHeight(200).MinHeight(kit.Space(16)).Padding(kit.Space(3)).Radius(kit.RadiusField).Border(1, p.Line).Children(func() {
 					kit.Caption(c, k.Feedback(kind, d.what)).Selectable()
 				})

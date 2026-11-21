@@ -15,14 +15,13 @@ import (
 )
 
 type serviceEdit struct {
-	open   bool
-	url    string
-	models []string
-	a      prefs.Service
-	key    string
-	model  int
-	test   string
-	more   bool
+	open         bool
+	info         core.ServiceInfo
+	service      prefs.Service
+	key          string
+	modelIndex   int
+	test         string
+	advancedOpen bool
 }
 
 var keyPages = map[string]string{
@@ -31,26 +30,29 @@ var keyPages = map[string]string{
 	core.HyMTCloud: "https://console.cloud.tencent.com/tokenhub/apikey",
 }
 
-var modelNames = map[string][]string{
-	core.QwenCloud: {"3.1", "3.0"},
-	core.HyMTCloud: {"Plus", "Pro", "Lite"},
-}
-
-func (d *serviceEdit) Open(k *core.Core, id string, n int) {
+func (d *serviceEdit) Open(k *core.Core, id string) {
 	if d.open {
 		k.ForgetTest(d.test)
 	}
-	url, models := core.ServiceOf(id)
+	info := core.ServiceOf(id)
 	a := k.API(id)
-	*d = serviceEdit{open: true, url: url, models: models, a: a, model: max(0, slices.Index(models, a.Model)), test: fmt.Sprintf("api-%d", n),
-		more: a.URL != "" || a.Model != "" && a.Model != models[0]}
+	index := slices.IndexFunc(info.Models, func(m core.ServiceModel) bool { return m.ID == a.Model })
+	*d = serviceEdit{open: true, info: info, service: a, modelIndex: max(0, index), test: k.NewTest(),
+		advancedOpen: a.URL != "" || a.Model != "" && a.Model != info.Default()}
 }
+
+func (d *serviceEdit) keepsKey() bool { return strings.TrimSpace(d.key) == "" }
 
 func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 	k := s.core
-	names := modelNames[d.a.ID]
+	var names []string
+	if d.info.Labeled() {
+		for _, m := range d.info.Models {
+			names = append(names, m.Label)
+		}
+	}
 	var keyNote, keyLink, hostNote string
-	switch d.a.ID {
+	switch d.service.ID {
 	case core.QwenCloud:
 		keyNote, keyLink, hostNote = locales.AsrCloudIntro(), locales.AsrCloudConsole(), locales.AsrCloudHostDescription()
 	case core.OpenAI:
@@ -61,24 +63,24 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 	ui.Column(c).Gap(kit.Space(3)).Children(func() {
 		ui.Field(c, locales.EndpointKey(), func() {
 			in := kit.TextField(c, &d.key).Password().Label(locales.EndpointKey())
-			if d.a.Key {
+			if d.service.Key {
 				in.Placeholder(locales.EndpointKeyKeep())
 			}
-			kit.Linked(c, keyNote, keyLink, keyPages[d.a.ID], kit.TextCaption, kit.Colors(c).Faint)
+			kit.FieldNote(c, keyNote, keyLink, keyPages[d.service.ID])
 		})
-		if kit.Disclosure(c, &d.more, locales.ModelAndAddress()) {
+		if kit.Disclosure(c, &d.advancedOpen, locales.ModelAndAddress()) {
 			model := ui.Field(c, locales.EndpointModel(), func() {
 				if names != nil {
-					kit.Segmented(c, &d.model, names...).AlignSelf(ui.Start).Label(locales.EndpointModel())
+					kit.Segmented(c, &d.modelIndex, names...).AlignSelf(ui.Start).Label(locales.EndpointModel())
 				} else {
-					kit.TextField(c, &d.a.Model).Placeholder(d.models[0]).Label(locales.EndpointModel())
+					kit.TextField(c, &d.service.Model).Placeholder(d.info.Default()).Label(locales.EndpointModel())
 				}
 			})
 			if names == nil {
 				model.Description(locales.AsrOpenAiModelDescription())
 			}
 			host := ui.Field(c, locales.AsrCloudHost(), func() {
-				kit.TextField(c, &d.a.URL).Placeholder(d.url).Label(locales.AsrCloudHost())
+				kit.TextField(c, &d.service.URL).Placeholder(d.info.URL).Label(locales.AsrCloudHost())
 			})
 			if hostNote != "" {
 				host.Description(hostNote)
@@ -86,9 +88,9 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 		}
 	})
 	if names != nil {
-		d.a.Model = d.models[d.model]
+		d.service.Model = d.info.Models[d.modelIndex].ID
 	}
-	valid := d.a.Key || strings.TrimSpace(d.key) != ""
+	valid := d.service.Key || !d.keepsKey()
 	if r, ok := k.Tests[d.test]; ok {
 		ms := fmt.Sprint(r.Took.Milliseconds())
 		switch {
@@ -103,7 +105,7 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
 		ui.Spacer(c)
 		if kit.Off(c, kit.Button(c, kit.Plain, kit.Small, nil, locales.Test()), !valid || k.Tests[d.test].Running).Clicked() {
-			k.TestAPI(d.test, d.a, strings.TrimSpace(d.key))
+			k.TestAPI(d.test, d.service, strings.TrimSpace(d.key))
 		}
 		if setUp && kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
 			k.ForgetTest(d.test)
@@ -111,8 +113,8 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 			return
 		}
 		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.Save()), !valid).Clicked() {
-			k.SaveAPI(d.a, strings.TrimSpace(d.key))
-			c.Toast(locales.EndpointSaved(shared.EngineName(core.Engine{ID: d.a.ID})))
+			k.SaveAPI(d.service, strings.TrimSpace(d.key))
+			c.Toast(locales.EndpointSaved(shared.EngineName(core.Engine{ID: d.service.ID})))
 			k.ForgetTest(d.test)
 			*d = serviceEdit{}
 		}

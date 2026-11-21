@@ -25,17 +25,16 @@ type endpointEdit struct {
 	discard kit.DiscardGuard
 }
 
-func (s *Settings) next() int {
-	s.edits++
-	return s.edits
-}
-
 func (s *Settings) editAPI(d *endpointEdit, e prefs.Endpoint) {
 	if d.open {
 		s.core.ForgetTest(d.test)
 	}
-	*d = endpointEdit{open: true, e: e, was: e, test: fmt.Sprintf("edit-%d", s.next())}
+	*d = endpointEdit{open: true, e: e, was: e, test: s.core.NewTest()}
 }
+
+func (d *endpointEdit) isNew() bool { return d.e.ID == "" }
+
+func (d *endpointEdit) keepsKey() bool { return d.key == "" }
 
 func (s *Settings) closeAPI() {
 	if s.api.open {
@@ -44,7 +43,7 @@ func (s *Settings) closeAPI() {
 	s.api, s.addingAPI = endpointEdit{}, false
 }
 
-func (d *endpointEdit) changed() bool { return d.e != d.was || d.key != "" }
+func (d *endpointEdit) changed() bool { return d.e != d.was || !d.keepsKey() }
 
 func (s *Settings) apiPane(c *ui.Context) {
 	ui.Text(c, locales.AddApi()).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(kit.Colors(c).Ink).MaxLines(1)
@@ -65,13 +64,12 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 	if !d.open {
 		return
 	}
-	title := strings.TrimSuffix(locales.AddEndpoint(), "…")
-	dialog := kit.Dialog(c, &d.open, title, locales.EndpointIntro(), func() {
+	dialog := kit.Dialog(c, &d.open, locales.AddEndpointTitle(), locales.EndpointIntro(), func() {
 		endpointForm(c, d)
 		if r, ok := k.Tests[d.test]; ok {
 			testResult(c, r)
 		}
-		if d.discard.Asking {
+		if d.discard.Confirming {
 			d.discard.Actions(c, &d.open)
 		} else {
 			kit.DialogActions(c, func() { s.endpointActions(c, d, func() { d.open = false }) })
@@ -96,7 +94,7 @@ func endpointForm(c *ui.Context, d *endpointEdit) {
 		})
 		ui.Field(c, locales.EndpointKey(), func() {
 			in := kit.TextField(c, &d.key).Password().Label(locales.EndpointKey())
-			if d.e.ID != "" {
+			if !d.isNew() {
 				in.Placeholder(locales.EndpointKeyKeep())
 			}
 		})

@@ -2642,15 +2642,29 @@ func (msgs Messages) Save() string {
 // AddEndpoint says "Add a translation API…"
 // in the language the app shows.
 //
-// Button that adds a translation API, and that dialog's title.
+// Button that adds a translation API.
 func AddEndpoint() string { return In(i18n.Locale()).AddEndpoint() }
 
 // AddEndpoint says "Add a translation API…"
 // in the language of msgs.
 //
-// Button that adds a translation API, and that dialog's title.
+// Button that adds a translation API.
 func (msgs Messages) AddEndpoint() string {
 	return Catalog.Format(msgs.locale, "addEndpoint", nil)
+}
+
+// AddEndpointTitle says "Add a translation API"
+// in the language the app shows.
+//
+// The title of the dialog that adds a translation API.
+func AddEndpointTitle() string { return In(i18n.Locale()).AddEndpointTitle() }
+
+// AddEndpointTitle says "Add a translation API"
+// in the language of msgs.
+//
+// The title of the dialog that adds a translation API.
+func (msgs Messages) AddEndpointTitle() string {
+	return Catalog.Format(msgs.locale, "addEndpointTitle", nil)
 }
 
 // EndpointIntro says "Works with OpenAI-compatible APIs, such as DeepSeek or Ollama."
