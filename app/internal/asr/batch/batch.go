@@ -46,12 +46,12 @@ type Decoder interface {
 }
 
 type Caps struct {
-	Volatile float64
-	Gap      float64
-	Longest  float64
-	Stops    bool
-	Untimed  bool
-	Remote   bool
+	Volatile         float64
+	Gap              float64
+	Longest          float64
+	TrailingFullStop bool
+	Untimed          bool
+	Remote           bool
 }
 
 var ErrStopped = errors.New("batch: stopped")
@@ -66,27 +66,36 @@ type Runner struct {
 	in       chan input
 	quit     chan struct{}
 	stopOnce sync.Once
-	forcing  atomic.Bool
-	behind   atomic.Bool
+	cause    atomic.Pointer[error]
 	done     chan struct{}
 	err      error
 
-	audio   []byte
-	base    int64
-	total   int64
-	stepped int64
-	clocked int64
-	detect  int
-	voiceOn bool
-	onAt    int64
-	offAt   int64
-	open    bool
-	ended   bool
-	start   int64
-	decoded int64
-	last    []Piece
-	agreed  []Piece
+	audio         []byte
+	base          int64
+	total         int64
+	stepped       int64
+	clocked       int64
+	detect        Detection
+	voiceOn       bool
+	onAt          int64
+	offAt         int64
+	open          bool
+	sentenceEnded bool
+	start         int64
+	decoded       int64
+	last          []Piece
+	agreed        []Piece
 }
+
+type Detection int
+
+const (
+	DetectionUnknown Detection = iota
+	DetectionOn
+	DetectionNone
+)
+
+var errForced = errors.New("batch: stopped by force")
 
 type input struct {
 	pcm   []byte
@@ -125,24 +134,35 @@ func (r *Runner) put(x input) error {
 		return nil
 	default:
 	}
-	r.stopOnce.Do(func() {
-		r.behind.Store(true)
-		r.dec.Stop()
-	})
-	if !r.behind.Load() {
-		return ErrStopped
+	r.stopFor(ErrBehind, r.dec.Stop)
+	if errors.Is(r.stopCause(), ErrBehind) {
+		return ErrBehind
 	}
-	return ErrBehind
+	return ErrStopped
+}
+
+func (r *Runner) stopFor(cause error, stop func()) {
+	r.stopOnce.Do(func() {
+		r.cause.Store(&cause)
+		stop()
+	})
+}
+
+func (r *Runner) stopCause() error {
+	if c := r.cause.Load(); c != nil {
+		return *c
+	}
+	return nil
 }
 
 func (r *Runner) Stop() {
-	r.stopOnce.Do(func() {
+	r.stopFor(ErrStopped, func() {
 		close(r.quit)
 		time.AfterFunc(forced, func() {
 			select {
 			case <-r.done:
 			default:
-				r.forcing.Store(true)
+				r.cause.Store(&errForced)
 				r.dec.Stop()
 			}
 		})
@@ -158,10 +178,10 @@ func (r *Runner) loop() {
 	err := r.run()
 	r.dec.Stop()
 	<-r.dec.Done()
-	switch {
-	case r.behind.Load():
+	switch cause := r.stopCause(); {
+	case errors.Is(cause, ErrBehind):
 		err = ErrBehind
-	case r.forcing.Load():
+	case errors.Is(cause, errForced):
 		err = nil
 	}
 	r.err = err
@@ -220,7 +240,7 @@ func (r *Runner) take(x input) error {
 }
 
 func (r *Runner) voice(ev engine.Event) {
-	r.detect = 1
+	r.detect = DetectionOn
 	t := int64(ev.T*rate + .5)
 	switch {
 	case ev.On && !r.voiceOn:
@@ -231,20 +251,20 @@ func (r *Runner) voice(ev engine.Event) {
 }
 
 func (r *Runner) speaking() bool {
-	if r.detect == 0 && r.stepped >= int64(undetected*rate) {
-		r.detect = -1
+	if r.detect == DetectionUnknown && r.stepped >= int64(undetected*rate) {
+		r.detect = DetectionNone
 		log.Printf("batch: the engine detects no voice: one stretch, made final every %g s", r.caps.Longest)
 	}
 	switch {
-	case r.detect == 0:
+	case r.detect == DetectionUnknown:
 		return false
-	case r.detect < 0:
+	case r.detect == DetectionNone:
 		return true
 	case r.voiceOn:
 		return r.open || r.stepped >= r.onAt+int64(minSpeech*rate)
 	default:
 		gap := r.caps.Gap
-		if r.caps.Untimed && (r.ended || r.stepped-r.start >= int64(r.caps.Longest*rate)) {
+		if r.caps.Untimed && (r.sentenceEnded || r.stepped-r.start >= int64(r.caps.Longest*rate)) {
 			gap = 0
 		}
 		return r.open && r.stepped < r.offAt+int64(gap*rate)
@@ -256,10 +276,10 @@ func (r *Runner) step() error {
 	switch {
 	case speaking && !r.open:
 		on := r.onAt
-		if r.detect < 0 {
+		if r.detect == DetectionNone {
 			on = r.stepped
 		}
-		r.open, r.ended = true, false
+		r.open, r.sentenceEnded = true, false
 		r.start = max(r.base, on-int64(preroll*rate))
 		r.decoded = r.stepped
 		r.last, r.agreed = nil, nil
@@ -270,7 +290,7 @@ func (r *Runner) step() error {
 		if err := r.final(context.Background(), r.stepped); err != nil {
 			return err
 		}
-		r.start, r.decoded, r.ended = r.stepped, r.stepped, false
+		r.start, r.decoded, r.sentenceEnded = r.stepped, r.stepped, false
 	case speaking && r.caps.Volatile > 0 && r.stepped-r.decoded >= int64(r.caps.Volatile*rate):
 		r.decoded = r.stepped
 		if len(r.in) >= behind {
@@ -286,7 +306,7 @@ func (r *Runner) step() error {
 				r.early(agreed, n)
 				break
 			}
-			r.ended = true
+			r.sentenceEnded = true
 		}
 		if ev := result(false, r.start, r.stepped, agreed); ev.Type != "" {
 			r.send(ev)
@@ -320,7 +340,7 @@ func (r *Runner) final(ctx context.Context, end int64) error {
 	if err != nil {
 		return err
 	}
-	if r.caps.Stops {
+	if r.caps.TrailingFullStop {
 		pieces = unstopped(pieces)
 	}
 	r.send(result(true, r.start, end, pieces))

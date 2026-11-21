@@ -43,7 +43,7 @@ func (f *finalizes) Finalize(t float64) error { f.ts = append(f.ts, t); return n
 func TestReplay(t *testing.T) {
 	var mu sync.Mutex
 	var last State
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}}, func(st State) {
 		mu.Lock()
 		last = st
 		mu.Unlock()
@@ -96,7 +96,7 @@ func TestReplay(t *testing.T) {
 func TestNoTranslator(t *testing.T) {
 	var got lifecycleLog
 	drafted := false
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Draft: true, OnLine: got.onLine}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Draft: true, OnLine: got.onLine}, func(st State) {
 		got.onState(st)
 		got.mu.Lock()
 		drafted = drafted || st.Draft != ""
@@ -149,7 +149,7 @@ func TestDraft(t *testing.T) {
 	var mu sync.Mutex
 	var drafts []string
 	var last State
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, Draft: true}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, Draft: true}, func(st State) {
 		mu.Lock()
 		defer mu.Unlock()
 		if st.Draft != "" && (len(drafts) == 0 || drafts[len(drafts)-1] != st.Draft) {
@@ -214,7 +214,7 @@ func TestTerms(t *testing.T) {
 	var mu sync.Mutex
 	var last State
 	pendings := map[string]bool{}
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: glossed{}, Terms: terms}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: glossed{}, Terms: terms}, func(st State) {
 		mu.Lock()
 		last = st
 		pendings[st.Pending] = true
@@ -266,7 +266,7 @@ func TestTerms(t *testing.T) {
 func TestStats(t *testing.T) {
 	var mu sync.Mutex
 	var last State
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}}, func(st State) {
 		mu.Lock()
 		defer mu.Unlock()
 		last = st
@@ -299,7 +299,7 @@ func TestLatency(t *testing.T) {
 	var mu sync.Mutex
 	var last State
 	tr := &translate.Endpoint{URL: srv.URL, Model: "m", Format: translate.Index, Llama: true}
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(st State) {
 		mu.Lock()
 		last = st
 		mu.Unlock()
@@ -361,7 +361,7 @@ func TestParallel(t *testing.T) {
 		var mu sync.Mutex
 		var last State
 		tr := held{make(chan struct{})}
-		s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Parallel: parallel}, func(st State) {
+		s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Parallel: parallel}, func(st State) {
 			mu.Lock()
 			defer mu.Unlock()
 			last = st
@@ -410,7 +410,7 @@ func TestDraftDropped(t *testing.T) {
 	var mu sync.Mutex
 	var last State
 	tr := &stuck{}
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true}, func(st State) {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true}, func(st State) {
 		mu.Lock()
 		defer mu.Unlock()
 		last = st
@@ -438,7 +438,7 @@ func (w *warmed) Warm(context.Context) { w.n.Add(1) }
 
 func TestWarm(t *testing.T) {
 	tr := &warmed{}
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(State) {})
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(State) {})
 	defer s.Stop()
 	s.proc = &finalizes{}
 	s.handle(engine.Event{Type: "voice", On: true, T: 1})
@@ -456,7 +456,7 @@ func TestWarm(t *testing.T) {
 
 func TestHint(t *testing.T) {
 	hint := func(ev engine.Event) (float64, bool) { return ev.T - 1, ev.Type == "clock" && ev.T >= 3 }
-	s := newSession(Config{Src: "zh", Tgt: "en", Translator: upper{}, Hint: hint}, func(State) {})
+	s := newSession(Config{Src: "zh", Tgt: "en", Translator: upper{}, Finalizer: hint}, func(State) {})
 	f := &finalizes{}
 	s.proc = f
 	for _, t := range []float64{1, 2, 3, 4} {
@@ -473,7 +473,7 @@ func TestLanguages(t *testing.T) {
 	var mu sync.Mutex
 	var last State
 	drafted := false
-	s := newSession(Config{FinalsEnd: true, Src: "auto", Tgt: "zh", Translator: upper{}, Draft: true}, func(st State) {
+	s := newSession(Config{FinalsEndUtterances: true, Src: "auto", Tgt: "zh", Translator: upper{}, Draft: true}, func(st State) {
 		mu.Lock()
 		defer mu.Unlock()
 		last, drafted = st, drafted || st.Draft != ""

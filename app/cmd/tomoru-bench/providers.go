@@ -122,6 +122,9 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 		}
 		env.Service = asr.Service{URL: os.Getenv(urlVar), Model: model, Key: key}
 	}
+	if spec.InEngine {
+		return spec, env, stop, nil
+	}
 	if _, err := spec.New(env); err != nil {
 		stop()
 		return spec, env, nil, err

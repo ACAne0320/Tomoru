@@ -177,9 +177,9 @@ func TestEarly(t *testing.T) {
 	}
 }
 
-func TestStops(t *testing.T) {
+func TestTrailingFullStop(t *testing.T) {
 	var evs []engine.Event
-	r := &Runner{dec: newFake(), caps: Caps{Volatile: .4, Gap: .25, Longest: 12, Stops: true}, on: func(e engine.Event) { evs = append(evs, e) }}
+	r := &Runner{dec: newFake(), caps: Caps{Volatile: .4, Gap: .25, Longest: 12, TrailingFullStop: true}, on: func(e engine.Event) { evs = append(evs, e) }}
 	if err := feed(r, [][2]float64{{1, 3}}, 5); err != nil {
 		t.Fatal(err)
 	}

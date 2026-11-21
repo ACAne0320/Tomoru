@@ -151,16 +151,18 @@ func main() {
 				}
 				env := env
 				env.Scene = asr.Scene{Names: g.Names(), About: desc}
-				recognize, err := spec.New(env)
-				if err != nil {
-					log.Fatal(err)
+				var recognize asr.Factory
+				if !spec.InEngine {
+					if recognize, err = spec.New(env); err != nil {
+						log.Fatal(err)
+					}
 				}
-				cfg := live.Config{Engine: bin, Recognize: recognize, VolatileSentences: spec.VolatileSentences, FinalsEnd: spec.FinalsEnd, Translator: tr, Draft: *draft, About: func() string { return desc }}
+				cfg := live.Config{Engine: bin, Recognize: recognize, CommitVolatileSentences: spec.CommitVolatileSentences, FinalsEndUtterances: spec.FinalsEndUtterances, Translator: tr, Draft: *draft, About: func() string { return desc }}
 				if *auto {
 					cfg.Src = lang.Auto
 				}
-				if spec.Hint != nil {
-					cfg.Hint = spec.Hint(c.Lang)
+				if spec.Finalizer != nil {
+					cfg.Finalizer = spec.Finalizer(c.Lang)
 				}
 				if g != nil {
 					cfg.Terms = g.Apply

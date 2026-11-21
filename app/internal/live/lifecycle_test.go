@@ -80,7 +80,7 @@ func TestLineEventsBacklogAndOverflow(t *testing.T) {
 				return "translated " + r.Text, nil
 			})
 			var got lifecycleLog
-			s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, OnLine: got.onLine}, got.onState)
+			s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, OnLine: got.onLine}, got.onState)
 			t.Cleanup(func() { s.Stop(); s.wait() })
 			commitSentence(s, 1)
 			waitSignal(t, started)
@@ -156,7 +156,7 @@ func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 		return "late completion", nil
 	})
 	var got lifecycleLog
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, OnLine: got.onLine}, got.onState)
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, OnLine: got.onLine}, got.onState)
 	commitSentence(s, 1)
 	waitSignal(t, started)
 	for id := 2; id <= 12; id++ {
@@ -208,7 +208,7 @@ func TestParentCancellationJoinsDraftAndRejectsLateResult(t *testing.T) {
 		return "late draft", nil
 	})
 	var got lifecycleLog
-	s := newSession(Config{VolatileSentences: true, Context: ctx, Src: "ja", Tgt: "zh", Translator: tr, Draft: true}, got.onState)
+	s := newSession(Config{CommitVolatileSentences: true, Context: ctx, Src: "ja", Tgt: "zh", Translator: tr, Draft: true}, got.onState)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	waitSignal(t, started)
 	cancel()
@@ -231,7 +231,7 @@ func TestCallbackCanStopWithoutDeadlock(t *testing.T) {
 	stopped := make(chan struct{})
 	var s *Session
 	var events []LineEvent
-	s = newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, OnLine: func(e LineEvent) {
+	s = newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, OnLine: func(e LineEvent) {
 		events = append(events, e)
 		if e.Kind == LineCommitted {
 			s.Stop()
@@ -253,7 +253,7 @@ func TestCanceledLineRetainsDraft(t *testing.T) {
 		<-ctx.Done()
 		return "", ctx.Err()
 	})
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true, OnLine: got.onLine}, got.onState)
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true, OnLine: got.onLine}, got.onState)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	waitFor(t, &got.mu, func() bool { return got.state.Draft == "available draft" })
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
@@ -281,7 +281,7 @@ func TestCommittedSentenceDiscardsStaleDraft(t *testing.T) {
 		return "stale draft", nil
 	})
 	var got lifecycleLog
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true, OnLine: got.onLine}, got.onState)
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, Draft: true, OnLine: got.onLine}, got.onState)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	waitSignal(t, started)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
@@ -339,7 +339,7 @@ func TestLineMetadataCapturedBeforeDelayedDispatch(t *testing.T) {
 	var captures atomic.Int32
 	started, release := make(chan struct{}), make(chan struct{})
 	var events []LineEvent
-	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, LineMetadata: func() any {
+	s := newSession(Config{CommitVolatileSentences: true, Src: "ja", Tgt: "zh", Translator: upper{}, LineMetadata: func() any {
 		captures.Add(1)
 		return source.Load()
 	}, OnLine: func(ev LineEvent) { events = append(events, ev) }}, func(st State) {

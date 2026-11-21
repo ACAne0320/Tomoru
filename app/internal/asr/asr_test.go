@@ -30,14 +30,14 @@ func TestSpecsOrder(t *testing.T) {
 
 type fakeServer struct{}
 
-func (fakeServer) EnsureVision(context.Context, string) (string, error) {
+func (fakeServer) EnsureProjector(context.Context, string) (string, error) {
 	return "http://127.0.0.1:1", nil
 }
 
 func TestSpecsMake(t *testing.T) {
 	apple := specs("darwin")[0]
-	if f, err := apple.New(Env{}); f != nil || err != nil {
-		t.Fatal("the system's recognition must stay in the engine")
+	if !apple.InEngine || apple.New != nil || !apple.SystemLangs {
+		t.Fatal("the system's recognition must stay in the engine, in the system's languages")
 	}
 	var model, served Spec
 	for _, s := range specs("windows") {
@@ -55,7 +55,7 @@ func TestSpecsMake(t *testing.T) {
 	if f, err := served.New(Env{Server: fakeServer{}, ModelPath: "/models/q.gguf"}); f == nil || err != nil {
 		t.Fatalf("a served model: %v", err)
 	}
-	if !served.VolatileSentences || served.FinalsEnd {
+	if !served.CommitVolatileSentences || served.FinalsEndUtterances {
 		t.Error("an untimed model's volatile sentence ends commit; its finals end stretches")
 	}
 	if _, err := model.New(Env{}); !errors.Is(err, ErrLocal) {
@@ -64,21 +64,21 @@ func TestSpecsMake(t *testing.T) {
 	if f, err := model.New(Env{ASR: "/bin/asr", ModelDir: "/models/asr"}); f == nil || err != nil {
 		t.Fatalf("a local model with its paths: %v", err)
 	}
-	if !apple.FinalsEnd || !apple.VolatileSentences || apple.Hint == nil || model.FinalsEnd || model.VolatileSentences {
+	if !apple.FinalsEndUtterances || !apple.CommitVolatileSentences || apple.Finalizer == nil || model.FinalsEndUtterances || model.CommitVolatileSentences {
 		t.Error("only services end utterances with final results, and only theirs hold volatile sentence ends")
 	}
 	if apple.Auto || !model.Auto || !served.Auto {
 		t.Error("the models tell the language they hear; Apple's recognition is told it")
 	}
 	cloud, ok := ByID(QwenCloud)
-	if !ok || !cloud.Cloud || !cloud.Billed || !cloud.Key || cloud.Langs == nil || !cloud.FinalsEnd || !cloud.VolatileSentences {
+	if !ok || !cloud.Cloud || !cloud.Billed || !cloud.Key || cloud.Langs == nil || !cloud.FinalsEndUtterances || !cloud.CommitVolatileSentences {
 		t.Fatalf("the cloud's entry: %+v", cloud)
 	}
 	if f, err := cloud.New(Env{Service: Service{Key: "k"}}); f == nil || err != nil {
 		t.Fatalf("the cloud's factory: %v", err)
 	}
 	oa, ok := ByID(OpenAI)
-	if !ok || !oa.Cloud || !oa.Billed || !oa.Key || oa.FinalsEnd || oa.URL == "" || len(oa.Models) < 2 || oa.Models[0] != "gpt-live-transcribe" {
+	if !ok || !oa.Cloud || !oa.Billed || !oa.Key || oa.FinalsEndUtterances || oa.URL == "" || len(oa.Models) < 2 || oa.Models[0] != "gpt-live-transcribe" {
 		t.Fatalf("OpenAI's entry: %+v", oa)
 	}
 	for _, model := range []string{"", "gpt-transcribe"} {

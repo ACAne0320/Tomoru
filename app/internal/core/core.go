@@ -66,7 +66,7 @@ type Models interface {
 
 type Server interface {
 	Ensure(ctx context.Context, path string) (url string, err error)
-	EnsureVision(ctx context.Context, path string) (url string, err error)
+	EnsureProjector(ctx context.Context, path string) (url string, err error)
 	Stop()
 }
 

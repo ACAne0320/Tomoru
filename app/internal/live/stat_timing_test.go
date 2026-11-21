@@ -135,7 +135,7 @@ func TestLineSaid(t *testing.T) {
 	clock := &statsClock{at: start}
 	var mu sync.Mutex
 	var lines []Line
-	s := newSession(Config{Now: clock.now, VolatileSentences: true}, func(st State) {
+	s := newSession(Config{Now: clock.now, CommitVolatileSentences: true}, func(st State) {
 		mu.Lock()
 		lines = st.Lines
 		mu.Unlock()

@@ -24,7 +24,7 @@ func (l *lag) note(ev engine.Event) (slow, changed bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	was := l.slow
-	if ev.On {
+	if ev.Type == engine.EventStall {
 		l.slow = l.slow || d >= slowAfter
 		return l.slow, l.slow != was
 	}
@@ -59,7 +59,7 @@ func watched(build func(Env) (Factory, error)) func(Env) (Factory, error) {
 		return func(lang string, on func(engine.Event)) (Recognizer, error) {
 			l := &lag{}
 			return f(lang, func(ev engine.Event) {
-				if ev.Type != engine.EventLag {
+				if ev.Type != engine.EventLag && ev.Type != engine.EventStall {
 					on(ev)
 					return
 				}

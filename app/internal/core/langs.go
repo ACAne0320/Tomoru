@@ -30,7 +30,7 @@ func (c *Core) Hears(id string) []string {
 		return nil
 	}
 	hears := s.Langs
-	if hears == nil {
+	if s.SystemLangs {
 		hears = c.sysLangs
 	}
 	if hears == nil {

@@ -36,7 +36,7 @@ func texts(segs []Segment) []string {
 
 func zh(maxWidth int) *Segmenter { return New(Config{MaxWidth: maxWidth}) }
 
-func zhVol() *Segmenter { return New(Config{VolatileSentences: true}) }
+func zhVol() *Segmenter { return New(Config{CommitVolatileSentences: true}) }
 
 func TestFinal(t *testing.T) {
 	t.Run("one segment per sentence, with times", func(t *testing.T) {
@@ -136,7 +136,7 @@ func TestVolatile(t *testing.T) {
 		}
 	})
 	t.Run("a final result with no words still ends the hypothesis committed from", func(t *testing.T) {
-		s := New(Config{VolatileSentences: true, FinalsEnd: true})
+		s := New(Config{CommitVolatileSentences: true, FinalsEndUtterances: true})
 		s.Volatile(" Any questions so far?", 9.41, 11.51)
 		s.Final([]Token{{"?..?", 9.41, 11.39}})
 		got := commits(s.Volatile(" Okay, then let's move on to the next item.", 12.83, 16.85))
@@ -240,7 +240,7 @@ func TestVoice(t *testing.T) {
 }
 
 func TestFinalsEnd(t *testing.T) {
-	s := New(Config{FinalsEnd: true})
+	s := New(Config{FinalsEndUtterances: true})
 	got := commits(s.Final(chars("大事はないか。その後とは", 0)))
 	if !slices.Equal(texts(got), []string{"大事はないか。", "その後とは"}) || got[1].Reason != "pause" || s.Pending() != "" {
 		t.Errorf("%+v, pending %q", got, s.Pending())
@@ -271,7 +271,7 @@ func TestLength(t *testing.T) {
 	for i, w := range strings.Fields("She was still struggling, often losing sleep in the middle of the night, feeling unfocused, unmotivated during the day.") {
 		toks = append(toks, Token{Text: " " + w, Start: float64(i) * .3, End: float64(i+1) * .3})
 	}
-	got = commits(New(Config{FinalsEnd: true}).Final(toks))
+	got = commits(New(Config{FinalsEndUtterances: true}).Final(toks))
 	if !slices.Equal(texts(got), []string{"She was still struggling, often losing sleep in the middle of the night,", "feeling unfocused, unmotivated during the day."}) || got[0].Reason != "length" {
 		t.Errorf("%q", texts(got))
 	}

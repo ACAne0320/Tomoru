@@ -39,10 +39,10 @@ type Action struct {
 }
 
 type Config struct {
-	VolatileSentences bool
-	FinalsEnd         bool
-	TailWait          float64
-	MaxWidth          int
+	CommitVolatileSentences bool
+	FinalsEndUtterances     bool
+	TailWait                float64
+	MaxWidth                int
 }
 
 type Segmenter struct {
@@ -219,7 +219,7 @@ func (s *Segmenter) commitSentences() []*Segment {
 }
 
 func (s *Segmenter) commitTail() *Segment {
-	if !hasSpeech(s.stableText()) || !s.cfg.FinalsEnd && (hasSpeech(s.volPending()) || !s.quiet()) {
+	if !hasSpeech(s.stableText()) || !s.cfg.FinalsEndUtterances && (hasSpeech(s.volPending()) || !s.quiet()) {
 		return nil
 	}
 	st := []rune(s.stableText())
@@ -248,7 +248,7 @@ func (s *Segmenter) quiet() bool {
 func (s *Segmenter) commitFirstSentence() *Segment {
 	st := []rune(s.stableText())
 	full := st
-	if s.cfg.VolatileSentences {
+	if s.cfg.CommitVolatileSentences {
 		full = append(st, []rune(s.volPending())...)
 	}
 	b := firstSentenceEnd(full)
