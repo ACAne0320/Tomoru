@@ -32,7 +32,7 @@ func readCases(path string) ([]Case, error) {
 		if len(f) < 8 {
 			return nil, fmt.Errorf("%s: a short line: %q", path, line)
 		}
-		c := Case{ID: f[0], Lang: f[1], Scene: f[2], Video: f[3], Start: seconds(f[4]), End: seconds(f[5]), Ref: f[6]}
+		c := Case{ID: f[0], Lang: f[1], Scene: f[2], Video: f[3], Start: seconds(f[4]), End: seconds(f[5]), Ref: RefTrack(f[6])}
 		for _, t := range strings.Split(f[7], ",") {
 			if t != "" && t != "-" {
 				c.Tgt = append(c.Tgt, t)

@@ -44,7 +44,7 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 		}
 		wav, dur = cut, maxSec
 	}
-	r.Audio = dur
+	r.AudioSec = dur
 	if cfg.Src != lang.Auto {
 		cfg.Src = c.Lang
 	}
@@ -131,14 +131,14 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	if stopped != nil {
 		r.Err = stopped.Error()
 	}
-	r.Events = slices.DeleteFunc(r.Events, func(e Event) bool { return e.Line == 0 && e.T > dur+tail.Seconds() })
+	r.Events = slices.DeleteFunc(r.Events, func(e Event) bool { return !e.OfSentence() && e.T > dur+tail.Seconds() })
 	return r
 }
 
 func recordLine(r *Result, lines map[int]live.Line, t float64, l live.Line) {
 	old, seen := lines[l.ID]
 	if !seen {
-		r.Events = append(r.Events, Event{T: t, Line: l.ID, Src: l.Src, Lang: l.Lang, LDraft: l.Draft})
+		r.Events = append(r.Events, Event{T: t, Line: l.ID, Src: l.Src, Lang: l.Lang, KeptDraft: l.Draft})
 	}
 	if old.Tgt != l.Tgt || old.Outcome != l.Outcome || old.Err != l.Err {
 		tgt, why := l.Tgt, ""

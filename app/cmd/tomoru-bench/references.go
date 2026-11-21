@@ -23,14 +23,14 @@ func translateRefs(c Case, media string, tr translate.Translator, about string) 
 		return r
 	}
 	if len(cues) > 0 {
-		r.Audio = cues[len(cues)-1].end
+		r.AudioSec = cues[len(cues)-1].end
 	}
 	for _, src := range sentences(cues, c.Lang) {
 		t0 := time.Now()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		out, err := tr.Translate(ctx, translate.Request{Src: c.Lang, Tgt: tgt, Text: src, About: about}, nil)
 		cancel()
-		s := Sentence{Src: src, Tgt: out, Sec: round(time.Since(t0).Seconds())}
+		s := Sentence{Src: src, Tgt: out, TranslateSec: round(time.Since(t0).Seconds())}
 		if err != nil {
 			s.Err = err.Error()
 		}
@@ -74,6 +74,11 @@ func readSRT(path string) ([]cue, error) {
 	return out, sc.Err()
 }
 
+const (
+	referencePause = 0.8
+	referenceRunes = 80
+)
+
 func sentences(cues []cue, code string) []string {
 	var out []string
 	var cur strings.Builder
@@ -91,8 +96,8 @@ func sentences(cues []cue, code string) []string {
 		cur.WriteString(strings.TrimSpace(c.text))
 		text := strings.TrimSpace(c.text)
 		end := strings.ContainsAny(lastRune(text), "。！？!?.…")
-		pause := i+1 < len(cues) && cues[i+1].start-c.end > 0.8
-		if end || pause || len([]rune(cur.String())) > 80 {
+		pause := i+1 < len(cues) && cues[i+1].start-c.end > referencePause
+		if end || pause || len([]rune(cur.String())) > referenceRunes {
 			flush()
 		}
 	}
