@@ -35,16 +35,17 @@ type TestResult struct {
 const TestSample = "Good evening, everyone. Today's stream will run a bit longer than usual."
 
 type EngineService struct {
-	Tests     map[string]TestResult
-	pending   map[Kind]string
-	tests     map[string]*engineTest
-	work      *tasks
-	models    Models
-	server    Server
-	asrServer Server
-	secrets   Secrets
-	changed   func()
-	visions   map[api]prefs.Vision
+	Tests      map[string]TestResult
+	pending    map[Kind]string
+	tests      map[string]*engineTest
+	work       *tasks
+	models     Models
+	server     Server
+	asrServer  Server
+	secrets    Secrets
+	changed    func()
+	visions    map[api]prefs.Vision
+	imageCloud func() *translate.Endpoint
 }
 
 type api struct{ url, model, format string }
@@ -68,7 +69,7 @@ func modelFormat(m models.Model) *translate.Format {
 type engineTest struct{ cancel context.CancelFunc }
 
 func newEngineService(work *tasks, models Models, server, asrServer Server, secrets Secrets, changed func()) *EngineService {
-	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, visions: map[api]prefs.Vision{}, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
+	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, visions: map[api]prefs.Vision{}, imageCloud: translate.Cloud, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
 }
 
 func (s *EngineService) notify() {
@@ -294,7 +295,7 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 		size, _ = CloudSizeByID("cloud")
 	}
 	return func(context.Context) (*translate.Endpoint, error) {
-		e := imageCloud()
+		e := s.imageCloud()
 		e.Model = size.Model
 		return e, nil
 	}, size.ID

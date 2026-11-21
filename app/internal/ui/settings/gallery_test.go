@@ -31,7 +31,7 @@ func TestGallery(t *testing.T) {
 	}
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.HistoryDir = t.TempDir()
-		d.GPU, d.Memory = func() uint64 { return 8 << 30 }, func() uint64 { return 16 << 30 }
+		d.GPU, d.Memory = func() (uint64, bool) { return 8 << 30, true }, func() (uint64, bool) { return 16 << 30, true }
 		d.StatsPath = stats
 		d.Version, d.OS = "0.1.4", "macOS 26.6.2"
 		d.Models = &coretest.Models{St: map[string]models.Status{

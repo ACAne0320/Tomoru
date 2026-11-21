@@ -75,8 +75,9 @@ func (c *Core) Families(k Kind) [][]Engine {
 func (c *Core) Recommended(e Engine) bool { return e.ID != "" && e.ID == c.recommended(e.Kind) }
 
 func (c *Core) recommended(k Kind) string {
+	vram, _ := c.gpu()
 	for _, e := range c.Engines(k) {
-		if m := e.Model; m != nil && m.Rec && c.gpu() != 0 && c.Shortfall(*m) == (Shortfall{}) {
+		if m := e.Model; m != nil && m.Rec && vram != 0 && c.Shortfall(*m) == (Shortfall{}) {
 			return e.ID
 		}
 	}
@@ -87,36 +88,43 @@ func (c *Core) recommended(k Kind) string {
 }
 
 type Shortfall struct {
-	Need, Has uint64
-	GPU       bool
+	NeedGB, HasGB uint64
+	GPU           bool
 }
 
 func (c *Core) Shortfall(m models.Model) Shortfall {
-	var mem uint64
-	if c.deps.Memory != nil {
-		mem = c.deps.Memory()
-	}
+	mem, memKnown := c.memory()
 	need, has := gb(m.Needs.Memory), gb(mem)
-	if mem != 0 && has < need {
-		return Shortfall{Need: need, Has: has}
+	if memKnown && has < need {
+		return Shortfall{NeedGB: need, HasGB: has}
 	}
-	need, has = gb(m.Needs.VRAM), gb(c.gpu())
-	if c.gpu() != 0 && has < need {
-		return Shortfall{Need: need, Has: has, GPU: true}
+	vram, vramKnown := c.gpu()
+	need, has = gb(m.Needs.VRAM), gb(vram)
+	if vramKnown && vram != 0 && has < need {
+		return Shortfall{NeedGB: need, HasGB: has, GPU: true}
 	}
 	return Shortfall{}
 }
 
 func (c *Core) Runs(m models.Model) bool {
-	if c.deps.Memory == nil || c.deps.Memory() == 0 || m.Needs.VRAM != 0 && c.gpu() == 0 {
+	_, memKnown := c.memory()
+	vram, vramKnown := c.gpu()
+	if !memKnown || m.Needs.VRAM != 0 && (!vramKnown || vram == 0) {
 		return false
 	}
 	return c.Shortfall(m) == Shortfall{}
 }
 
-func (c *Core) gpu() uint64 {
+func (c *Core) memory() (bytes uint64, known bool) {
+	if c.deps.Memory == nil {
+		return 0, false
+	}
+	return c.deps.Memory()
+}
+
+func (c *Core) gpu() (bytes uint64, known bool) {
 	if c.deps.GPU == nil {
-		return 0
+		return 0, false
 	}
 	return c.deps.GPU()
 }

@@ -213,7 +213,7 @@ func TestLocalModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{}}
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = m
-		d.Memory = func() uint64 { return 8 << 30 }
+		d.Memory = func() (uint64, bool) { return 8 << 30, true }
 	})
 	g := New(k, &coretest.Nav{})
 	g.Step, g.next = stepTranslation, stepTranslation
@@ -337,8 +337,8 @@ func TestFamilyRows(t *testing.T) {
 	mem := uint64(16 << 30)
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = &coretest.Models{St: map[string]models.Status{}}
-		d.GPU = func() uint64 { return 12 << 30 }
-		d.Memory = func() uint64 { return mem }
+		d.GPU = func() (uint64, bool) { return 12 << 30, true }
+		d.Memory = func() (uint64, bool) { return mem, true }
 	})
 	g := New(k, &coretest.Nav{})
 	g.Step, g.next = stepTranslation, stepTranslation

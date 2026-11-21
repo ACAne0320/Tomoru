@@ -75,6 +75,8 @@ type Writer struct {
 
 func NewWriter(dir string, head Head) *Writer { return &Writer{dir: dir, head: head} }
 
+func (w *Writer) Broken() bool { return w.err != nil }
+
 func (w *Writer) Add(e Entry) error {
 	if w.err != nil {
 		return w.err

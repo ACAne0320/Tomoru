@@ -328,7 +328,7 @@ func TestDownloadThenUse(t *testing.T) {
 func TestTooLarge(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = &coretest.Models{St: map[string]models.Status{}}
-		d.Memory = func() uint64 { return 8 << 30 }
+		d.Memory = func() (uint64, bool) { return 8 << 30, true }
 	})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "engines"
@@ -1165,7 +1165,7 @@ func TestModelsFolder(t *testing.T) {
 
 func TestFeedback(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() uint64 { return 24 << 30 }
+		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() (uint64, bool) { return 24 << 30, true }
 	})
 	s := New(k, &coretest.Nav{})
 	s.Tab = "about"

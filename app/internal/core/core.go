@@ -15,6 +15,24 @@ import (
 	"tomoru/internal/usage"
 )
 
+type Permission string
+
+const (
+	PermissionUnchecked Permission = ""
+	PermissionGranted   Permission = Permission(engine.AccessGranted)
+	PermissionDenied    Permission = Permission(engine.AccessDenied)
+	PermissionUnknown   Permission = Permission(engine.AccessUnknown)
+)
+
+type ASRState string
+
+const (
+	ASRUnprepared ASRState = ""
+	ASRPreparing  ASRState = "preparing"
+	ASRReady      ASRState = "ready"
+	ASRFailed     ASRState = "error"
+)
+
 type Session interface {
 	Close()
 }
@@ -47,7 +65,8 @@ type Deps struct {
 	Server              Server
 	ASRServer           Server
 	Secrets             Secrets
-	GPU, Memory         func() uint64
+	GPU, Memory         func() (bytes uint64, known bool)
+	ImageCloud          func() *translate.Endpoint
 	Proxy               func(off bool, addr string)
 	SystemProxy         func() string
 	Network             func() (online, metered bool)
@@ -90,7 +109,7 @@ type Core struct {
 	Pressed map[Shortcut]time.Time
 	Held    map[Shortcut]bool
 
-	Screen          string
+	Screen          Permission
 	ScreenAsking    bool
 	screenCheckedAt time.Time
 
@@ -101,11 +120,11 @@ type Core struct {
 	deps     Deps
 	onChange []func()
 
-	Access    string
+	Access    Permission
 	Checking  bool
 	Asking    bool
 	CheckedAt time.Time
-	ASR       map[string]string
+	ASR       map[string]ASRState
 	sysLangs  []string
 	Apps      []App
 	listedAt  time.Time
@@ -140,10 +159,13 @@ func New(p prefs.Prefs, d Deps) *Core {
 	if d.RunEngine == nil {
 		d.RunEngine = engine.Run
 	}
-	c := &Core{PreferencesService: &PreferencesService{Prefs: p.Clone(), saved: p.Clone()}, SceneService: &SceneService{}, deps: d, ASR: map[string]string{},
+	c := &Core{PreferencesService: &PreferencesService{Prefs: p.Clone(), saved: p.Clone()}, SceneService: &SceneService{}, deps: d, ASR: map[string]ASRState{},
 		Pressed: map[Shortcut]time.Time{}, Held: map[Shortcut]bool{}}
 	c.work = newTasks(d.Context, d.Post)
 	c.EngineService = newEngineService(c.work, d.Models, d.Server, d.ASRServer, d.Secrets, c.changed)
+	if d.ImageCloud != nil {
+		c.EngineService.imageCloud = d.ImageCloud
+	}
 	c.HistoryService = &HistoryService{work: c.work, changed: c.changed}
 	c.ImageService = &ImageService{work: c.work, endpoint: d.ImageEndpoint, selectPicture: d.Select, changed: c.changed, translated: c.imageTranslated, release: c.releaseServer}
 	c.LearningService = &LearningService{work: c.work, changed: c.changed, rewritten: func() {
@@ -156,7 +178,7 @@ func New(p prefs.Prefs, d Deps) *Core {
 		onState: func(st live.State) {
 			c.HistoryService.drain()
 			if st.Phase == live.PhaseListening {
-				c.ASR[c.Prefs.Src] = "ready"
+				c.ASR[c.Prefs.Src] = ASRReady
 			}
 		},
 		onStopped: func() {
@@ -169,9 +191,7 @@ func New(p prefs.Prefs, d Deps) *Core {
 	c.loadStats()
 	c.useProxy()
 	c.saved = c.Prefs.Clone()
-	if c.Prefs.ImageMT == "" {
-		c.Prefs.ImageMT = imageEngineFrom(c.Prefs.MT, c.Prefs.Endpoints)
-	}
+	c.chooseImageEngineOnce()
 	if d.Login != nil {
 		c.AtLogin = d.Login.OpenAtLogin()
 	}

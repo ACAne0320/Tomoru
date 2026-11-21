@@ -107,11 +107,10 @@ func TestImageEngineOnly(t *testing.T) {
 		http.Error(w, "busy", http.StatusServiceUnavailable)
 	}))
 	defer api.Close()
-	defer func(f func() *translate.Endpoint) { imageCloud = f }(imageCloud)
-	imageCloud = func() *translate.Endpoint {
+	c, f, m, srv, _ := engineCore(t)
+	c.EngineService.imageCloud = func() *translate.Endpoint {
 		return &translate.Endpoint{URL: cloud.URL, Model: "m", Format: translate.Index}
 	}
-	c, f, m, srv, _ := engineCore(t)
 	c.Prefs.Onboarded = true
 	pic := picture()
 	done := func() {

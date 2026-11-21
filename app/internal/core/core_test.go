@@ -231,9 +231,9 @@ func TestSystem(t *testing.T) {
 	f.answers["access"] = []engine.Event{{Type: "access", State: "unknown"}}
 	f.answers["apps"] = []engine.Event{{Type: "app", ID: "com.apple.Safari", Name: "Safari", Playing: true}}
 
-	preparing, ready, ran := "preparing", "ready", []string{"access", "apps", "prepare"}
+	preparing, ready, ran := ASRPreparing, ASRReady, []string{"access", "apps", "prepare"}
 	if prefs.SystemASR() == "" {
-		preparing, ready, ran = "", "", ran[:2]
+		preparing, ready, ran = ASRUnprepared, ASRUnprepared, ran[:2]
 	}
 	c.PrepareASR("ja")
 	c.PrepareASR("ja")

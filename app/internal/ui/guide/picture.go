@@ -53,7 +53,7 @@ func (g *Guide) pictureAsk(c *ui.Context) {
 	k := g.core
 	title(c, locales.GuideSelectTitle())
 	switch {
-	case k.Screen == "denied":
+	case k.Screen == core.PermissionDenied:
 		body(c, locales.GuideSelectSettings())
 		if kit.Button(c, kit.Primary, kit.Small, nil, locales.OpenSystemSettings()).AlignSelf(ui.Start).Clicked() {
 			kit.GuideScreenRecording()
@@ -64,7 +64,7 @@ func (g *Guide) pictureAsk(c *ui.Context) {
 		if k.ScreenAsking {
 			label = locales.ScreenSelectAsking()
 		}
-		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == "").AlignSelf(ui.Start).Clicked() {
+		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, assets.Picture, label), k.ScreenAsking || k.Screen == core.PermissionUnchecked).AlignSelf(ui.Start).Clicked() {
 			k.RequestScreen()
 		}
 		note(c, shared.OnEach(locales.ScreenSelectWhy(), locales.ScreenSelectWhy(), locales.ScreenSelectWhyLinux()))
