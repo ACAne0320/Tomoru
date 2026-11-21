@@ -82,16 +82,16 @@ they read none and those prompted as Hy-MT2, a model that reads none (`Format.Re
   endpoint (`Endpoint.Vision`), at once if it is saved and the same API, else when it is saved.
   Changing its address, model or format makes it not known again. APIs saved before stay listed
   until a test finds they read none.
-- **Gone**: a model deleted, an API deleted or found to read none, while chosen for pictures, gives
-  way to the cloud, as live translation does with `Successor`; undoing the API's deletion chooses it
-  again. A test that finds so says it under its result (`TestResult.ToCloud`).
+- **Gone**: a model deleted, an API deleted or found to read none, while chosen for pictures, stays
+  chosen; a picture then fails and the card says why (`ErrModelMissing`, `ErrNoEndpoint`,
+  `ErrNoVision`), until another engine is chosen. A deleted API shows as "Deleted API" in the menu.
 - **Only the one chosen** (`EngineService.imageEndpoint`): a picture never goes to another engine.
   When the chosen one can't translate it (its model missing, the models moving, the API failing),
   the card says why.
 
 | Engine | Images |
 |---|---|
-| Index-Translate in the cloud | as before. Its first words come in about 2 s; when they haven't in 10 s, the picture is asked again, once, on a new connection, alongside the first, and whichever answers first is read (`Endpoint.ImageWait`): through a proxy, a connection to it at times takes a picture and answers nothing until the server closes it minutes later, and HTTP/2 would send the picture again on that one (2026-11-01); and for some minutes at a time it starts every picture after 9 to 30 s, as late for one asked again, so the first is not dropped (2026-11-10). With no words from either in a minute (six times the wait), the card says so as the subtitles do |
+| Index-Translate in the cloud | as before. Its first words come in about 2 s; when they haven't in 10 s, the picture is asked again, once, on a new connection, alongside the first, and whichever answers first is read (`Endpoint.ImageWait`): through a proxy, a connection to it at times takes a picture and answers nothing until the server closes it minutes later, and HTTP/2 would send the picture again on that one (2026-11-01), so pictures go on connections of their own (`pictureClient`), closed once one was asked again, which leaves the subtitles' connections warm; and for some minutes at a time it starts every picture after 9 to 30 s, as late for one asked again, so the first is not dropped (2026-11-10). With no words from either in a minute (six times the wait), the card says so as the subtitles do |
 | A local model (2B / 9B) | read by llama-server with the model's vision projector, `--mmproj` (Q8_0: 345 MB for 2B, 592 MB for 9B, from the same repositories). It is one of the model's files (`models.Model.Vision`), downloaded and deleted with it, so a local model always reads images. llama-server loads it only for the first image (`Server.EnsureVision`): it costs 430 MB more memory for 2B, 680 MB for 9B, which subtitles alone needn't take. A server translating subtitles starts again with it on the same port, so the session's translator keeps its URL (the first image takes about 2 s, the next 0.6 s), and keeps it. If no session translates with a local model, llama-server, started for an image, stops when the card closes |
 | A local model while another translates the subtitles | fails with `ErrModelBusy`, which the card says: llama-server runs one model at a time, and starting the other would stop the subtitles' |
 | An API of the user's | sent the image; if it fails (it may read no images), the card says so, with the API's error: no other engine is asked, as the picture goes only where the user chose |

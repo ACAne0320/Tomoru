@@ -16,6 +16,7 @@ import (
 
 	"github.com/coder/websocket"
 
+	"tomoru/internal/asr/batch"
 	"tomoru/internal/engine"
 )
 
@@ -348,6 +349,24 @@ func TestSpaceAhead(t *testing.T) {
 	}
 	if want := []string{"Hey", " everyone,", " welcome", " to", " the", " chat."}; strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("%q", got)
+	}
+}
+
+func TestBehind(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { <-r.Context().Done() }))
+	defer srv.Close()
+	s := Start(Config{Host: srv.URL, Key: "sk-1"}, "ja", func(engine.Event) {})
+	defer s.Stop()
+	for i := range 700 {
+		s.Audio(audioAt(float64(i) / 10))
+	}
+	select {
+	case <-s.Done():
+	case <-time.After(5 * time.Second):
+		t.Fatal("still running with the audio piling up")
+	}
+	if err := s.Err(); !errors.Is(err, batch.ErrBehind) {
+		t.Errorf("ended with %v", err)
 	}
 }
 

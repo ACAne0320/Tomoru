@@ -102,6 +102,7 @@ type Session struct {
 	clocked float64
 	recent  []chunk
 	calling bool
+	behind  bool
 	gated   bool
 	speak   bool
 	quiet   float64
@@ -143,6 +144,9 @@ func Start(cfg Config, lang string, onEvent func(engine.Event)) *Session {
 			err = &Error{"connection", strings.TrimPrefix(err.Error(), "qwencloud: ")}
 		}
 		s.mu.Lock()
+		if s.behind {
+			err = batch.ErrBehind
+		}
 		s.err = err
 		s.mu.Unlock()
 		cancel()
@@ -175,10 +179,7 @@ func (s *Session) Audio(ev engine.Event) error {
 		s.recent = s.recent[1:]
 	}
 	if s.calling {
-		select {
-		case s.audio <- c:
-		default:
-		}
+		s.put(c)
 		if s.gated && !s.speak && heard-max(s.quiet, s.sound) >= idle {
 			select {
 			case s.audio <- chunk{t: heard}:
@@ -210,11 +211,17 @@ func (s *Session) callAgain(t float64) {
 	s.calling = true
 	for _, c := range s.recent {
 		if c.t+float64(len(c.pcm))/32000 > t-preroll {
-			select {
-			case s.audio <- c:
-			default:
-			}
+			s.put(c)
 		}
+	}
+}
+
+func (s *Session) put(c chunk) {
+	select {
+	case s.audio <- c:
+	default:
+		s.behind = true
+		s.cancel()
 	}
 }
 

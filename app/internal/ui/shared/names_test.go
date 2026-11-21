@@ -14,6 +14,7 @@ import (
 	"tomoru/internal/core"
 	"tomoru/internal/engine"
 	"tomoru/internal/models"
+	"tomoru/internal/proxy"
 	"tomoru/locales"
 )
 
@@ -57,6 +58,9 @@ func TestEngineName(t *testing.T) {
 	if got := EngineName(core.Engine{ID: "cloud"}); got != CloudName {
 		t.Errorf("the cloud: %q", got)
 	}
+	if got := EngineName(core.Engine{ID: "custom:gone"}); got != locales.EngineDeleted() {
+		t.Errorf("a deleted API: %q", got)
+	}
 }
 
 func TestErrorText(t *testing.T) {
@@ -67,6 +71,8 @@ func TestErrorText(t *testing.T) {
 		&engine.Error{Code: "new", Message: "m"}: locales.StatusStopped("m"),
 		errors.New("x"):                          locales.StatusStopped("x"),
 		batch.ErrBehind:                          locales.ErrAsrBehind(),
+		fmt.Errorf("dial: %w", proxy.ErrInvalid): locales.ErrProxyInvalid(),
+		core.ErrNoVision:                         locales.ErrNoVision(),
 	} {
 		if got := ErrorText(err); got != want {
 			t.Errorf("%v: %q, want %q", err, got, want)

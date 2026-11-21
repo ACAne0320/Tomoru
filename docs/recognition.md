@@ -511,7 +511,9 @@ models together leave little of 8 GB of VRAM to a game; the page says so.
 - Decoding slower than speech: volatile decodes are skipped. When a decode holds the runner while
   about 25 s of audio piles up behind it (finals too slow, or a llama-server or network that
   hangs), the runner stops the decoder and the session stops with `batch.ErrBehind`, whose message
-  says to choose a lighter model or check the network.
+  says to choose a lighter model or check the network. The Qwen cloud's session does the same when
+  60 s of audio wait to be sent (a connection that takes none, `Session.put`), rather than
+  leaving a hole in the subtitles.
 - llama-server crashes or fails to start: the session stops with the error, like `tomoru-asr` now.
 - Music and sound effects recognized as words (the cloud's 「Do」, 「多河」 in the Sekiro case):
   shown as subtitles; only Qwen3-ASR's `language None`, its answers longer than speech, and

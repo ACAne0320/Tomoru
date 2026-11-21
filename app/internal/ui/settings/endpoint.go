@@ -13,7 +13,6 @@ import (
 	"tomoru/internal/translate"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
-	"tomoru/internal/ui/shared"
 	"tomoru/locales"
 )
 
@@ -148,9 +147,6 @@ func testResult(c *ui.Context, r core.TestResult) {
 			kit.ResultMark(c, assets.Picture, locales.ReadsPictures(), true)
 		case prefs.VisionNo:
 			kit.ResultMark(c, assets.NoPicture, locales.ReadsNoPictures(), false)
-		}
-		if r.ToCloud {
-			kit.Caption(c, locales.PicturesToCloud(shared.EngineName(core.Engine{ID: "cloud"})))
 		}
 	}
 }

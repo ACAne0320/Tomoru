@@ -18,6 +18,8 @@ import (
 	"tomoru/internal/engine"
 	"tomoru/internal/lang"
 	"tomoru/internal/models"
+	"tomoru/internal/prefs"
+	"tomoru/internal/proxy"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
@@ -31,6 +33,8 @@ func DownloadError(err error) string {
 		return ""
 	case errors.Is(err, models.ErrChecksum):
 		return locales.DownloadDamaged()
+	case errors.Is(err, proxy.ErrInvalid):
+		return locales.ErrProxyInvalid()
 	case errors.As(err, &space):
 		return locales.NoSpace(Size(space.Need))
 	}
@@ -139,6 +143,8 @@ func EngineName(e core.Engine) string {
 		return locales.EngineNone()
 	case e.Endpoint != nil:
 		return e.Endpoint.Name
+	case strings.HasPrefix(e.ID, prefs.CustomPrefix):
+		return locales.EngineDeleted()
 	case e.ID == "apple":
 		return locales.EngineApple()
 	case e.ID == "cloud":
@@ -179,6 +185,8 @@ func ErrorText(err error) string {
 		return locales.ErrAsrModelMissing()
 	case errors.Is(err, batch.ErrBehind):
 		return locales.ErrAsrBehind()
+	case errors.Is(err, proxy.ErrInvalid):
+		return locales.ErrProxyInvalid()
 	}
 	if why := asrCloudError(err); why != "" {
 		return why
@@ -186,6 +194,8 @@ func ErrorText(err error) string {
 	switch {
 	case errors.Is(err, core.ErrNoEndpoint):
 		return locales.ErrNoEndpoint()
+	case errors.Is(err, core.ErrNoVision):
+		return locales.ErrNoVision()
 	case errors.Is(err, core.ErrMTCloudKey):
 		return locales.ErrMtCloudKey()
 	case errors.As(err, new(core.LocalError)):
@@ -222,7 +232,7 @@ func ErrorFix(err error) Fix {
 	case core.IsExited(err):
 		return FixRetry
 	case errors.Is(err, core.ErrModelMissing), errors.Is(err, core.ErrASRMissing), errors.Is(err, core.ErrNoASR),
-		errors.Is(err, core.ErrASRCloudKey), errors.Is(err, core.ErrMTCloudKey), errors.Is(err, core.ErrNoEndpoint),
+		errors.Is(err, core.ErrASRCloudKey), errors.Is(err, core.ErrMTCloudKey), errors.Is(err, core.ErrNoEndpoint), errors.Is(err, core.ErrNoVision),
 		errors.Is(err, qwencloud.ErrAuth), errors.Is(err, openai.ErrAuth), errors.Is(err, batch.ErrBehind):
 		return FixEngines
 	case errors.As(err, &e) && e.Code == "no-permission":

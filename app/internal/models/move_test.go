@@ -39,7 +39,7 @@ func move(t *testing.T, m *Manager, to string) error {
 }
 
 func noRename(m *Manager) {
-	m.rename = func(string, string) error { return errors.New("another disk") }
+	m.rename = func(a, b string) error { return &os.LinkError{Op: "rename", Old: a, New: b, Err: errOtherDisk} }
 }
 
 func TestMove(t *testing.T) {
@@ -94,6 +94,28 @@ func TestMoveBack(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(from, "a.gguf")); !os.IsNotExist(err) {
 		t.Error("the model moved is left where it was")
+	}
+}
+
+func TestMoveRenameRefused(t *testing.T) {
+	from, to := t.TempDir(), filepath.Join(t.TempDir(), "elsewhere")
+	withTwo(t, from)
+	m := NewManager(from, false, nil)
+	defer m.Close()
+	m.rename = func(a, b string) error { return &os.LinkError{Op: "rename", Old: a, New: b, Err: os.ErrPermission} }
+	if err := move(t, m, to); !errors.Is(err, os.ErrPermission) {
+		t.Fatalf("moved with renaming refused: %v", err)
+	}
+	if m.Dir() != from || m.Status("a").State != Ready {
+		t.Errorf("dir %s, a %+v", m.Dir(), m.Status("a"))
+	}
+	for _, name := range []string{"a.gguf", filepath.Join("b-1", "b.onnx")} {
+		if _, err := os.Stat(filepath.Join(to, name)); !os.IsNotExist(err) {
+			t.Errorf("%s copied: %v", name, err)
+		}
+		if _, err := os.Stat(filepath.Join(from, name)); err != nil {
+			t.Errorf("%s gone from where it was: %v", name, err)
+		}
 	}
 }
 

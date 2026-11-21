@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/image/draw"
@@ -23,6 +24,10 @@ const MaxSide = 2048
 const MinSide = 1000
 
 const imageTimeout = 2 * time.Minute
+
+var pictureClient = sync.OnceValue(func() *http.Client {
+	return (&Endpoint{}).anew(imageTimeout)
+})
 
 var errLooping = errors.New("translate: the model repeats itself")
 
@@ -50,16 +55,20 @@ func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta f
 		return e.readOne(ctx, body, onDelta)
 	}
 	body2 := maps.Clone(body)
+	first := e.Client
+	if first == nil {
+		first = pictureClient()
+	}
 	var fresh *http.Client
 	defer func() {
 		if fresh != nil {
 			fresh.CloseIdleConnections()
-			cmp.Or(e.Client, &http.Client{}).CloseIdleConnections()
+			first.CloseIdleConnections()
 		}
 	}()
 	return hedge(ctx, e.ImageWait, 6*e.ImageWait, false, onDelta, func(ctx context.Context, n int32, onDelta func(string)) (string, error) {
 		if n == 1 {
-			return e.readOne(ctx, body, onDelta)
+			return e.readOne(context.WithValue(ctx, clientKey{}, first), body, onDelta)
 		}
 		fresh = e.anew(imageTimeout)
 		return e.readOne(context.WithValue(ctx, clientKey{}, fresh), body2, onDelta)

@@ -567,13 +567,13 @@ func (msgs Messages) ProxySystemNone() string {
 	return Catalog.Format(msgs.locale, "proxySystemNone", nil)
 }
 
-// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used."
+// ProxyInvalid says "Not a proxy address, so the cloud can't be reached: try one like 127.0.0.1:7890 or socks5://127.0.0.1:1080."
 // in the language the app shows.
 //
 // Under the proxy address, when what is typed is no address.
 func ProxyInvalid() string { return In(i18n.Locale()).ProxyInvalid() }
 
-// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used."
+// ProxyInvalid says "Not a proxy address, so the cloud can't be reached: try one like 127.0.0.1:7890 or socks5://127.0.0.1:1080."
 // in the language of msgs.
 //
 // Under the proxy address, when what is typed is no address.
@@ -1349,6 +1349,20 @@ func EngineApple() string { return In(i18n.Locale()).EngineApple() }
 // The name of Apple's speech recognition.
 func (msgs Messages) EngineApple() string {
 	return Catalog.Format(msgs.locale, "engineApple", nil)
+}
+
+// EngineDeleted says "Deleted API"
+// in the language the app shows.
+//
+// An engine's name, where the user's API chosen is one they deleted.
+func EngineDeleted() string { return In(i18n.Locale()).EngineDeleted() }
+
+// EngineDeleted says "Deleted API"
+// in the language of msgs.
+//
+// An engine's name, where the user's API chosen is one they deleted.
+func (msgs Messages) EngineDeleted() string {
+	return Catalog.Format(msgs.locale, "engineDeleted", nil)
 }
 
 // TagLocal says "On device"
@@ -2329,6 +2343,38 @@ func (msgs Messages) ErrNoEndpoint() string {
 	return Catalog.Format(msgs.locale, "errNoEndpoint", nil)
 }
 
+// ErrNoVision says "The API chosen for pictures can't read them."
+// in the language the app shows.
+//
+// Why a picture was not translated: the user's API chosen for pictures was
+// found to read none.
+func ErrNoVision() string { return In(i18n.Locale()).ErrNoVision() }
+
+// ErrNoVision says "The API chosen for pictures can't read them."
+// in the language of msgs.
+//
+// Why a picture was not translated: the user's API chosen for pictures was
+// found to read none.
+func (msgs Messages) ErrNoVision() string {
+	return Catalog.Format(msgs.locale, "errNoVision", nil)
+}
+
+// ErrProxyInvalid says "The proxy address in Preferences is invalid."
+// in the language the app shows.
+//
+// Why the cloud could not be reached: the proxy address typed in
+// Preferences is no address.
+func ErrProxyInvalid() string { return In(i18n.Locale()).ErrProxyInvalid() }
+
+// ErrProxyInvalid says "The proxy address in Preferences is invalid."
+// in the language of msgs.
+//
+// Why the cloud could not be reached: the proxy address typed in
+// Preferences is no address.
+func (msgs Messages) ErrProxyInvalid() string {
+	return Catalog.Format(msgs.locale, "errProxyInvalid", nil)
+}
+
 // NeedsMemory says "Needs {gb}\u00a0GB of memory"
 // in the language the app shows.
 //
@@ -2795,24 +2841,6 @@ func ReadsNoPictures() string { return In(i18n.Locale()).ReadsNoPictures() }
 // with the sample, so it is not offered for pictures.
 func (msgs Messages) ReadsNoPictures() string {
 	return Catalog.Format(msgs.locale, "readsNoPictures", nil)
-}
-
-// PicturesToCloud says "Pictures now go to {name}"
-// in the language the app shows.
-//
-// Under a translation API's test result, when the test found that the API
-// chosen for pictures can't read them: pictures are now translated by the
-// cloud engine, name.
-func PicturesToCloud(name string) string { return In(i18n.Locale()).PicturesToCloud(name) }
-
-// PicturesToCloud says "Pictures now go to {name}"
-// in the language of msgs.
-//
-// Under a translation API's test result, when the test found that the API
-// chosen for pictures can't read them: pictures are now translated by the
-// cloud engine, name.
-func (msgs Messages) PicturesToCloud(name string) string {
-	return Catalog.Format(msgs.locale, "picturesToCloud", map[string]any{"name": name})
 }
 
 // TestFailed says "Failed · {ms} ms"
@@ -3613,7 +3641,8 @@ func (msgs Messages) ErrAsrApiAuth() string {
 // Why translating stopped: on-device recognition, or a transcription API,
 // decoded slower than the audio played until about 25 seconds piled up (a
 // model too heavy for the computer, a hung model server, or a slow
-// network).
+// network); or a minute of audio waited to be sent to the cloud's
+// recognition.
 func ErrAsrBehind() string { return In(i18n.Locale()).ErrAsrBehind() }
 
 // ErrAsrBehind says "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & translation,…"
@@ -3622,7 +3651,8 @@ func ErrAsrBehind() string { return In(i18n.Locale()).ErrAsrBehind() }
 // Why translating stopped: on-device recognition, or a transcription API,
 // decoded slower than the audio played until about 25 seconds piled up (a
 // model too heavy for the computer, a hung model server, or a slow
-// network).
+// network); or a minute of audio waited to be sent to the cloud's
+// recognition.
 func (msgs Messages) ErrAsrBehind() string {
 	return Catalog.Format(msgs.locale, "errAsrBehind", nil)
 }

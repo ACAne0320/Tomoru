@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,16 +12,19 @@ import (
 	"github.com/egoist/mygo/netproxy"
 )
 
+var ErrInvalid = errors.New("proxy: the address is invalid")
+
 type choice struct {
 	off bool
 	url *url.URL
+	err error
 }
 
 var current atomic.Pointer[choice]
 
 func Set(off bool, addr string) {
-	u, _ := Parse(addr)
-	current.Store(&choice{off: off, url: u})
+	u, err := Parse(addr)
+	current.Store(&choice{off: off, url: u, err: err})
 }
 
 func Parse(addr string) (*url.URL, error) {
@@ -33,12 +37,12 @@ func Parse(addr string) (*url.URL, error) {
 	}
 	u, err := url.Parse(addr)
 	if err != nil || u.Hostname() == "" || u.Port() == "" || u.Path != "" && u.Path != "/" {
-		return nil, fmt.Errorf("proxy: not an address: %q", addr)
+		return nil, fmt.Errorf("%w: not an address: %q", ErrInvalid, addr)
 	}
 	switch u.Scheme {
 	case "http", "https", "socks5", "socks5h":
 	default:
-		return nil, fmt.Errorf("proxy: not a proxy's scheme: %q", u.Scheme)
+		return nil, fmt.Errorf("%w: not a proxy's scheme: %q", ErrInvalid, u.Scheme)
 	}
 	u.Path = ""
 	return u, nil
@@ -51,6 +55,8 @@ func For(req *http.Request) (*url.URL, error) {
 		return nil, nil
 	case c != nil && c.off:
 		return nil, nil
+	case c != nil && c.err != nil:
+		return nil, c.err
 	case c != nil && c.url != nil:
 		return c.url, nil
 	}

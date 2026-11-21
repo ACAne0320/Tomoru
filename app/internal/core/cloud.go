@@ -111,7 +111,7 @@ func (c *Core) SaveAPI(a prefs.Service, key string) {
 
 func (c *Core) TestAPI(test string, a prefs.Service, key string) {
 	if s, ok := MTServiceByID(a.ID); ok {
-		c.EngineService.testEndpoint(test, s.endpoint(a), key, c.testTgt(), func(prefs.Vision) bool { return false })
+		c.EngineService.testEndpoint(test, s.endpoint(a), key, c.testTgt(), func(prefs.Vision) {})
 		return
 	}
 	c.EngineService.testAPI(test, a, key)

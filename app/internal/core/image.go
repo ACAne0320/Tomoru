@@ -56,12 +56,6 @@ func (c *Core) SetImageEngine(id string) {
 	c.settingsChanged()
 }
 
-func (c *Core) fitImageEngine() {
-	if strings.HasPrefix(c.Prefs.ImageMT, prefs.CustomPrefix) && !readsPictures(c.Prefs.ImageMT, c.Prefs.Endpoints) {
-		c.Prefs.ImageMT = "cloud"
-	}
-}
-
 func (c *Core) serving() string {
 	if _, local := models.ByID(c.Prefs.MT); local && c.Running && c.Prefs.Translates() {
 		return c.Prefs.MT

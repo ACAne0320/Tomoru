@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 )
@@ -50,7 +51,18 @@ func TestFor(t *testing.T) {
 		t.Errorf("off: %v", u)
 	}
 	Set(false, "127.0")
-	if c := current.Load(); c.off || c.url != nil {
-		t.Errorf("%+v", c)
+	if u, err := For(req("https://api.openai.com")); u != nil || !errors.Is(err, ErrInvalid) {
+		t.Errorf("invalid: %v, %v", u, err)
+	}
+	if u, err := For(req("http://127.0.0.1:52011")); u != nil || err != nil {
+		t.Errorf("invalid, loopback: %v, %v", u, err)
+	}
+	client := &http.Client{Transport: &http.Transport{Proxy: For}}
+	if _, err := client.Get("https://api.openai.com"); !errors.Is(err, ErrInvalid) {
+		t.Errorf("a request with an invalid address: %v", err)
+	}
+	Set(true, "127.0")
+	if u, err := For(req("https://api.openai.com")); u != nil || err != nil {
+		t.Errorf("invalid, off: %v, %v", u, err)
 	}
 }

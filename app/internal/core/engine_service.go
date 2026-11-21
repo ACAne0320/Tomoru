@@ -30,7 +30,6 @@ type TestResult struct {
 	Err     error
 	Took    time.Duration
 	Vision  prefs.Vision
-	ToCloud bool
 }
 
 const TestSample = "Good evening, everyone. Today's stream will run a bit longer than usual."
@@ -130,7 +129,7 @@ func (s *EngineService) stopTests() {
 	}
 }
 
-func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision) bool) {
+func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision)) {
 	e.URL = apiOf(e).url
 	s.startTest(test, 30*time.Second, func(ctx context.Context) TestResult {
 		ep := s.endpoint(e, key)
@@ -154,10 +153,7 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 	}, func(r TestResult) {
 		if r.Err == nil && r.Vision != prefs.VisionUnknown {
 			s.visions[apiOf(e)] = r.Vision
-			if found(r.Vision) {
-				r.ToCloud = true
-				s.Tests[test] = r
-			}
+			found(r.Vision)
 		}
 	})
 }
@@ -285,6 +281,9 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
+				if !readsPictures(id, endpoints) {
+					return fail(ErrNoVision), id
+				}
 				return func(context.Context) (*translate.Endpoint, error) { return s.endpoint(e, ""), nil }, id
 			}
 		}

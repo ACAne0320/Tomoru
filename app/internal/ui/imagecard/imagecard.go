@@ -206,7 +206,7 @@ func (d *Card) translation(c *ui.Context) {
 			why := im.Err.Error()
 			var ne net.Error
 			switch {
-			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrModelsMoving) || errors.Is(im.Err, core.ErrModelBusy) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.As(im.Err, new(core.LocalError)):
+			case errors.Is(im.Err, core.ErrModelMissing) || errors.Is(im.Err, core.ErrModelsMoving) || errors.Is(im.Err, core.ErrModelBusy) || errors.Is(im.Err, core.ErrNoEndpoint) || errors.Is(im.Err, core.ErrNoVision) || errors.As(im.Err, new(core.LocalError)):
 				why = shared.ErrorText(im.Err)
 			case via.Cloud && (errors.As(im.Err, &ne) && ne.Timeout() || errors.Is(im.Err, translate.ErrStalled)):
 				why = locales.TranslationFailedCloud()
