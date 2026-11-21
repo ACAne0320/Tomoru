@@ -92,7 +92,7 @@ func (g *Guide) tryStep(c *ui.Context, showing bool) {
 			c.After(d)
 		}
 	}
-	if g.try.sample && k.Running && st.Phase == "listening" {
+	if g.try.sample && k.Running && st.Phase == live.PhaseListening {
 		g.try.sample = false
 		k.Speak()
 	}
@@ -232,7 +232,7 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 	recognized, translated := g.try.shown(c.Now())
 	ui.Column(c).Gap(kit.Space(3)).Margin(6, 0, 0, 0).Children(func() {
 		running := k.Running && k.Err == nil
-		listening := running && k.State.Phase == "listening"
+		listening := running && k.State.Phase == live.PhaseListening
 		detail := ""
 		if !g.try.heard {
 			detail = locales.TryHearingWait()
@@ -251,9 +251,9 @@ func (g *Guide) checks(c *ui.Context, saying bool) {
 			detail = locales.Verifying()
 		case wait:
 			detail = locales.TryModelDownloading(shared.Size(st.Done), shared.Size(m.Size))
-		case running && k.State.Phase == "downloading":
+		case running && k.State.Phase == live.PhaseDownloading:
 			detail = locales.StatusDownloading()
-		case running && k.State.Phase != "listening":
+		case running && k.State.Phase != live.PhaseListening:
 			detail = locales.StatusPreparing()
 		default:
 			detail = locales.TryRecognizingWait(src)
@@ -306,11 +306,11 @@ func (g *Guide) tryStage(c *ui.Context) {
 		status = locales.TryModelThen()
 	case k.Err != nil:
 		status = shared.ErrorText(k.Err)
-	case k.State.Phase == "downloading":
+	case k.State.Phase == live.PhaseDownloading:
 		status = locales.StatusDownloading()
-	case k.State.Phase == "loading":
+	case k.State.Phase == live.PhaseLoading:
 		status = locales.StatusLoadingModel()
-	case k.State.Phase != "listening":
+	case k.State.Phase != live.PhaseListening:
 		status = locales.StatusPreparing()
 	default:
 		status = locales.TryListening()

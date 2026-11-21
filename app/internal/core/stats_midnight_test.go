@@ -22,7 +22,7 @@ func TestOvernightIdleSessionKeepsYesterdaySubtitles(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	now = time.Date(2026, 10, 21, 19, 21, 0, 0, zone)
-	f.sessions[0].report(live.State{Phase: "listening", Stats: live.Stats{Lines: 184, Chars: 3200, Speech: 502}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 184, Chars: 3200, Speech: 502}})
 	f.flush(t, 1)
 
 	now = time.Date(2026, 10, 22, 0, 45, 0, 0, zone)
@@ -75,7 +75,7 @@ func TestUsageUsesEventDatesBeforeDelayedDispatchAndStop(t *testing.T) {
 	first.Latency.Translation.Add(100 * time.Millisecond)
 
 	now = start.Add(40 * time.Second)
-	old.report(live.State{Phase: "listening", StatsAt: start.Add(10 * time.Second), Stats: first})
+	old.report(live.State{Phase: live.PhaseListening, StatsAt: start.Add(10 * time.Second), Stats: first})
 	second := first
 	second.Lines++
 	second.Chars += 6
@@ -84,7 +84,7 @@ func TestUsageUsesEventDatesBeforeDelayedDispatchAndStop(t *testing.T) {
 	second.InTokens += 7
 	second.OutTokens += 2
 	second.Latency.Translation.Add(300 * time.Millisecond)
-	old.report(live.State{Phase: "listening", StatsAt: start.Add(30 * time.Second), Stats: second})
+	old.report(live.State{Phase: live.PhaseListening, StatsAt: start.Add(30 * time.Second), Stats: second})
 	wantToday := second.Since(first)
 	wantToday.Run = 20
 	wantYesterday := first
@@ -104,7 +104,7 @@ func TestUsageUsesEventDatesBeforeDelayedDispatchAndStop(t *testing.T) {
 	}
 	c.Start()
 	f.flush(t, 1)
-	old.report(live.State{Phase: "listening", Stats: live.Stats{Lines: 100, Chars: 1000}})
+	old.report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 100, Chars: 1000}})
 	f.flush(t, 1)
 	c.Stop()
 	if got := c.TodayStats().Counts; got != wantToday {
@@ -121,7 +121,7 @@ func TestSpeechCrossingMidnightUsesAudioEndNotReportTime(t *testing.T) {
 	f.flush(t, 1)
 	end := now.Add(15 * time.Second)
 	now = now.Add(20 * time.Second)
-	f.sessions[0].report(live.State{Phase: "listening", StatsAt: now, SpeechEnd: end, Stats: live.Stats{Speech: 10}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, StatsAt: now, SpeechEnd: end, Stats: live.Stats{Speech: 10}})
 	c.Stop()
 	if got := c.Usage().Day("2026-10-21"); got != (usage.Counts{Run: 10, Speech: 5}) {
 		t.Fatalf("speech before midnight: %+v", got)
@@ -140,7 +140,7 @@ func TestStoppedRuntimeDoesNotAccrueTimeWhileUIIsDelayed(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	now = start.Add(10 * time.Minute)
-	f.sessions[0].report(live.State{Phase: "stopped", StatsAt: start.Add(40 * time.Second), Stats: live.Stats{Lines: 1}})
+	f.sessions[0].report(live.State{Phase: live.PhaseStopped, StatsAt: start.Add(40 * time.Second), Stats: live.Stats{Lines: 1}})
 	if got := c.RunFor(); got != 40*time.Second {
 		t.Fatalf("counted UI queue time: %v", got)
 	}

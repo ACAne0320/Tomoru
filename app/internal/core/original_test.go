@@ -24,7 +24,7 @@ func TestOriginalOnly(t *testing.T) {
 	c.SetEngine("local-2b")
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
 	c.Start()
-	if c.Err != nil || !c.Running || c.State.Phase != "starting" {
+	if c.Err != nil || !c.Running || c.State.Phase != live.PhaseStarting {
 		t.Fatalf("running %v, phase %q, err %v", c.Running, c.State.Phase, c.Err)
 	}
 	f.flush(t, 1)
@@ -41,7 +41,7 @@ func TestOriginalOnly(t *testing.T) {
 
 	c.Download("local-2b")
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplayBoth })
-	if len(f.sessions) != 1 || c.State.Phase != "loading" {
+	if len(f.sessions) != 1 || c.State.Phase != live.PhaseLoading {
 		t.Fatalf("%d sessions, phase %q", len(f.sessions), c.State.Phase)
 	}
 	f.flush(t, 1)
@@ -68,7 +68,7 @@ func TestKeepUntranslated(t *testing.T) {
 	c.Prefs.Onboarded, c.Prefs.History, c.Prefs.Display = true, true, prefs.DisplaySrc
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "大家好", Done: true}}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "大家好", Outcome: live.Translated}}})
 	f.flush(t, 1)
 	c.Stop()
 	rs, _ := history.List(c.deps.HistoryDir)

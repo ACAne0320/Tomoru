@@ -74,12 +74,12 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	s, err := live.Start(cfg, func(st live.State) {
 		mu.Lock()
 		defer mu.Unlock()
-		if st.Phase == "stopped" {
+		if st.Phase == live.PhaseStopped {
 			stopped = st.Err
 			endOnce.Do(func() { close(ended) })
 		}
 		if at.IsZero() {
-			if st.Phase != "listening" {
+			if st.Phase != live.PhaseListening {
 				return
 			}
 			at = time.Now()
@@ -107,7 +107,7 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	select {
 	case <-listening:
 	case <-ended:
-		s.Wait()
+		s.Close()
 		mu.Lock()
 		defer mu.Unlock()
 		if stopped != nil {
@@ -117,8 +117,7 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 		}
 		return r
 	case <-time.After(2 * time.Minute):
-		s.Stop()
-		s.Wait()
+		s.Close()
 		r.Err = "never listened"
 		return r
 	}
@@ -126,8 +125,7 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	case <-time.After(time.Duration(dur*float64(time.Second)) + tail):
 	case <-ended:
 	}
-	s.Stop()
-	s.Wait()
+	s.Close()
 	mu.Lock()
 	defer mu.Unlock()
 	if stopped != nil {
@@ -142,12 +140,12 @@ func recordLine(r *Result, lines map[int]live.Line, t float64, l live.Line) {
 	if !seen {
 		r.Events = append(r.Events, Event{T: t, Line: l.ID, Src: l.Src, Lang: l.Lang, LDraft: l.Draft})
 	}
-	if old.Tgt != l.Tgt || old.Done != l.Done || old.Err != l.Err {
+	if old.Tgt != l.Tgt || old.Outcome != l.Outcome || old.Err != l.Err {
 		tgt, why := l.Tgt, ""
 		if l.Err != nil {
 			why = l.Err.Error()
 		}
-		r.Events = append(r.Events, Event{T: t, Line: l.ID, Tgt: &tgt, Done: l.Done, Err: why})
+		r.Events = append(r.Events, Event{T: t, Line: l.ID, Tgt: &tgt, Done: l.Done(), Err: why})
 	}
 	lines[l.ID] = l
 }

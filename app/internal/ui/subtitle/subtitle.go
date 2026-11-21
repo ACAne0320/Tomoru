@@ -64,12 +64,12 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 			e.Tgt, e.Swaps = "", false
 		case l.AsSaid:
 			e.Src, e.Tgt = "", l.Src
-		case l.Draft != "" && !l.Done:
+		case l.Draft != "" && !l.Done():
 			e.Tgt, e.Draft = l.Draft, true
 		case l.Err != nil:
 			e.Tgt, e.DimTgt, e.Note = Failure(l.Err), true, true
 		default:
-			e.Grows = !l.Done
+			e.Grows = !l.Done()
 		}
 		if p.Display != prefs.DisplayTgt || e.Tgt != "" {
 			all = append(all, e)

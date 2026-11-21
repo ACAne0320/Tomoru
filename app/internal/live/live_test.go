@@ -76,10 +76,10 @@ func TestReplay(t *testing.T) {
 		mu.Unlock()
 		done := len(st.Lines) == len(want)
 		for i, l := range st.Lines {
-			done = done && l.ID == i+1 && l.Src == want[i] && l.Done && l.Tgt == "[ja→zh] "+want[i]
+			done = done && l.ID == i+1 && l.Src == want[i] && l.Done() && l.Tgt == "[ja→zh] "+want[i]
 		}
 		timed := st.Stats.Latency.EndToEnd.N == len(want)
-		if done && timed && st.Phase == "listening" && st.Pending == "" {
+		if done && timed && st.Phase == PhaseListening && st.Pending == "" {
 			return
 		}
 		if time.Now().After(deadline) {
@@ -122,7 +122,7 @@ func TestNoTranslator(t *testing.T) {
 	want := []string{"みなさん、こんばんは。", "今日は新しいゲームを最後までクリアしたいと思います。", "コメントもどんどん書いてくださいね。"}
 	waitFor(t, &got.mu, func() bool { return got.completed() == len(want) })
 	s.Stop()
-	s.Wait()
+	s.wait()
 	checkLifecycle(t, got.events, len(want))
 	for _, e := range got.events {
 		if e.Kind == LineProgress || e.Kind == LineCompleted && (e.Line.Tgt != "" || e.Line.Err != nil || e.Line.Draft != "") {
@@ -134,7 +134,7 @@ func TestNoTranslator(t *testing.T) {
 		t.Fatalf("lines %+v", st.Lines)
 	}
 	for i, l := range st.Lines {
-		if l.Src != want[i] || !l.Done || l.Tgt != "" || l.Err != nil {
+		if l.Src != want[i] || !l.Done() || l.Tgt != "" || l.Err != nil {
 			t.Errorf("line %d: %+v", i, l)
 		}
 	}
@@ -172,7 +172,7 @@ func TestDraft(t *testing.T) {
 	}
 	mu.Unlock()
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
-	waitFor(t, &mu, func() bool { return len(last.Lines) == 1 && last.Lines[0].Done })
+	waitFor(t, &mu, func() bool { return len(last.Lines) == 1 && last.Lines[0].Done() })
 	if l := last.Lines[0]; l.Draft != "draft: 今日は新しいゲーム" || last.Draft != "" {
 		t.Errorf("line %+v, draft %q", l, last.Draft)
 	}
@@ -245,8 +245,8 @@ func TestTerms(t *testing.T) {
 		mu.Lock()
 		st := last
 		mu.Unlock()
-		if len(st.Lines) == 3 && st.Lines[1].Src == src && st.Lines[1].Heard == strings.ReplaceAll(src, "ゲイム", "ゲーム") && st.Lines[0].Heard == "" &&
-			st.Lines[1].Tgt == want && st.Lines[2].Done && !strings.Contains(st.Lines[2].Tgt, "{") {
+		if len(st.Lines) == 3 && st.Lines[1].Src == src && st.Lines[1].BeforeGlossary == strings.ReplaceAll(src, "ゲイム", "ゲーム") && st.Lines[0].BeforeGlossary == "" &&
+			st.Lines[1].Tgt == want && st.Lines[2].Done() && !strings.Contains(st.Lines[2].Tgt, "{") {
 			break
 		}
 		if time.Now().After(deadline) {
@@ -279,7 +279,7 @@ func TestStats(t *testing.T) {
 	s.handle(engine.Event{Type: "voice", On: true, T: 4})
 	s.handle(engine.Event{Type: "voice", On: false, T: 4.5})
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日はいい天気です。明日も晴れます。"}}})
-	waitFor(t, &mu, func() bool { return len(last.Lines) == 2 && last.Lines[1].Done })
+	waitFor(t, &mu, func() bool { return len(last.Lines) == 2 && last.Lines[1].Done() })
 	want := 0
 	for _, l := range last.Lines {
 		want += utf8.RuneCountInString(strings.ReplaceAll(l.Tgt, " ", ""))
@@ -370,14 +370,14 @@ func TestParallel(t *testing.T) {
 		s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日はいい天気です。明日も晴れます。"}}})
 		time.Sleep(100 * time.Millisecond)
 		mu.Lock()
-		second := len(last.Lines) == 2 && last.Lines[1].Done && !last.Lines[0].Done
+		second := len(last.Lines) == 2 && last.Lines[1].Done() && !last.Lines[0].Done()
 		mu.Unlock()
 		if second != (parallel > 1) {
 			t.Errorf("parallel %d: the second translated while the first was held: %v", parallel, second)
 		}
 		close(tr.hold)
 		waitFor(t, &mu, func() bool {
-			return len(last.Lines) == 2 && last.Lines[0].Done && last.Lines[1].Done && last.Stats.Latency.Queue.N == 2
+			return len(last.Lines) == 2 && last.Lines[0].Done() && last.Lines[1].Done() && last.Stats.Latency.Queue.N == 2
 		})
 		s.Stop()
 	}
@@ -419,7 +419,7 @@ func TestDraftDropped(t *testing.T) {
 	s.proc = &finalizes{}
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
-	time.Sleep(650 * time.Millisecond)
+	time.Sleep(draftEvery + 50*time.Millisecond)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 3, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。明日もゲームをします"}}})
 	waitFor(t, &mu, func() bool { return last.Draft == "draft: 明日もゲームをします" })
 	tr.mu.Lock()
@@ -463,7 +463,7 @@ func TestHint(t *testing.T) {
 		s.handle(engine.Event{Type: "clock", T: t})
 	}
 	s.Stop()
-	s.Wait()
+	s.wait()
 	if !slices.Equal(f.ts, []float64{2, 3}) {
 		t.Errorf("finalized %v", f.ts)
 	}
@@ -491,7 +491,7 @@ func TestLanguages(t *testing.T) {
 	final("我们BLG就是最强的。", "zh", 2)
 	final("金になる。", "", 3)
 	waitFor(t, &mu, func() bool {
-		return len(last.Lines) == 4 && last.Lines[0].Done && last.Lines[1].Done && last.Lines[2].Done && last.Lines[3].Done
+		return len(last.Lines) == 4 && last.Lines[0].Done() && last.Lines[1].Done() && last.Lines[2].Done() && last.Lines[3].Done()
 	})
 	want := []Line{
 		{Src: "Hello.", Tgt: "[→zh] Hello."},

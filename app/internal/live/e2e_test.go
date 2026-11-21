@@ -20,7 +20,7 @@ import (
 func TestEndToEnd(t *testing.T) {
 	spec := os.Getenv("TOMORU_E2E")
 	if spec == "" {
-		t.Skip(`set TOMORU_E2E="ja:/path/to/speech.wav" to run`)
+		t.Skip(`set TOMORU_E2E="ja:/path/to/speech.wav" to run, and optionally TOMORU_E2E_LOCAL, TOMORU_E2E_ASR, TOMORU_E2E_CLOUD with DASHSCOPE_API_KEY and DASHSCOPE_API_HOST (docs/development.md); it plays the recording aloud and needs the System Audio Recording permission`)
 	}
 	lang, wav, _ := strings.Cut(spec, ":")
 	bin, err := engine.Path(filepath.Join("..", "..", "resources"))
@@ -75,7 +75,7 @@ func TestEndToEnd(t *testing.T) {
 			t.Logf("%5.2fs phase %s", time.Since(start).Seconds(), st.Phase)
 		}
 		for _, l := range st.Lines {
-			if l.Done && !doneBefore(last, l.ID) {
+			if l.Done() && !doneBefore(last, l.ID) {
 				t.Logf("%5.2fs %s => %s %s", time.Since(start).Seconds(), l.Src, l.Tgt, l.Err)
 			}
 		}
@@ -89,10 +89,10 @@ func TestEndToEnd(t *testing.T) {
 		mu.Lock()
 		phase := last.Phase
 		mu.Unlock()
-		if phase == "listening" {
+		if phase == PhaseListening {
 			break
 		}
-		if phase == "stopped" || time.Now().After(deadline) {
+		if phase == PhaseStopped || time.Now().After(deadline) {
 			t.Fatalf("phase %q: %v", phase, last.Err)
 		}
 	}
@@ -100,14 +100,21 @@ func TestEndToEnd(t *testing.T) {
 	if out, err := exec.Command("afplay", wav).CombinedOutput(); err != nil {
 		t.Fatalf("afplay: %v %s", err, out)
 	}
-	time.Sleep(4 * time.Second)
+	for deadline := time.Now().Add(15 * time.Second); ; time.Sleep(50 * time.Millisecond) {
+		mu.Lock()
+		settled := last.Pending == "" && len(last.Lines) > 0 && last.Lines[len(last.Lines)-1].Done()
+		mu.Unlock()
+		if settled || time.Now().After(deadline) {
+			break
+		}
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	if len(last.Lines) == 0 {
 		t.Fatalf("no lines; pending %q", last.Pending)
 	}
 	for _, l := range last.Lines {
-		if !l.Done || l.Tgt == "" {
+		if !l.Done() || l.Tgt == "" {
 			t.Errorf("line %d not translated: %+v", l.ID, l)
 		}
 	}
@@ -116,7 +123,7 @@ func TestEndToEnd(t *testing.T) {
 func doneBefore(st State, id int) bool {
 	for _, l := range st.Lines {
 		if l.ID == id {
-			return l.Done
+			return l.Done()
 		}
 	}
 	return false

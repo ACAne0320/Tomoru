@@ -78,8 +78,8 @@ func TestSessionReplacementRejectsLatePreparation(t *testing.T) {
 func TestNaturalStopDrainsFinalEvents(t *testing.T) {
 	c, f, s := recordingCore(t)
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 1, Src: "last"}})
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "last", Tgt: "final", Done: true}})
-	s.report(live.State{Phase: "stopped"})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "last", Tgt: "final", Outcome: live.Translated}})
+	s.report(live.State{Phase: live.PhaseStopped})
 	f.until(t, func() bool { return !c.Running })
 	if es := recordedEntries(t, c); len(es) != 1 || es[0].Tgt != "final" {
 		t.Fatalf("lost final line: %+v", es)

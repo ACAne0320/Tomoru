@@ -49,13 +49,13 @@ func (s *SessionController) start(r sessionRequest) {
 	s.run++
 	run := s.run
 	s.Err, s.Started = r.Err, true
-	s.State, s.Since = live.State{Phase: "starting"}, 0
+	s.State, s.Since = live.State{Phase: live.PhaseStarting}, 0
 	defer s.changed()
 	if r.Err != nil {
 		return
 	}
 	if r.Local {
-		s.State.Phase = "loading"
+		s.State.Phase = live.PhaseLoading
 	}
 	ctx, cancel := context.WithCancel(s.work.ctx)
 	s.prepare, s.Running = cancel, true
@@ -112,8 +112,7 @@ func (s *SessionController) stop() bool {
 		s.prepare()
 	}
 	if s.session != nil {
-		s.session.Stop()
-		s.session.Wait()
+		s.session.Close()
 	}
 	s.onStopped()
 	s.session, s.prepare, s.reports, s.Running = nil, nil, nil, false
@@ -126,9 +125,9 @@ func (s *SessionController) apply(st live.State) {
 	s.State = st
 	s.onState(st)
 	switch {
-	case st.Phase == "stopped":
+	case st.Phase == live.PhaseStopped:
 		if s.session != nil {
-			s.session.Wait()
+			s.session.Close()
 		}
 		if s.prepare != nil {
 			s.prepare()
@@ -139,7 +138,7 @@ func (s *SessionController) apply(st live.State) {
 		if exit := (*exec.ExitError)(nil); s.Err == nil || errors.As(s.Err, &exit) {
 			s.Err = errExited
 		}
-	case st.Phase == "listening" && prev.Phase != "listening":
+	case st.Phase == live.PhaseListening && prev.Phase != live.PhaseListening:
 		s.NoteAt = time.Now()
 	case st.Phase == prev.Phase && !sameText(st, prev):
 		if after := s.hideAfter(); after > 0 && time.Since(s.Updated) >= after {
@@ -147,7 +146,7 @@ func (s *SessionController) apply(st live.State) {
 		}
 		s.Updated = time.Now()
 	}
-	if st.Phase == "stopped" || !sameShown(st, prev) {
+	if st.Phase == live.PhaseStopped || !sameShown(st, prev) {
 		s.changed()
 	}
 }

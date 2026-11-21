@@ -35,7 +35,7 @@ func TestHome(t *testing.T) {
 	}
 
 	k.Err, k.Running = nil, true
-	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Done: true}},
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Outcome: live.Translated}},
 		Stats: live.Stats{Lines: 12, Speech: 90, Chars: 345}}
 	tt.Frame()
 	for _, want := range []string{locales.HomeTranslating(), locales.Pause(), locales.StatRunning(), "12", "1.5", "345"} {
@@ -66,7 +66,7 @@ func TestHomeClock(t *testing.T) {
 	if !k.Running {
 		t.Fatalf("not running: %v", k.Err)
 	}
-	k.State = live.State{Phase: "listening"}
+	k.State = live.State{Phase: live.PhaseListening}
 	tt.Advance(300 * time.Millisecond)
 	tt.Frame()
 	tt.Advance(700 * time.Millisecond)

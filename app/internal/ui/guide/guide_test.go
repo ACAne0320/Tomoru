@@ -70,12 +70,12 @@ func TestTry(t *testing.T) {
 		t.Fatalf("started %v, works %v", k.Started, g.try.works())
 	}
 	k.Err, k.Running = nil, true
-	k.State = live.State{Phase: "listening", Voice: true}
+	k.State = live.State{Phase: live.PhaseListening, Voice: true}
 	tt.Frame()
 	if !g.try.heard || g.try.recognized {
 		t.Errorf("heard %v, recognized %v", g.try.heard, g.try.recognized)
 	}
-	k.State.Lines = []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Done: true}}
+	k.State.Lines = []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Outcome: live.Translated}}
 	tt.Frame()
 	if !g.try.works() || tt.HasText(locales.TrySuccess()) {
 		t.Fatalf("works %v, shown before the lights got there; %q", g.try.works(), tt.Texts())
@@ -201,8 +201,8 @@ func TestTryCloudFailed(t *testing.T) {
 	g.Step, g.next = stepTry, stepTry
 	tt := ui.NewTester(g.View, Width, Height)
 	k.Err, k.Running = nil, true
-	k.State = live.State{Phase: "listening", Voice: true,
-		Lines: []live.Line{{ID: 1, Src: "Hello there.", Done: true, Err: errors.New("stream error: INTERNAL_ERROR")}}}
+	k.State = live.State{Phase: live.PhaseListening, Voice: true,
+		Lines: []live.Line{{ID: 1, Src: "Hello there.", Outcome: live.Failed, Err: errors.New("stream error: INTERNAL_ERROR")}}}
 	tt.Frame()
 	if g.try.translated || !tt.HasText(locales.TranslationFailedCloud()) {
 		t.Errorf("translated %v; %q", g.try.translated, tt.Texts())

@@ -18,22 +18,45 @@ import (
 )
 
 type Line struct {
-	ID         int
-	Src        string
-	Heard      string
-	Lang       string
-	AsSaid     bool
-	Tgt        string
-	Done       bool
-	Err        error
-	Draft      string
-	Start, End time.Time
+	ID             int
+	Src            string
+	BeforeGlossary string
+	Lang           string
+	AsSaid         bool
+	Tgt            string
+	Outcome        Outcome
+	Err            error
+	Draft          string
+	Start, End     time.Time
 }
+
+type Outcome int
+
+const (
+	Translating Outcome = iota
+	Translated
+	Untranslated
+	Failed
+	Skipped
+	Canceled
+)
+
+func (l Line) Done() bool { return l.Outcome != Translating }
 
 var ErrBehind = errors.New("behind")
 
+type Phase string
+
+const (
+	PhaseStarting    Phase = "starting"
+	PhaseDownloading Phase = "downloading"
+	PhaseLoading     Phase = "loading"
+	PhaseListening   Phase = "listening"
+	PhaseStopped     Phase = "stopped"
+)
+
 type State struct {
-	Phase       string
+	Phase       Phase
 	Lines       []Line
 	Pending     string
 	PendingLang string
@@ -81,7 +104,7 @@ type Session struct {
 	onChange func(State)
 	seg      *segment.Segmenter
 	proc     finalizer
-	procs    []stopper
+	procs    []*child
 	queue    chan queued
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -101,11 +124,7 @@ type Session struct {
 	started       chan struct{}
 	reportsClosed bool
 
-	draftGen    int
-	draftBusy   bool
-	draftLen    int
-	draftAt     time.Time
-	draftCancel context.CancelFunc
+	draft drafter
 
 	errMu   sync.Mutex
 	lastErr string
@@ -122,11 +141,47 @@ type Session struct {
 	ends                map[int]endPair
 }
 
+const draftEvery = 600 * time.Millisecond
+
+type drafter struct {
+	gen     int
+	running bool
+	letters int
+	at      time.Time
+	cancel  context.CancelFunc
+}
+
+func (d *drafter) commit() {
+	d.gen++
+	d.letters = 0
+	if d.cancel != nil {
+		d.cancel()
+	}
+	d.running, d.cancel = false, nil
+}
+
+func (d *drafter) due(letters, step int, now time.Time) bool {
+	return !d.running && letters-d.letters >= step && now.Sub(d.at) >= draftEvery
+}
+
+func (d *drafter) start(letters int, now time.Time, cancel context.CancelFunc) int {
+	d.running, d.letters, d.at, d.cancel = true, letters, now, cancel
+	return d.gen
+}
+
+func (d *drafter) finish(gen int) bool {
+	if gen != d.gen {
+		return false
+	}
+	d.running, d.cancel = false, nil
+	return true
+}
+
 type endPair struct{ spoke, shown time.Time }
 
 const maxEnds = 64
 
-func (s *Session) pairEnd(st *State, seq int, spoke, shown time.Time) {
+func (s *Session) pairEndLocked(st *State, seq int, spoke, shown time.Time) {
 	p, ok := s.ends[seq]
 	if !ok {
 		return
@@ -145,7 +200,7 @@ func (s *Session) pairEnd(st *State, seq int, spoke, shown time.Time) {
 	st.Stats.Latency.EndToEnd.Add(p.shown.Sub(p.spoke))
 }
 
-func (s *Session) waitEnd(seq int) {
+func (s *Session) waitEndLocked(seq int) {
 	s.ends[seq] = endPair{}
 	for len(s.ends) > maxEnds {
 		oldest := seq
@@ -186,7 +241,7 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 		close(s.started)
 		if err != nil {
 			s.stop(err)
-			s.Wait()
+			s.wait()
 		}
 	}()
 	if err := s.ctx.Err(); err != nil {
@@ -210,7 +265,7 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 			case "audio":
 				rec.Audio(ev)
 			case "voice":
-				if v, ok := rec.(interface{ Voice(engine.Event) }); ok {
+				if v, ok := rec.(asr.VoiceHearer); ok {
 					v.Voice(ev)
 				}
 			default:
@@ -218,7 +273,6 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 			}
 		})
 		if err != nil {
-			rec.Stop()
 			return nil, err
 		}
 		s.installProcesses(nil, hear)
@@ -228,7 +282,7 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 	}
 	var once sync.Once
 	s.procMu.Lock()
-	procs := append([]stopper(nil), s.procs...)
+	procs := append([]*child(nil), s.procs...)
 	s.procMu.Unlock()
 	for _, p := range procs {
 		go func() {
@@ -251,7 +305,7 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 		seg:         segment.New(segment.Config{VolatileSentences: cfg.VolatileSentences, FinalsEnd: cfg.FinalsEnd}),
 		queue:       make(chan queued, 64),
 		ends:        map[int]endPair{},
-		state:       State{Phase: "starting"},
+		state:       State{Phase: PhaseStarting},
 		active:      make(map[int]activeLine),
 		wake:        make(chan struct{}, 1),
 		reportsDone: make(chan struct{}),
@@ -268,16 +322,14 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 			st.Stats.InTokens, st.Stats.OutTokens = st.Stats.InTokens+u.In, st.Stats.OutTokens+u.Out
 		})
 	})
+	s.mu.Lock()
 	if cfg.Translator != nil {
 		for range max(1, cfg.Parallel) {
-			s.workers.Add(1)
-			go func() {
-				defer s.workers.Done()
-				s.translateLoop()
-			}()
+			s.spawnLocked(s.translateLoop)
 		}
 	}
-	s.warm()
+	s.warmLocked()
+	s.mu.Unlock()
 	go s.reportLoop()
 	go func() {
 		<-s.ctx.Done()
@@ -313,7 +365,7 @@ func (s *Session) handle(ev engine.Event) {
 	var lat usage.Latency
 	switch ev.Type {
 	case "state":
-		s.update(func(st *State) { st.Phase = ev.State })
+		s.update(func(st *State) { st.Phase = Phase(ev.State) })
 		return
 	case "slow":
 		s.update(func(st *State) { st.Slow = ev.On })
@@ -345,7 +397,7 @@ func (s *Session) handle(ev engine.Event) {
 		}
 		s.update(func(st *State) {
 			if began {
-				s.warm()
+				s.warmLocked()
 			}
 			st.Voice, st.Stats.Speech = ev.On, st.Stats.Speech+spoke
 			if spoke > 0 {
@@ -353,12 +405,7 @@ func (s *Session) handle(ev engine.Event) {
 			}
 		})
 	case "result":
-		if ev.Lang != "" || strings.TrimSpace(ev.Text()) != "" {
-			s.heard = ev.Lang
-			if ev.Final {
-				s.heardFinal = ev.Lang
-			}
-		}
+		s.noteHeard(ev)
 		if d, ok := since(s.heardAt); ok && strings.TrimSpace(ev.Text()) != "" {
 			if d <= firstTextWait {
 				lat.FirstText.Add(d)
@@ -400,7 +447,7 @@ func (s *Session) handle(ev engine.Event) {
 		}
 		q := queued{Line: Line{Src: a.Commit.Text, Lang: l}, seq: a.Commit.Seq, at: now}
 		if src, _ := s.terms(q.Src); src != q.Src {
-			q.Src, q.Heard = src, q.Src
+			q.Src, q.BeforeGlossary = src, q.Src
 		}
 		if a.Commit.Timed {
 			spoke = append(spoke, ended{q.seq, s.wall(a.Commit.End)})
@@ -427,30 +474,25 @@ func (s *Session) handle(ev engine.Event) {
 			s.next++
 			q.ID = s.next
 			q.Draft, st.Draft = st.Draft, ""
-			s.draftGen++
-			s.draftLen = 0
-			if s.draftCancel != nil {
-				s.draftCancel()
-				s.draftCancel, s.draftBusy = nil, false
-			}
+			s.draft.commit()
 			var metadata any
 			if s.cfg.LineMetadata != nil {
 				metadata = s.cfg.LineMetadata()
 			}
 			s.active[q.ID] = activeLine{Line: q.Line, metadata: metadata}
-			s.emitLine(LineCommitted, q.Line, metadata)
+			s.emitLineLocked(LineCommitted, q.Line, metadata)
 			if s.cfg.Translator == nil || q.Lang == s.cfg.Tgt {
-				q.Done, q.AsSaid = true, s.cfg.Translator != nil
+				q.Outcome, q.AsSaid = Untranslated, s.cfg.Translator != nil
 				delete(s.active, q.ID)
-				s.emitLine(LineCompleted, q.Line, metadata)
+				s.emitLineLocked(LineCompleted, q.Line, metadata)
 			} else {
 				select {
 				case s.queue <- q:
-					s.waitEnd(q.seq)
+					s.waitEndLocked(q.seq)
 				default:
-					q.Done, q.Err = true, ErrBehind
+					q.Outcome, q.Err = Skipped, ErrBehind
 					delete(s.active, q.ID)
-					s.emitLine(LineCompleted, q.Line, metadata)
+					s.emitLineLocked(LineCompleted, q.Line, metadata)
 				}
 			}
 			st.Lines = append(st.Lines, q.Line)
@@ -458,15 +500,25 @@ func (s *Session) handle(ev engine.Event) {
 		}
 		for _, e := range spoke {
 			if !e.at.IsZero() {
-				s.pairEnd(st, e.seq, e.at, time.Time{})
+				s.pairEndLocked(st, e.seq, e.at, time.Time{})
 			}
 		}
 		if n := len(st.Lines); n > MaxLines {
 			st.Lines = st.Lines[n-MaxLines:]
 		}
 		st.Pending, st.PendingLang = pending, heard
-		s.maybeDraft(st)
+		s.maybeDraftLocked(st)
 	})
+}
+
+func (s *Session) noteHeard(ev engine.Event) {
+	if ev.Lang == "" && strings.TrimSpace(ev.Text()) == "" {
+		return
+	}
+	s.heard = ev.Lang
+	if ev.Final {
+		s.heardFinal = ev.Lang
+	}
 }
 
 func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
@@ -520,20 +572,19 @@ func draftStep(code string) int {
 	return 12
 }
 
-func (s *Session) maybeDraft(st *State) {
+func (s *Session) maybeDraftLocked(st *State) {
 	if !s.cfg.Draft || s.cfg.Translator == nil || s.ctx.Err() != nil {
 		return
 	}
 	n := segment.Letters(st.Pending)
 	if n == 0 || st.PendingLang == s.cfg.Tgt {
-		st.Draft, s.draftLen = "", 0
+		st.Draft, s.draft.letters = "", 0
 		return
 	}
-	if s.draftBusy || n-s.draftLen < draftStep(st.PendingLang) || time.Since(s.draftAt) < 600*time.Millisecond {
+	if !s.draft.due(n, draftStep(st.PendingLang), time.Now()) {
 		return
 	}
-	s.draftBusy, s.draftLen, s.draftAt = true, n, time.Now()
-	gen, text, src := s.draftGen, st.Pending, st.PendingLang
+	text, src := st.Pending, st.PendingLang
 	if lang.Spaced(src) {
 		if i := strings.LastIndexByte(text, ' '); i > 0 && !strings.HasSuffix(text, " ") {
 			text = text[:i]
@@ -541,24 +592,21 @@ func (s *Session) maybeDraft(st *State) {
 	}
 	_, terms := s.terms(text)
 	ctx, cancel := context.WithCancel(s.ctx)
-	s.draftCancel = cancel
-	s.workers.Add(1)
-	go func() {
-		defer s.workers.Done()
+	gen := s.draft.start(n, time.Now(), cancel)
+	s.spawnLocked(func() {
 		defer cancel()
 		out, err := s.cfg.Translator.Translate(ctx, translate.Request{Src: src, Tgt: s.cfg.Tgt, Text: text, Draft: true, Terms: terms, About: s.about()}, nil)
 		s.update(func(st *State) {
-			if gen != s.draftGen {
+			if !s.draft.finish(gen) {
 				return
 			}
-			s.draftBusy, s.draftCancel = false, nil
 			if err != nil || out == "" {
 				return
 			}
 			st.Draft = out
-			s.maybeDraft(st)
+			s.maybeDraftLocked(st)
 		})
-	}()
+	})
 }
 
 func (s *Session) translateLoop() {
@@ -580,7 +628,7 @@ func (s *Session) translateLoop() {
 				}
 				shown = true
 				st.Stats.Latency.FirstTranslation.Add(time.Since(l.at))
-				s.pairEnd(st, l.seq, time.Time{}, time.Now())
+				s.pairEndLocked(st, l.seq, time.Time{}, time.Now())
 			}
 			out, err := s.cfg.Translator.Translate(s.ctx, r, func(partial string) {
 				tgt := strings.TrimSpace(partial)
@@ -595,7 +643,7 @@ func (s *Session) translateLoop() {
 					x.Tgt = tgt
 					s.active[l.ID] = x
 					lineOf(st, l.ID, func(line *Line) { *line = x.Line })
-					s.emitLine(LineProgress, x.Line, x.metadata)
+					s.emitLineLocked(LineProgress, x.Line, x.metadata)
 				})
 			})
 			s.update(func(st *State) {
@@ -603,15 +651,14 @@ func (s *Session) translateLoop() {
 				if !ok {
 					return
 				}
-				x.Done = true
 				if err != nil {
-					x.Err = err
+					x.Outcome, x.Err = Failed, err
 				} else {
-					x.Tgt = out
+					x.Outcome, x.Tgt = Translated, out
 				}
 				delete(s.active, l.ID)
 				lineOf(st, l.ID, func(line *Line) { *line = x.Line })
-				s.emitLine(LineCompleted, x.Line, x.metadata)
+				s.emitLineLocked(LineCompleted, x.Line, x.metadata)
 				switch {
 				case err == nil:
 					first(st)
@@ -645,15 +692,20 @@ func (s *Session) logErr(err error) {
 	s.lastErr = msg
 }
 
-func (s *Session) warm() {
-	w, ok := s.cfg.Translator.(interface{ Warm(context.Context) })
-	if !ok || s.ctx.Err() != nil {
+func (s *Session) warmLocked() {
+	if w, ok := s.cfg.Translator.(interface{ Warm(context.Context) }); ok {
+		s.spawnLocked(func() { w.Warm(s.ctx) })
+	}
+}
+
+func (s *Session) spawnLocked(f func()) {
+	if s.stopped || s.ctx.Err() != nil {
 		return
 	}
 	s.workers.Add(1)
 	go func() {
 		defer s.workers.Done()
-		w.Warm(s.ctx)
+		f()
 	}()
 }
 
@@ -686,5 +738,5 @@ func (s *Session) update(f func(*State)) {
 		return
 	}
 	f(&s.state)
-	s.emitState()
+	s.emitStateLocked()
 }

@@ -32,9 +32,9 @@ func TestSubtitles(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}}
 	k.Running, k.Updated = true, time.Now()
-	k.State = live.State{Phase: "listening", Pending: "コメントも", Draft: "评论也", Lines: []live.Line{
-		{ID: 1, Src: "みなさん、こんばんは。", Tgt: "大家晚上好。", Done: true},
-		{ID: 2, Src: "今日は頑張ります。", Tgt: "今天", Draft: "今天我会努力", Done: false},
+	k.State = live.State{Phase: live.PhaseListening, Pending: "コメントも", Draft: "评论也", Lines: []live.Line{
+		{ID: 1, Src: "みなさん、こんばんは。", Tgt: "大家晚上好。", Outcome: live.Translated},
+		{ID: 2, Src: "今日は頑張ります。", Tgt: "今天", Draft: "今天我会努力"},
 	}}
 	tt := ui.NewTester(o.View, 1400, 900)
 	for _, want := range []string{"今日は頑張ります。", "今天我会努力", "コメントも", "评论也"} {
@@ -95,7 +95,7 @@ func TestNotice(t *testing.T) {
 		t.Errorf("after an error: %q", tt.Texts())
 	}
 	k.Err, k.Running = nil, true
-	k.State = live.State{Phase: "listening", Slow: true}
+	k.State = live.State{Phase: live.PhaseListening, Slow: true}
 	tt.Frame()
 	tt.Advance(time.Second)
 	if !tt.HasText(locales.NoticeSlowNetwork()) {
@@ -114,7 +114,7 @@ func TestNoticeAtRest(t *testing.T) {
 	}
 
 	k.Running, k.Started = true, true
-	k.State = live.State{Phase: "listening", Voice: true}
+	k.State = live.State{Phase: live.PhaseListening, Voice: true}
 	k.NoteAt = tt.Now()
 	tt.Frame()
 	tt.Advance(time.Second)
@@ -141,7 +141,7 @@ func TestPausedNotice(t *testing.T) {
 	k.Prefs.ASR = "apple"
 	k.Start()
 	k.Updated = time.Now()
-	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Outcome: live.Translated}}}
 	tt := ui.NewTester(o.View, 1400, 900)
 	o.hover = true
 	tt.Frame()
@@ -165,7 +165,7 @@ func TestResize(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
 	k.Running, k.Updated = true, time.Now()
-	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Outcome: live.Translated}}}
 	tt := ui.NewTester(o.View, 1000, 600)
 	o.hover = true
 	tt.Frame()
@@ -191,9 +191,9 @@ func TestMoveTakesText(t *testing.T) {
 	area := mygo.Rectangle{Width: 1400, Height: 820}
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: area, display: mygo.Display{Bounds: area, WorkArea: area}}
 	k.Running, k.Updated = true, time.Now()
-	k.State = live.State{Phase: "listening", Lines: []live.Line{
-		{ID: 1, Src: "みなさん、こんばんは。", Tgt: "大家晚上好。", Done: true},
-		{ID: 2, Src: "今日は頑張ります。", Tgt: "今天我会努力。", Done: true},
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{
+		{ID: 1, Src: "みなさん、こんばんは。", Tgt: "大家晚上好。", Outcome: live.Translated},
+		{ID: 2, Src: "今日は頑張ります。", Tgt: "今天我会努力。", Outcome: live.Translated},
 	}}
 	o.hover = true
 	tt := ui.NewTester(o.View, 1400, 900)
@@ -315,7 +315,7 @@ func TestUnlock(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
 	k.Running, k.Updated = true, time.Now()
-	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Outcome: live.Translated}}}
 	k.Prefs.Locked = true
 	k.Prefs.KeepShown = true
 	tt := ui.NewTester(o.View, 1000, 600)
@@ -340,8 +340,8 @@ func TestUnlock(t *testing.T) {
 	}
 	lock := o.lock
 	k.State.Lines = append(k.State.Lines,
-		live.Line{ID: 2, Src: "It is a long sentence that goes on.", Tgt: "这是一句很长、还在继续的话。", Done: true},
-		live.Line{ID: 3, Src: strings.Repeat("And it goes on and on, ", 6) + "the end.", Tgt: "还有一句。", Done: true})
+		live.Line{ID: 2, Src: "It is a long sentence that goes on.", Tgt: "这是一句很长、还在继续的话。", Outcome: live.Translated},
+		live.Line{ID: 3, Src: strings.Repeat("And it goes on and on, ", 6) + "the end.", Tgt: "还有一句。", Outcome: live.Translated})
 	for range 5 {
 		tt.Frame()
 		tt.Advance(100 * time.Millisecond)
@@ -391,7 +391,7 @@ func TestWakesWatcher(t *testing.T) {
 		t.Fatal("woken with nothing to grab")
 	}
 	k.Running, k.Updated = true, time.Now()
-	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
+	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Outcome: live.Translated}}}
 	tt.Frame()
 	if len(o.woken) != 1 {
 		t.Fatal("subtitles appeared, the watcher not woken")

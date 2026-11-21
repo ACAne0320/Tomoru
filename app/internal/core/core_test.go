@@ -33,9 +33,8 @@ type fakeSession struct {
 func (s *fakeSession) Stop() {
 	s.stopped = true
 	for id, l := range s.lines {
-		if !l.Done {
-			l.Done = true
-			l.Err = context.Canceled
+		if !l.Done() {
+			l.Outcome, l.Err = live.Canceled, context.Canceled
 			s.lines[id] = l
 			if s.cfg.OnLine != nil {
 				s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: l})
@@ -43,7 +42,7 @@ func (s *fakeSession) Stop() {
 		}
 	}
 }
-func (s *fakeSession) Wait() {}
+func (s *fakeSession) Close() { s.Stop() }
 
 func newCore(t *testing.T) (*Core, *fake) {
 	f := &fake{answers: map[string][]engine.Event{}}
@@ -63,12 +62,12 @@ func newCore(t *testing.T) (*Core, *fake) {
 					old, seen := s.lines[l.ID]
 					if cfg.OnLine != nil && !seen {
 						committed := l
-						committed.Done = false
+						committed.Outcome = live.Translating
 						cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: committed})
 					}
 					if cfg.OnLine != nil && l != old {
 						kind := live.LineProgress
-						if l.Done {
+						if l.Done() {
 							kind = live.LineCompleted
 						}
 						cfg.OnLine(live.LineEvent{Kind: kind, Line: l})
@@ -119,7 +118,7 @@ func TestStartStop(t *testing.T) {
 	c.OnChange(func() { changes++ })
 	c.Start()
 	f.flush(t, 1)
-	if !c.Running || c.State.Phase != "starting" || len(f.sessions) != 1 || changes != 2 {
+	if !c.Running || c.State.Phase != live.PhaseStarting || len(f.sessions) != 1 || changes != 2 {
 		t.Fatalf("running %v, phase %q, %d sessions, %d changes", c.Running, c.State.Phase, len(f.sessions), changes)
 	}
 	s := f.sessions[0]
@@ -127,9 +126,9 @@ func TestStartStop(t *testing.T) {
 		t.Errorf("config %+v", s.cfg)
 	}
 
-	s.report(live.State{Phase: "listening"})
+	s.report(live.State{Phase: live.PhaseListening})
 	f.flush(t, 1)
-	if c.State.Phase != "listening" || c.NoteAt.IsZero() || c.ASR["en"] != "ready" || changes != 3 {
+	if c.State.Phase != live.PhaseListening || c.NoteAt.IsZero() || c.ASR["en"] != "ready" || changes != 3 {
 		t.Errorf("listening: %d changes, %+v", changes, c)
 	}
 
@@ -138,7 +137,7 @@ func TestStartStop(t *testing.T) {
 	if !s.stopped || len(f.sessions) != 2 || f.sessions[1].cfg.Tgt != "ja" {
 		t.Fatalf("restart: stopped %v, %d sessions", s.stopped, len(f.sessions))
 	}
-	s.report(live.State{Phase: "listening", Pending: "old"})
+	s.report(live.State{Phase: live.PhaseListening, Pending: "old"})
 	f.flush(t, 1)
 	if c.State.Pending == "old" {
 		t.Error("took a stale report")
@@ -154,7 +153,7 @@ func TestSessionError(t *testing.T) {
 	c, f := newCore(t)
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: "stopped", Err: &engine.Error{Code: "no-permission"}})
+	f.sessions[0].report(live.State{Phase: live.PhaseStopped, Err: &engine.Error{Code: "no-permission"}})
 	f.flush(t, 1)
 	var e *engine.Error
 	if c.Running || !errors.As(c.Err, &e) || e.Code != "no-permission" {
@@ -165,14 +164,14 @@ func TestSessionError(t *testing.T) {
 		t.Errorf("err %v", c.Err)
 	}
 	f.flush(t, 1)
-	f.sessions[1].report(live.State{Phase: "stopped"})
+	f.sessions[1].report(live.State{Phase: live.PhaseStopped})
 	f.flush(t, 1)
 	if !IsExited(c.Err) {
 		t.Errorf("exited without a word: %v", c.Err)
 	}
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[2].report(live.State{Phase: "stopped", Err: &exec.ExitError{}})
+	f.sessions[2].report(live.State{Phase: live.PhaseStopped, Err: &exec.ExitError{}})
 	f.flush(t, 1)
 	if !IsExited(c.Err) {
 		t.Errorf("killed: %v", c.Err)
@@ -193,21 +192,21 @@ func TestSince(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	report := f.sessions[0].report
-	report(live.State{Phase: "listening"})
-	report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}}})
+	report(live.State{Phase: live.PhaseListening})
+	report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a"}}})
 	f.flush(t, 2)
 	if c.Since != 0 && c.Since != 1 {
 		t.Fatalf("since %d", c.Since)
 	}
 	c.Updated = time.Now().Add(-time.Minute)
-	report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}, {ID: 2, Src: "b"}}})
+	report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a"}, {ID: 2, Src: "b"}}})
 	f.flush(t, 1)
 	if c.Since != 2 {
 		t.Errorf("since %d, want 2", c.Since)
 	}
 	c.Prefs.KeepShown = true
 	c.Updated = time.Now().Add(-time.Minute)
-	report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}, {ID: 2, Src: "b"}, {ID: 3, Src: "c"}}})
+	report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a"}, {ID: 2, Src: "b"}, {ID: 3, Src: "c"}}})
 	f.flush(t, 1)
 	if c.Since != 2 {
 		t.Errorf("kept: since %d, want 2", c.Since)
@@ -292,12 +291,12 @@ func TestVoiceKeepsSubtitles(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	s := f.sessions[0]
-	s.report(live.State{Phase: "listening"})
+	s.report(live.State{Phase: live.PhaseListening})
 	f.flush(t, 1)
-	s.report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}}})
+	s.report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a"}}})
 	f.flush(t, 1)
 	at := c.Updated
-	s.report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a"}}, Voice: true})
+	s.report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a"}}, Voice: true})
 	f.flush(t, 1)
 	if !c.Updated.Equal(at) || !c.State.Voice {
 		t.Errorf("updated moved by voice: %v → %v, voice %v", at, c.Updated, c.State.Voice)
@@ -305,7 +304,7 @@ func TestVoiceKeepsSubtitles(t *testing.T) {
 }
 
 func TestClockRedrawsNothing(t *testing.T) {
-	base := live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Done: true}}, Stats: live.Stats{Lines: 1, Speech: 2, Chars: 1}}
+	base := live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Outcome: live.Translated}}, Stats: live.Stats{Lines: 1, Speech: 2, Chars: 1}}
 	listening := func(t *testing.T) (report func(live.State), changes *int) {
 		c, f := newCore(t)
 		c.Start()
@@ -331,7 +330,7 @@ func TestClockRedrawsNothing(t *testing.T) {
 	}
 
 	for name, edit := range map[string]func(*live.State){
-		"phase":    func(st *live.State) { st.Phase = "stopped" },
+		"phase":    func(st *live.State) { st.Phase = live.PhaseStopped },
 		"line":     func(st *live.State) { st.Lines = append(slices.Clone(st.Lines), live.Line{ID: 2, Src: "b"}) },
 		"pending":  func(st *live.State) { st.Pending = "b" },
 		"language": func(st *live.State) { st.PendingLang = "ja" },
