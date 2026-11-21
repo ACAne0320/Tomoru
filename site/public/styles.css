@@ -1,5 +1,3 @@
-/* Tomoru 官网：夜灯（Night Lantern）。颜色取自 app/internal/ui/kit/tokens.go（docs/design-system.md）。 */
-
 :root {
   --night: #1b1949;
   --night-line: #2c2970;
@@ -42,7 +40,6 @@ body {
 }
 :lang(ja) { font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", sans-serif; }
 :lang(ko) { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", sans-serif; }
-/* 各语言页面的字体：汉字按各自的字形 */
 :root:lang(zh-Hant) { --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei UI", "Microsoft JhengHei", "Noto Sans CJK TC", "Segoe UI", system-ui, sans-serif; }
 :root:lang(ja) { --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", "Segoe UI", system-ui, sans-serif; }
 :root:lang(ko) { --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif; }
@@ -69,12 +66,10 @@ kbd {
 .skip:focus { left: 12px; }
 :focus-visible { outline: 2px solid var(--lantern); outline-offset: 3px; border-radius: 6px; }
 
-/* ---------- 品牌字 ---------- */
 .wordmark {
   display: block;
   font: 800 1em/1 var(--round);
   letter-spacing: -.02em;
-  /* 和 banner 一样：上半奶白，下半琥珀 */
   background: linear-gradient(180deg, var(--night-title) 0 58%, var(--lantern) 58% 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -85,7 +80,6 @@ kbd {
 .brand img { border-radius: 8px; }
 .brand-word { font: 800 20px/1 var(--round); color: var(--night-title); letter-spacing: -.01em; }
 
-/* ---------- 按钮 ---------- */
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
   border-radius: 999px; text-decoration: none; font-weight: 800; line-height: 1.2;
@@ -107,7 +101,6 @@ kbd {
 .alt-source a { text-decoration: underline; text-underline-offset: 3px; }
 .alt-source a:hover { color: var(--night-title); }
 
-/* ---------- 顶栏 ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 50;
   background: rgb(27 25 73 / .82);
@@ -129,10 +122,8 @@ kbd {
 .lang-menu a:hover { background: rgb(255 255 255 / .08); color: var(--night-title); }
 .lang-menu a[aria-current] { color: var(--lantern); }
 
-/* ---------- 夜空 ---------- */
 .night { position: relative; background: var(--night); color: var(--night-text); overflow: hidden; isolation: isolate; }
 .night h2, .night h3 { color: var(--night-title); }
-/* 夜色接夜色：前一节底下不发光，后一节的天从前一节底部的颜色接着往下，连成一片夜空 */
 .night:has(+ .night) .sky::after { display: none; }
 .night + .night { padding-top: clamp(24px, 4vw, 56px); }
 .night + .night .sky { background-color: var(--sky-bottom); background-image: radial-gradient(1.4px 1.4px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 33% 40%, rgb(255 255 255 / .6), transparent), radial-gradient(1.2px 1.2px at 71% 14%, rgb(255 255 255 / .8), transparent), radial-gradient(1px 1px at 88% 36%, rgb(255 255 255 / .5), transparent), linear-gradient(180deg, var(--sky-bottom), #241d58 45%, var(--sky-bottom)); }
@@ -151,13 +142,10 @@ kbd {
     radial-gradient(1px 1px at 55% 62%, rgb(255 255 255 / .35), transparent),
     linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
 }
-/* 底下灯笼的暖光，单独一层，夜色接夜色时关掉 */
 .sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 38% at 50% 112%, rgb(245 165 36 / .30), transparent 72%); }
 
-/* ---------- 版块 ---------- */
 .section { padding: clamp(72px, 10vw, 128px) 0; }
 .paper { background: var(--paper); }
-/* 米白接米白时，中间不留两份空白 */
 .paper + .paper { padding-top: clamp(16px, 3vw, 40px); }
 .section-head { max-width: 720px; margin: 0 auto clamp(40px, 6vw, 64px); text-align: center; }
 .section-head.left { margin-left: 0; text-align: left; margin-bottom: 32px; }
@@ -168,7 +156,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .section-lead { margin-top: 16px; font-size: 18px; color: var(--ink-muted); }
 .on-night .section-lead { color: var(--night-text); }
 
-/* ---------- ① 首屏 ---------- */
 .hero { padding: clamp(32px, 4.5vw, 60px) 0 0; }
 .hero-grid { display: grid; grid-template-columns: 1fr auto; gap: clamp(32px, 5vw, 72px); align-items: center; }
 .hero h1 { font-size: clamp(56px, 7vw, 92px); }
@@ -196,7 +183,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .levels i:nth-child(5) { animation-delay: -.7s; }
 @keyframes lv { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
 
-/* 录屏放在壁纸上；往下滚时壁纸从卡片展开到整个页宽，录屏本身大小不变（studio.js 写 --p） */
 .hero-stage {
   --inset: max(24px, (100% - var(--wrap)) / 2);
   margin-top: clamp(28px, 3.5vw, 44px);
@@ -208,13 +194,7 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
   box-shadow: 0 50px 100px -24px rgb(24 12 60 / .7), 0 0 0 1px rgb(255 255 255 / .18);
 }
 
-/* ---------- 录屏式演示（studio.js） ---------- */
-/* 一段录屏：画面按逻辑尺寸 --w × --h 排好，整体缩放进容器；镜头、光标和按键提示由 studio.js 按脚本走。
-   没有脚本或要少动时，看到的就是 HTML 里写好的那一帧。 */
 .studio { position: relative; width: 100%; aspect-ratio: var(--w) / var(--h); overflow: hidden; container-type: inline-size; user-select: none; -webkit-user-select: none; }
-/* 缩放进容器：容器宽 ÷ 逻辑宽。能拿长度除长度的浏览器用第二行；不能的丢掉它，用第一行，
-   tan(atan2(a, b)) 也是 a/b（Safari 26 在 atan2 里算错 cqw，但能做除法）。
-   没有脚本时就靠它；脚本播放时写上自己的 transform（加上镜头），盖过它。 */
 .cam {
   position: absolute; left: 0; top: 0; width: calc(var(--w) * 1px); height: calc(var(--h) * 1px); transform-origin: 0 0; transition: opacity .4s;
   transform: scale(tan(atan2(100cqw, calc(var(--w) * 1px))));
@@ -223,14 +203,10 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .studio.fade .cam { opacity: 0; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
-/* 壁纸：夜灯的颜色，Screen Studio 那种柔和渐变 */
 .wp-dusk { background: radial-gradient(70% 60% at 12% 0%, #ffd08f, transparent 70%), radial-gradient(60% 70% at 100% 20%, #ee8a86, transparent 70%), radial-gradient(80% 70% at 40% 110%, #3c2d88, transparent 75%), linear-gradient(160deg, #f6b25c, #c9617c 55%, #3b2c7e); }
-/* 同一片黄昏，光从另一边来 */
 .wp-dusk-r { background: radial-gradient(70% 60% at 88% 0%, #ffd08f, transparent 70%), radial-gradient(60% 70% at 0% 25%, #ee8a86, transparent 70%), radial-gradient(80% 70% at 60% 110%, #3c2d88, transparent 75%), linear-gradient(200deg, #f6b25c, #c9617c 55%, #3b2c7e); }
-/* 再晚一点：天暗下来，灯笼的光在下面 */
 .wp-dusk-deep { background: radial-gradient(60% 50% at 85% 0%, rgb(246 178 92 / .75), transparent 70%), radial-gradient(70% 55% at 30% 110%, rgb(245 165 36 / .45), transparent 75%), linear-gradient(165deg, #d9787a, #6b3f8c 48%, #2c2970); }
 
-/* 窗口 */
 .win { position: absolute; border-radius: 14px; overflow: hidden; background: #17152f; box-shadow: 0 40px 80px -24px rgb(10 8 40 / .6), 0 0 0 1px rgb(255 255 255 / .1); }
 .win-bar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; background: #221f45; color: var(--night-text); font-size: 15px; font-weight: 600; }
 .win-bar i { width: 13px; height: 13px; border-radius: 50%; background: #ff5f57; }
@@ -248,13 +224,10 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .facecam canvas { opacity: 0; transition: opacity .3s; }
 .facecam.on canvas { opacity: 1; }
 .facecam.on img { opacity: 0; transition: opacity .3s; }
-/* 主播像 VTuber 那样贴着画面底边；首屏的大一点 */
 .video .facecam { right: 14px; width: 200px; }
 
-/* 字幕卡片和工作原理里的字幕 */
 .src, .tgt { text-shadow: 0 0 2px var(--edge), 0 0 2px var(--edge), 0 1px 3px rgb(0 0 0 / .45); }
 
-/* 字幕：沉浸式、描边，和 app 的默认配色一样（原文白、译文琥珀） */
 .ov { position: absolute; }
 .ov .roll { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 10px; }
 .ov .line { transition: opacity .46s; }
@@ -275,7 +248,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 }
 .notice.show { opacity: 1; }
 
-/* 光标和点击 */
 .cursor { position: absolute; left: 0; top: 0; z-index: 30; width: 30px; height: 30px; pointer-events: none; transition: opacity .3s; }
 .cursor svg { width: 100%; height: 100%; transform-origin: 6px 3px; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .35)); }
 .cursor path { fill: #111; stroke: #fff; stroke-width: 1.6; stroke-linejoin: round; }
@@ -294,7 +266,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
   box-shadow: 0 .6cqw 2cqw rgb(0 0 0 / .3), inset 0 -.25cqw 0 rgb(255 255 255 / .14);
 }
 
-/* Tomoru 的菜单栏面板（夜间配色，和 app 里一样的结构） */
 .pn { position: absolute; width: 340px; overflow: hidden; border-radius: 18px; background: #23204f; color: #f4f2ff; font-size: 16px; box-shadow: 0 30px 60px -12px rgb(8 6 30 / .6), 0 0 0 1px rgb(255 255 255 / .1); }
 .pn .icon { width: 20px; height: 20px; }
 .pn-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #14123a; }
@@ -325,7 +296,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .pn-foot i { width: 1px; height: 20px; background: rgb(255 255 255 / .15); }
 .pn-foot span { flex: 1; }
 
-/* 系统菜单 */
 .menu-mock {
   position: absolute; z-index: 25; min-width: 240px; padding: 6px; border-radius: 11px;
   background: rgb(44 41 82 / .96); color: #f4f2ff; font-size: 16px; font-weight: 500;
@@ -339,7 +309,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .menu-mock .head { padding-top: 4px; padding-bottom: 4px; font-size: 13px; font-weight: 700; color: #a9a4d4; }
 .menu-mock .sep { height: 1px; margin: 5px 8px; padding: 0; background: rgb(255 255 255 / .14); }
 
-/* 首屏录屏：一台电脑的桌面 */
 .desk { position: absolute; inset: 0; background: radial-gradient(60% 50% at 80% 100%, rgb(245 165 36 / .35), transparent 75%), linear-gradient(180deg, #1f1b52, #3a2668); }
 .menubar-mock {
   position: absolute; left: 0; right: 0; top: 0; height: 32px; z-index: 10;
@@ -375,7 +344,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 [data-panel] { opacity: 0; transform: translateY(-8px) scale(.98); transition: opacity .2s, transform .2s; }
 [data-panel].open { opacity: 1; transform: none; }
 
-/* ---------- ② 卖点：小录屏卡片 ---------- */
 .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .tile { padding: 12px 12px 26px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); }
 .tile.wide { grid-column: 1 / -1; }
@@ -383,7 +351,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .tile h3 { margin: 22px 14px 8px; font-size: 20px; font-weight: 800; }
 .tile p { margin: 0 14px; color: var(--ink-muted); font-size: 15px; }
 
-/* 置顶悬浮：拖动字幕、锁定、点穿 */
 .game { left: 100px; top: 24px; width: 1000px; height: 512px; }
 .command {
   position: absolute; left: 28px; bottom: 26px; width: 250px; padding: 12px;
@@ -395,7 +362,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .command li.hit { background: rgb(245 165 36 / .4); }
 .drag-ov { left: 340px; top: 320px; width: 620px; height: 110px; z-index: 5; }
 .drag-ov .roll { position: relative; padding: 0 14px 10px; }
-/* 停在字幕上：和 app 一样，整块变暗、两侧出现调宽的把手，上方居中一条工具栏（overlay/handles.go） */
 .drag-ov::before { content: ""; position: absolute; inset: 0; border-radius: 16px; background: rgb(0 0 0 / .42); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12); opacity: 0; transition: opacity .2s; }
 .handle { position: absolute; top: 0; bottom: 0; z-index: 1; display: grid; place-items: center; width: 16px; opacity: 0; transition: opacity .2s; }
 .handle::after { content: ""; width: 3px; height: 34px; border-radius: 2px; background: rgb(255 255 255 / .3); }
@@ -415,11 +381,9 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .bar-icon.lit { background: rgb(255 255 255 / .16); color: #fff; }
 .drag-ov.hover::before, .drag-ov.hover .handle, .drag-ov.hover .ov-bar { opacity: 1; }
 
-/* 原生内录：在面板里选音源 */
 .cap-pn { left: 150px; top: 44px; }
 .cap-menu { left: 300px; top: 262px; transform-origin: top left; }
 
-/* 本机或云端 */
 .eng { left: 70px; top: 50px; width: 500px; height: 360px; }
 .eng-body { display: flex; flex-direction: column; gap: 14px; padding: 24px 26px; color: var(--ink); }
 .eng-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 12px 18px; border-radius: 14px; background: var(--card); box-shadow: 0 0 0 1px var(--line); font-size: 18px; font-weight: 700; }
@@ -437,13 +401,11 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .cloud-on .eng-path .svc { opacity: 1; color: var(--lantern-text); box-shadow: 0 0 0 3px var(--lantern), 0 0 28px rgb(245 165 36 / .45); }
 @keyframes wire { to { background-position: 16px 0; } }
 
-/* 看板娘那一节的菜单栏：睡着和醒着交替 */
 .t-label { font-size: 12px; font-weight: 600; fill: var(--night-text); }
 .lit { fill: var(--lantern); }
 @keyframes phA { 0%, 44% { opacity: 1; } 50%, 94% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes phB { 0%, 44% { opacity: 0; } 50%, 94% { opacity: 1; } 100% { opacity: 0; } }
 
-/* ---------- ④ 功能细节 ---------- */
 .feature { display: grid; grid-template-columns: 1fr 1.5fr; gap: clamp(32px, 6vw, 88px); align-items: center; }
 .feature + .feature { margin-top: clamp(64px, 9vw, 112px); }
 .feature.flip { grid-template-columns: 1.5fr 1fr; }
@@ -457,7 +419,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 }
 .tag .icon { width: 16px; height: 16px; }
 
-/* 抢先翻译：先出大意，说完换成完整的一句 */
 .player { left: 60px; top: 40px; width: 840px; height: 520px; }
 .draft-ov { left: 170px; top: 410px; width: 700px; height: 110px; }
 .draft-ov .src span { transition: opacity .2s; }
@@ -467,7 +428,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .note .n-final, .note.final .n-draft { display: none; }
 .note.final .n-final { display: inline; }
 
-/* 翻译场景：在面板里换场景，下一句就对了 */
 .scene-game { left: 40px; top: 70px; width: 640px; height: 500px; }
 .scene-ov { left: 70px; top: 360px; width: 590px; height: 180px; }
 .scene-pn { left: 590px; top: 30px; }
@@ -479,7 +439,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .gloss li:first-child { border-top: 0; }
 .gloss.away { opacity: 0; transform: translateY(12px); }
 
-/* 框选即翻：按快捷键，框住对话框，旁边出译文 */
 .vn { left: 50px; top: 40px; width: 860px; height: 540px; }
 .dialogue { position: absolute; left: 40px; right: 40px; bottom: 30px; padding: 20px 30px 30px; border-radius: 16px; background: #0b0a1e; box-shadow: inset 0 0 0 3px #cfcfe0; color: #fff; }
 .dialogue b { color: #ffd27a; font-size: 20px; }
@@ -497,11 +456,9 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .card-copy { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 7px 14px; border-radius: 999px; background: var(--fill); font-size: 15px; font-weight: 700; }
 .card-copy .icon { width: 16px; height: 16px; }
 
-/* ---------- ⑤ 使用场景 ---------- */
 .uses { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .use { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .use h3 { font-size: 17px; font-weight: 800; padding-left: 4px; }
-/* 每张卡片一个小画面，字幕浮在下面 */
 .use-shot { position: relative; flex: 1; min-height: 232px; overflow: hidden; border-radius: 14px; background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom)); }
 .use-shot .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .use-shot .live-badge { left: 10px; top: 10px; padding: 3px 6px; border-radius: 4px; font-size: 10px; }
@@ -528,7 +485,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .call-bar i { width: 12px; height: 12px; border-radius: 50%; background: rgb(255 255 255 / .3); }
 .call-bar .end { background: #e0564a; }
 
-/* ---------- ⑥ 三步上手 ---------- */
 .start-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(32px, 6vw, 80px); align-items: center; }
 .steps { counter-reset: s; display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; }
 .steps li { counter-increment: s; position: relative; padding-left: 56px; }
@@ -559,7 +515,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .copy .i-done, .copy.done .i-copy { display: none; }
 .copy.done .i-done { display: block; color: var(--lantern); }
 .start-stage { overflow: hidden; border-radius: 24px; box-shadow: 0 24px 60px rgb(27 25 73 / .18); }
-/* 首次使用引导的「来试一下」，照 app 里的引导窗口画（internal/ui/guide） */
 .guide-win { left: 30px; top: 28px; display: grid; grid-template-columns: 390px 1fr; width: 760px; height: 544px; }
 .guide-left { position: relative; display: flex; flex-direction: column; padding: 18px 26px 22px; color: var(--ink); }
 .guide-lights { display: flex; gap: 8px; }
@@ -589,7 +544,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .guide-ov .src { font-size: 19px; }
 .guide-ov .tgt { font-size: 26px; }
 
-/* ---------- ⑦ 隐私 ---------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
 .card-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--lantern-tint); color: var(--lantern-text); }
@@ -597,13 +551,11 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .card h3 { margin: 18px 0 6px; font-size: 18px; font-weight: 800; }
 .card p { color: var(--ink-muted); font-size: 15px; }
 
-/* ---------- ⑧ 看板娘 ---------- */
 .mascot-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 80px); align-items: center; }
 .mascot-art { position: relative; justify-self: center; width: min(340px, 80%); }
 .mascot-art::before { content: ""; position: absolute; inset: 12% 6% 0; border-radius: 50%; background: radial-gradient(closest-side, rgb(245 165 36 / .35), transparent); filter: blur(20px); z-index: -1; }
 .mascot-pic { display: grid; animation: bob 6s ease-in-out infinite; }
 .mascot-pic img { grid-area: 1 / 1; }
-/* 和下面的菜单栏一起：先睡着，开始翻译就醒来 */
 .m-asleep { opacity: 0; animation: phA 8s infinite; }
 .m-awake { animation: phB 8s infinite; }
 .mascot-copy p:not(.eyebrow) { margin-top: 16px; font-size: 17px; }
@@ -614,7 +566,6 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 
 .doc a { color: var(--lantern-text); text-underline-offset: 3px; }
 
-/* ---------- 帮助页 ---------- */
 .doc-hero { padding: clamp(40px, 6vw, 72px) 0 clamp(40px, 6vw, 64px); }
 .doc-hero h1 { margin-top: 16px; font-size: clamp(34px, 5vw, 52px); line-height: 1.2; font-weight: 800; color: var(--night-title); }
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; }
@@ -642,20 +593,16 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .doc-more h2 { font-size: 20px; }
 .doc-more p { margin-top: 8px; }
 
-/* ---------- ⑩ 收尾 ---------- */
 .callback { text-align: center; padding-bottom: clamp(180px, 20vw, 220px); }
 .callback-inner { position: relative; }
 .callback h2 { font-size: clamp(56px, 8vw, 96px); }
 .callback .lead { margin: 22px auto 0; }
 .callback .cta-row { margin-top: 32px; }
 .req { margin-top: 22px; font-size: 14px; opacity: .8; }
-/* 底下是一片山坡，接到页脚；Tomoru 从前面那道坡后面探出头 */
 .hills { position: absolute; left: 0; bottom: 0; width: 100%; height: 140px; pointer-events: none; }
 .hills-front { z-index: 1; }
 .peek { position: absolute; width: clamp(160px, 18vw, 190px); left: 50%; bottom: 16px; transform: translateX(-50%); filter: drop-shadow(0 -6px 24px rgb(245 165 36 / .25)); pointer-events: none; }
 
-/* ---------- 页脚 ---------- */
-/* 页脚：接着上面的山坡，底下是被裁掉一截的大字 Tomoru */
 .site-footer {
   position: relative; overflow: hidden; padding: 40px 0 0; font-size: 14px; color: var(--night-text);
   background: radial-gradient(60% 50% at 50% 100%, rgb(245 165 36 / .16), transparent 75%), linear-gradient(180deg, #13123a, #0d0c2a);
@@ -669,13 +616,10 @@ h2 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.25; font-weight: 800; l
 .footer-mark { margin: 48px 0 -.22em; text-align: center; font-size: clamp(80px, 16vw, 230px); line-height: .9; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent 92%); mask-image: linear-gradient(180deg, #000 35%, transparent 92%); }
 .footer-mark .wordmark { background-image: linear-gradient(180deg, rgb(211 207 246 / .1) 0 58%, rgb(245 165 36 / .26) 58% 100%); }
 
-/* ---------- 进场和暂停 ---------- */
 html.js .rv { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s var(--spring); }
 html.js .rv.in-view { opacity: 1; transform: none; }
-/* 动画只在看得见时跑 */
 html.js [data-anim]:not(.playing) * { animation-play-state: paused !important; }
 
-/* ---------- 窄屏 ---------- */
 @media (max-width: 960px) {
   .hero-grid, .feature, .feature.flip, .start-grid, .mascot-grid { grid-template-columns: 1fr; }
   .feature.flip .feature-copy { order: 0; }

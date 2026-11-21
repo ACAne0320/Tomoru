@@ -16,7 +16,6 @@ func TestPreferenceActionPersistsWithoutWindow(t *testing.T) {
 	if err != nil || p.Tgt != "ja" {
 		t.Fatalf("saved target %q: %v", p.Tgt, err)
 	}
-	// Calling a save is storage only. It must not modify the live glossary.
 	g := c.glossary.Load()
 	if err := c.SavePrefs(); err != nil || c.glossary.Load() != g {
 		t.Fatalf("save refreshed business state: %v", err)
@@ -49,7 +48,6 @@ func TestPreferenceDraftIsDetachedAndMergesOnlyEdits(t *testing.T) {
 	before := c.Preferences()
 	after := before.Clone()
 	after.Shown = 4
-	// An action can run while a view holds its draft.
 	c.SetTgt("ja")
 	c.ApplyPreferences(before, after)
 	if c.Preferences().Tgt != "ja" || c.Preferences().Shown != 4 {

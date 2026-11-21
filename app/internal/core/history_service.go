@@ -12,8 +12,6 @@ import (
 	"tomoru/internal/live"
 )
 
-// HistoryService owns recording, listing and reading. Recording consumes reliable
-// sentence events; its correctness never depends on the subtitle window size.
 type HistoryService struct {
 	History        HistoryView
 	dir            string
@@ -21,7 +19,7 @@ type HistoryService struct {
 	changed        func()
 	policy         atomic.Pointer[historyPolicy]
 	recording      *historyRun
-	retryRuns      []*historyRun // retired sessions with writes awaiting recovery
+	retryRuns      []*historyRun
 	hist           *history.Writer
 	writing        *historyPolicy
 	writingRun     *historyRun
@@ -32,7 +30,7 @@ type HistoryService struct {
 type historyPolicy struct {
 	enabled bool
 	head    history.Head
-	epoch   uint64 // changes when recording consent changes, independently of scene changes
+	epoch   uint64
 }
 type historyLine struct {
 	line   live.Line
@@ -76,8 +74,6 @@ func (s *HistoryService) begin() *historyRun {
 	return s.recording
 }
 
-// accept is safe from the live dispatcher. Policy is captured at commitment, so
-// changing scenes cannot relabel an earlier sentence still being translated.
 func (r *historyRun) accept(ev live.LineEvent, policy *historyPolicy) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -93,8 +89,6 @@ func (r *historyRun) accept(ev live.LineEvent, policy *historyPolicy) {
 }
 
 func (s *HistoryService) drain() {
-	// A restart must not throw away the previous run's failed writes. Keep runs distinct even
-	// when they used the same scene, and retry older writes before recording newer sessions.
 	for len(s.retryRuns) > 0 {
 		r := s.retryRuns[0]
 		if !s.drainRun(r) {
@@ -113,8 +107,6 @@ func (s *HistoryService) drain() {
 	}
 }
 
-// drainRun acknowledges one sentence only after it is written or deliberately discarded by
-// recording consent. A failed append leaves this sentence and all later ones available to retry.
 func (s *HistoryService) drainRun(r *historyRun) bool {
 	for {
 		r.mu.Lock()
@@ -133,7 +125,6 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if s.hist == nil || s.writing != p || s.writingRun != r {
 				s.closeHistory()
 				head := p.head
-				// The session starts where its first line was said, not where it is written.
 				head.Start = time.Now()
 				if !l.Start.IsZero() && l.Start.Before(head.Start) {
 					head.Start = l.Start
@@ -157,8 +148,6 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.Heard, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err
 				log.Println("history:", err)
-				// Writer errors are sticky. A new writer can recover on the next drain; the
-				// previous file retains every entry already acknowledged successfully.
 				s.closeHistory()
 				return false
 			}
@@ -186,9 +175,6 @@ func (s *HistoryService) closeHistory() {
 	s.histChanged()
 }
 
-// backfill preserves the existing opt-in behavior: when recording is enabled,
-// the currently visible committed sentences are included once. Subsequent
-// recording uses lifecycle events exclusively.
 func (s *HistoryService) backfill(lines []live.Line) {
 	r := s.recording
 	if r == nil {

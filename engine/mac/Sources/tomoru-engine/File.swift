@@ -1,17 +1,12 @@
-// Hearing a file (`listen --file`): a recording played as if the system played it, at its own
-// pace, for benchmarks and tests that need neither speakers nor the audio permission.
 import AVFoundation
 import Foundation
 
-/// AudioSource is what the engine hears: the system, by a tap, or a file.
 protocol AudioSource: AnyObject {
     func start(app: String?) throws
 }
 
 extension TapCapture: AudioSource {}
 
-/// FileCapture delivers a file's audio in real time, 100 ms at a time, as a tap delivers what
-/// plays; after its end, silence, as a tap does once nothing plays.
 final class FileCapture: AudioSource {
     let url: URL
     let onBuffer: (AVAudioPCMBuffer) -> Void
@@ -38,7 +33,6 @@ final class FileCapture: AudioSource {
         timer = t
     }
 
-    /// tick delivers the audio due by now: what the file has, then silence.
     func tick() {
         let format = file.processingFormat
         let due = AVAudioFramePosition(Date().timeIntervalSince(started) * format.sampleRate)
@@ -49,7 +43,6 @@ final class FileCapture: AudioSource {
                 do { try file.read(into: buf, frameCount: n) } catch { fail("capture-failed", "read \(url.path): \(error)") }
             }
             if buf.frameLength < n {
-                // Past the end: silence for the rest.
                 let have = Int(buf.frameLength)
                 buf.frameLength = n
                 for ch in 0..<Int(format.channelCount) {
@@ -62,8 +55,6 @@ final class FileCapture: AudioSource {
     }
 }
 
-/// makeSource is the source `listen` hears: the file of --file, else the system by a tap. A
-/// file needs no permission.
 func makeSource(file: String?, onBuffer: @escaping (AVAudioPCMBuffer) -> Void) -> AudioSource {
     if let file {
         return FileCapture(url: URL(fileURLWithPath: file), onBuffer: onBuffer)

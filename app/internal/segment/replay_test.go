@@ -10,9 +10,6 @@ import (
 	"testing"
 )
 
-// TestReplay feeds recordings of the engine (testdata/*.jsonl, docs/engine-protocol.md) through the
-// segmenter and compares what it commits with the .golden file next to each. Run with -update to
-// write them again after a deliberate change.
 func TestReplay(t *testing.T) {
 	recs, _ := filepath.Glob("testdata/*.jsonl")
 	if len(recs) == 0 {
@@ -48,15 +45,13 @@ func replay(t *testing.T, path, lang string) string {
 	return out.String()
 }
 
-// replayWith plays the recording at path through a segmenter of lang, giving emit what each event
-// returns.
 func replayWith(t *testing.T, path, lang string, emit func(*Segmenter, []Action)) {
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer f.Close()
-	s := New(Config{VolatileSentences: true, FinalsEnd: true}) // the recordings are Apple's
+	s := New(Config{VolatileSentences: true, FinalsEnd: true})
 	sc := bufio.NewScanner(f)
 	sc.Buffer(nil, 1<<20)
 	for sc.Scan() {
@@ -83,7 +78,7 @@ func replayWith(t *testing.T, path, lang string, emit func(*Segmenter, []Action)
 			if ev.Final {
 				var toks []Token
 				for _, tok := range ev.Tokens {
-					if tok.Start != nil && tok.End != nil { // the recognizer timed it
+					if tok.Start != nil && tok.End != nil {
 						toks = append(toks, Token{tok.Text, *tok.Start, *tok.End})
 					}
 				}
@@ -99,8 +94,6 @@ func replayWith(t *testing.T, path, lang string, emit func(*Segmenter, []Action)
 	}
 }
 
-// TestEnded times every segment of the recordings: by its final tokens as it is committed, or, cut
-// from the hypothesis, by those of the final result that comes after, at the end of its last word.
 func TestEnded(t *testing.T) {
 	recs, _ := filepath.Glob("testdata/*.jsonl")
 	for _, rec := range recs {
@@ -144,7 +137,7 @@ func TestEnded(t *testing.T) {
 				}
 			}
 			t.Logf("%d segments: %d timed as committed, %d after", len(segs), timed, byEnd)
-			if timed+byEnd < len(segs)-1 { // the last may wait for a final result the recording ends before
+			if timed+byEnd < len(segs)-1 {
 				t.Errorf("%d of %d segments timed", timed+byEnd, len(segs))
 			}
 		})

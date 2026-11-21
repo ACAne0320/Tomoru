@@ -1,9 +1,4 @@
 #!/bin/sh
-# Puts everything the app runs beside it into app/resources/<platform>/: the engine, local
-# recognition, the voice detector and llama-server. Run it once, and again after changing engine/;
-# go tool mygo dev restarts the app when it finishes.
-#
-#	scripts/setup.sh [darwin-arm64 | windows-amd64 | linux-amd64]   (default: this computer's)
 set -e
 cd "$(dirname "$0")"
 case $(uname -s) in

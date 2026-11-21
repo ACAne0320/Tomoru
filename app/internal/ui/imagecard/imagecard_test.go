@@ -24,13 +24,9 @@ import (
 	"tomoru/locales"
 )
 
-// TestCard asks for Screen Recording when there is no picture, then selects one; shows the
-// picture's translation as it comes, which Copy copies, into the language chosen on it; why it
-// failed, with a way to try again; and, long, scrolls in the card, following its end, the foot kept
-// at the bottom.
 func TestCard(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Format: translate.Index} // what it brings is dropped
+		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Format: translate.Index}
 		d.Select = func(context.Context) ([]byte, image.Rectangle, error) { return nil, image.Rectangle{}, nil }
 	})
 	closed, picked := false, 0
@@ -50,7 +46,7 @@ func TestCard(t *testing.T) {
 	if !tt.HasText(locales.GuideSelectSettings()) || !tt.HasText(locales.OpenSystemSettings()) {
 		t.Errorf("to System Settings: %q", tt.Texts())
 	}
-	k.Screen = "granted" // turned on in System Settings
+	k.Screen = "granted"
 	tt.Frame()
 	if err := tt.Click(locales.TranslateScreen()); err != nil || picked != 1 {
 		t.Errorf("select: %v, picked %d", err, picked)
@@ -63,7 +59,6 @@ func TestCard(t *testing.T) {
 	if !tt.HasText(locales.ImageTranslating()) || !tt.HasText(locales.ImageNote()) {
 		t.Errorf("translating: %q", tt.Texts())
 	}
-	// Come all at once, it comes in evenly: a part first, then the rest, though done meanwhile.
 	k.Image.Text = "艾露娜：克劳德。"
 	tt.Frame()
 	tt.Advance(16 * time.Millisecond)
@@ -89,7 +84,6 @@ func TestCard(t *testing.T) {
 		t.Errorf("still copied: %q", tt.Texts())
 	}
 
-	// Into another language: the picture again, the subtitles' kept.
 	if !tt.HasText(shared.LangName("zh")) {
 		t.Errorf("into %q: %q", k.ImageTgt(), tt.Texts())
 	}
@@ -104,7 +98,6 @@ func TestCard(t *testing.T) {
 		t.Errorf("into English: %q, subtitles %q, %+v", k.ImageTgt(), k.Prefs.Tgt, k.Image)
 	}
 
-	// Longer than the card, as it comes: it scrolls to its end, under the picture, over the foot.
 	var long []string
 	for i := range 40 {
 		long = append(long, fmt.Sprintf("第%d句", i+1))
@@ -126,7 +119,6 @@ func TestCard(t *testing.T) {
 	if !tt.HasText(locales.ImageFailed()) || !tt.HasText("503 Service Unavailable") || !tt.HasText(locales.Retry()) {
 		t.Errorf("failed: %q", tt.Texts())
 	}
-	// The cloud not answering in time: said as the subtitles say it, not as Go does.
 	late := &url.Error{Op: "Post", URL: translate.CloudURL, Err: context.DeadlineExceeded}
 	k.Image = core.ImageView{PNG: b.Bytes(), Via: "cloud", Err: late}
 	tt.Frame()
@@ -144,8 +136,6 @@ func TestCard(t *testing.T) {
 	}
 }
 
-// TestLines shows a translation as Markdown, its lines apart but in code: a dialogue a speaker a
-// line, a list, emphasis and code; and as it streams in, each piece as much of it as came.
 func TestLines(t *testing.T) {
 	text := strings.Join([]string{"艾露娜：走吧。", "克劳德：嗯。", "", "## 差异", "- 只有 **Markdown** 版", "", "```", "a", "b", "```", "完"}, "\n")
 	for i := range len(text) {
@@ -167,9 +157,6 @@ func TestLines(t *testing.T) {
 	}
 }
 
-// TestFit sizes a card for a short strip of dialogue so that it holds the picture, lines of the
-// translation and the foot, and no more; a tall picture's, its thumbnail at most thumbHeight, a
-// little more. Waiting, the card says so; its thumbnail clicked, the picture shows whole.
 func TestFit(t *testing.T) {
 	strip := FitHeight(Width, 1200, 120)
 	if strip >= Height || strip < MinHeight {

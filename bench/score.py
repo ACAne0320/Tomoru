@@ -25,11 +25,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 MEDIA, RUNS = HERE / "media", HERE / "runs"
 T2S = opencc.OpenCC("t2s")
 
-# Tokens: a Chinese, Japanese or Korean character each, a run of other letters or digits (a word)
-# each.
 CJK = "\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af"
 TOKEN = re.compile(f"[{CJK}]|[^\\W_{CJK}]+", re.UNICODE)
-# Annotations of subtitles, not speech: [音楽], (笑), （拍手）, ♪.
 ANNOT = re.compile(r"[\[\(（【〔<][^\]\)）】〕>]{0,20}[\]\)）】〕>]|[♪♫♬]")
 CREDIT = re.compile(r"翻译人员|校对人员|翻譯人員|譯者|Translator|Reviewer|번역|検閲|翻訳")
 
@@ -51,7 +48,7 @@ def han_number(run):
         elif c in UNIT:
             section += (digit or 1) * UNIT[c]
             digit = 0
-        else:  # 万
+        else:
             total += (section + digit) * 10000
             section = digit = 0
     return str(total + section + digit)
@@ -62,7 +59,6 @@ def norm(text, lang):
     if lang.startswith("zh"):
         t = T2S.convert(t)
     if lang.startswith(("zh", "ja")):
-        # Numbers as digits, whichever way they are written: 二十一 and 21 are the same.
         t = re.sub(r"(?<=\d),(?=\d{3})", "", t)
         t = HANNUM.sub(lambda m: " " + han_number(m.group()) + " ", t)
     return t
@@ -95,7 +91,7 @@ def align(ref, hyp):
     """The edit operations from ref to hyp, in order: (op, i, j), op one of "=", "s", "d", "i"."""
     n, m = len(ref), len(hyp)
     prev = list(range(m + 1))
-    back = [bytearray(m + 1) for _ in range(n + 1)]  # 0 =, 1 s, 2 d, 3 i
+    back = [bytearray(m + 1) for _ in range(n + 1)]
     for j in range(1, m + 1):
         back[0][j] = 3
     for i in range(1, n + 1):
@@ -183,13 +179,12 @@ def score_case(case, run):
         out["mtErrors"] = sum(1 for s in case.get("sentences", []) if s.get("err"))
         return out, {}
 
-    # The subtitles over time: the lines committed, in order, and the pending text after them.
     events = case["events"]
     end = case["audio"] + 10
     lines, order, pending = {}, [], ""
-    snaps = []  # (t, committed tokens, pending tokens): the screen after each change
+    snaps = []
     committed = []
-    voice = []  # (t, on) of voice detection
+    voice = []
     for n, e in enumerate(events):
         if "voice" in e:
             voice.append((e["t"], e["voice"]))
@@ -210,13 +205,10 @@ def score_case(case, run):
                     l["done"], l["err"] = e["t"], e.get("err", "")
         if "pending" in e:
             pending = e["pending"]
-        # A change comes as the events of one time: a line committing clears the pending text of
-        # it, which is not erasing it.
         if n + 1 == len(events) or events[n + 1]["t"] != e["t"]:
             snaps.append((e["t"], committed, tokens(pending, lang)))
     final = committed + tokens(pending, lang)
 
-    # When each final token first showed as it is.
     shown = [None] * len(final)
     frontier, prev_screen, erased = 0, [], 0
     for t, com, pend in snaps:
@@ -232,7 +224,6 @@ def score_case(case, run):
     for x in range(len(final)):
         if shown[x] is None:
             shown[x] = end
-    # When each token's line committed; the pending text at the end never did.
     committed_at, owner = [], []
     for lid in order:
         committed_at += [lines[lid]["t"]] * len(lines[lid]["toks"])
@@ -243,16 +234,12 @@ def score_case(case, run):
     out.update(lines=len(order), erased=erased, finalTokens=len(final))
     out["lineErrors"] = sum(1 for l in lines.values() if l["err"])
     out["untranslated"] = sum(1 for l in lines.values() if l["done"] is None)
-    # A line longer than about two lines of the overlay: a CJK character as wide as two letters.
     out["longLines"] = sum(1 for l in lines.values() if width(l["src"]) > 90)
     out["shortLines"] = sum(1 for l in lines.values() if len(l["toks"]) < (2 if lang == "en" else 3))
     samples = {"shown": [], "commit": [], "trFirst": [], "trDone": []}
 
     if case.get("ref") == "todo" or not refsrt.exists():
         return out, samples
-    # The reference: its tokens, each said by the end of its share of its cue. A cue lasts until
-    # the next starts, pause and all, so it is taken to end once its tokens are said at the case's
-    # brisk rate (of its faster cues), when that is sooner.
     cues = [(a, min(b, limit), tokens(text, lang)) for a, b, text in read_srt(refsrt) if a < limit]
     rates = sorted(len(t) / (b - a) for a, b, t in cues if len(t) >= 3 and b - a > 0.3)
     brisk = rates[int(0.8 * len(rates))] if rates else None
@@ -264,21 +251,15 @@ def score_case(case, run):
             ref.append(tok)
             said.append(a + (i + 1) / len(toks) * (b - a))
         speech.append((a, b))
-    # A reference ending well before the audio leaves what follows unscored, and its words as
-    # inserted: the case's end wants moving.
     if cues and sum(1 for t in shown if t > cues[-1][1] + 5) >= 5:
         out["refShort"] = round(case["audio"] - cues[-1][1])
     ops = align(ref, final)
     c = Counter(op for op, _, _ in ops)
     out.update(ref=len(ref), sub=c["s"], dele=c["d"], ins=c["i"], hits=c["="])
-    # Words inserted while nobody spoke, as voice detection tells (outside the reference's cues when
-    # it tells nothing): a word shown with nobody speaking in the 4 s before. Words inserted while
-    # someone spoke are often in the audio but not in the reference: lines in a trailer with only
-    # its narration subtitled.
     def spoke(t):
         if not voice:
             return any(a - 0.5 <= t <= b + 2.5 for a, b in speech)
-        before, began = False, False  # speaking 4 s before; started speaking since
+        before, began = False, False
         for vt, v in voice:
             if vt > t:
                 break
@@ -297,8 +278,6 @@ def score_case(case, run):
             samples["commit"].append(committed_at[j] - said[i])
         if owner[j] is not None:
             line_said[owner[j]] = max(line_said.get(owner[j], 0), said[i])
-    # Each line's translation, from when its last word was said: the first seen once it committed
-    # (the draft it keeps, or its own as it starts coming), and the whole.
     for lid in order:
         l = lines[lid]
         firsts = ([l["t"]] if l["ldraft"] else []) + ([l["first"]] if l["first"] is not None else [])
@@ -357,7 +336,7 @@ def summary(cases, samples, run):
     return s
 
 
-COLS = [  # key, header, format
+COLS = [
     ("er", "错误率%", "{:.1f}"),
     ("del", "漏%", "{:.1f}"),
     ("ins", "多%", "{:.1f}"),

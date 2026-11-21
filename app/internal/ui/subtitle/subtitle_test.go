@@ -49,26 +49,21 @@ func TestVisible(t *testing.T) {
 		t.Errorf("only a translation still streaming in grows: %+v", got)
 	}
 
-	// Since: the lines before it went with the last pause.
 	if got := Visible(st, 3, p); len(got) != 2 || got[0].Src != "c" {
 		t.Errorf("since 3: %+v", got)
 	}
 
-	// One at a time: the sentence being spoken keeps the last translation, dimmed.
 	p.Shown = 1
 	st.Draft = ""
 	if got := Visible(st, 0, p); len(got) != 1 || got[0].Src != "コメントも" || !got[0].DimTgt {
 		t.Errorf("one at a time: %+v", got)
 	}
 
-	// Translation only: what has no translation yet does not show.
 	p.Shown, p.Display = 3, prefs.DisplayTgt
 	if got := Visible(live.State{Pending: "x", Lines: []live.Line{{ID: 1, Src: "a"}}}, 0, p); len(got) != 0 {
 		t.Errorf("translation only: %+v", got)
 	}
 
-	// The original only: every line as heard, and what is being said, with no translation, draft
-	// or failure, one at a time too.
 	p.Display = prefs.DisplaySrc
 	st.Draft = "评论也"
 	got = Visible(st, 0, p)
@@ -86,7 +81,6 @@ func TestVisible(t *testing.T) {
 	}
 }
 
-// TestOriginalOnly draws the original alone, at its size, and leaves the overlay room for it.
 func TestOriginalOnly(t *testing.T) {
 	p := prefs.Default("en")
 	p.Display = prefs.DisplaySrc
@@ -103,8 +97,6 @@ func TestOriginalOnly(t *testing.T) {
 	}
 }
 
-// TestAsSaid shows a sentence said in the language translated into in the translation's place,
-// alone, as it is being said too; with the original alone, as an original.
 func TestAsSaid(t *testing.T) {
 	p := prefs.Default("zh-Hans")
 	p.Src, p.Shown = "auto", 3
@@ -132,7 +124,6 @@ func TestAsSaid(t *testing.T) {
 	}
 }
 
-// TestFailure says why a line has no translation, from what the translator's requests did.
 func TestFailure(t *testing.T) {
 	replies := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, _ := strconv.Atoi(strings.Split(r.URL.Path, "/")[1])
@@ -175,7 +166,6 @@ func TestFailure(t *testing.T) {
 	}
 }
 
-// TestOrder draws the translation above the source when asked.
 func TestOrder(t *testing.T) {
 	for _, tgtFirst := range []bool{false, true} {
 		p := prefs.Default("en")
@@ -191,8 +181,6 @@ func TestOrder(t *testing.T) {
 	}
 }
 
-// TestOpacity draws the text and the box as opaque as chosen, and a sentence still being spoken
-// in the original's color, a little faint. The tester's page is white.
 func TestOpacity(t *testing.T) {
 	draw := func(text, box float64) (ink, beside uint8) {
 		p := prefs.Default("en")
@@ -233,9 +221,6 @@ func TestOpacity(t *testing.T) {
 	}
 }
 
-// TestBalance wraps a sentence said in lines of about the same length, as wide as the overlay is
-// by default, a band as wide as they are; one being said, or a translation streaming in, wraps as
-// it comes.
 func TestBalance(t *testing.T) {
 	const zh = "既然你已经决定独自去北方的雪原找她，那就带上这把剑吧，它一定会保护你的。"
 	width := float32(.62*1512 - 24)
@@ -249,8 +234,6 @@ func TestBalance(t *testing.T) {
 			t.Fatalf("texts %q", tt.Texts())
 		}
 		img = tt.Image()
-		// How wide the ink of each line is: the translation's ice blue, on the tester's white page or
-		// a gray band.
 		for i := range lines {
 			left, right := int(r.X+r.W), 0
 			for y := int(r.Y + r.H*float32(i)/2); y < int(r.Y+r.H*float32(i+1)/2); y++ {

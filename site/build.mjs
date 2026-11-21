@@ -1,27 +1,15 @@
-// Builds the website into public/: each page in src/ filled with the text of each language in
-// locales/, the sitemap, and llms.txt. zh-Hans is the source and its pages sit at the root; the
-// others sit under their own directory. A language with a null left is not translated yet: it is
-// skipped. Wrangler runs this before `wrangler dev` and `wrangler deploy`.
-//
-// In the pages, {{key}} is a value from the language's file, which may hold HTML; {{key|plain}}
-// is it as text, for attributes and titles; {{key|json}} is it as JSON, for scripts. {{$name}} is
-// made here for each page and language. {{>name}} is the file src/partials/name, put in as it is.
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const site = 'https://tomoru.acane.dev';
-// The app's version, the same field the desktop build ships. Injected into the pages and llms.txt.
 const appVersion = JSON.parse(readFileSync(join(root, '..', 'app', 'mygo.json'), 'utf8')).version;
 if (typeof appVersion !== 'string' || !/^\d+\.\d+\.\d+$/.test(appVersion)) {
   console.error(`app/mygo.json: version ${JSON.stringify(appVersion)} is not x.y.z`);
   process.exit(1);
 }
 
-// The pages: the template, where it goes under a language's directory ("" for its home), and the
-// texts it takes besides the site's. A text other than the site's is in locales/<name>/, under the
-// key <name>; a page is built in the languages that have all its texts.
 const pages = [
   { src: 'index.html', path: '' },
   { src: '404.html', path: '404.html', sitemap: false },
@@ -29,7 +17,6 @@ const pages = [
   { src: 'help/offline.html', path: 'help/offline/', texts: ['help'] },
 ];
 
-// The languages, the source first. dir is where its pages go (and is in .gitignore).
 const languages = [
   { id: 'zh-Hans', dir: '', og: 'zh_CN', name: '简体中文' },
   { id: 'zh-Hant', dir: 'zh-hant', og: 'zh_TW', name: '繁體中文' },
@@ -42,7 +29,6 @@ const tag = /\{\{\s*([$\w.]+)(?:\|(\w+))?\s*\}\}/g;
 const partial = /\{\{>\s*([\w.-]+)\s*\}\}/g;
 const templates = Object.fromEntries(pages.map((p) => [p.src, readFileSync(join(root, 'src', p.src), 'utf8')
   .replace(partial, (_, name) => readFileSync(join(root, 'src', 'partials', name), 'utf8').trim())]));
-// read is a language's text of a kind, "" for the site's; null when the language has none.
 const read = (lang, kind) => {
   const file = join(root, 'locales', kind, `${lang.id}.json`);
   return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null;
@@ -50,8 +36,6 @@ const read = (lang, kind) => {
 const kinds = ['', ...new Set(pages.flatMap((p) => p.texts ?? []))];
 const errors = [];
 
-// The keys the pages use, and their checks against the source's text: the site's and the others',
-// each under its key.
 const get = (o, k) => k.split('.').reduce((v, p) => (v == null ? undefined : v[p]), o);
 const source = Object.fromEntries(kinds.map((kind) => [kind, read(languages[0], kind)]));
 for (const kind of kinds) if (kind && kind in source['']) errors.push(`zh-Hans: ${kind} is the key of locales/${kind}/`);
@@ -59,15 +43,12 @@ const sourceAll = { ...source[''], ...Object.fromEntries(kinds.filter(Boolean).m
 const used = new Set();
 for (const t of Object.values(templates)) for (const [, k] of t.matchAll(tag)) if (!k.startsWith('$')) used.add(k);
 for (const k of used) if (get(sourceAll, k) === undefined) errors.push(`zh-Hans: no ${k}`);
-// Every value is used: by a page, or as part of an object a page uses whole.
 (function unused(o, path) {
   if (used.has(path)) return;
   if (o === null || typeof o !== 'object' || Array.isArray(o)) return errors.push(`zh-Hans: ${path} is used by no page`);
   for (const [k, v] of Object.entries(o)) unused(v, path ? `${path}.${k}` : k);
 })(sourceAll, '');
 
-// shape checks a language's text has the source's keys and kinds, and counts the values still
-// null. A list's items each take the shape of the source's first.
 function shape(ref, v, path, id) {
   if (v === null) return 1;
   const kind = (x) => (Array.isArray(x) ? 'list' : typeof x);
@@ -84,8 +65,6 @@ function shape(ref, v, path, id) {
   return n;
 }
 
-// texts holds the text of each language the site is in: the site's, and the others' it has in
-// full, under their key. A language whose site text has a null left is not on the site.
 const texts = new Map();
 for (const lang of languages) {
   let t = null;
@@ -100,7 +79,7 @@ for (const lang of languages) {
     if (missing === 0) t = kind ? { ...t, [kind]: v } : v;
     else if (lang === languages[0]) errors.push(`${at}: ${missing} values are null`);
     else console.log(`${at}: skipped, ${missing} values not translated yet`);
-    if (!t) break; // no site text, no pages
+    if (!t) break;
   }
   if (t) texts.set(lang, t);
 }
@@ -110,14 +89,12 @@ if (errors.length) {
 }
 
 const built = [...texts.keys()];
-// langsOf are the languages a page is built in, the source first.
 const langsOf = (page) => built.filter((l) => (page.texts ?? []).every((kind) => kind in texts.get(l)));
 const home = (lang) => (lang.dir ? `/${lang.dir}/` : '/');
 const href = (lang, page) => home(lang) + page.path;
 const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const plain = (s) => s.replace(/<[^>]*>/g, '');
 
-// alternates are a page's versions in each language, and English for the others when it has one.
 function alternates(page) {
   const langs = langsOf(page);
   if (langs.length < 2) return [];
@@ -145,8 +122,6 @@ function render(template, t, v) {
   });
 }
 
-// Clear what an earlier build wrote: the other languages' directories and the source's pages in
-// directories of their own.
 for (const lang of languages) if (lang.dir) rmSync(join(root, 'public', lang.dir), { recursive: true, force: true });
 for (const page of pages) if (page.path.includes('/')) rmSync(join(root, 'public', page.path.split('/')[0]), { recursive: true, force: true });
 for (const page of pages) {
@@ -166,7 +141,6 @@ writeFileSync(join(root, 'public', 'sitemap.xml'), `<?xml version="1.0" encoding
 ${urls.join('\n')}
 </urlset>
 `);
-// llms.txt is a factual description for language models. {{version}} is the only placeholder.
 const llms = readFileSync(join(root, 'src', 'llms.txt'), 'utf8').replaceAll('{{version}}', appVersion);
 if (llms.includes('{{')) {
   console.error('src/llms.txt: an unfilled placeholder');

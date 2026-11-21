@@ -12,8 +12,6 @@ import (
 
 const version = "0.1.0"
 
-// Event is a protocol v1 record the engine sends. MarshalJSON writes each type's fields, its
-// zero values included (voice off at time zero), and none of the others'.
 type Event struct {
 	Type, Engine, Version, State, Code, Message, ID, Name, PCM string
 	Protocol, X, Y, Width, Height                              int
@@ -78,7 +76,6 @@ var out = struct {
 	w io.Writer
 }{w: os.Stdout}
 
-// send writes a protocol object as a line of its own, at once.
 func Send(e Event) {
 	b, err := json.Marshal(e)
 	if err != nil {
@@ -88,11 +85,10 @@ func Send(e Event) {
 	out.Lock()
 	defer out.Unlock()
 	if _, err := out.w.Write(append(b, '\n')); err != nil {
-		os.Exit(1) // the app has gone
+		os.Exit(1)
 	}
 }
 
-// fail sends an error and exits: every error ends the command.
 func Fail(code, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	Send(Event{Type: "error", Code: code, Message: msg})
@@ -100,15 +96,11 @@ func Fail(code, format string, args ...any) {
 	os.Exit(1)
 }
 
-// Command is a line of stdin. This engine recognizes nothing, so it has none to obey: finalize is
-// the recognizer's. Unknown commands and fields are forward-compatible.
 type Command struct {
 	Type    string  `json:"type"`
 	Through float64 `json:"through"`
 }
 
-// readCommands reads stdin's commands until it closes, which is the app saying to exit. A line
-// that is not JSON is an error.
 func readCommands(r io.Reader, apply func(Command)) error {
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 64<<10), 1<<20)

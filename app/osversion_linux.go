@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-// osVersion is the system and its version, for a report of a problem: the distribution's name, as
-// os-release gives it, "Ubuntu 24.04.3 LTS".
 func osVersion() string {
 	for _, path := range []string{"/etc/os-release", "/usr/lib/os-release"} {
 		b, err := os.ReadFile(path)

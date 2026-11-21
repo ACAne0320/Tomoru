@@ -44,7 +44,7 @@ func TestReplacementIsCompleteAndUsesRequestedMode(t *testing.T) {
 	}
 	st, err := os.Stat(path)
 	if runtime.GOOS == "windows" {
-		return // Windows keeps no Unix permissions
+		return
 	}
 	if err != nil || st.Mode().Perm() != 0600 {
 		t.Fatalf("mode: %v %v", st, err)

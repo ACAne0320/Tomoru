@@ -22,23 +22,14 @@ import (
 	"tomoru/locales"
 )
 
-// The history's page (docs/design-system.md): whether to keep the subtitles, the sessions kept by
-// day, of a scene or all, and beside them the one chosen, its lines with the names the glossary
-// corrected.
-
-// historyEdit is the page's state: the scene whose sessions show, "*" for all, once the page chose
-// it, and the session shown, by path.
 type historyEdit struct {
-	scene  string
-	chosen bool
-	record string
-	// exports is the sessions exported, as last shown: one more says so. exportDir is the folder
-	// the last was saved in, where the next is offered.
+	scene     string
+	chosen    bool
+	record    string
 	exports   int
 	exportDir string
 }
 
-// allScenes is the history's filter of no scene.
 const allScenes = "*"
 
 func (s *Settings) history(c *ui.Context) {
@@ -77,7 +68,6 @@ func (s *Settings) history(c *ui.Context) {
 		})
 	})
 	if len(k.History.Records) > 0 {
-		// The scene whose sessions show, and deleting those that show.
 		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			ui.Row(c).Grow(1).MinWidth(0).Gap(kit.Space(2)).Wrap().Role(ui.RoleGroup).Label(locales.Scene()).Children(func() {
 				if kit.Chip(c.Key(allScenes), locales.AllScenes(), e.scene == allScenes, 0).Clicked() {
@@ -104,7 +94,7 @@ func (s *Settings) history(c *ui.Context) {
 		case len(k.History.Records) > 0:
 			kit.SandCard(c).Children(func() { kit.Caption(c, locales.HistorySceneEmpty()) })
 		case !k.Preferences().History:
-			kit.Empty(c, kit.ArtHistoryOff, locales.HistoryOff(), nil) // the switch above turns it on
+			kit.Empty(c, kit.ArtHistoryOff, locales.HistoryOff(), nil)
 		default:
 			kit.Empty(c, kit.ArtHistory, locales.NoHistory(), nil)
 		}
@@ -131,7 +121,6 @@ func (s *Settings) history(c *ui.Context) {
 	s.endpointDialog(c)
 }
 
-// records lists the sessions shown by day, the latest first, as History.Records has them.
 func (s *Settings) records(c *ui.Context, shown []history.Record) {
 	e := &s.historyEdit
 	items := make([]kit.ListItem, len(shown))
@@ -149,9 +138,6 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 	})
 }
 
-// recordItem is a session as lists show it: when it started, at, its scene, and its languages, its
-// lines and the app it heard, which the session's card says too, the first to go where the room
-// runs out.
 func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at string) kit.ListItem {
 	p := kit.Colors(c)
 	meta := []string{recordLangs(r), locales.HistoryLines(r.Lines)}
@@ -163,8 +149,6 @@ func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at strin
 	}}
 }
 
-// record is a session's card: what it was and when, learning names from it, exporting it, showing
-// its file in Finder, deleting it, and its lines, as heard and translated.
 func (s *Settings) record(c *ui.Context, r history.Record) {
 	k, e := s.core, &s.historyEdit
 	p := kit.Colors(c)
@@ -173,10 +157,6 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	if sc, ok := k.SceneByID(r.Head.Scene); ok {
 		terms = sc.Terms
 	}
-	// Its name and when it was, across the card, and under them what is done with it: learning
-	// names first, the rest at the end.
-	// When it was, from its start to its last line, and the app it heard: on the card by the day
-	// as the list heads it, in a file exported by its date, as read later.
 	hours := r.Head.Start.Format("15:04")
 	if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
 		hours += " – " + lines[n-1].At.Format("15:04")
@@ -235,9 +215,6 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 	})
 }
 
-// export asks where to save a session exported, data, a file of kind, as name, in the folder the
-// last was saved in, else Downloads, and saves it there. The dialog is the window's it was asked
-// from.
 func (s *Settings) export(name string, kind mygo.FileFilter, data string) {
 	k, e := s.core, &s.historyEdit
 	dir := e.exportDir
@@ -246,7 +223,6 @@ func (s *Settings) export(name string, kind mygo.FileFilter, data string) {
 	}
 	opts := mygo.SaveDialogOptions{Parent: mygo.FocusedWindow(), DefaultPath: filepath.Join(dir, name+"."+kind.Extensions[0]),
 		Filters: []mygo.FileFilter{kind}, CreateDirectories: true}
-	// The dialog waits for the user: not on the main thread, which draws.
 	go func() {
 		path, err := mygo.Dialog.Save(opts)
 		if err != nil {
@@ -261,7 +237,6 @@ func (s *Settings) export(name string, kind mygo.FileFilter, data string) {
 	}()
 }
 
-// fileName is name, as a file can be named on every system.
 func fileName(name string) string {
 	return strings.Map(func(r rune) rune {
 		if strings.ContainsRune(`/\:*?"<>|`, r) || r < ' ' {
@@ -271,7 +246,6 @@ func fileName(name string) string {
 	}, name)
 }
 
-// recordLangs is a session's languages: what it heard, and translated into, if it did.
 func recordLangs(r history.Record) string {
 	if r.Head.Untranslated {
 		return shared.LangName(r.Head.Src)
@@ -279,10 +253,6 @@ func recordLangs(r history.Record) string {
 	return shared.Langs(r.Head.Src, r.Head.Tgt)
 }
 
-// line is a line kept: as heard, the names the glossary corrected marked, as terms, the scene's,
-// tell them; its translation; and what recognition heard of those names. Of a session untranslated,
-// or said in the language translated into, the line as heard is all there is, and shows as a
-// translation would.
 func line(c *ui.Context, l history.Entry, terms []scene.Term, untranslated bool) {
 	untranslated = untranslated || l.Said
 	p := kit.Colors(c)
@@ -328,16 +298,11 @@ func line(c *ui.Context, l history.Entry, terms []scene.Term, untranslated bool)
 	}
 }
 
-// mark is a stretch of a line kept: a name the glossary corrected, or the text around them.
 type mark struct {
 	text  string
 	fixed bool
 }
 
-// corrections splits src, a line as the glossary corrected heard, at the names it corrected, and
-// gives those names as heard. terms tell them: a name in src one of whose ways misheard is in
-// heard. Where none does, as the scene's names changed since, src is split around the stretch it
-// differs from heard in.
 func corrections(src, heard string, terms []scene.Term) (marks []mark, was []string) {
 	var names []string
 	for _, t := range terms {
@@ -360,7 +325,7 @@ func corrections(src, heard string, terms []scene.Term) (marks []mark, was []str
 		}
 		return marks, []string{w}
 	}
-	slices.SortFunc(names, func(a, b string) int { return len(b) - len(a) }) // the longest first
+	slices.SortFunc(names, func(a, b string) int { return len(b) - len(a) })
 	plain := 0
 	for i := 0; i < len(src); {
 		at := slices.IndexFunc(names, func(n string) bool { return strings.HasPrefix(src[i:], n) })
@@ -382,8 +347,6 @@ func corrections(src, heard string, terms []scene.Term) (marks []mark, was []str
 	return marks, was
 }
 
-// corrected splits src around the stretch it differs from heard in: the text before, the stretch
-// in src, the text after, and the stretch in heard.
 func corrected(src, heard string) (before, fixed, after, was string) {
 	s, h := []rune(src), []rune(heard)
 	i := 0
@@ -397,7 +360,6 @@ func corrected(src, heard string) (before, fixed, after, was string) {
 	return string(s[:i]), string(s[i : len(s)-j]), string(s[len(s)-j:]), string(h[i : len(h)-j])
 }
 
-// day is the day of t as the list heads it: today, yesterday, or its date.
 func day(t time.Time) string {
 	switch now := time.Now(); {
 	case sameDay(t, now):
@@ -408,19 +370,16 @@ func day(t time.Time) string {
 	return i18n.FormatDate(i18n.Locale(), t, i18n.DateOptions{Date: i18n.MediumStyle})
 }
 
-// sameDay tells whether a and b are on the same day.
 func sameDay(a, b time.Time) bool {
 	ay, am, ad := a.Date()
 	by, bm, bd := b.Date()
 	return ay == by && am == bm && ad == bd
 }
 
-// when is when a session started, as the reader's locale writes it.
 func when(r history.Record) string {
 	return i18n.FormatDate(i18n.Locale(), r.Head.Start, i18n.DateOptions{Date: i18n.MediumStyle, Time: i18n.ShortStyle})
 }
 
-// recordScene names a session's scene: as it is named now, or was, if it was deleted since.
 func (s *Settings) recordScene(r history.Record) string {
 	if sc, ok := s.core.SceneByID(r.Head.Scene); ok {
 		return shared.SceneName(*sc)

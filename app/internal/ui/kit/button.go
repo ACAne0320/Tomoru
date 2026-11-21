@@ -8,37 +8,23 @@ import (
 	"tomoru/internal/ui/assets"
 )
 
-// Kind is the weight of a button among the others on the screen.
 type Kind int
 
 const (
-	// Primary is the screen's one main action, in the lantern's amber: Start translating, Use this.
 	Primary Kind = iota
-	// Strong switches a state, in indigo: Pause translating; a chosen chip is its face too.
 	Strong
-	// Plain is any other, raised a step above the card it is on: Download, Adjust position.
 	Plain
-	// Soft is a gentle invitation, on the lantern's tint: Learn names from the records.
 	Soft
-	// Quiet has no face until hovered: an action beside a row of a list.
 	Quiet
-	// Danger is a deletion, in red, once asked: Delete in a dialog that asks.
 	Danger
 )
 
-// destructive is a kind's bit that turns its face red as the pointer comes over it.
 const destructive Kind = 1 << 4
 
-// Destructive is kind, its face turning red as the pointer comes over it, its ink white, as the
-// close buttons of title bars do: what stops, cancels what runs, deletes, closes or quits. A
-// dialog's Cancel, which backs out, is not.
 func Destructive(kind Kind) Kind { return kind | destructive }
 
-// Close closes a window the app draws the controls of, or quits: Quiet, but red once hovered.
 const Close = Quiet | destructive
 
-// ControlSize is a control's height: Small in rows and cards, Medium in a page's header, Large for the
-// home page's main action.
 type ControlSize int
 
 const (
@@ -47,7 +33,6 @@ const (
 	Large
 )
 
-// height is a control's height in points.
 func (s ControlSize) height() float32 {
 	switch s {
 	case Large:
@@ -58,10 +43,8 @@ func (s ControlSize) height() float32 {
 	return 32
 }
 
-// hover is how fast a control's face follows the pointer.
 var hover = ui.Animation{Duration: 120 * time.Millisecond}
 
-// face is the colors of a button of kind: at rest, hovered, pressed, and its ink.
 func face(p *Palette, kind Kind) (rest, hovered, pressed, ink ui.Color) {
 	switch kind {
 	case Primary:
@@ -78,7 +61,6 @@ func face(p *Palette, kind Kind) (rest, hovered, pressed, ink ui.Color) {
 	return p.Raised, p.Raised.Mix(p.LineStrong, .5), p.LineStrong, p.Ink
 }
 
-// press styles b, a ButtonBase, with the face of kind as the pointer is over it or presses it.
 func press(c *ui.Context, b ui.Element, kind Kind) ui.Element {
 	p := Colors(c)
 	base := kind &^ destructive
@@ -86,7 +68,7 @@ func press(c *ui.Context, b ui.Element, kind Kind) ui.Element {
 	edge := p.RaisedLine
 	red := kind&destructive != 0 && (b.Hovered() || b.Pressed())
 	if kind&destructive != 0 && rest.A == 0 {
-		rest = p.CloseHover.Alpha(0) // no face at rest: the red fades in, with no grey on the way
+		rest = p.CloseHover.Alpha(0)
 	}
 	col := rest
 	switch {
@@ -110,8 +92,6 @@ func press(c *ui.Context, b ui.Element, kind Kind) ui.Element {
 	return b
 }
 
-// Off disables b, a Button or an IconButton, when off: on the track's fill, its label faint, it
-// does nothing until what it needs is there.
 func Off(c *ui.Context, b ui.Element, off bool) ui.Element {
 	if !off {
 		return b
@@ -120,9 +100,6 @@ func Off(c *ui.Context, b ui.Element, off bool) ui.Element {
 	return b.Disabled(true).Background(p.Fill).TextColor(p.Faint).Border(1, p.Fill).Shadow(0, 0, 0, 0, ui.Transparent).Cursor(ui.CursorDefault)
 }
 
-// PictureClose is the close button over a picture, showing icon: a see-through disc of shade with
-// a white mark, which hides little of what is under it, and turns the red of Close under the
-// pointer. It fades in while shown, the pointer over the picture, and out as it leaves.
 func PictureClose(c *ui.Context, icon *ui.SVG, label string, shown bool) ui.Element {
 	p := Colors(c)
 	const h = 28
@@ -142,7 +119,6 @@ func PictureClose(c *ui.Context, icon *ui.SVG, label string, shown bool) ui.Elem
 	return b.Children(func() { ui.Icon(c, icon).FontSize(IconSizeSmall) })
 }
 
-// Button is a pill with an icon, if icon is not nil, and a label: the app's buttons, by kind.
 func Button(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string) ui.Element {
 	h := size.height()
 	text, glyph, gap := float32(TextControl), float32(IconSizeSmall), Space(2)
@@ -164,15 +140,10 @@ func Button(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label stri
 	})
 }
 
-// IconButton is a round button showing icon alone, named label for assistive technology and in
-// its tooltip.
 func IconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string) ui.Element {
 	return TurnedIconButton(c, kind, size, icon, label, 0)
 }
 
-// TurnedIconButton is an IconButton whose icon is turned degrees clockwise, springing there as they
-// change. The icon turns, not the button: drawn turned it stays sharp, where a turned button is
-// resampled and shows soft.
 func TurnedIconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string, degrees float32) ui.Element {
 	h := size.height() - 2
 	b := ui.ButtonBase(c).Size(h, h).Radius(Pill(h)).Label(label).Tooltip(label).Shrink(0)
@@ -188,24 +159,16 @@ func TurnedIconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, 
 	})
 }
 
-// DeleteButton is the one way a row or a page deletes: a trash can, Quiet until the pointer
-// comes over it and turns it red.
 func DeleteButton(c *ui.Context, size ControlSize, label string) ui.Element {
 	return IconButton(c, Destructive(Quiet), size, assets.Trash, label)
 }
 
-// QuietInset is how far in a Small IconButton's glyph is from its edges, as a Quiet one shows no
-// face: what ends beside it, as a download's progress over a cancel, ends that far in to line up.
 const QuietInset = 8
 
-// CancelButton stops what runs, as a download: a cross, Quiet until it turns red.
 func CancelButton(c *ui.Context, label string) ui.Element {
 	return IconButton(c, Destructive(Quiet), Small, assets.Close, label)
 }
 
-// Disclosure is a title that folds what follows it away, open telling whether it shows: what
-// most never change, as a service's model and address under its key. It says whether to build
-// it.
 func Disclosure(c *ui.Context, open *bool, label string) bool {
 	p := Colors(c)
 	b := ui.ButtonBase(c).Gap(Space(1)).AlignSelf(ui.Start).Cursor(ui.CursorPointer).Expanded(*open).Label(label)

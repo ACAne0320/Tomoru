@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-// TestArea reads where the engine says the selection is, among its other lines.
 func TestArea(t *testing.T) {
 	out := []byte(`{"type":"hello","protocol":1,"engine":"windows","version":"0.1.0"}` + "\n" +
 		`{"type":"area","x":-1920,"y":40,"width":300,"height":120}` + "\n")

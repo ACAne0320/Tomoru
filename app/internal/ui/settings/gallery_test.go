@@ -19,9 +19,6 @@ import (
 	"tomoru/internal/scene"
 )
 
-// TestGallery pictures every page, with scenes, names, sessions and three weeks of statistics in
-// them, on a computer with a GPU and local models, light and dark, to review them by eye:
-// TOMORU_GALLERY=<dir> go test ./internal/ui/settings -run Gallery writes them there.
 func TestGallery(t *testing.T) {
 	dir := coretest.GalleryDir(t)
 	if dir == "" {
@@ -73,8 +70,7 @@ func TestGallery(t *testing.T) {
 	s := New(k, &coretest.Nav{})
 	tt := ui.NewTester(s.View, Width, Height)
 	tt.SetScale(2)
-	var mt string // the translation engine before the report's own
-	// Each picture: its name, a height the whole page fits in, and what it shows, after the last.
+	var mt string
 	for _, shot := range []struct {
 		name   string
 		height int
@@ -111,7 +107,7 @@ func TestGallery(t *testing.T) {
 			s.addingAPI = true
 			s.editAPI(&s.api, prefs.Endpoint{})
 		}},
-		{"engines-add-narrow", 1900, func() {}}, // at the window's least width
+		{"engines-add-narrow", 1900, func() {}},
 		{"scenes", Height, func() { s.closeAPI(); s.Tab = "scenes" }},
 		{"scenes-narrow", MinHeight, func() {}},
 		{"history", Height, func() { s.Tab = "history" }},
@@ -121,11 +117,11 @@ func TestGallery(t *testing.T) {
 		{"general", 1000, func() { s.Tab = "general" }},
 		{"about", Height, func() { s.Tab = "about" }},
 		{"report", Height, func() { s.feedback = feedbackEdit{open: true} }},
-		{"report-open", MinHeight, func() { // at the window's least height
+		{"report-open", MinHeight, func() {
 			s.feedback = feedbackEdit{open: true, shown: true, what: "Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"}
 		}},
 		{"report-idea", Height, func() { s.feedback = feedbackEdit{open: true, kind: 1} }},
-		{"report-narrow", Height, func() { // an API of one's own, its model's long name of no spaces
+		{"report-narrow", Height, func() {
 			s.feedback.shown, mt = false, k.Prefs.MT
 			k.Prefs.Endpoints = append(k.Prefs.Endpoints, prefs.Endpoint{ID: "long", Name: "OpenRouter", Model: "qwen/qwen3-235b-a22b-instruct-2507:free-tier-preview-build-20261109"})
 			k.Prefs.MT = "custom:long"
@@ -149,7 +145,7 @@ func TestGallery(t *testing.T) {
 		for _, dark := range []bool{false, true} {
 			tt.SetDark(dark)
 			tt.Frame()
-			k.History.Lines = lines // as read
+			k.History.Lines = lines
 			tt.Advance(time.Second)
 			tt.Frame()
 			name := shot.name + "-light.png"

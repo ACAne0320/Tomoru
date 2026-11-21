@@ -25,14 +25,12 @@ func TestRead(t *testing.T) {
 		t.Errorf("%+v", r)
 	}
 
-	// An error ends the reading with it.
 	err = read(strings.NewReader(hello+`{"type":"error","code":"no-permission","message":"off"}`+"\n"+`{"type":"clock","t":1}`+"\n"), func(Event) { t.Error("an event after the error") })
 	var e *Error
 	if !errors.As(err, &e) || e.Code != "no-permission" {
 		t.Errorf("error %v", err)
 	}
 
-	// Another protocol is refused.
 	if err := read(strings.NewReader(`{"type":"hello","protocol":2}`+"\n"), func(Event) {}); err == nil {
 		t.Error("protocol 2 was taken")
 	}

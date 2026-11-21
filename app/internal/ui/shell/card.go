@@ -3,7 +3,7 @@ package shell
 import (
 	"bytes"
 	"image"
-	_ "image/png" // for the picture's size
+	_ "image/png"
 	"math"
 
 	"github.com/egoist/mygo"
@@ -15,19 +15,11 @@ import (
 	"tomoru/locales"
 )
 
-// cardGap is between the picture's card and what it is placed by.
 const cardGap = 8
 
-// showImage shows the picture's card, unless it shows: a panel, which floats over every app and
-// takes the keyboard without making Tomoru the active app, and stays until it is closed, to be
-// moved by its title. It goes under the part of the screen selected, or over it, by what it
-// translates; for the clipboard's picture, by the menu bar icon (the taskbar's), or in the
-// screen's middle when the icon tells no place. It is as large as
-// the user last resized it, as far as the screen has room; until they resize one, as tall as its
-// picture needs. It never resizes itself once shown.
 func (s *Shell) showImage() {
 	if s.image != nil {
-		return // it shows the new picture
+		return
 	}
 	s.closePanel()
 	at, selected := s.selected()
@@ -51,7 +43,7 @@ func (s *Shell) showImage() {
 		DisableMinimize: true, DisableMaximize: true, DisableFullScreen: true,
 		Content: ui.View(d.View)})
 	s.image = card
-	resized := false // by the user: its size is kept, the screen's room for it not
+	resized := false
 	card.OnResize(func() {
 		if cw, ch := card.ContentSize(); cw != w || ch != h {
 			w, h, resized = cw, ch, true
@@ -71,8 +63,6 @@ func (s *Shell) showImage() {
 	})
 }
 
-// cardSize is the size of the picture's card: w by h as the user last resized it, else its own,
-// as far as work has room for it.
 func cardSize(w, h int, work mygo.Rectangle) (int, int) {
 	if w <= 0 || h <= 0 {
 		w, h = imagecard.Width, imagecard.Height
@@ -82,10 +72,6 @@ func cardSize(w, h int, work mygo.Rectangle) (int, int) {
 	return w, h
 }
 
-// cardPlace is where a card w by h goes by at, in work: under it, its left edge on at's, or its
-// middle on at's, centered; over it where work has no room under it and has over it. In work, as
-// far as it fits. above tells it went over. With no at, as a tray icon that tells no place (an
-// AppIndicator's), it goes in work's middle.
 func cardPlace(at mygo.Rectangle, centered bool, w, h int, work mygo.Rectangle) (x, y int, above bool) {
 	if at.Width == 0 && at.Height == 0 {
 		return work.X + (work.Width-w)/2, work.Y + (work.Height-h)/2, false
@@ -101,18 +87,15 @@ func cardPlace(at mygo.Rectangle, centered bool, w, h int, work mygo.Rectangle) 
 	x = max(work.X, min(x, work.X+work.Width-w))
 	y = max(work.Y, min(y, work.Y+work.Height-h))
 	if x == 0 && y == 0 {
-		x = 1 // a window at 0, 0 is centered
+		x = 1
 	}
 	return x, y, above
 }
 
-// selected is where the picture was selected, in DIPs: the engine says it in pixels, which are a
-// display's DIPs times its scale.
 func (s *Shell) selected() (mygo.Rectangle, bool) {
 	return toDIPs(s.core.Image.Area, mygo.Screen.Displays())
 }
 
-// toDIPs is px, in the pixels of the display it starts on, in DIPs; false when empty.
 func toDIPs(px image.Rectangle, displays []mygo.Display) (mygo.Rectangle, bool) {
 	if px.Empty() {
 		return mygo.Rectangle{}, false
@@ -131,10 +114,6 @@ func toDIPs(px image.Rectangle, displays []mygo.Display) (mygo.Rectangle, bool) 
 	return mygo.Rectangle{X: dip(px.Min.X), Y: dip(px.Min.Y), Width: dip(px.Dx()), Height: dip(px.Dy())}, true
 }
 
-// peek shows the picture whole in a window of its own, in the middle of the card's display, as
-// large as it was on the screen, or as the screen has room for: a panel, as the card, that the
-// user moves by the picture and resizes, the picture fitting it, and closes with its close button,
-// which shows while the pointer is over it, or Escape, or with the card. Clicked again, the thumbnail brings it back to the front.
 func (s *Shell) peek(card *mygo.Window) {
 	if s.picture != nil {
 		s.picture.Close()
@@ -159,7 +138,6 @@ func (s *Shell) peek(card *mygo.Window) {
 			pane := ui.Box(c).Fill().DragWindow()
 			pane.Children(func() {
 				ui.Image(c, bitmap).Fill().Fit(ui.Contain)
-				// Only while the pointer is over the picture, for it hides what is in the corner.
 				if kit.PictureClose(c, assets.Close, locales.Close(), pane.Hovered()).Absolute().Top(kit.Space(2)).Right(kit.Space(2)).Clicked() {
 					win.Close()
 				}
@@ -173,8 +151,6 @@ func (s *Shell) peek(card *mygo.Window) {
 	})
 }
 
-// pictureBounds is where a picture w by h pixels shows whole, in DIPs: as large as it was on d, or
-// as nine tenths of its work area has room for, in its middle.
 func pictureBounds(w, h int, d mygo.Display) mygo.Rectangle {
 	scale := max(d.ScaleFactor, 1)
 	wa := d.WorkArea

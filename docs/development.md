@@ -107,7 +107,7 @@ Each takes the parts to run; with none it runs all this platform can (`ui` and `
 
 | | Part | What it runs |
 |---|---|---|
-| `check.sh` | `go` | The license inventory, `gofmt`; `go vet`, the linters of `.golangci.yml` and functions nothing reaches (`deadcode`) of the app for macOS, Windows and Linux and of the engines for this platform and Windows (mingw-w64 needed: `brew install mingw-w64`, `apt install gcc-mingw-w64-x86-64`), the Linux engine on Linux only (`apt install libpulse-dev libgtk-3-dev`); and the app's layering, platform and design rules. The linters are pinned in the script and built the first time into `~/.cache/tomoru-tools` |
+| `check.sh` | `go` | The license inventory, `gofmt`; `go vet`, the linters of `.golangci.yml` and functions nothing reaches (`deadcode`) of the app for macOS, Windows and Linux and of the engines for this platform and Windows (mingw-w64 needed: `brew install mingw-w64`, `apt install gcc-mingw-w64-x86-64`), the Linux engine on Linux only (`apt install libpulse-dev libgtk-3-dev`); the app's layering, platform and design rules; and no new comments, each file held to its count in `app/comments.txt` (`app/comments_test.go`, `go test -count=1 comments_test.go -update-comments` in `app/` lowers it). The linters are pinned in the script and built the first time into `~/.cache/tomoru-tools` |
 | | `swift` | A type check of the Swift engine, warnings as errors |
 | `test.sh` | `go` | The tests of `app`, `engine/asr` and `engine/shared` but the UI's and the `core/coretest` desktop adapter, the benchmark's included |
 | | `ui` | The app's UI tests |
@@ -140,7 +140,7 @@ local ports. Tests use only local fake servers and need no external API by defau
 | Tier | What it covers | When |
 | --- | --- | --- |
 | Tests of affected packages | Current behavior, failure and cancellation paths | Every change |
-| `check.sh` | Formatting, vet and lint for macOS, Windows and Linux, unused code, package and platform boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
+| `check.sh` | Formatting, vet and lint for macOS, Windows and Linux, unused code, comments, package and platform boundaries, design rules, licenses, the Swift engine's types | Every code change; CI |
 | `test.sh --race` | Domain rules, persistence, child processes, concurrency, the protocol implementations, the UI, the Swift contracts | Every code change; CI; the release gate |
 | Real audio and desktop acceptance | Permissions, real audio, shortcuts, subtitles across screens, quitting, packaged resources | Before a release, and when platform behavior changes |
 | A real Windows 11 x64 machine | `scripts/check.sh go` and `scripts/test.sh go` in MSYS2 (or test binaries cross-compiled with `GOOS=windows GOARCH=amd64 go test -c`, run in the package directory), the whole guide, capture, screen selection, the tray | Changes to Windows's own code (`engine/windows`, `capture`, `shell`); before a release, what changed since the last one |

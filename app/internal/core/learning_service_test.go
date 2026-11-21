@@ -95,8 +95,6 @@ func TestLearningServiceSnapshotsAndDeferredResults(t *testing.T) {
 	s.Learning.Paths[0] = "also missing"
 	close(release)
 	joinLearningWorkers(t, s)
-	// The worker's deferred context cleanup has already run; successful queued UI results
-	// must still be accepted because this operation was not explicitly canceled.
 	if s.learning.ctx.Err() == nil {
 		t.Fatal("worker did not release its context")
 	}
@@ -116,7 +114,7 @@ func TestLearningReplacementRejectsLateModelResult(t *testing.T) {
 	s.startLearning(learningRequest{Paths: []string{path}, Scene: "old", Ready: func(context.Context) (learn.Asker, error) {
 		return askFunc(func(ctx context.Context, _, _ string, _ int) (string, error) {
 			close(started)
-			<-release // emulate a provider returning a successful result after cancellation
+			<-release
 			return `{"terms":[{"heard":"刘北","src":"纽北","tgt":"old","sure":true}]}`, nil
 		}), nil
 	}})
@@ -192,8 +190,6 @@ func TestRetranslationSnapshotsAndQueuedRefreshGeneration(t *testing.T) {
 	if !bytes.Contains(after, []byte("Nürburgring")) || bytes.Contains(after, []byte("mutated")) {
 		t.Errorf("glossary snapshot not preserved: %s", after)
 	}
-	// The write completed, but its UI notifications are still queued. Starting a new operation
-	// must discard the old final progress and refresh, without undoing its committed file.
 	s.startRetranslating(retranslationRequest{})
 	drainLearningPosts(f)
 	if refreshes != 0 || s.Retranslating.Total != 0 || !s.Retranslating.Finished {
@@ -221,7 +217,6 @@ func TestLearningAndRetranslationShutdown(t *testing.T) {
 	}})
 	waitLearningSignal(t, learningStarted)
 	waitLearningSignal(t, retranslationStarted)
-	// The same actions used by Core.Shutdown cancel each feature before joining root workers.
 	s.CancelLearning()
 	s.CancelRetranslating()
 	if !s.work.close(time.Second) {

@@ -4,7 +4,9 @@
 
 This document describes the code boundaries as they are maintained. For setting up and checking
 your work, see the [development guide](development.md); for the decisions behind the boundaries,
-see [ADR 001](adr/001-state-events-and-runtime-boundaries.md).
+see [ADR 001](adr/001-state-events-and-runtime-boundaries.md). The code carries no comments: the
+decisions behind each area are in [`adr/`](adr/), from [ADR 002](adr/002-live-session-and-segmenting.md)
+(the live session) to [ADR 010](adr/010-tooling-benchmark-and-site.md) (tooling and the site).
 
 ## Directories
 

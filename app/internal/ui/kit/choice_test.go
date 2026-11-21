@@ -6,8 +6,6 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// TestChoiceList shows a row clicked on its title, uses it clicked on its radio, and does nothing
-// with the radio of a row that can't be used; in a SplitCard, beside what it shows.
 func TestChoiceList(t *testing.T) {
 	rows := []Choice{
 		{Key: "a", Head: "On device", Title: "SenseVoice", Use: "Use SenseVoice", On: true, Meta: "Small", Progress: -1},
@@ -57,7 +55,6 @@ func TestChoiceList(t *testing.T) {
 	}
 }
 
-// TestOptionOff can't choose a row that is Off, and chooses the others.
 func TestOptionOff(t *testing.T) {
 	clicked := -2
 	tt := ui.NewTester(func(c *ui.Context) {

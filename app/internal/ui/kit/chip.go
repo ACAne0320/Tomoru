@@ -6,8 +6,6 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// Chip is a choice among a few, as a pill: a scene, a filter. Chosen, it is Strong's indigo. A count above 0
-// shows in a badge after its label: the names a scene has.
 func Chip(c *ui.Context, label string, on bool, count int) ui.Element {
 	p := Colors(c)
 	h := Small.height() + 2
@@ -28,7 +26,6 @@ func Chip(c *ui.Context, label string, on bool, count int) ui.Element {
 	})
 }
 
-// CountBadge is a number in the lantern's amber: how many there are of something.
 func CountBadge(c *ui.Context, n int) ui.Element {
 	p := Colors(c)
 	const h = 20

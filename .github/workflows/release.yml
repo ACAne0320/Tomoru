@@ -1,17 +1,11 @@
 name: Release
 
-# Pushing a tag v<version> builds the macOS, Windows and Linux apps, signs them and their updates,
-# and uploads them to a draft release whose notes are the version's section of app/CHANGELOG.md and
-# the installers' links. The draft is published by hand (docs/release.md). Needs the repository
-# secrets MACOS_CERTIFICATE (the .p12 of "Tomoru Self-Signed", base64), MACOS_CERTIFICATE_PASSWORD
-# and MYGO_UPDATER_PRIVATE_KEY.
-
 on:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: write # the draft release, and the uploads to it
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -35,14 +29,8 @@ jobs:
             echo "::error::app/CHANGELOG.md has no section for $version."
             exit 1
           fi
-          # The installers, among the assets' archives and deltas: on GitHub, and, for mainland China,
-          # from the website's R2 copy, the latest published release's (site/README.md).
           releases="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME"
-          # install.sh downloads the latest release, which a prerelease is not: a prerelease's
-          # script is given its archive.
           tarball="tomoru-$version-linux-amd64.tar.gz"
-          # A Debian version sorts a prerelease before its release with "~" (MyGo's debVersion), which
-          # GitHub turns into "." in the asset's name: 0.2.0-beta.1's is tomoru_0.2.0.beta.1_amd64.deb.
           deb="tomoru_$(printf %s "$version" | tr -- '-+' '..')_amd64.deb"
           case "$GITHUB_REF_NAME" in
           *-*) linux="On any Linux distribution, download [$tarball]($releases/$tarball) and [install.sh]($releases/install.sh), and run \`sh install.sh $tarball\` where they are: it installs this prerelease without root, and that install updates itself to the next release; the Debian package does not." ;;
@@ -114,8 +102,6 @@ jobs:
         run: go tool mygo build -upload
 
   windows:
-    # After macOS, whether it passed or not: each upload merges the release's SHA256SUMS with its
-    # own, and two at once replace each other's.
     needs: [draft, macos]
     if: ${{ !cancelled() && needs.draft.result == 'success' }}
     runs-on: windows-latest
@@ -139,7 +125,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
-          path-type: inherit # Go and gh, from Windows
+          path-type: inherit
           install: mingw-w64-x86_64-gcc unzip diffutils
       - name: Build what the app ships, and check its licenses
         run: |
@@ -153,8 +139,6 @@ jobs:
         run: go tool mygo build -upload
 
   linux:
-    # After Windows, for the same reason. On the oldest Ubuntu the app supports, so that what it
-    # builds runs there and on everything newer.
     needs: [draft, windows]
     if: ${{ !cancelled() && needs.draft.result == 'success' }}
     runs-on: ubuntu-22.04

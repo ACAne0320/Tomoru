@@ -8,7 +8,6 @@ import (
 	"tomoru/internal/scene"
 )
 
-// loadScenes composes scene storage with the preference naming the selected scene.
 func (c *Core) loadScenes() {
 	selected, err := c.SceneService.load(c.deps.ScenesPath, c.Prefs.Scene)
 	if err != nil {
@@ -19,12 +18,10 @@ func (c *Core) loadScenes() {
 
 func (c *Core) currentScene() *scene.Scene { return c.SceneService.current(c.Prefs.Scene) }
 
-// Scene returns a detached copy of the scene in use.
 func (c *Core) Scene() *scene.Scene {
 	return &scene.Clone([]scene.Scene{*c.currentScene()})[0]
 }
 
-// SetScene coordinates scene selection with history and a possible language restart.
 func (c *Core) SetScene(id string) {
 	if id == c.Prefs.Scene || c.sceneIndex(id) < 0 {
 		return
@@ -35,7 +32,6 @@ func (c *Core) SetScene(id string) {
 	before := [2]string{c.Prefs.Src, c.Prefs.Tgt}
 	c.Prefs.Scene, c.Prefs.Src, c.Prefs.Tgt = id, src, tgt
 	c.fitLangs()
-	// A recognizer told the scene's names hears the new scene's from a new session.
 	spec, _ := asr.ByID(c.Prefs.ASR)
 	if before != [2]string{c.Prefs.Src, c.Prefs.Tgt} || spec.Hints && !slices.Equal(names, c.hints().Names) {
 		c.RestartIfRunning()
@@ -74,7 +70,6 @@ func (c *Core) DeleteScene(id string) func() {
 	}
 }
 
-// UpdateScene commits a detached edit, coordinating changed active languages with a session.
 func (c *Core) UpdateScene(id string, edit func(*scene.Scene)) {
 	draft, changed := c.SceneService.updateScene(id, edit)
 	if !changed {

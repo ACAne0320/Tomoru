@@ -12,14 +12,9 @@ import (
 	"time"
 )
 
-// Hearing a file (`listen --file`): a recording played as if the system played it, at its own
-// pace, for benchmarks and tests that need neither speakers nor capture.
-
-// FileSource delivers a WAV file's audio in real time, 100 ms at a time; after its end, silence,
-// as capture does once nothing plays.
 type FileSource struct {
 	path    string
-	samples []int16 // the file at 16 kHz mono
+	samples []int16
 }
 
 func (f *FileSource) Start(feed func([]int16)) error {
@@ -42,7 +37,7 @@ func (f *FileSource) Start(feed func([]int16)) error {
 			}
 			buf := make([]int16, due-delivered)
 			if delivered < int64(len(f.samples)) {
-				copy(buf, f.samples[delivered:]) // past the end, silence
+				copy(buf, f.samples[delivered:])
 			}
 			delivered = due
 			feed(buf)
@@ -51,7 +46,6 @@ func (f *FileSource) Start(feed func([]int16)) error {
 	return nil
 }
 
-// decodeWAV reads a WAV file of PCM, 8 to 32 bits, or of 32-bit floats, as 16 kHz mono.
 func decodeWAV(b []byte) ([]int16, error) {
 	if len(b) < 12 || string(b[:4]) != "RIFF" || string(b[8:12]) != "WAVE" {
 		return nil, errors.New("not a WAV file")
@@ -71,13 +65,13 @@ func decodeWAV(b []byte) ([]int16, error) {
 			}
 			format, channels = binary.LittleEndian.Uint16(body), binary.LittleEndian.Uint16(body[2:])
 			srcRate, bits = binary.LittleEndian.Uint32(body[4:]), binary.LittleEndian.Uint16(body[14:])
-			if format == 0xfffe && len(body) >= 26 { // WAVE_FORMAT_EXTENSIBLE: its subformat
+			if format == 0xfffe && len(body) >= 26 {
 				format = binary.LittleEndian.Uint16(body[24:])
 			}
 		case "data":
 			data = body
 		}
-		next := size + size%2 // chunks are padded to even sizes
+		next := size + size%2
 		if next > len(p) {
 			break
 		}
@@ -114,8 +108,6 @@ func decodeWAV(b []byte) ([]int16, error) {
 	return resample(mono, float64(srcRate)), nil
 }
 
-// resample makes samples at from Hz 16 kHz 16-bit: higher rates by averaging the samples each
-// one spans, which keeps most of what is over 8 kHz out; lower ones linearly. Enough for speech.
 func resample(x []float64, from float64) []int16 {
 	n := int(float64(len(x)) * Rate / from)
 	out := make([]int16, n)

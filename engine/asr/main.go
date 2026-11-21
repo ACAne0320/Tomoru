@@ -1,8 +1,3 @@
-// tomoru-asr decodes speech with a downloaded model (sherpa-onnx), the same on every platform: the
-// app cuts what a platform engine hears with `listen --asr none` into stretches of speech, and
-// asks tomoru-asr to decode each (docs/engine-protocol.md, docs/recognition.md).
-//
-//	tomoru-asr serve --model <dir> --lang <auto|zh|en|ja|ko|yue> [--threads <n>]
 package main
 
 import (
@@ -22,7 +17,6 @@ var out = struct {
 	w *bufio.Writer
 }{w: bufio.NewWriter(os.Stdout)}
 
-// send writes a protocol object as a line of its own.
 func send(e Event) {
 	b, err := json.Marshal(e)
 	if err != nil {
@@ -39,7 +33,6 @@ func send(e Event) {
 	}
 }
 
-// fail sends an error and exits: every error ends the command.
 func fail(code, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	send(Event{Type: "error", Code: code, Message: msg})
@@ -66,7 +59,6 @@ func main() {
 	}
 	log.Printf("recognizing %s with %s, %d threads", *lang, *model, *threads)
 	err = readCommands(os.Stdin, func(c Command) error {
-		// Other commands are forward-compatible, and ignored.
 		if c.Type != "decode" {
 			return nil
 		}

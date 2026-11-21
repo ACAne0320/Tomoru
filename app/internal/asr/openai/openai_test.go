@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-// TestDecode sends the stretch as a WAV, with the model, the language and the text before it, and
-// reads the answer.
 func TestDecode(t *testing.T) {
 	var got []map[string]string
 	var auth, path string
@@ -76,8 +74,6 @@ func TestTail(t *testing.T) {
 	}
 }
 
-// TestErrors tells a refused key, says the service's message, and tries a decode the server
-// failed once more.
 func TestErrors(t *testing.T) {
 	var calls atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -105,12 +101,11 @@ func TestErrors(t *testing.T) {
 	if ps, err := New(Config{URL: srv.URL, Key: "ok"}, "en").Decode(context.Background(), nil); err != nil || len(ps) != 1 || calls.Load() != 2 {
 		t.Errorf("tried again: %v %v, %d calls", ps, err, calls.Load())
 	}
-	if took, err := Test(context.Background(), Config{URL: srv.URL, Key: "ok"}); err != nil || took < 0 { // 0 where the clock is coarse, as on Windows
+	if took, err := Test(context.Background(), Config{URL: srv.URL, Key: "ok"}); err != nil || took < 0 {
 		t.Errorf("test: %v %v", took, err)
 	}
 }
 
-// TestStop cancels a decode in flight.
 func TestStop(t *testing.T) {
 	release := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,8 +131,6 @@ func TestStop(t *testing.T) {
 	}
 }
 
-// TestKeywords gives gpt-transcribe the scene's names as keywords, and another model in its prompt,
-// before the text before.
 func TestKeywords(t *testing.T) {
 	var got []map[string][]string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

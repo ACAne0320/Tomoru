@@ -47,7 +47,6 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	}
 }
 
-// The test binary is its own child process, avoiding shell/platform dependencies.
 func TestEngineChild(t *testing.T) {
 	if len(os.Args) < 2 || !strings.HasPrefix(os.Args[len(os.Args)-1], "engine-child-") {
 		return
@@ -120,7 +119,6 @@ func TestStopUnblocksAudio(t *testing.T) {
 }
 
 func TestRunProtocolFailureAndCancellation(t *testing.T) {
-	// No caller deadline: the invalid protocol itself must terminate the child.
 	done := make(chan error, 1)
 	go func() { _, err := Run(context.Background(), os.Args[0], childArgs("bad")...); done <- err }()
 	select {

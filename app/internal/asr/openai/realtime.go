@@ -21,47 +21,24 @@ import (
 	"tomoru/internal/engine"
 )
 
-// Realtime transcription: a transcription session of OpenAI's Realtime API, which streams the text
-// of what it is sent as it hears it, and gives the final text of each turn the app commits
-// (docs/recognition.md, step 6). The model detects no turns itself: the engine's voice detection
-// cuts speech into turns, as the batch runner cuts stretches, and only they are sent, as the
-// service bills the audio it is sent.
-
-// LiveModel is OpenAI's model for live transcription.
 const LiveModel = "gpt-live-transcribe"
 
-// RealtimeModels are the models transcribed in a realtime session, the default first; others go to
-// the transcription API.
 var RealtimeModels = []string{LiveModel, "gpt-realtime-whisper"}
 
-// Realtimed tells whether model ("" for the default) is transcribed in a realtime session.
 func Realtimed(model string) bool { return model == "" || slices.Contains(RealtimeModels, model) }
 
 const (
-	rate = 16000 // the engine's audio
-	// The service takes PCM at 24 kHz at least: the engine's is resampled.
-	rtRate = 24000
-	// minSpeech is the voice that starts a turn: shorter is a click, or a cough.
-	minSpeech = .25
-	// preroll is the audio before the voice a turn starts with: detection is late for it.
-	preroll = .4
-	// gap is the pause that ends a turn; once the model has ended a sentence in it, or past
-	// longest, the first pause does; past twice longest, it ends wherever it is.
-	gap     = .5
-	longest = 8.0
-	// undetected is the audio after which an engine that sent no voice event detects none: then
-	// all of it is sent, a turn every longest.
+	rate       = 16000
+	rtRate     = 24000
+	minSpeech  = .25
+	preroll    = .4
+	gap        = .5
+	longest    = 8.0
 	undetected = 1.0
-	// late is how long a turn committed may go without its final text: then its streamed text is.
-	// The turns after it wait for it, for their order: as long as 10 s held every subtitle after a
-	// final text the service lost.
-	late = 2 * time.Second
-	// finishing is how long the last turns' final text is waited for, as the session stops.
-	finishing = 5 * time.Second
+	late       = 2 * time.Second
+	finishing  = 5 * time.Second
 )
 
-// Realtime is a session of realtime transcription. Its methods are those of a recognizer to a live
-// session: Audio, Voice, Finalize, Stop, Done, Err, and Sent.
 type Realtime struct {
 	cfg  Config
 	lang string
@@ -72,39 +49,36 @@ type Realtime struct {
 	quit     chan struct{}
 	stopOnce sync.Once
 	done     chan struct{}
-	err      error // why it ended, set before done closes
+	err      error
 	ctx      context.Context
 	cancel   context.CancelFunc
 
 	mu   sync.Mutex
-	sent float64 // seconds of audio sent, which the service bills
+	sent float64
 
-	// The loop's.
-	conn     *websocket.Conn
-	gen      int   // the connection's number, to tell its events from an earlier one's
-	total    int64 // samples heard
-	clocked  int64
-	detect   int // the engine's voice detection: 0 unknown yet, 1 on, -1 none
-	voiceOn  bool
-	onAt     int64
-	offAt    int64
-	recent   []byte // the last seconds of audio, from recentAt: a turn's preroll
-	recentAt int64
-	open     bool  // in a turn
-	sentTo   int64 // the audio sent goes through here
-	up       upsampler
-	turns    []*turn // the turns not final yet, in order
-	// lateTurns are the turns given their streamed text for want of their final text, by item ID,
-	// and when they were committed: their final text, coming, still tells how long it took.
+	conn      *websocket.Conn
+	gen       int
+	total     int64
+	clocked   int64
+	detect    int
+	voiceOn   bool
+	onAt      int64
+	offAt     int64
+	recent    []byte
+	recentAt  int64
+	open      bool
+	sentTo    int64
+	up        upsampler
+	turns     []*turn
 	lateTurns map[string]time.Time
 }
 
 type turn struct {
 	id         string
-	acked      bool  // the service said it committed it
-	start, end int64 // samples; end once committed
+	acked      bool
+	start, end int64
 	committed  time.Time
-	text       strings.Builder // the streamed text
+	text       strings.Builder
 	final      *string
 }
 
@@ -113,7 +87,6 @@ type rtInput struct {
 	voice *engine.Event
 }
 
-// rtEvent is an event of the service, or the end of its connection (err).
 type rtEvent struct {
 	gen        int
 	err        error
@@ -126,9 +99,6 @@ type rtEvent struct {
 	} `json:"error"`
 }
 
-// StartRealtime starts recognizing lang ("ja") with the service of cfg, calling on with each
-// event, in order, from a goroutine of its own. It connects in the background, keeping the audio
-// given meanwhile; a refused key or a configuration the service refused ends it.
 func StartRealtime(cfg Config, lang string, on func(engine.Event)) *Realtime {
 	ctx, cancel := context.WithCancel(context.Background())
 	r := &Realtime{cfg: cfg, lang: iso639(lang), on: on, in: make(chan rtInput, 600), srv: make(chan rtEvent, 256),
@@ -138,7 +108,6 @@ func StartRealtime(cfg Config, lang string, on func(engine.Event)) *Realtime {
 	return r
 }
 
-// Audio takes an audio event of the engine.
 func (r *Realtime) Audio(ev engine.Event) error {
 	b, err := base64.StdEncoding.DecodeString(ev.PCM)
 	if err != nil {
@@ -147,7 +116,6 @@ func (r *Realtime) Audio(ev engine.Event) error {
 	return r.put(rtInput{pcm: b})
 }
 
-// Voice takes a voice event of the engine.
 func (r *Realtime) Voice(ev engine.Event) { r.put(rtInput{voice: &ev}) }
 
 func (r *Realtime) put(x rtInput) error {
@@ -161,17 +129,12 @@ func (r *Realtime) put(x rtInput) error {
 	}
 }
 
-// Stop ends the session: the turn going on is committed, and its final text waited for a while.
-// It returns at once; Done tells when it has ended.
 func (r *Realtime) Stop() { r.stopOnce.Do(func() { close(r.quit) }) }
 
-// Done is closed when the session has ended.
 func (r *Realtime) Done() <-chan struct{} { return r.done }
 
-// Err is why the session ended, after Done: nil when stopped.
 func (r *Realtime) Err() error { return r.err }
 
-// Sent is the seconds of audio sent, which the service bills.
 func (r *Realtime) Sent() float64 {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -215,7 +178,6 @@ func (r *Realtime) run() error {
 	}
 }
 
-// connect opens a transcription session, and has it configured, before it reads its events.
 func (r *Realtime) connect() error {
 	c, err := dial(r.ctx, r.cfg, r.lang)
 	if err != nil {
@@ -227,8 +189,6 @@ func (r *Realtime) connect() error {
 	return nil
 }
 
-// dial connects to the service and configures a session: transcription in lang ("" to tell),
-// the turns the app's.
 func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error) {
 	u, err := cfg.realtime()
 	if err != nil {
@@ -254,8 +214,6 @@ func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error)
 	if model == "" {
 		model = RealtimeModels[0]
 	}
-	// No "delay": the model's default was the most accurate, and as quick as "low"; "high" was
-	// later and less accurate, the turns being committed at the speaker's pauses anyway.
 	tr := map[string]any{"model": model}
 	if lang != "" {
 		tr["languages"] = []string{lang}
@@ -278,8 +236,6 @@ func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error)
 		c.CloseNow()
 		return nil, fmt.Errorf("openai: %w", err)
 	}
-	// Refused, the session would go on as the service's default, hearing turns itself and
-	// transcribing nothing: its error ends it.
 	for {
 		var ev rtEvent
 		if err := readEvent(dctx, c, &ev); err != nil {
@@ -296,7 +252,6 @@ func dial(ctx context.Context, cfg Config, lang string) (*websocket.Conn, error)
 	}
 }
 
-// realtime is the service's WebSocket address for transcription.
 func (c Config) realtime() (string, error) {
 	base := strings.TrimRight(strings.TrimSpace(c.URL), "/")
 	if base == "" {
@@ -333,7 +288,6 @@ func readEvent(ctx context.Context, c *websocket.Conn, ev *rtEvent) error {
 	return json.Unmarshal(b, ev)
 }
 
-// read passes the connection's events to the loop, then its end.
 func (r *Realtime) read(c *websocket.Conn, gen int) {
 	for {
 		var ev rtEvent
@@ -350,8 +304,6 @@ func (r *Realtime) read(c *websocket.Conn, gen int) {
 	}
 }
 
-// Test connects to the service and configures a session, as recognizing would, then ends it: it
-// tells whether cfg works, and how long that took.
 func TestRealtime(ctx context.Context, cfg Config) (time.Duration, error) {
 	t := time.Now()
 	c, err := dial(ctx, cfg, "")
@@ -363,7 +315,6 @@ func TestRealtime(ctx context.Context, cfg Config) (time.Duration, error) {
 	return took, nil
 }
 
-// take follows the engine's audio and voice.
 func (r *Realtime) take(x rtInput) error {
 	if x.voice != nil {
 		r.detect = 1
@@ -399,7 +350,6 @@ func (r *Realtime) take(x rtInput) error {
 	return nil
 }
 
-// step opens a turn when voice starts, and commits it when it ends.
 func (r *Realtime) step() error {
 	if r.detect == 0 && r.total >= int64(undetected*rate) {
 		r.detect = -1
@@ -426,11 +376,11 @@ func (r *Realtime) step() error {
 		r.on(engine.Event{Type: "voice", On: true, T: sec(max(start, r.onAt))})
 		return r.send(start)
 	case r.open && r.total-cur.start >= int64(2*longest*rate):
-		return r.commit(r.total) // no pause came: where it is
+		return r.commit(r.total)
 	case r.open && r.detect > 0 && !r.voiceOn:
 		g := gap
 		if r.total-cur.start >= int64(longest*rate) || strings.ContainsAny(cur.text.String(), "。．.！!？?") {
-			g = 0 // past a sentence's end or longest, the first pause ends it
+			g = 0
 		}
 		if r.total >= r.offAt+int64(g*rate) {
 			return r.commit(r.offAt)
@@ -441,7 +391,6 @@ func (r *Realtime) step() error {
 	return nil
 }
 
-// send sends the audio heard from, through what is heard.
 func (r *Realtime) send(from int64) error {
 	from = max(from, r.sentTo, r.recentAt)
 	if from >= r.total || r.conn == nil {
@@ -456,7 +405,6 @@ func (r *Realtime) send(from int64) error {
 	return r.write(b)
 }
 
-// write sends a message; a connection that failed is dropped, to be made again by the next turn.
 func (r *Realtime) write(b []byte) error {
 	if r.conn == nil {
 		return nil
@@ -466,7 +414,7 @@ func (r *Realtime) write(b []byte) error {
 	start := time.Now()
 	err := r.conn.Write(ctx, websocket.MessageText, b)
 	if ev := batch.Stalled(time.Since(start)); ev.Type != "" {
-		r.on(ev) // what a turn's final text takes says the rest
+		r.on(ev)
 	}
 	if err != nil {
 		log.Printf("openai: realtime: %v", err)
@@ -475,7 +423,6 @@ func (r *Realtime) write(b []byte) error {
 	return nil
 }
 
-// commit ends the turn going on at end, for the service to give its final text.
 func (r *Realtime) commit(end int64) error {
 	t := r.turns[len(r.turns)-1]
 	r.open = false
@@ -489,10 +436,9 @@ func (r *Realtime) commit(end int64) error {
 	return r.write([]byte(`{"type":"input_audio_buffer.commit"}`))
 }
 
-// server follows the service's events.
 func (r *Realtime) server(ev rtEvent) {
 	if ev.gen != r.gen {
-		return // an earlier connection's
+		return
 	}
 	if ev.err != nil {
 		log.Printf("openai: realtime: the connection ended: %v", ev.err)
@@ -508,7 +454,7 @@ func (r *Realtime) server(ev rtEvent) {
 	case "conversation.item.input_audio_transcription.completed":
 		if at, ok := r.lateTurns[ev.ItemID]; ok {
 			delete(r.lateTurns, ev.ItemID)
-			r.on(batch.Took(time.Since(at))) // a turn given its streamed text: it came, late
+			r.on(batch.Took(time.Since(at)))
 			return
 		}
 		if t := r.turnFor(ev.ItemID, false); t != nil {
@@ -532,9 +478,6 @@ func (r *Realtime) server(ev rtEvent) {
 	}
 }
 
-// turnFor is the turn of the service's item id. A new item is the latest turn's, as the text of a
-// turn streams before it is committed; committed says the service committed it, which it does in
-// the order the turns were committed.
 func (r *Realtime) turnFor(id string, committed bool) *turn {
 	for _, t := range r.turns {
 		if t.id == id {
@@ -560,14 +503,13 @@ func (r *Realtime) turnFor(id string, committed bool) *turn {
 	return nil
 }
 
-// drop forgets the connection: the turns it owed final text have their streamed text.
 func (r *Realtime) drop() {
 	if r.conn == nil {
 		return
 	}
 	r.conn.CloseNow()
 	r.conn, r.gen = nil, r.gen+1
-	clear(r.lateTurns) // the next connection's items are others
+	clear(r.lateTurns)
 	if r.open {
 		r.open = false
 		r.on(engine.Event{Type: "voice", On: false, T: sec(r.total)})
@@ -578,7 +520,6 @@ func (r *Realtime) drop() {
 	r.flush()
 }
 
-// overdue gives the turns whose final text is late their streamed text.
 func (r *Realtime) overdue() {
 	for _, t := range r.turns {
 		if !t.committed.IsZero() && t.final == nil && time.Since(t.committed) > late {
@@ -602,7 +543,6 @@ func (r *Realtime) finalize(t *turn) {
 	}
 }
 
-// flush sends the turns' final results, in order, as far as they have come.
 func (r *Realtime) flush() {
 	n := 0
 	for n < len(r.turns) && r.turns[n].final != nil && !r.turns[n].committed.IsZero() {
@@ -615,10 +555,6 @@ func (r *Realtime) flush() {
 	}
 }
 
-// volatile sends the text streamed of the turns not final yet, from the first, up to a turn
-// committed whose text has not come: a short turn's comes a second late, and the next turn's
-// sentence, committed from its volatile text, went before it (Sekiro's 「狼よ、」 after the line
-// it starts).
 func (r *Realtime) volatile() {
 	if len(r.turns) == 0 {
 		return
@@ -630,14 +566,13 @@ func (r *Realtime) volatile() {
 		}
 		b.WriteString(spaced(t.text.String()))
 	}
-	text := spaced(b.String()) // after the final text before it, as a turn's is
+	text := spaced(b.String())
 	if text == "" {
 		return
 	}
 	r.on(engine.Event{Type: "result", Start: sec(r.turns[0].start), End: sec(r.total), Tokens: []engine.Token{{Text: text}}})
 }
 
-// finish commits the turn going on, and waits a while for the final text of those committed.
 func (r *Realtime) finish() error {
 	if r.open {
 		r.commit(r.total)
@@ -658,7 +593,6 @@ func (r *Realtime) finish() error {
 	return nil
 }
 
-// final is a turn's final result, its pieces timed by their letters over its audio.
 func final(t *turn) engine.Event {
 	pieces := batch.Spaced(batch.Pieces(*t.final))
 	t0, t1 := float64(t.start)/rate, float64(t.end)/rate
@@ -675,7 +609,6 @@ func final(t *turn) engine.Event {
 	return engine.Event{Type: "result", Final: true, Start: batch.Round(t0), End: batch.Round(t1), Tokens: tokens}
 }
 
-// spaced is a turn's text, starting with a space where its script spaces words.
 func spaced(s string) string {
 	if s = strings.TrimSpace(s); s == "" {
 		return ""
@@ -685,12 +618,10 @@ func spaced(s string) string {
 
 func sec(n int64) float64 { return batch.Round(float64(n) / rate) }
 
-// upsampler makes the engine's 16 kHz 16-bit PCM 24 kHz, interpolating linearly, a turn of it at
-// a time, chunk by chunk.
 type upsampler struct {
 	last int16
 	have bool
-	pos  int // the next output's position after last, in thirds of a 16 kHz sample
+	pos  int
 }
 
 func (u *upsampler) convert(pcm []byte) []byte {

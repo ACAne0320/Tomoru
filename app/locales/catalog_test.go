@@ -9,8 +9,6 @@ import (
 
 var shipped = []string{"zh-Hans", "zh-Hant", "ja", "ko"}
 
-// TestComplete checks that every catalog has every message of the source's: a missing one would
-// say the English, which mygo i18n check only warns of.
 func TestComplete(t *testing.T) {
 	read := func(tag string) map[string]any {
 		b, err := os.ReadFile(tag + ".json")
@@ -34,8 +32,6 @@ func TestComplete(t *testing.T) {
 	}
 }
 
-// TestTranslated checks a few messages say their own words in each language, with their
-// arguments.
 func TestTranslated(t *testing.T) {
 	en := In("en")
 	for _, tag := range shipped {
@@ -59,8 +55,6 @@ func TestTranslated(t *testing.T) {
 	}
 }
 
-// TestLinked checks each link's words are in the note they link from, as written there: else the
-// note shows with no link.
 func TestLinked(t *testing.T) {
 	for _, tag := range append([]string{"en"}, shipped...) {
 		l := In(tag)

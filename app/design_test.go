@@ -14,19 +14,12 @@ import (
 	"testing"
 )
 
-// The rules of docs/design-system.md that a test can keep.
-
-// unstyled are the files that still draw with colors and sizes of their own, from before the design
-// tokens: each leaves the list as its surface moves to kit's tokens, and none joins it.
 var unstyled = []string{
 	"internal/ui/overlay/handles.go",
 	"internal/ui/overlay/overlay.go",
 	"internal/ui/subtitle/subtitle.go",
 }
 
-// TestDesignTokens keeps colors and sizes in kit: the surfaces outside it name no color (ui.Hex
-// and its kin with constant arguments) and give FontSize, Padding, Gap and Radius no number of
-// their own but 0.
 func TestDesignTokens(t *testing.T) {
 	colors := []string{"Hex", "RGB", "RGBA", "Oklch", "HSL"}
 	sizes := []string{"FontSize", "Padding", "Gap", "Radius"}
@@ -35,7 +28,7 @@ func TestDesignTokens(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		path = filepath.ToSlash(path) // as the list has it, on Windows too
+		path = filepath.ToSlash(path)
 		if d.IsDir() && (path == "internal/ui/kit" || path == "internal/ui/assets") {
 			return filepath.SkipDir
 		}
@@ -84,10 +77,6 @@ func TestDesignTokens(t *testing.T) {
 	}
 }
 
-// TestDesignScale keeps the scales of kit/tokens.go closed: no code in internal/ui, kit's included,
-// makes a step of its own out of a token and a number (TextBody+1, RadiusCard+2, RadiusInner/2, a
-// padding of Space(3)+2): a size the scale lacks is a token to name there. A token times a whole
-// number, as both sides' padding, is a sum of steps; Space takes whole steps, as its type says.
 func TestDesignScale(t *testing.T) {
 	found := map[string][]string{}
 	err := filepath.WalkDir("internal/ui", func(path string, d fs.DirEntry, err error) error {
@@ -103,8 +92,6 @@ func TestDesignScale(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		// The binary expressions given a style as its size: there a Space with a number is a step
-		// of its own too; elsewhere, Space(4)+16 is where something is.
 		styled := map[ast.Expr]bool{}
 		ast.Inspect(f, func(n ast.Node) bool {
 			if call, ok := n.(*ast.CallExpr); ok {
@@ -150,11 +137,8 @@ func TestDesignScale(t *testing.T) {
 	}
 }
 
-// styles are the calls that give an element a size of the scales.
 var styles = []string{"FontSize", "Padding", "Margin", "Gap", "GapX", "GapY", "Radius"}
 
-// step tells whether e is a step of one of kit's named scales: TextBody, RadiusCard, IconSizeNav,
-// WeightBold, CardGap, with kit. or without.
 func step(e ast.Expr) bool {
 	name := ""
 	switch x := e.(type) {
@@ -173,7 +157,6 @@ func step(e ast.Expr) bool {
 	return name == "CardGap" || name == "SectionGap" || name == "GroupGap"
 }
 
-// space tells whether e is a call of Space, kit.Space or Space.
 func space(e ast.Expr) bool {
 	call, ok := e.(*ast.CallExpr)
 	if !ok {
@@ -188,14 +171,12 @@ func space(e ast.Expr) bool {
 	return false
 }
 
-// types is b as written, for the message.
 func types(b *ast.BinaryExpr) string {
 	var w strings.Builder
 	printer.Fprint(&w, token.NewFileSet(), b)
 	return w.String()
 }
 
-// constant tells whether e is a literal, signed or not.
 func constant(e ast.Expr) bool {
 	if u, ok := e.(*ast.UnaryExpr); ok {
 		e = u.X
@@ -204,7 +185,6 @@ func constant(e ast.Expr) bool {
 	return ok
 }
 
-// number tells whether e is a number other than 0, written out.
 func number(e ast.Expr) bool {
 	if u, ok := e.(*ast.UnaryExpr); ok {
 		e = u.X
@@ -213,17 +193,14 @@ func number(e ast.Expr) bool {
 	return ok && (lit.Kind == token.INT || lit.Kind == token.FLOAT) && strings.Trim(lit.Value, "0.") != ""
 }
 
-// TestDependencies keeps the modules the app requires itself to these: a new one is a decision,
-// made by changing this list (docs/design-system.md, "Few dependencies"). go.mod is tidy: a module
-// imported is required directly.
 func TestDependencies(t *testing.T) {
 	want := []string{
-		"github.com/coder/websocket",   // cloud recognition's connection (internal/asr/qwencloud)
-		"github.com/ebitengine/purego", // the overlay's Liquid Glass, from AppKit; MyGo requires it too
+		"github.com/coder/websocket",
+		"github.com/ebitengine/purego",
 		"github.com/egoist/mygo",
-		"golang.org/x/image", // scaling a picture down to translate it; MyGo requires it too
-		"golang.org/x/sys",   // free disk space for the models; the memory and the taskbar's theme on Windows
-		"golang.org/x/text",  // normalizing names to match them; MyGo requires it too
+		"golang.org/x/image",
+		"golang.org/x/sys",
+		"golang.org/x/text",
 	}
 	b, err := os.ReadFile("go.mod")
 	if err != nil {

@@ -1,6 +1,3 @@
-// Selecting a part of the screen, as ⌃⇧⌘4 does on a Mac: a picture of every screen, dimmed,
-// over them, on which the user drags; the part dragged over shows bright. Escape, or the right
-// button, cancels.
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,18 +5,18 @@
 #include "engine_windows.h"
 
 static struct {
-	int w, h;          // the virtual screen's size; the window's coordinates are its
-	HDC shot, dim, back; // the picture, dimmed, and what the window shows, drawn before it does
-	uint8_t *pixels;   // the picture's, top-down BGRA
-	POINT from, to;    // the drag
-	int dragging, done; // done: 1 selected, -1 cancelled
+	int w, h;
+	HDC shot, dim, back;
+	uint8_t *pixels;
+	POINT from, to;
+	int dragging, done;
 } sel;
 
 static HBITMAP dib(HDC dc, int w, int h, void **bits) {
 	BITMAPINFO bi = {0};
 	bi.bmiHeader.biSize = sizeof bi.bmiHeader;
 	bi.bmiHeader.biWidth = w;
-	bi.bmiHeader.biHeight = -h; // top-down
+	bi.bmiHeader.biHeight = -h;
 	bi.bmiHeader.biPlanes = 1;
 	bi.bmiHeader.biBitCount = 32;
 	bi.bmiHeader.biCompression = BI_RGB;
@@ -31,7 +28,6 @@ static RECT dragged(void) {
 	return r;
 }
 
-// redraw has the window draw again where the selection was and is, and around its edge.
 static void redraw(HWND w, RECT before) {
 	RECT now = dragged(), both;
 	UnionRect(&both, &before, &now);
@@ -80,7 +76,6 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 			sel.dragging = 0;
 			ReleaseCapture();
 			RECT r = dragged();
-			// A click, not a drag, selects nothing.
 			sel.done = r.right - r.left >= 4 && r.bottom - r.top >= 4 ? 1 : -1;
 		}
 		return 0;
@@ -88,7 +83,6 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 		if (wp != VK_ESCAPE) {
 			return 0;
 		}
-		// fall through
 	case WM_HOTKEY:
 	case WM_RBUTTONDOWN:
 	case WM_CLOSE:
@@ -100,11 +94,10 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 
 long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	*bgra = NULL;
-	// Every screen at its own scale, in pixels: not stretched to the system's.
 	typedef BOOL(WINAPI * setAwareness)(HANDLE);
 	setAwareness set = (setAwareness)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetProcessDpiAwarenessContext");
 	if (set) {
-		set((HANDLE)-4); // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+		set((HANDLE)-4);
 	}
 	memset(&sel, 0, sizeof sel);
 	int x = GetSystemMetrics(SM_XVIRTUALSCREEN), y = GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -149,8 +142,6 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	}
 	ShowWindow(w, SW_SHOW);
 	SetForegroundWindow(w);
-	// Escape cancels even when the window has not the keyboard, which Windows may keep from a
-	// process that did not take the user's last input.
 	RegisterHotKey(w, 1, MOD_NOREPEAT, VK_ESCAPE);
 	MSG m;
 	while (!sel.done && GetMessageW(&m, NULL, 0, 0) > 0) {
@@ -158,7 +149,6 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 		DispatchMessageW(&m);
 	}
 	UnregisterHotKey(w, 1);
-	// The app, which shows the translation next, may take the keyboard from the window, which has it.
 	AllowSetForegroundWindow(ASFW_ANY);
 	DestroyWindow(w);
 

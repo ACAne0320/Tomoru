@@ -15,14 +15,12 @@ import (
 	"tomoru/internal/translate"
 )
 
-// SceneService owns scene records, edits, undo operations, saved snapshots and the immutable
-// active glossary. Core coordinates selection with preferences, history and live sessions.
 type SceneService struct {
 	Scenes      []scene.Scene
 	savedScenes []scene.Scene
 	activeID    string
 	glossary    atomic.Pointer[scene.Glossary]
-	about       atomic.Pointer[string] // the active scene's description
+	about       atomic.Pointer[string]
 }
 
 func (s *SceneService) load(path, selected string) (string, error) {
@@ -39,7 +37,6 @@ func (s *SceneService) load(path, selected string) (string, error) {
 	return selected, err
 }
 
-// SceneList returns detached records. Edits go through application actions.
 func (s *SceneService) SceneList() []scene.Scene { return scene.Clone(s.Scenes) }
 
 func (s *SceneService) sceneIndex(id string) int {
@@ -53,7 +50,6 @@ func (s *SceneService) sceneByID(id string) (*scene.Scene, bool) {
 	return nil, false
 }
 
-// SceneByID returns a detached draft; it never exposes a live glossary record.
 func (s *SceneService) SceneByID(id string) (*scene.Scene, bool) {
 	sc, ok := s.sceneByID(id)
 	if !ok {
@@ -80,8 +76,6 @@ func (s *SceneService) save(path string) error {
 	return nil
 }
 
-// selectScene remembers outgoing languages and restores the incoming scene's languages when
-// valid. Otherwise it initializes that scene from the current translation pair.
 func (s *SceneService) selectScene(from, to, src, tgt string) (string, string) {
 	current, next := s.current(from), s.current(to)
 	current.Src, current.Tgt = src, tgt
@@ -112,7 +106,6 @@ func (s *SceneService) addScene(name, src, tgt string) string {
 	}
 }
 
-// deleteScene captures a detached record so a restored scene never aliases an old draft.
 func (s *SceneService) deleteScene(id string) (func() bool, bool) {
 	i := s.sceneIndex(id)
 	if i <= 0 {
@@ -133,8 +126,6 @@ func (s *SceneService) deleteScene(id string) (func() bool, bool) {
 	}, true
 }
 
-// updateScene validates identity, stores a detached edit and refreshes derived state before the
-// application persists or notifies. A callback may retain its draft without owning live data.
 func (s *SceneService) updateScene(id string, edit func(*scene.Scene)) (*scene.Scene, bool) {
 	current, ok := s.sceneByID(id)
 	if !ok {
@@ -249,8 +240,6 @@ func (s *SceneService) refresh() {
 	s.about.Store(&about)
 }
 
-// sceneAbout is the active scene's description, which goes with each sentence translated. Like
-// applyTerms, it is safe for session workers.
 func (s *SceneService) sceneAbout() string {
 	if about := s.about.Load(); about != nil {
 		return *about
@@ -258,12 +247,10 @@ func (s *SceneService) sceneAbout() string {
 	return ""
 }
 
-// hints are what recognition is told to expect, from the active scene: its names and description.
 func (s *SceneService) hints() asr.Scene {
 	return asr.Scene{Names: s.glossary.Load().Names(), About: s.sceneAbout()}
 }
 
-// applyTerms is safe for session workers: each edit publishes a complete immutable glossary.
 func (s *SceneService) applyTerms(text string) (string, []translate.Term) {
 	if glossary := s.glossary.Load(); glossary != nil {
 		return glossary.Apply(text)

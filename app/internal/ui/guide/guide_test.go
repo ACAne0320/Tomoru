@@ -21,13 +21,10 @@ import (
 	"tomoru/locales"
 )
 
-// TestSteps goes through the guide: the languages, the permission (granted; Windows asks none), the
-// engines, trying (skipped: tests have no sessions), the shortcut, selecting to translate
-// (skipped), and done.
 func TestSteps(t *testing.T) {
 	k := coretest.New()
 	if prefs.SystemASR() == "" {
-		k.Prefs.ASR = "sensevoice-small" // the engines step has it chosen
+		k.Prefs.ASR = "sensevoice-small"
 	}
 	nav := &coretest.Nav{}
 	g := New(k, nav)
@@ -64,8 +61,6 @@ func TestSteps(t *testing.T) {
 	}
 }
 
-// TestTry checks off hearing, recognizing and translating as subtitles come, and then offers to
-// go on; going back stops translating.
 func TestTry(t *testing.T) {
 	k := coretest.New()
 	g := New(k, &coretest.Nav{})
@@ -74,7 +69,6 @@ func TestTry(t *testing.T) {
 	if !k.Started || g.try.works() || tt.HasText(locales.Continue()) {
 		t.Fatalf("started %v, works %v", k.Started, g.try.works())
 	}
-	// A session, as tests have none: listening, then a sentence heard and translated.
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: "listening", Voice: true}
 	tt.Frame()
@@ -83,7 +77,6 @@ func TestTry(t *testing.T) {
 	}
 	k.State.Lines = []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Done: true}}
 	tt.Frame()
-	// It works at once; it shows as the stage's lights get to recognition, then to translation.
 	if !g.try.works() || tt.HasText(locales.TrySuccess()) {
 		t.Fatalf("works %v, shown before the lights got there; %q", g.try.works(), tt.Texts())
 	}
@@ -100,14 +93,12 @@ func TestTry(t *testing.T) {
 	}
 }
 
-// TestShortcuts changes the shortcut that starts and stops translating on its step.
 func TestShortcuts(t *testing.T) {
 	k := coretest.New()
 	k.Prefs.GuideStep = stepShortcuts
 	nav := &coretest.Nav{}
 	g := New(k, nav)
 	tt := ui.NewTester(g.View, Width, Height)
-	// The field's last keycap, T of ⌥⇧T: the step's text names the shortcut too.
 	r, ok := tt.Find("T")
 	if !ok {
 		t.Fatalf("no keycaps: %q", tt.Texts())
@@ -119,7 +110,6 @@ func TestShortcuts(t *testing.T) {
 		t.Errorf("%s %s, %q", k.Prefs.Shortcut, nav.Shortcut, tt.Texts())
 	}
 
-	// Pressed on its step, it is held, only seen working; going on lets it go.
 	if !k.Held[core.StartStop] || tt.HasText(locales.ShortcutWorks()) {
 		t.Fatalf("held %v; %q", k.Held, tt.Texts())
 	}
@@ -139,9 +129,6 @@ func TestShortcuts(t *testing.T) {
 	}
 }
 
-// TestSelect offers selecting text on the screen, for the user to want or skip: wanted, it asks for
-// Screen Recording, then sends to System Settings; on, it has the shortcut chosen and the sample
-// selected, showing its translation.
 func TestSelect(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Select = func(context.Context) ([]byte, image.Rectangle, error) { return nil, image.Rectangle{}, nil }
@@ -164,14 +151,12 @@ func TestSelect(t *testing.T) {
 	if !tt.HasText(locales.GuideSelectSettings()) || !tt.HasText(locales.OpenSystemSettings()) {
 		t.Errorf("to System Settings: %q", tt.Texts())
 	}
-	k.Screen = "granted" // turned on in System Settings
+	k.Screen = "granted"
 	tt.Frame()
 	keys := kit.ShortcutText("Alt+Shift+S")
 	if !tt.HasText(locales.GuideSelectPress(keys)) || tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.Continue()) || !k.Held[core.PictureShortcut] {
 		t.Fatalf("on: held %v; %q", k.Held, tt.Texts())
 	}
-	// Pressed first, the shortcut is seen working, and the next check shows: pressed then, it
-	// selects the sample.
 	k.Press(core.PictureShortcut)
 	tt.Frame()
 	if !tt.HasText(locales.ShortcutWorks()) || !tt.HasText(locales.GuideSelectFrame()) || !tt.HasText(locales.GuideSelectHere()) || k.Held[core.PictureShortcut] {
@@ -182,8 +167,6 @@ func TestSelect(t *testing.T) {
 	if !tt.HasText("艾露娜：克劳德……") || tt.HasText(locales.GuideSelectHere()) {
 		t.Errorf("translated: %q", tt.Texts())
 	}
-	// Closing the card that showed it clears the picture: the check stays done, its translation
-	// under it.
 	k.Image = core.ImageView{}
 	tt.Frame()
 	if !tt.HasText("艾露娜：克劳德……") || tt.HasText(locales.GuideSelectHere()) || !shared.Windows && tt.HasText(locales.GuideSelectAllow()) {
@@ -191,8 +174,6 @@ func TestSelect(t *testing.T) {
 	}
 }
 
-// TestAnsweredFocus brings the app back to the front once the system's prompt is answered, which
-// gives the front to another app.
 func TestAnsweredFocus(t *testing.T) {
 	if !core.AsksAccess() {
 		t.Skip("the system asks no permission")
@@ -214,7 +195,6 @@ func TestAnsweredFocus(t *testing.T) {
 	}
 }
 
-// TestTryCloudFailed says the cloud may be down, and what else to use, when its lines fail.
 func TestTryCloudFailed(t *testing.T) {
 	k := coretest.New()
 	g := New(k, &coretest.Nav{})
@@ -229,14 +209,11 @@ func TestTryCloudFailed(t *testing.T) {
 	}
 }
 
-// TestLocalModel chooses the local model before it is downloaded, the size this computer runs, and
-// uses it once it is; cancels and resumes its download, which says why it failed; goes on while it
-// downloads.
 func TestLocalModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{}}
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = m
-		d.Memory = func() uint64 { return 8 << 30 } // too little for the 9B
+		d.Memory = func() uint64 { return 8 << 30 }
 	})
 	g := New(k, &coretest.Nav{})
 	g.Step, g.next = stepTranslation, stepTranslation
@@ -250,8 +227,6 @@ func TestLocalModel(t *testing.T) {
 	}
 	m.St[local.ID] = models.Status{State: models.Downloading, Done: 100 << 20, Total: local.Size}
 	tt.Frame()
-	// Its progress under its name, in one line, and nothing else said: the step says the cloud
-	// translates meanwhile.
 	if !tt.HasText(locales.Downloading(shared.Size(100<<20), shared.Size(local.Size))) {
 		t.Errorf("no progress: %q", tt.Texts())
 	}
@@ -264,8 +239,6 @@ func TestLocalModel(t *testing.T) {
 
 	m.St[local.ID] = models.Status{State: models.Missing, Done: 100 << 20}
 	tt.Frame()
-	// Stopped, how much is in stays under its name, so that the button stays short in the narrow
-	// column.
 	if in := locales.Downloading(shared.Size(100<<20), shared.Size(local.Size)); !tt.HasText(in) {
 		t.Errorf("no %q: %q", in, tt.Texts())
 	}
@@ -278,7 +251,6 @@ func TestLocalModel(t *testing.T) {
 		t.Errorf("no failure: %q", tt.Texts())
 	}
 
-	// Downloading, it holds up nothing: the guide goes on, the cloud translating.
 	m.St[local.ID] = models.Status{State: models.Downloading, Done: 100 << 20, Total: local.Size}
 	tt.Frame()
 	if !tt.HasText(locales.GuideMtLater()) || !tt.HasText(locales.TagRecommended()) {
@@ -300,8 +272,6 @@ func TestLocalModel(t *testing.T) {
 	}
 }
 
-// TestEnginesNeedRecognition goes on from the recognition step only with recognition chosen, and
-// offers this computer's only: the cloud's are set up in the settings.
 func TestEnginesNeedRecognition(t *testing.T) {
 	k := coretest.New()
 	k.Prefs.ASR = ""
@@ -329,8 +299,6 @@ func TestEnginesNeedRecognition(t *testing.T) {
 	}
 }
 
-// TestTryWaitsForModel has the try step wait for the recognition model chosen, its download's
-// progress shown, and translate once it is in use.
 func TestTryWaitsForModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{}}
 	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
@@ -365,8 +333,6 @@ func TestTryWaitsForModel(t *testing.T) {
 	}
 }
 
-// TestFamilyRows lists a family of models as one row, its size picked for this computer: the one
-// to recommend where it runs, else the largest that runs; recommended, the cloud is not.
 func TestFamilyRows(t *testing.T) {
 	mem := uint64(16 << 30)
 	k := coretest.NewWith(func(d *core.Deps) {

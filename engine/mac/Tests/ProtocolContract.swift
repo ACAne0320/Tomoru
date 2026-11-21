@@ -1,6 +1,5 @@
 import Foundation
 
-// Compiled with the production Protocol.swift; no capture permission or Speech framework needed.
 @main
 struct ProtocolContract {
     static func main() throws {

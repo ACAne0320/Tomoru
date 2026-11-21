@@ -1,11 +1,4 @@
 #!/bin/sh
-# Puts the Silero voice activity detector into the app's resources, checked file by file, in
-# app/resources/darwin-arm64/vad/:
-# - silero-vad.mlmodelc, for the engine: Silero VAD v6.0.0 (MIT) as Core ML, converted by
-#   FluidInference (MIT); the revision is pinned.
-# - silero_vad.onnx, for tomoru-asr: the one sherpa-onnx publishes for itself (MIT). On Windows
-#   and Linux, where it is all there is, the engine's too: in app/resources/<platform>/vad/.
-# Each finds it beside its bin directory.
 set -e
 REV=b419383c55c110e2c9271fa6ee0ea83d03c70d96
 BASE=https://huggingface.co/FluidInference/silero-vad-coreml/resolve/$REV/silero-vad-unified-v6.0.0.mlmodelc

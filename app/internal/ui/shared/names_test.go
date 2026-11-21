@@ -17,8 +17,6 @@ import (
 	"tomoru/locales"
 )
 
-// TestModelNote says SenseVoice runs on the CPU, Qwen3-ASR on the GPU with what it needs, and a
-// translation model what it needs; one this computer runs, that it does.
 func TestModelNote(t *testing.T) {
 	note := func(id string) string {
 		m, _ := models.ByID(id)
@@ -42,8 +40,6 @@ func TestModelNote(t *testing.T) {
 	}
 }
 
-// TestEngineName names a model by its family and its size, whether the engine carries the model
-// or only its ID, as the statistics and the history name it.
 func TestEngineName(t *testing.T) {
 	for id, want := range map[string]string{
 		"local-9b":         "Index-Translate 9B",
@@ -78,8 +74,6 @@ func TestErrorText(t *testing.T) {
 	}
 }
 
-// TestErrorFix sends an engine's error to Speech & translation, a permission off to System
-// Settings, and the rest to trying again.
 func TestErrorFix(t *testing.T) {
 	for err, want := range map[error]Fix{
 		core.ErrMTCloudKey:                          FixEngines,
@@ -101,8 +95,8 @@ func TestErrorFix(t *testing.T) {
 func TestLangChoices(t *testing.T) {
 	t.Cleanup(func() { i18n.SetLocaleFunc(nil) })
 	for locale, want := range map[string][]string{
-		"en":      {"zh", "en", "ja", "ko", "", "fr", "de", "es"}, // French, German, Spanish
-		"zh-Hans": {"zh", "en", "ja", "ko", "", "de", "fr", "es"}, // 德语, 法语, 西班牙语: by pinyin
+		"en":      {"zh", "en", "ja", "ko", "", "fr", "de", "es"},
+		"zh-Hans": {"zh", "en", "ja", "ko", "", "de", "fr", "es"},
 	} {
 		i18n.SetLocaleFunc(func() string { return locale })
 		if got := LangChoices([]string{"zh", "en", "ja", "ko", "de", "es", "fr"}); !slices.Equal(got, want) {

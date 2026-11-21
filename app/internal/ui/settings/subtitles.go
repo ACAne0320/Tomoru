@@ -13,8 +13,6 @@ import (
 	"tomoru/locales"
 )
 
-// subtitles is the subtitles' style: a preview of them, as they roll in, and what they look like,
-// their text and colors, and what shows when, each a card (docs/design-system.md).
 func (s *Settings) subtitles(c *ui.Context) {
 	before := s.core.Preferences()
 	draft := before.Clone()
@@ -40,8 +38,6 @@ func (s *Settings) subtitles(c *ui.Context) {
 		})
 	})
 	custom := s.customColors || schemeOf(p) == ""
-	// The two cards side by side, as wide as each other, their controls in one column: they wrap
-	// before a name would be cut.
 	basis := kit.ControlCardWidth(c, locales.StyleLabel(), locales.BoxOpacity(), locales.EdgeLabel(), locales.AlignLabel(), locales.FontLabel(),
 		locales.SrcSize(), locales.TgtSize(), locales.TextOpacity(), locales.OrderLabel(), locales.ColorScheme())
 	kit.Groups(c, func() {
@@ -55,11 +51,9 @@ func (s *Settings) subtitles(c *ui.Context) {
 	s.fontDialog(c)
 }
 
-// styleLook is the background and its opacity, the edge, the alignment and the font.
 func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.StyleLabel(), "", func() {
 		kit.Control(c, func() {
-			// Text alone needs an edge to stay readable over a plain or bright picture.
 			if kit.Segmented(c, &p.Style, locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() && p.Style == 1 && p.Edge == 0 {
 				p.Edge = 1
 			}
@@ -86,10 +80,7 @@ func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	})
 }
 
-// styleText is the sizes and the order of the two lines, their opacity, and their colors: a
-// scheme, or with custom, colors of one's own, which styleColors sets under the cards.
 func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs, custom bool) {
-	// With one of the two only, the other's size and the order do nothing: they stay, greyed.
 	tgtOnly, srcOnly := p.Display == prefs.DisplayTgt, p.Display == prefs.DisplaySrc
 	slider := func(i int, label string, off bool, v *float64, lo, hi float64, unit string) {
 		kit.SettingRowOff(c, i, label, "", off, func() {
@@ -125,8 +116,6 @@ func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs, custom bool) {
 	})
 }
 
-// styleColors is colors of one's own: the original's, the translation's and, when there is an
-// edge or a box, the edge's, each a color of the list or any from the system's picker.
 func styleColors(c *ui.Context, p *prefs.Prefs) {
 	colors := func(i int, label string, v *string, from []string) {
 		kit.SettingRow(c, i, label, "", func() { kit.Swatches(c, v, from) })
@@ -138,8 +127,6 @@ func styleColors(c *ui.Context, p *prefs.Prefs) {
 	}
 }
 
-// styleShow is what shows, how many sentences and how faint the earlier ones, when they go, and
-// whether recordings show them.
 func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.DisplayLabel(), "", func() {
 		kit.Segmented(c, &p.Display, locales.DisplayBoth(), locales.DisplayTgt(), locales.DisplaySrc()).Label(locales.DisplayLabel())
@@ -175,7 +162,6 @@ func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 	})
 }
 
-// schemeOf is the ID of the scheme the colors are, "" when they are none.
 func schemeOf(p *prefs.Prefs) string {
 	for _, sc := range subtitle.Schemes {
 		if strings.EqualFold(p.SrcColor, sc.Src) && strings.EqualFold(p.TgtColor, sc.Tgt) && strings.EqualFold(p.EdgeColor, sc.Edge) {

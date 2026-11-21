@@ -2,9 +2,6 @@ package kit
 
 import "github.com/egoist/mygo/ui"
 
-// Share is a row of a list of what each of a few things took of a whole, as the engines of the
-// statistics: its color in the chart over the list, its name and a line under it, as a model, its
-// value with a unit, and its share, from 0 to 1. Muted, it is a thing of no name of its own.
 type Share struct {
 	Color       ui.Color
 	Name, Sub   string
@@ -13,9 +10,6 @@ type Share struct {
 	Muted       bool
 }
 
-// ShareRow is a Share as a button: its color, its name over its line, a bar of its share, and its
-// value. Clicked, it picks the thing out of the chart over the list; on, it is the one picked, on
-// the band.
 func ShareRow(c *ui.Context, s Share, on bool) ui.Element {
 	p := Colors(c)
 	ink := p.Ink

@@ -12,9 +12,6 @@ import (
 	"tomoru/internal/ui/kit"
 )
 
-// TestSamplePictures draws the sample game dialogue the guide translates as a picture, in each
-// language, into internal/ui/assets/samples: TOMORU_SAMPLE_PICTURES=1 go test ./internal/ui/guide
-// -run SamplePictures writes them again.
 func TestSamplePictures(t *testing.T) {
 	if os.Getenv("TOMORU_SAMPLE_PICTURES") == "" {
 		t.Skip("TOMORU_SAMPLE_PICTURES is not set")

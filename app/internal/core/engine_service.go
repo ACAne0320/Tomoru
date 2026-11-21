@@ -24,48 +24,36 @@ import (
 	"tomoru/internal/translate"
 )
 
-// TestResult is how an endpoint translated a sample.
 type TestResult struct {
 	Running bool
 	Text    string
 	Err     error
 	Took    time.Duration
-	// Vision is whether it read a picture sent with the sample: unknown when the sample failed, or
-	// the picture failed but for a reason of its own.
-	Vision prefs.Vision
-	// ToCloud tells that, found to read none, it no longer translates the pictures: the cloud does.
+	Vision  prefs.Vision
 	ToCloud bool
 }
 
-// TestSample is what a test translates, from English, into the language translated into, or into
-// Chinese for a reader of English.
 const TestSample = "Good evening, everyone. Today's stream will run a bit longer than usual."
 
-// EngineService owns provider construction, downloaded-model selection and endpoint tests.
-// The application facade supplies settings snapshots; no worker reads mutable preferences.
 type EngineService struct {
-	Tests   map[string]TestResult
-	pending map[Kind]string
-	tests   map[string]*engineTest
-	work    *tasks
-	models  Models
-	server  Server
-	// asrServer runs the recognition models llama-server runs.
+	Tests     map[string]TestResult
+	pending   map[Kind]string
+	tests     map[string]*engineTest
+	work      *tasks
+	models    Models
+	server    Server
 	asrServer Server
 	secrets   Secrets
 	changed   func()
-	// visions are what tests found of whether an API reads pictures, for saving it to keep.
-	visions map[api]prefs.Vision
+	visions   map[api]prefs.Vision
 }
 
-// api is a translation API as tested: what decides whether it reads pictures.
 type api struct{ url, model, format string }
 
 func apiOf(e prefs.Endpoint) api {
 	return api{strings.TrimSuffix(strings.TrimRight(strings.TrimSpace(e.URL), "/"), "/v1"), strings.TrimSpace(e.Model), formatOf(e).ID}
 }
 
-// formatOf is how e is prompted: Chat unless it names another of translate's formats.
 func formatOf(e prefs.Endpoint) *translate.Format {
 	if f, ok := translate.FormatByID(e.Format); ok {
 		return f
@@ -73,7 +61,6 @@ func formatOf(e prefs.Endpoint) *translate.Format {
 	return translate.Chat
 }
 
-// modelFormat is how the translation model m is prompted.
 func modelFormat(m models.Model) *translate.Format {
 	f, _ := translate.FormatByID(m.Format)
 	return f
@@ -91,9 +78,6 @@ func (s *EngineService) notify() {
 	}
 }
 
-// startTest replaces a dialog's previous request. The operation identity remains valid after
-// the worker's context cleanup, until accepted, forgotten or replaced on the application thread,
-// where done, unless nil, gets the result accepted.
 func (s *EngineService) startTest(test string, timeout time.Duration, run func(context.Context) TestResult, done func(TestResult)) {
 	if s.work.ctx.Err() != nil {
 		return
@@ -133,7 +117,6 @@ func (s *EngineService) forgetTest(test string) {
 	delete(s.Tests, test)
 }
 
-// ForgetTest cancels a dialog's work and invalidates results already queued for the UI.
 func (s *EngineService) ForgetTest(test string) { s.forgetTest(test); s.notify() }
 
 func (s *EngineService) stopTests() {
@@ -147,9 +130,6 @@ func (s *EngineService) stopTests() {
 	}
 }
 
-// testEndpoint translates the sample with e, and alongside a picture of it, to find whether e reads
-// pictures; found gets what was found, when it was, and tells whether the cloud took over the
-// pictures from it.
 func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt string, found func(prefs.Vision) bool) {
 	e.URL = apiOf(e).url
 	s.startTest(test, 30*time.Second, func(ctx context.Context) TestResult {
@@ -165,7 +145,7 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 		out, err := ep.Translate(ctx, translate.Request{Src: "en", Tgt: tgt, Text: TestSample}, nil)
 		r := TestResult{Text: out, Err: err, Took: time.Since(start)}
 		if err != nil {
-			stop() // what the picture says is not known then
+			stop()
 		}
 		if pictureErr := <-read; err == nil {
 			r.Vision = visionOf(pictureErr)
@@ -182,11 +162,6 @@ func (s *EngineService) testEndpoint(test string, e prefs.Endpoint, key, tgt str
 	})
 }
 
-// visionOf is what a picture's translation that ended with err says of the API reading pictures,
-// the sample's text having been translated: one that reads none answers it with a client error,
-// 400 (DeepSeek), or 500 (llama-server without a vision projector); one whose format reads none is
-// not sent it. Too many requests, and a gateway or a server busy (502–504), tell nothing: the
-// endpoint keeps what it is found to be, and would stop getting pictures for a moment's outage.
 func visionOf(err error) prefs.Vision {
 	var status *translate.StatusError
 	switch {
@@ -202,7 +177,6 @@ func visionOf(err error) prefs.Vision {
 	return prefs.VisionUnknown
 }
 
-// testPicture is the sample's first words in black on white, a PNG, for a test to have read.
 var testPicture = sync.OnceValue(func() []byte {
 	const text = "Good evening, everyone."
 	face := basicfont.Face7x13
@@ -228,8 +202,6 @@ func (s *EngineService) testAPI(test string, a prefs.Service, key string) {
 	}, nil)
 }
 
-// translator says how to get the translator of engine id ready, as Core.translator does. One that
-// runs no local model gives llama-server's memory back, unless keepServer: a picture uses it.
 func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis []prefs.Service, keepServer bool) (func(context.Context) (translate.Translator, error), bool, error) {
 	if m, ok := models.ByID(id); ok {
 		if s.models != nil && s.models.Moving().Active {
@@ -274,8 +246,6 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis [
 	return func(context.Context) (translate.Translator, error) { stop(); return tr, nil }, false, nil
 }
 
-// noTranslator is how the subtitles get ready when they show the original alone: with no
-// translator, and llama-server's memory back unless keepServer, as translator does.
 func (s *EngineService) noTranslator(keepServer bool) func(context.Context) (translate.Translator, error) {
 	return func(context.Context) (translate.Translator, error) {
 		s.freeServer(keepServer)
@@ -283,18 +253,12 @@ func (s *EngineService) noTranslator(keepServer bool) func(context.Context) (tra
 	}
 }
 
-// freeServer stops llama-server, which gives its memory back, unless keep.
 func (s *EngineService) freeServer(keep bool) {
 	if s.server != nil && !keep {
 		s.server.Stop()
 	}
 }
 
-// imageEndpoint says how to get the endpoint that translates pictures with engine id ready, as
-// translator does for the subtitles. A local model reads them with its vision projector, downloaded
-// with it, on the one llama-server: not while serving, another local model, translates the
-// subtitles. A model not downloaded or busy, or an API gone or reading no pictures, fails: the
-// picture goes to no other engine than the one chosen.
 func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endpoint) (open func(context.Context) (*translate.Endpoint, error), via string) {
 	fail := func(err error) func(context.Context) (*translate.Endpoint, error) {
 		return func(context.Context) (*translate.Endpoint, error) { return nil, err }
@@ -344,8 +308,6 @@ func (s *EngineService) endpoint(e prefs.Endpoint, key string) *translate.Endpoi
 	return provider.Endpoint(e.URL, e.Model, key, formatOf(e))
 }
 
-// cloudConfig is the service a, with key, or the one kept when "". It may wait on the credential
-// store.
 func (s *EngineService) cloudConfig(a prefs.Service, key string) asr.Service {
 	if key == "" {
 		key = string(s.readKey(apiKey(a.ID)))
@@ -370,7 +332,6 @@ func (s *EngineService) deleteKey(name string) {
 	}
 }
 
-// ModelStatus reports whether the selected model is available on this computer.
 func (s *EngineService) ModelStatus(id string) models.Status {
 	if s.models == nil {
 		return models.Status{}
@@ -378,7 +339,6 @@ func (s *EngineService) ModelStatus(id string) models.Status {
 	return s.models.Status(id)
 }
 
-// ModelsDir is the folder the local models are kept in, "" without local models.
 func (s *EngineService) ModelsDir() string {
 	if s.models == nil {
 		return ""
@@ -386,7 +346,6 @@ func (s *EngineService) ModelsDir() string {
 	return s.models.Dir()
 }
 
-// ModelsMoving says how moving the local models to another folder goes.
 func (s *EngineService) ModelsMoving() models.Move {
 	if s.models == nil {
 		return models.Move{}
@@ -394,14 +353,12 @@ func (s *EngineService) ModelsMoving() models.Move {
 	return s.models.Moving()
 }
 
-// Download starts or resumes a model download.
 func (s *EngineService) Download(id string) {
 	if s.models != nil {
 		s.models.Download(id)
 	}
 }
 
-// CancelDownload stops a download while retaining the resumable file.
 func (s *EngineService) CancelDownload(id string) {
 	if s.models != nil {
 		s.models.Cancel(id)
@@ -414,7 +371,6 @@ func (s *EngineService) deleteModel(id string) {
 			delete(s.pending, kind)
 		}
 	}
-	// A model running can't be deleted (Windows keeps the file open).
 	switch m, _ := models.ByID(id); {
 	case !m.ASR && s.server != nil:
 		s.server.Stop()

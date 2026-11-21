@@ -13,7 +13,6 @@ func vol(text string, start, end float64) engine.Event {
 
 func clock(t float64) engine.Event { return engine.Event{Type: "clock", T: t} }
 
-// TestStill finalizes once the hypothesis has stopped changing, at its end, and only once.
 func TestStill(t *testing.T) {
 	h := Hint("ja")
 	for _, ev := range []engine.Event{vol("先看看", 10, 11), vol("先看看角色创建界面吧", 10, 12), clock(12.5), clock(13.2)} {
@@ -27,7 +26,6 @@ func TestStill(t *testing.T) {
 	if _, ok := h(clock(14)); ok {
 		t.Fatal("finalized again")
 	}
-	// A final result clears the hypothesis: nothing waits.
 	h(vol("好的", 14, 14.5))
 	h(engine.Event{Type: "result", Final: true, End: 14.5, Tokens: []engine.Token{{Text: "好的"}}})
 	if _, ok := h(clock(20)); ok {
@@ -35,8 +33,6 @@ func TestStill(t *testing.T) {
 	}
 }
 
-// TestClausePause finalizes Chinese inside the speaker's pause, once it has lasted 0.2 s, once a
-// pause; and not other languages.
 func TestClausePause(t *testing.T) {
 	h := Hint("zh-CN")
 	h(engine.Event{Type: "voice", On: true, T: 0})
@@ -51,7 +47,6 @@ func TestClausePause(t *testing.T) {
 	if _, ok := h(clock(1.4)); ok {
 		t.Fatal("finalized the same pause again")
 	}
-	// A pause with nothing heard since the last is no clause.
 	h(engine.Event{Type: "voice", On: true, T: 1.5})
 	h(engine.Event{Type: "voice", On: false, T: 1.6})
 	if _, ok := h(clock(1.9)); ok {

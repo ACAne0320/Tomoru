@@ -20,8 +20,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// TestImageEngineUpgrade sets the engine for pictures of settings from before it, once: the
-// subtitles' engine where it reads pictures, else the cloud. One set stays as it is.
 func TestImageEngineUpgrade(t *testing.T) {
 	for _, tc := range []struct {
 		name, mt, image, want string
@@ -51,8 +49,6 @@ func TestImageEngineUpgrade(t *testing.T) {
 	}
 }
 
-// TestImageEngineInGuide has the guide's choice of a translation engine translate pictures too,
-// where it reads them: its one choice of an engine.
 func TestImageEngineInGuide(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	m.ready["local-2b"] = true
@@ -68,9 +64,6 @@ func TestImageEngineInGuide(t *testing.T) {
 	}
 }
 
-// TestImageEngineMenu lists the engines that can read pictures now: the cloud first, the local
-// models downloaded but Hy-MT2, which reads none, and the user's APIs but those a test found to
-// read none, or prompted as Hy-MT2.
 func TestImageEngineMenu(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	c.Prefs.Endpoints = []prefs.Endpoint{
@@ -99,12 +92,9 @@ func TestImageEngineMenu(t *testing.T) {
 	}
 }
 
-// TestImageEngineOnly sends a picture to the engine chosen for pictures and to no other: not the
-// subtitles', not the cloud when the one chosen fails. A local model translating the subtitles
-// keeps llama-server: another chosen for pictures says so, and closing the card leaves it.
 func TestImageEngineOnly(t *testing.T) {
 	var cloudAsked atomic.Int32
-	var model atomic.Value // the cloud's size asked
+	var model atomic.Value
 	cloud := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cloudAsked.Add(1)
 		var body struct{ Model string }
@@ -144,7 +134,7 @@ func TestImageEngineOnly(t *testing.T) {
 	if model.Load() != translate.CloudModel {
 		t.Errorf("the cloud asked for %v", model.Load())
 	}
-	c.SetImageEngine("cloud-9b") // a smaller size of the cloud's reads pictures too
+	c.SetImageEngine("cloud-9b")
 	c.TranslateImage(pic)
 	done()
 	if c.Image.Via != "cloud-9b" || model.Load() != "Index-Translate-9B" {
@@ -177,8 +167,6 @@ func TestImageEngineOnly(t *testing.T) {
 	}
 }
 
-// TestImageEngineDeleted has the cloud translate pictures once the engine chosen for them is
-// deleted, a model or an API; undoing the API's deletion chooses it again.
 func TestImageEngineDeleted(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	c.Prefs.Onboarded = true
@@ -201,9 +189,6 @@ func TestImageEngineDeleted(t *testing.T) {
 	}
 }
 
-// TestEndpointReadsPictures tests an API with a picture too, alongside the sample: the endpoint
-// saved keeps whether it read it; one found to read none no longer translates pictures; a new one
-// keeps what its test found once saved, and one whose model changed, nothing.
 func TestEndpointReadsPictures(t *testing.T) {
 	var sent atomic.Value
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -269,15 +254,12 @@ func TestEndpointReadsPictures(t *testing.T) {
 		t.Errorf("its model changed: %v", e.Vision)
 	}
 
-	// The sample failing, nothing is known of pictures.
 	e.URL = "http://127.0.0.1:1"
 	if r := test(e); r.Err == nil || r.Vision != prefs.VisionUnknown {
 		t.Errorf("unreachable: %+v", r)
 	}
 }
 
-// TestVisionOf takes an API's refusal of the picture for reading none, and a moment's failure for
-// nothing known.
 func TestVisionOf(t *testing.T) {
 	for status, want := range map[int]prefs.Vision{
 		http.StatusBadRequest: prefs.VisionNo, http.StatusUnprocessableEntity: prefs.VisionNo,
@@ -291,8 +273,6 @@ func TestVisionOf(t *testing.T) {
 	}
 }
 
-// TestEndpointNoPictures tests an API prompted as Hy-MT2 is without a picture: it reads none.
-// Saved so while chosen for pictures, it gives them to the cloud.
 func TestEndpointNoPictures(t *testing.T) {
 	var pictures atomic.Int32
 	var line atomic.Value

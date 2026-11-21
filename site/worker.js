@@ -1,9 +1,5 @@
-// Tomoru 官网的 Worker。/download/mac、/download/windows 和 /download/linux 给访客最新的安装包：在中国大陆从 R2 下载，
-// 别处跳到 GitHub；?from=github 或 ?from=cloudflare 指定来源。每半小时把 GitHub 上最新发布的安装包复制进 R2。
-// 其余请求都是静态页面。
 const repo = 'https://github.com/ACAne0320/Tomoru';
 
-// 每个系统的安装包，按 SHA256SUMS 里的文件名认
 const installers = { mac: /^tomoru-.+-arm64\.dmg$/, windows: /^tomoru-setup-.+-amd64\.exe$/, linux: /^tomoru_.+_amd64\.deb$/ };
 
 export default {
@@ -12,7 +8,7 @@ export default {
     const os = url.pathname.match(/^\/download\/(mac|windows|linux)\/?$/)?.[1];
     if (!os) return env.ASSETS.fetch(request);
     const latest = await readLatest(env);
-    const name = latest?.files[os]; // 没有：还没同步过，或同步的那一版没有这个系统的安装包
+    const name = latest?.files[os];
     if (!name) return Response.redirect(`${repo}/releases/latest`, 302);
     const github = `${repo}/releases/download/${latest.tag}/${name}`;
     const from = url.searchParams.get('from') ?? (request.cf?.country === 'CN' ? 'cloudflare' : 'github');
@@ -27,7 +23,6 @@ export default {
 
 const readLatest = async (env) => (await env.RELEASES.get('latest.json'))?.json();
 
-// serve 从 R2 发出 name，支持单段续传；R2 里没有就是 null
 async function serve(request, env, name) {
   const head = await env.RELEASES.head(name);
   if (!head) return null;
@@ -51,8 +46,6 @@ async function serve(request, env, name) {
   return new Response(obj.body ?? null, { status: range ? 206 : 200, headers });
 }
 
-// sync 把 GitHub 上最新发布（不含草稿和预发布）的安装包复制进 R2，R2 按 SHA256SUMS 校验。
-// 安装包都到了才换 latest.json，上一版的留着，让正在下载的人下完。
 async function sync(env) {
   const res = await fetch(`${repo}/releases/latest`, { redirect: 'manual' });
   const tag = res.headers.get('location')?.split('/releases/tag/')[1];

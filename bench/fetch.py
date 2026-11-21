@@ -51,7 +51,6 @@ def cases():
 
 
 def ytdlp(args, cookies):
-    # YTDLP picks another yt-dlp, as "uvx --from yt-dlp yt-dlp" for the latest.
     cmd = os.environ.get("YTDLP", "yt-dlp").split() + ["--no-warnings"]
     if cookies:
         cmd += ["--cookies-from-browser", cookies]
@@ -139,9 +138,9 @@ def write_srt(path, cues):
 def fetch(c, cookies, force):
     url = f"https://www.youtube.com/watch?v={c['video']}"
     wav = MEDIA / f"{c['id']}.wav"
-    has_ref = c["ref"] not in ("todo", "manual")  # manual: made here, by hand (README.md)
+    has_ref = c["ref"] not in ("todo", "manual")
     want = ([c["ref"]] if has_ref else []) + c["tgt"]
-    names = (["ref"] if has_ref else []) + c["tgt"]  # the subtitles' files: <id>.<name>.srt
+    names = (["ref"] if has_ref else []) + c["tgt"]
     if not force and wav.exists() and all((MEDIA / f"{c['id']}.{n}.srt").exists() for n in names):
         return "kept"
     info = json.loads(ytdlp(["-J", "--skip-download", url], cookies))
@@ -163,11 +162,9 @@ def fetch(c, cookies, force):
         if name == "ref":
             (MEDIA / f"{c['id']}.ref.txt").write_text("".join(t + "\n" for _, _, t in cues))
     if force or not wav.exists():
-        # The whole audio, cut here: yt-dlp cutting it took over 15 minutes for a stretch of an
-        # hour's lecture, as YouTube slows the requests of seeking.
         src = MEDIA / f"{c['id']}.src"
         for old in MEDIA.glob(f"{c['id']}.src.*"):
-            old.unlink()  # a download stopped before
+            old.unlink()
         ytdlp(["-f", "bestaudio[ext=m4a]/bestaudio/best", "--force-overwrites", "-o", str(src) + ".%(ext)s", url], cookies)
         got = next(p for p in MEDIA.glob(f"{c['id']}.src.*") if p.suffix != ".part")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", str(c["start"]), "-to", str(c["end"]), "-i", str(got),
@@ -183,7 +180,7 @@ def coverage(rows):
         cells = []
         for l in LANGS:
             mine = [r for r in rows if r["scene"] == s and r["lang"] == l]
-            done = sum(r["ref"] != "todo" for r in mine)  # manual counts
+            done = sum(r["ref"] != "todo" for r in mine)
             cells.append(f"{done}/{len(mine)}" if mine else "-")
         print(s.ljust(10) + "".join(c.ljust(8) for c in cells))
     print("\ncases with a reference / cases")

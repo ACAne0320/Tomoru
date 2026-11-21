@@ -13,9 +13,6 @@ import (
 	"tomoru/locales"
 )
 
-// about is the app: its icon, name and what it does; its version and checking for updates, the
-// guide again, the logs and feedback, a problem or an idea, as rows of a card; its license, the works
-// it is built on, with links to them, and the licenses of all.
 func (s *Settings) about(c *ui.Context) {
 	p := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Center).Children(func() {
@@ -33,8 +30,6 @@ func (s *Settings) about(c *ui.Context) {
 		})
 		kit.SettingRow(c, 1, locales.AboutGuide(), "", func() {
 			if kit.Button(c, kit.Plain, kit.Small, nil, locales.AboutRerun()).Clicked() {
-				// As on a first launch: until it is done, it is kept where it was left, to come back to
-				// it after a quit, or the reopening a permission asks for.
 				s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Onboarded, p.GuideStep = false, 0 })
 				s.nav.ShowGuide()
 			}
@@ -63,8 +58,6 @@ func (s *Settings) about(c *ui.Context) {
 				}
 			}
 		})
-		// A row each, its line across the card: what it does, its name and its GitHub account sharing
-		// the room, its license at the end.
 		ui.Grid(c).ColumnTracks(ui.FitContent(), ui.Fr(1), ui.Fr(1), ui.FitContent()).Children(func() {
 			for i, w := range credits() {
 				cell := func(body func()) ui.Element {
@@ -90,12 +83,8 @@ func (s *Settings) about(c *ui.Context) {
 	})
 }
 
-// credit is a work the app is built on: what it does in the app, its name and home, the GitHub
-// account it is under and its license.
 type credit struct{ role, name, url, owner, license string }
 
-// credits are the works the app is built on that matter most to it, the licenses of all in the
-// directory the app ships them in.
 func credits() []credit {
 	return []credit{
 		{locales.CreditTranslation(), "Index-Translate", core.CloudRepo, "bilibili", "Apache-2.0"},

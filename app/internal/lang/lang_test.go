@@ -4,11 +4,9 @@ import "testing"
 
 func TestNames(t *testing.T) {
 	for _, tc := range []struct{ code, locale, want string }{
-		// The names the catalogs had for the first four, and the prompts.
 		{"zh", "zh-Hans", "中文"}, {"en", "zh-Hans", "英语"}, {"ja", "zh-Hans", "日语"}, {"ko", "zh-Hans", "韩语"},
 		{"zh", "en", "Chinese"}, {"ja", "ja", "日本語"}, {"ko", "ko", "한국어"},
 		{"zh-Hans", "en", "Simplified Chinese"}, {"zh-Hant", "zh-Hans", "繁体中文"}, {"yue", "zh-Hans", "粤语"},
-		// Korean has no name for Traditional Chinese: its own.
 		{"zh-Hant", "ko", "繁體中文"},
 		{"xx-!", "en", "xx-!"},
 	} {
@@ -57,7 +55,6 @@ func TestWriting(t *testing.T) {
 	}
 }
 
-// TestFits tells a label that cannot be right by the scripts of the text.
 func TestFits(t *testing.T) {
 	for _, c := range []struct {
 		text, code string

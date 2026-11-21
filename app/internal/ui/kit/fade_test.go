@@ -8,19 +8,17 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// TestFadeScroll fades the bottom into the paper while more is below, and shows the content to
-// its edge once scrolled to the end.
 func TestFadeScroll(t *testing.T) {
 	var s ui.ScrollState
 	tt := ui.NewTester(func(c *ui.Context) {
 		ui.Column(c).Fill().Background(Colors(c).Paper).Children(func() {
 			FadeScroll(c, &s, func() {
-				ui.Box(c).Height(400).Background(Colors(c).Ink) // taller than the room
+				ui.Box(c).Height(400).Background(Colors(c).Ink)
 			})
 		})
 	}, 100, 100)
 	bottom := func() (r uint8) {
-		tt.Frame() // takes where it is scrolled, and starts the fade to match
+		tt.Frame()
 		tt.Advance(time.Second)
 		tt.Frame()
 		img := tt.Image()
@@ -29,7 +27,7 @@ func TestFadeScroll(t *testing.T) {
 	if s.MaxY <= 0 {
 		t.Fatalf("does not scroll: %+v", s)
 	}
-	if r := bottom(); r < 200 { // the paper is light, the ink dark
+	if r := bottom(); r < 200 {
 		t.Errorf("more below, the edge is %d, not faded into the paper", r)
 	}
 	s.Y = math.MaxFloat32

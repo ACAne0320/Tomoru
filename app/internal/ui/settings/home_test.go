@@ -21,8 +21,6 @@ import (
 	"tomoru/locales"
 )
 
-// TestHome starts translating from the home page and shows its numbers while it does, not the
-// subtitles, which show over the screen; and goes to the statistics from its lines by day.
 func TestHome(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -36,7 +34,6 @@ func TestHome(t *testing.T) {
 		t.Fatalf("start: %v, started %v", err, k.Started)
 	}
 
-	// A session, as tests have none: two sentences in.
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Done: true}},
 		Stats: live.Stats{Lines: 12, Speech: 90, Chars: 345}}
@@ -54,13 +51,11 @@ func TestHome(t *testing.T) {
 	}
 }
 
-// TestHomeClock shows each second of the running time as it passes, with nothing else redrawing
-// the page, even after a frame between two seconds.
 func TestHomeClock(t *testing.T) {
 	var tt *ui.Tester
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Now = func() time.Time {
-			if tt == nil { // the tester's first frame, while it is made
+			if tt == nil {
 				return time.Now()
 			}
 			return tt.Now()
@@ -84,8 +79,6 @@ func TestHomeClock(t *testing.T) {
 	}
 }
 
-// TestHomeError says why translating stopped, with the action that resolves it: an engine to set
-// up opens Speech & translation; anything else tries again.
 func TestHomeError(t *testing.T) {
 	k := coretest.New()
 	k.Err = core.ErrMTCloudKey
@@ -104,8 +97,6 @@ func TestHomeError(t *testing.T) {
 	}
 }
 
-// TestAppearance chooses a dark appearance in Preferences, which keeps it.
-// TestHomeSwap names what is heard as the panel does, and swaps the languages from between them.
 func TestHomeSwap(t *testing.T) {
 	k := coretest.New()
 	k.Err = nil
@@ -142,8 +133,6 @@ func TestAppearance(t *testing.T) {
 	}
 }
 
-// TestHomeScenes switches the scene from its menu over the sentence, whose languages are then the
-// scene's, and goes to the scenes' page from it.
 func TestHomeScenes(t *testing.T) {
 	k := coretest.New()
 	id := k.AddScene("Vtube")
@@ -165,7 +154,6 @@ func TestHomeScenes(t *testing.T) {
 	if err := tt.ChooseMenuItem(locales.ManageScenes() + "…"); err != nil || s.Tab != "scenes" {
 		t.Errorf("manage: %v, tab %q", err, s.Tab)
 	}
-	// A new scene from the menu is in use, and shown on the scenes' page to be named.
 	s.Tab = "home"
 	tt.Frame()
 	if err := tt.Click("Vtube"); err != nil {
@@ -180,15 +168,13 @@ func TestHomeScenes(t *testing.T) {
 	}
 }
 
-// TestActivityDays lays the days out a week a column from Monday, today's the last with something,
-// and leaves out what is before the first and after today.
 func TestActivityDays(t *testing.T) {
-	now := time.Date(2026, 10, 21, 20, 0, 0, 0, time.Local) // a Wednesday
+	now := time.Date(2026, 10, 21, 20, 0, 0, 0, time.Local)
 	var l usage.Ledger
 	l.Add("2026-10-21", usage.Engines{}, usage.Counts{Lines: 2})
 	l.Add("2026-10-19", usage.Engines{}, usage.Counts{Lines: 3})
 	l.Add("2026-09-28", usage.Engines{}, usage.Counts{Lines: 4})
-	l.Add("2026-09-27", usage.Engines{}, usage.Counts{Lines: 5}) // the Sunday before the first week
+	l.Add("2026-09-27", usage.Engines{}, usage.Counts{Lines: 5})
 	from, lines := activityDays(l, 4, now)
 	if from.Format(time.DateOnly) != "2026-09-28" || len(lines) != 28 {
 		t.Fatalf("from %s, %d days", from.Format(time.DateOnly), len(lines))
@@ -203,13 +189,10 @@ func TestActivityDays(t *testing.T) {
 	}
 }
 
-// TestActivityTip shows a day's date and lines with the pointer on its square, besides its label;
-// and the day in the statistics, clicked.
 func TestActivityTip(t *testing.T) {
 	s := New(statsCore(t, sampleLedger(time.Now())), &coretest.Nav{})
 	tt := ui.NewTester(s.View, Width, 1400)
 	tt.Frame()
-	// The days of no lines, each said once, as its square's label: and one again by the pointer.
 	none := " · " + locales.HistoryLines(0)
 	shown := func() int {
 		n := 0
@@ -228,23 +211,19 @@ func TestActivityTip(t *testing.T) {
 	if !ok {
 		t.Fatalf("no weekdays in %q", tt.Texts())
 	}
-	tt.Move(mon.X+kit.Space(9)+6, mon.Y+mon.H/2) // past the weekdays' column, on the first week's square
+	tt.Move(mon.X+kit.Space(9)+6, mon.Y+mon.H/2)
 	tt.Frame()
 	tt.Advance(time.Second)
 	tt.Frame()
 	if n := shown(); n != before+1 {
 		t.Errorf("%d days of no lines said with the pointer on one, %d before", n, before)
 	}
-	// Clicked, the day shows in the statistics, of all of them as it is months ago: before the
-	// first, so no bar is.
 	tt.ClickAt(mon.X+kit.Space(9)+6, mon.Y+mon.H/2)
 	if s.Tab != "stats" || s.statsEdit.span != 2 || s.statsEdit.kind != 1 || s.statsEdit.bar != -1 {
 		t.Errorf("tab %q, %+v", s.Tab, s.statsEdit)
 	}
 }
 
-// TestStatsDay opens the statistics on a day of the last week, or of the last 30 days, its bar
-// chosen, whatever the hour of the day asked and of now.
 func TestStatsDay(t *testing.T) {
 	y, m, d := time.Now().Date()
 	for _, hour := range []int{0, 9, 15, 23} {
@@ -259,10 +238,6 @@ func TestStatsDay(t *testing.T) {
 	}
 }
 
-// TestHomeRecent shows the sessions kept last once there are any, and no empty card before: as
-// at first, with the subtitles not kept.
-// TestHomeRecentListsOnce lists the sessions kept once, not again each frame: a listing done
-// draws the page again, which listed them again, and so on, at the display's rate.
 func TestHomeRecentListsOnce(t *testing.T) {
 	posted := make(chan func(), 64)
 	k := coretest.NewWith(func(d *core.Deps) {

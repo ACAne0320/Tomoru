@@ -6,12 +6,8 @@ import (
 	"tomoru/locales"
 )
 
-// DialogWidth is a dialog's width: room for a form, and a list of names learned.
 const DialogWidth = 520
 
-// Dialog is a modal dialog on a card over the window dimmed in the night's indigo, shown while
-// *open: its title, what intro says under it if anything, and what body builds. Escape and a click
-// outside close it, as ui.Modal's.
 func Dialog(c *ui.Context, open *bool, title, intro string, body func()) ui.Element {
 	p := Colors(c)
 	w, h := c.Size()
@@ -29,13 +25,10 @@ func Dialog(c *ui.Context, open *bool, title, intro string, body func()) ui.Elem
 	})
 }
 
-// DialogActions is a dialog's buttons, at its end: what fn builds, after a spacer it may put first.
 func DialogActions(c *ui.Context, fn func()) ui.Element {
 	return ui.Row(c).Gap(Space(2)).AlignItems(ui.Center).Margin(Space(1), 0, 0).Children(fn)
 }
 
-// Result is how a test went, as a dialog says it under its form: in green when ok, else in amber
-// with why under it.
 func Result(c *ui.Context, ok bool, title, detail string) ui.Element {
 	p := Colors(c)
 	col := p.OkText
@@ -50,8 +43,6 @@ func Result(c *ui.Context, ok bool, title, detail string) ui.Element {
 	})
 }
 
-// ResultMark is a finding under a Result, what icon shows and s says: in green when it is ok, else
-// in ink, as "Reads pictures" under a test's translation.
 func ResultMark(c *ui.Context, icon *ui.SVG, s string, ok bool) ui.Element {
 	p := Colors(c)
 	col := p.OkText
@@ -64,9 +55,6 @@ func ResultMark(c *ui.Context, icon *ui.SVG, s string, ok bool) ui.Element {
 	})
 }
 
-// Confirm asks before a deletion that can't be undone and changes more than the thing deleted,
-// while *open: question, what detail says goes with it if anything, Cancel and action in red. It
-// reports whether action was chosen, and closes then.
 func Confirm(c *ui.Context, open *bool, question, detail, action string) bool {
 	chosen := false
 	Dialog(c, open, question, detail, func() {
@@ -75,13 +63,8 @@ func Confirm(c *ui.Context, open *bool, question, detail, action string) bool {
 	return chosen
 }
 
-// PopconfirmWidth is a Popconfirm's width: room for a question and a line under it.
 const PopconfirmWidth = 300
 
-// Popconfirm asks by anchor, the button that deletes one thing, before a deletion that can't be
-// undone, while *open: question, what detail says goes with it if anything, Cancel and action in
-// red. Escape and a click outside close it, and the focus goes back to anchor. It reports whether
-// action was chosen, and closes then.
 func Popconfirm(c *ui.Context, anchor ui.Element, open *bool, question, detail, action string) bool {
 	if !*open {
 		return false
@@ -100,11 +83,10 @@ func Popconfirm(c *ui.Context, anchor ui.Element, open *bool, question, detail, 
 	return chosen
 }
 
-// confirmActions is Confirm's and Popconfirm's buttons: Cancel, focused, and action in red.
 func confirmActions(c *ui.Context, open, chosen *bool, action string) {
 	DialogActions(c, func() {
 		ui.Spacer(c)
-		if Button(c, Plain, Small, nil, locales.Cancel()).AutoFocus().Clicked() { // a key pressed keeps it
+		if Button(c, Plain, Small, nil, locales.Cancel()).AutoFocus().Clicked() {
 			*open = false
 		}
 		if Button(c, Danger, Small, nil, action).Clicked() {
@@ -113,17 +95,12 @@ func confirmActions(c *ui.Context, open, chosen *bool, action string) {
 	})
 }
 
-// Guard keeps dialog, a Dialog with changes, open when Escape or a click outside closes it, and
-// sets *asking, for the dialog to show Discard in its buttons' place; closed so again while it
-// asks, it goes back to editing.
 func Guard(dialog ui.Element, open, asking *bool, changed bool) {
 	if dialog.Dismissed() && (changed || *asking) {
 		*open, *asking = true, !*asking
 	}
 }
 
-// Discard asks, in a dialog's buttons' place, before its changes are thrown away: Keep editing,
-// focused, which unsets *asking, and Discard in red, which closes the dialog.
 func Discard(c *ui.Context, open, asking *bool) {
 	DialogActions(c, func() {
 		ui.Text(c, locales.AskDiscard()).FontSize(TextControl).FontWeight(WeightBold).TextColor(Colors(c).Ink).Grow(1).MaxLines(2)

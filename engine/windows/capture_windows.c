@@ -1,4 +1,3 @@
-// Capture: WASAPI endpoint loopback for the default output, or process loopback for one app.
 #define COBJMACROS
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -16,7 +15,6 @@ static const IID iidAudioClient = {0x1cb9ad4c, 0xdbfa, 0x4c32, {0xb1, 0x78, 0xc2
 static const IID iidAudioCaptureClient = {0xc8adbd64, 0xe71e, 0x48a0, {0xa4, 0xde, 0x18, 0x5c, 0x39, 0x5c, 0xd3, 0x17}};
 static const IID iidCompletionHandler = {0x41d949ab, 0x9862, 0x444a, {0x80, 0xf6, 0xc2, 0x61, 0x33, 0x4d, 0xa5, 0xeb}};
 
-// audioclientactivationparams.h, which mingw-w64 has not.
 enum { activationProcessLoopback = 1 };
 enum { loopbackInclude = 0 };
 typedef struct {
@@ -25,8 +23,6 @@ typedef struct {
 	DWORD mode;
 } activationParams;
 
-// The completion handler ActivateAudioInterfaceAsync calls back, from a thread of its own: it
-// signals done. Agile, as it must be.
 typedef struct {
 	IActivateAudioInterfaceCompletionHandler iface;
 	LONG refs;
@@ -161,7 +157,6 @@ long tc_open(unsigned long pid, int rate, int channels, tc_capture **out) {
 		wf.wBitsPerSample = 16;
 		wf.nBlockAlign = channels * 2;
 		wf.nAvgBytesPerSec = rate * wf.nBlockAlign;
-		// The audio engine converts what plays to the format asked for.
 		DWORD flags = AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
 			AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY;
 		hr = IAudioClient_Initialize(c->client, AUDCLNT_SHAREMODE_SHARED, flags, 2000000, 0, &wf, NULL);
@@ -222,7 +217,7 @@ long tc_read(tc_capture *c, int16_t *buf, int cap, int ms) {
 		}
 		int samples = frames * c->channels;
 		if (n + samples > cap) {
-			IAudioCaptureClient_ReleaseBuffer(c->capture, 0); // left for the next read
+			IAudioCaptureClient_ReleaseBuffer(c->capture, 0);
 			return n;
 		}
 		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {

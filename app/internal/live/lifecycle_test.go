@@ -48,7 +48,6 @@ func (l *lifecycleLog) completed() int {
 	return n
 }
 
-// commitSentence feeds a distinct final utterance without coupling tests to Session's queue.
 func commitSentence(s *Session, id int) {
 	start, end := float64(id*2), float64(id*2+1)
 	s.handle(engine.Event{Type: "result", Final: true, Tokens: []engine.Token{{
@@ -65,8 +64,6 @@ func waitSignal(t *testing.T, ch <-chan struct{}) {
 	}
 }
 
-// Every sentence survives display eviction, and a skipped translation gets its own final
-// event immediately, without blocking recognition or waiting for earlier translations.
 func TestLineEventsBacklogAndOverflow(t *testing.T) {
 	for _, count := range []int{12, 66} {
 		t.Run(fmt.Sprint(count), func(t *testing.T) {
@@ -148,8 +145,6 @@ func checkLifecycle(t *testing.T, events []LineEvent, count int) {
 	}
 }
 
-// Stopping seals the partial output immediately, even if a provider takes time to return after
-// cancellation. Wait still joins that provider, and its late deltas/final answer are discarded.
 func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 	started, release := make(chan struct{}), make(chan struct{})
 	tr := translateFunc(func(ctx context.Context, _ translate.Request, delta func(string)) (string, error) {
@@ -178,7 +173,6 @@ func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 	}
 	close(release)
 	waitSignal(t, waited)
-	// Stale recognizer events cannot create more committed lines after Stop.
 	commitSentence(s, 13)
 	checkLifecycle(t, got.events, 12)
 	for _, e := range got.events {
@@ -250,7 +244,6 @@ func TestCallbackCanStopWithoutDeadlock(t *testing.T) {
 	checkLifecycle(t, events, 1)
 }
 
-// A committed sentence retains the already shown draft when its full translation is canceled.
 func TestCanceledLineRetainsDraft(t *testing.T) {
 	var got lifecycleLog
 	tr := translateFunc(func(ctx context.Context, r translate.Request, _ func(string)) (string, error) {
@@ -314,7 +307,6 @@ func (p *delayedChild) Stop()                  { p.once.Do(func() { close(p.requ
 func (p *delayedChild) Done() <-chan struct{}  { return p.done }
 func (p *delayedChild) Err() error             { return nil }
 
-// A child that finishes starting after parent cancellation must still be stopped and joined.
 func TestCancellationDuringProcessStartup(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	s := newStartingSession(Config{Context: ctx, Translator: upper{}}, nil)
@@ -335,8 +327,6 @@ func TestCancellationDuringProcessStartup(t *testing.T) {
 	waitSignal(t, waited)
 }
 
-// Reporting may lag behind capture, so consent/scene metadata belongs to the commitment itself,
-// never to the later callback. Every progress/completion must retain that original snapshot.
 func TestLineMetadataCapturedBeforeDelayedDispatch(t *testing.T) {
 	type metadata struct {
 		Scene   string
@@ -426,8 +416,6 @@ func TestFailedStartDrainsSynchronousRecognizerEvents(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("startup cleanup did not finish")
 	}
-	// Reading without an extra callback lock also makes the race detector verify that no
-	// dispatcher can continue mutating this stream after the failed constructor returns.
 	checkLifecycle(t, events, 1)
 	select {
 	case <-child.done:

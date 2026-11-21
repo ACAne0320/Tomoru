@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 	"time"
-	_ "time/tzdata" // the zones of the tests, where the system has no database, as Windows
+	_ "time/tzdata"
 )
 
 func TestCountsSinceAllFields(t *testing.T) {
@@ -128,7 +128,6 @@ func TestLedgerAddRunCalendarDays(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			start, end := intervalTimes(t, tc)
 			var ledger Ledger
-			// End's display location must not override the running interval's start location.
 			ledger.AddRun(start, end.In(time.UTC), engines)
 			total := 0.0
 			if end.After(start) {

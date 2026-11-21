@@ -15,26 +15,17 @@ import (
 	"tomoru/locales"
 )
 
-// The translation scenes' page (docs/design-system.md): the scenes, and the one chosen beside them,
-// its name, languages and description, and its glossary, a table edited in place.
-
-// sceneEdit is the page's state: the scene shown, the name being added to its glossary, and the
-// ways a name was misheard as being typed.
 type sceneEdit struct {
-	id       bool // the page chose a scene to show
-	scene    string
-	adding   bool // the row adding a name shows
-	src, tgt string
-	heard    string // separated by commas
-	// heardAt is the name whose misheard ways are typed, heardText what is typed: as the user
-	// types a separator, the name has no way more yet.
+	id                 bool
+	scene              string
+	adding             bool
+	src, tgt           string
+	heard              string
 	heardAt, heardText string
 }
 
 func (s *Settings) scenes(c *ui.Context) {
 	k, e := s.core, &s.sceneEdit
-	// What adds or deletes a scene or a name waits for the page to be built: the fields bound to
-	// them would be left on a list that moved.
 	var then func()
 	defer func() {
 		if then != nil {
@@ -67,7 +58,6 @@ func (s *Settings) scenes(c *ui.Context) {
 					items[i].Trail = func() { kit.InUse(c).Label(locales.SceneInUse()) }
 				}
 			}
-			// As tall as the scene's card beside it, unless the empty state under it takes the room.
 			grow := float32(1)
 			if len(list) == 1 {
 				grow = 0
@@ -92,16 +82,12 @@ func (s *Settings) scenes(c *ui.Context) {
 	s.endpointDialog(c)
 }
 
-// sceneDetail is a scene's card: its name, whether it is in use, its languages and description,
-// and its glossary. It gives what adds or deletes a scene or a name, for after the page is built.
 func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 	k, e := s.core, &s.sceneEdit
 	p := kit.Colors(c)
 	id, inUse := sc.ID, sc.ID == k.Preferences().Scene
 	before := scene.Clone([]scene.Scene{*sc})[0]
 	defer func() {
-		// Only bound text fields are copied back. Language menus and add/delete actions
-		// commit independently, so this draft cannot overwrite their newer state.
 		if sc.Name == before.Name && sc.About == before.About && reflect.DeepEqual(sc.Terms, before.Terms) {
 			return
 		}
@@ -141,7 +127,6 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 			})
 		}
 	})
-	// The scene in use's languages are translating's; another's are kept for when it is used.
 	section(c, locales.SceneLangs(), nil, func() {
 		src, tgt := sc.Src, sc.Tgt
 		setSrc := func(l string) {
@@ -171,8 +156,6 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 	return then
 }
 
-// section starts a part of a scene's card: its name, what after builds beside it, and what end
-// builds at the row's end, its controls, the row as tall as they are.
 func section(c *ui.Context, label string, after, end func()) {
 	ui.Row(c).Height(kit.Space(9)).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, label).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).Ink).MaxLines(1).Shrink(0)
@@ -186,9 +169,6 @@ func section(c *ui.Context, label string, after, end func()) {
 	})
 }
 
-// glossary is a scene's names, a table: each as written, its translation and the ways it was
-// misheard, edited in place; the row that adds one, at its top. It gives what adds or deletes one,
-// for after the page is built.
 func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 	k, e := s.core, &s.sceneEdit
 	p := kit.Colors(c)
@@ -206,23 +186,18 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 			e.adding = true
 		}
 	})
-	// No names yet: the way to some, learning them from the records the scene has, else adding one.
 	if len(sc.Terms) == 0 && !e.adding {
 		art, text := kit.ArtTerms, locales.NoTermsYet()
 		if len(records) > 0 {
 			art, text = kit.ArtTermsLearn, locales.NoTermsLearn()
 		}
 		if len(k.SceneList()) == 1 {
-			// The scenes' list has its drawing already: one to a screen.
 			kit.SandCard(c).Children(func() { kit.Caption(c, text) })
 		} else {
 			kit.Empty(c, art, text, nil)
 		}
 		return then
 	}
-	// The columns: as written, the translation, the ways misheard, and the row's button. The
-	// general scene's names are not written over what was heard (scene.NewGlossary): it has no
-	// ways misheard.
 	general := id == ""
 	cells := func(src, tgt, heard func(), action func()) {
 		tracks := []ui.Track{ui.Fr(1), ui.Fr(1)}
@@ -303,8 +278,6 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 	return then
 }
 
-// heardCell edits the ways term was misheard, as text separated as the locale separates a list.
-// While it is typed in, the text stays as typed: a separator at its end is the start of one more.
 func (s *Settings) heardCell(c *ui.Context, key string, term *scene.Term) {
 	e := &s.sceneEdit
 	text := strings.Join(term.Heard, locales.TermHeardSep())
@@ -324,7 +297,6 @@ func (s *Settings) heardCell(c *ui.Context, key string, term *scene.Term) {
 	}
 }
 
-// splitHeard is the ways a name was misheard, as typed: separated by commas of any language.
 func splitHeard(s string) []string {
 	var heard []string
 	for _, h := range strings.FieldsFunc(s, func(r rune) bool { return strings.ContainsRune(",，、", r) }) {
@@ -335,7 +307,6 @@ func splitHeard(s string) []string {
 	return heard
 }
 
-// sceneRecords are the paths of the sessions kept in scene id.
 func (s *Settings) sceneRecords(id string) []string {
 	k := s.core
 	if !k.HistoryOn() {

@@ -11,19 +11,14 @@ import (
 	"time"
 )
 
-// Move is how moving the models to another directory goes: Done of Total bytes while Active, and
-// why the last move failed.
 type Move struct {
 	Active      bool
 	Done, Total int64
 	Err         error
 }
 
-// FolderName is the folder of their own the models get in a folder the user chooses.
 const FolderName = "Tomoru Models"
 
-// Destination is where the models go when the user chooses the folder chosen: a folder of their
-// own in it, unless it is that folder already, or the one they are in now.
 func Destination(chosen, current string) string {
 	chosen = filepath.Clean(chosen)
 	if strings.EqualFold(filepath.Base(chosen), FolderName) {
@@ -37,22 +32,14 @@ func Destination(chosen, current string) string {
 	return filepath.Join(chosen, FolderName)
 }
 
-// errBusy is a move asked for while one goes on, or the manager is closed.
 var errBusy = errors.New("models: busy")
 
-// Moving says how moving the models goes.
 func (m *Manager) Moving() Move {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.move
 }
 
-// Move moves the models, what came in of the others too, into the directory to, and keeps them
-// there from then on. Downloads stop, and none starts or is deleted until it ends; Status says
-// what was there as it began. Within a disk a file is renamed; across disks it is copied, and the
-// files left where they were only once all are there. A file already there, of the size, stays.
-// On failure everything goes back as it was. done is called once, from any goroutine, as it ends
-// or is refused.
 func (m *Manager) Move(to string, done func(error)) {
 	to = filepath.Clean(to)
 	m.mu.Lock()
@@ -79,7 +66,7 @@ func (m *Manager) Move(to string, done func(error)) {
 	go func() {
 		defer m.wg.Done()
 		for _, j := range jobs {
-			<-j.exited // a file still open can't be moved on Windows
+			<-j.exited
 		}
 		m.mu.Lock()
 		m.held = map[string]Status{}
@@ -96,7 +83,6 @@ func (m *Manager) Move(to string, done func(error)) {
 	}()
 }
 
-// moving is a file being moved: from where to where, its size, and how it got there, to undo it.
 type moving struct {
 	from, to string
 	size     int64
@@ -106,10 +92,10 @@ type moving struct {
 type moved int
 
 const (
-	notYet  moved = iota
-	renamed       // undone by renaming it back
-	copied        // undone by removing the copy
-	there         // there before: kept
+	notYet moved = iota
+	renamed
+	copied
+	there
 )
 
 func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
@@ -117,8 +103,6 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 		return err
 	}
 	if a, err := os.Stat(from); err == nil {
-		// The same directory by another name, as in another case on macOS: nothing to move, and
-		// its files are not to be removed as moved. It keeps the name it had.
 		if b, err := os.Stat(to); err == nil && os.SameFile(a, b) {
 			return nil
 		}
@@ -169,7 +153,6 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 					progress(f.size)
 					continue
 				}
-				// Another disk: copy what is left, if it has the room.
 				copying = true
 				if err := enoughSpace(to, total-done); err != nil {
 					return err
@@ -195,7 +178,7 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 		}
 		for _, mod := range All {
 			if mod.Dir != "" {
-				os.Remove(filepath.Join(to, mod.Dir)) // once empty
+				os.Remove(filepath.Join(to, mod.Dir))
 			}
 		}
 		return err
@@ -204,7 +187,6 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 	m.dir = to
 	m.move.Done = total
 	m.mu.Unlock()
-	// The core stopped what read the models; a file still open stays behind, unused.
 	for _, f := range files {
 		if f.how != renamed {
 			if err := os.Remove(f.from); err != nil {
@@ -217,11 +199,10 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 			os.Remove(filepath.Join(from, mod.Dir))
 		}
 	}
-	os.Remove(from) // once empty
+	os.Remove(from)
 	return nil
 }
 
-// copyFile copies a file through dst+".moving", so that dst is there only once all of it is.
 func copyFile(ctx context.Context, src, dst string, progress func(int64)) error {
 	in, err := os.Open(src)
 	if err != nil {

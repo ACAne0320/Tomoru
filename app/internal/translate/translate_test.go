@@ -42,7 +42,6 @@ func TestEndpoint(t *testing.T) {
 		t.Errorf("prompt %q, body %v", prompt, body)
 	}
 
-	// A chat model gets a system prompt and the line.
 	e.Format, e.Llama = Chat, true
 	e.Translate(context.Background(), Request{Src: "ja", Tgt: "en", Text: "こんにちは", Draft: true}, nil)
 	msgs := body["messages"].([]any)
@@ -52,8 +51,6 @@ func TestEndpoint(t *testing.T) {
 	}
 }
 
-// TestTerms puts the glossary's terms in either prompt: as Index-Translate's hard requirement, and
-// in a chat model's system prompt.
 func TestTerms(t *testing.T) {
 	terms := []Term{{"クラウド", "克劳德"}, {"メテオ", "陨石"}}
 	p := indexPrompt(Request{Src: "ja", Tgt: "zh", Text: "クラウド。", Terms: terms})
@@ -68,7 +65,6 @@ func TestTerms(t *testing.T) {
 	}
 }
 
-// TestAbout tells the model what is being watched, after the glossary, as a note (soft constraint).
 func TestAbout(t *testing.T) {
 	r := Request{Src: "ja", Tgt: "zh", Text: "クラウド。", Terms: []Term{{"クラウド", "克劳德"}}, About: "最终幻想7 重制版"}
 	if p := indexPrompt(r); !strings.Contains(p, "1. 【硬性要求】专名/术语对照: クラウド→克劳德\n2. 【注意】背景：最终幻想7 重制版\n3. 【注意】") {
@@ -83,9 +79,6 @@ func TestAbout(t *testing.T) {
 	}
 }
 
-// TestHyMT asks Hy-MT2 in one turn, its personalization template: the text, then the task's items
-// numbered, those of the glossary, the description and a draft only when there are, the language
-// last; greedily, and without the parameters of a chat model's thinking.
 func TestHyMT(t *testing.T) {
 	var body struct {
 		Messages []struct {
@@ -124,9 +117,6 @@ func TestHyMT(t *testing.T) {
 	}
 }
 
-// TestNoThinking asks a chat model not to think, as a line's translation would wait for it, in each
-// of the ways services take it; a server that refuses them gets the request again without them,
-// and never again.
 func TestNoThinking(t *testing.T) {
 	var bodies []map[string]any
 	refuse := false
@@ -152,7 +142,6 @@ func TestNoThinking(t *testing.T) {
 		t.Errorf("body %v", b)
 	}
 
-	// A server that refuses them.
 	bodies, refuse = nil, true
 	e = &Endpoint{URL: srv.URL, Model: "m", Format: Chat}
 	for range 2 {
@@ -164,7 +153,6 @@ func TestNoThinking(t *testing.T) {
 		t.Errorf("%d requests: %v", len(bodies), bodies)
 	}
 
-	// Index-Translate does not think: its requests stay as they were.
 	bodies = nil
 	e = &Endpoint{URL: srv.URL, Model: "m", Format: Index}
 	e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Good"}, nil)
@@ -173,8 +161,6 @@ func TestNoThinking(t *testing.T) {
 	}
 }
 
-// TestUsage asks for the tokens a completion takes, and tells them: OpenAI's usage, or llama.cpp's
-// timings. A server that refuses the asking gets the request again without it.
 func TestUsage(t *testing.T) {
 	var bodies []map[string]any
 	refuse := false
@@ -217,8 +203,6 @@ func TestUsage(t *testing.T) {
 	}
 }
 
-// TestNoTranslation reads streams that end without a translation: a model that spent its tokens
-// thinking, and an error sent in the stream, say so; nothing at all is an empty translation.
 func TestNoTranslation(t *testing.T) {
 	for _, c := range []struct {
 		stream string
@@ -241,8 +225,6 @@ func TestNoTranslation(t *testing.T) {
 	}
 }
 
-// A provider can fail after streaming some text. Keep that text and its usage, but
-// do not report the incomplete translation as a successful completion.
 func TestStreamErrorAfterPartial(t *testing.T) {
 	stream := "data: {\"choices\":[{\"delta\":{\"content\":\"部分译文\"}}]}\n\n" +
 		"data: {\"error\":{\"message\":\"upstream failure\"},\"usage\":{\"prompt_tokens\":8,\"completion_tokens\":3}}\n\n" +
@@ -257,7 +239,6 @@ func TestStreamErrorAfterPartial(t *testing.T) {
 	}
 }
 
-// TestCloud translates with the real cloud API, when TOMORU_CLOUD is set.
 func TestCloud(t *testing.T) {
 	if os.Getenv("TOMORU_CLOUD") == "" {
 		t.Skip("set TOMORU_CLOUD=1 to call the cloud")
@@ -269,7 +250,6 @@ func TestCloud(t *testing.T) {
 	}
 }
 
-// TestChat asks a chat model with a system prompt, without its thinking.
 func TestChat(t *testing.T) {
 	var body map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -285,7 +265,6 @@ func TestChat(t *testing.T) {
 	}
 }
 
-// TestStatus fails a reply other than 200 OK with its status, for the subtitles to say why.
 func TestStatus(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid api key", http.StatusUnauthorized)
@@ -298,8 +277,6 @@ func TestStatus(t *testing.T) {
 	}
 }
 
-// TestLimited pauses drafts once the service says too many requests, a line still asked: the
-// requests it allows go to the lines.
 func TestLimited(t *testing.T) {
 	var asked atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -323,8 +300,6 @@ func TestLimited(t *testing.T) {
 	}
 }
 
-// TestTokenLimit gives a line's translation tokens for its length, and ends one the limit cut with
-// an ellipsis: its start is shown, as unfinished. Chat's answer is left as it came.
 func TestTokenLimit(t *testing.T) {
 	var body map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -348,21 +323,18 @@ func TestTokenLimit(t *testing.T) {
 	}
 }
 
-// TestFirstWait asks again when the first words do not come in time, keeping the first request,
-// which may yet answer first: the cloud now and then leaves a request hanging. A translation whose
-// words started is not asked again, however slow.
 func TestFirstWait(t *testing.T) {
 	const hang = -1
 	type reply struct {
-		after time.Duration // before the first words; hang: never
+		after time.Duration
 		empty bool
-		slow  bool // a pause between the words
+		slow  bool
 	}
 	var mu sync.Mutex
-	var plan []reply // of each request in turn
+	var plan []reply
 	var requests int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(io.Discard, r.Body) // so that the server hears the client hang up
+		io.Copy(io.Discard, r.Body)
 		mu.Lock()
 		p := plan[requests]
 		requests++
@@ -414,14 +386,13 @@ func TestFirstWait(t *testing.T) {
 		}
 	}
 
-	// Stopped while waiting: not asked again.
 	mu.Lock()
 	plan, requests = []reply{{after: hang}, {}}, 0
 	mu.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 	_, err := e.Translate(ctx, Request{Src: "en", Tgt: "zh", Text: "Hi all"}, nil)
-	time.Sleep(100 * time.Millisecond) // past FirstWait
+	time.Sleep(100 * time.Millisecond)
 	mu.Lock()
 	n := requests
 	mu.Unlock()
@@ -430,8 +401,6 @@ func TestFirstWait(t *testing.T) {
 	}
 }
 
-// TestDraftStalled drops a draft whose first words do not come in time, without asking again: one
-// of more words follows.
 func TestDraftStalled(t *testing.T) {
 	var requests atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -443,13 +412,12 @@ func TestDraftStalled(t *testing.T) {
 	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, FirstWait: 100 * time.Millisecond}
 	start := time.Now()
 	_, err := e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Hi", Draft: true}, nil)
-	time.Sleep(150 * time.Millisecond) // time to ask again, were it to
+	time.Sleep(150 * time.Millisecond)
 	if !errors.Is(err, ErrStalled) || requests.Load() != 1 || time.Since(start) > time.Second {
 		t.Errorf("%v, %d requests in %v", err, requests.Load(), time.Since(start))
 	}
 }
 
-// TestGap gives up a translation whose words stop for Gap, keeping those that came.
 func TestGap(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		io.Copy(io.Discard, r.Body)
@@ -466,7 +434,6 @@ func TestGap(t *testing.T) {
 	}
 }
 
-// TestWarm opens a connection when none was used within WarmIdle.
 func TestWarm(t *testing.T) {
 	var models, completions atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -487,10 +454,10 @@ func TestWarm(t *testing.T) {
 	}
 	e.WarmIdle = 100 * time.Millisecond
 	e.Warm(context.Background())
-	e.Warm(context.Background()) // just warmed
+	e.Warm(context.Background())
 	e.Translate(context.Background(), Request{Src: "en", Tgt: "zh", Text: "Good"}, nil)
 	time.Sleep(50 * time.Millisecond)
-	e.Warm(context.Background()) // just used
+	e.Warm(context.Background())
 	if models.Load() != 1 {
 		t.Errorf("warmed %d times", models.Load())
 	}
@@ -501,8 +468,6 @@ func TestWarm(t *testing.T) {
 	}
 }
 
-// TestUnknownSource asks for a translation into the target alone where the language heard is not
-// known.
 func TestUnknownSource(t *testing.T) {
 	r := Request{Tgt: "zh", Text: "안녕하세요."}
 	if p := indexPrompt(r); !strings.HasPrefix(p, "请将以下文本翻译成中文，") {

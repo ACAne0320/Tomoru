@@ -18,8 +18,6 @@ import (
 	"tomoru/locales"
 )
 
-// The subtitles show over other apps in full screen as an auxiliary of their Spaces: MyGo makes one
-// of a window on all workspaces that cannot go full screen itself (egoist/mygo#309).
 func TestWindowOverFullScreen(t *testing.T) {
 	opts := windowOptions(mygo.Rectangle{Width: 1000, Height: 520}, nil)
 	if !opts.DisableFullScreen {
@@ -47,7 +45,6 @@ func TestSubtitles(t *testing.T) {
 	if tt.HasText("みなさん、こんばんは。") {
 		t.Errorf("shows more than two: %q", tt.Texts())
 	}
-	// With no new subtitles for a while, they go, unless they are kept.
 	k.Updated = time.Now().Add(-time.Minute)
 	tt.Frame()
 	if tt.HasText("コメントも") {
@@ -64,10 +61,10 @@ func TestNotice(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}}
 	k.NoteAt = time.Now()
-	k.Prefs.ASR = "apple" // recognition that needs no download, whatever the system
+	k.Prefs.ASR = "apple"
 	keys := kit.ShortcutText("Alt+Shift+T")
 	tt := ui.NewTester(o.View, 1400, 900)
-	tt.Advance(time.Second) // the words come after the mark
+	tt.Advance(time.Second)
 	if !tt.HasText(locales.NoticeReady()) {
 		t.Errorf("at launch: %q", tt.Texts())
 	}
@@ -77,7 +74,6 @@ func TestNotice(t *testing.T) {
 	if !tt.HasText(locales.StatusPreparing()) || !tt.HasText(shared.Langs("ja", "zh")) {
 		t.Errorf("starting: %q", tt.Texts())
 	}
-	// With the original only, there is no language translated into to name.
 	k.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
 	tt.Frame()
 	tt.Advance(time.Second)
@@ -98,7 +94,6 @@ func TestNotice(t *testing.T) {
 	if !tt.HasText(locales.NoticeRetry(locales.StatusNoPermission(), keys)) {
 		t.Errorf("after an error: %q", tt.Texts())
 	}
-	// The recognizer's network slow: said, for the user to check it.
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: "listening", Slow: true}
 	tt.Frame()
@@ -108,9 +103,6 @@ func TestNotice(t *testing.T) {
 	}
 }
 
-// TestNoticeAtRest draws no frame once nothing in the notice moves: after the ready notice's eyes
-// have looked around while it still shows, once the listening notice has gone, and with Reduce
-// Motion while a voice is heard.
 func TestNoticeAtRest(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
@@ -143,8 +135,6 @@ func TestNoticeAtRest(t *testing.T) {
 	}
 }
 
-// TestPausedNotice pauses from the subtitles' toolbar as from anywhere: the notice says so for a
-// while, then the screen is clear and the empty block lets the pointer through.
 func TestPausedNotice(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1400, Height: 820}}
@@ -155,7 +145,7 @@ func TestPausedNotice(t *testing.T) {
 	tt := ui.NewTester(o.View, 1400, 900)
 	o.hover = true
 	tt.Frame()
-	tt.Advance(time.Second) // the toolbar fades in
+	tt.Advance(time.Second)
 	if err := tt.Click(shared.PauseText(k.Prefs)); err != nil {
 		t.Fatal(err)
 	}
@@ -171,8 +161,6 @@ func TestPausedNotice(t *testing.T) {
 	}
 }
 
-// TestResize drags a side handle as a hand does, the pointer leaving the narrow handle at once:
-// the subtitle area follows until the button goes up.
 func TestResize(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
@@ -183,7 +171,7 @@ func TestResize(t *testing.T) {
 	tt.Frame()
 	w0 := k.Prefs.AreaW
 	b := o.block
-	x, y := b.X+b.W-7, b.Y+b.H-20 // on the right handle
+	x, y := b.X+b.W-7, b.Y+b.H-20
 	tt.Press(x, y)
 	tt.Move(x+40, y)
 	tt.Frame()
@@ -198,8 +186,6 @@ func TestResize(t *testing.T) {
 	}
 }
 
-// TestMoveTakesText moves the hovered block up, as a drag does from frame to frame: its sentences
-// go with it in the same frame, rather than rolling after it, the older a moment later.
 func TestMoveTakesText(t *testing.T) {
 	k := coretest.New()
 	area := mygo.Rectangle{Width: 1400, Height: 820}
@@ -223,9 +209,6 @@ func TestMoveTakesText(t *testing.T) {
 	}
 }
 
-// TestToolbarLine keeps the scene's name and its languages on one line in the toolbar, whatever
-// fonts the system draws them with: a "▾" from a fallback font made the languages' line taller
-// on Linux, and centered, they sat higher than the name.
 func TestToolbarLine(t *testing.T) {
 	k := coretest.New()
 	area := mygo.Rectangle{Width: 1400, Height: 820}
@@ -240,8 +223,6 @@ func TestToolbarLine(t *testing.T) {
 	}
 }
 
-// TestDisplays puts the subtitles on the display they were moved to, by its name, or on the primary
-// one while it is not connected; their bottom edge is kept from their display's top.
 func TestDisplays(t *testing.T) {
 	built := mygo.Display{ID: 1, Label: "Built-in", Primary: true,
 		Bounds: mygo.Rectangle{Width: 1470, Height: 956}, WorkArea: mygo.Rectangle{Y: 33, Width: 1470, Height: 831}}
@@ -270,21 +251,19 @@ func TestDisplays(t *testing.T) {
 	}
 }
 
-// TestSceneMenu switches the scene from the toolbar, which brings the scene's languages, changes
-// the scene's language from it, and goes to the scenes' page.
 func TestSceneMenu(t *testing.T) {
 	k := coretest.New()
 	nav := &coretest.Nav{}
 	o := &Overlay{core: k, nav: nav, area: mygo.Rectangle{Width: 1000, Height: 520}}
 	id := k.AddScene("Vtube")
-	k.SetScene(id) // a scene keeps the languages chosen in it
+	k.SetScene(id)
 	k.SetSrc("en")
 	k.SetScene("")
 	k.Running, k.Updated = true, time.Now()
 	tt := ui.NewTester(o.View, 1000, 600)
 	o.hover = true
 	tt.Frame()
-	tt.Advance(time.Second) // the toolbar fades in
+	tt.Advance(time.Second)
 	open := func() {
 		t.Helper()
 		if err := tt.Click(locales.Scene() + ": " + shared.SceneName(*k.Scene())); err != nil {
@@ -306,19 +285,16 @@ func TestSceneMenu(t *testing.T) {
 	if sc, _ := k.SceneByID(id); k.Prefs.Src != "ja" || sc.Src != "ja" {
 		t.Errorf("spoken %q, the scene keeps %q", k.Prefs.Src, sc.Src)
 	}
-	// The menu reaches below the block: the pointer going down to its last item leaves the
-	// block, which ends the hover before the item is chosen.
 	open()
 	o.hover = false
 	tt.Frame()
-	tt.Advance(time.Second) // the toolbar fades out
+	tt.Advance(time.Second)
 	if err := tt.ChooseMenuItem(locales.ManageScenes() + "…"); err != nil {
 		t.Fatalf("%v: %q", err, tt.Menu())
 	}
 	if len(nav.Went) == 0 || nav.Went[len(nav.Went)-1] != "settings scenes" {
 		t.Errorf("went %q", nav.Went)
 	}
-	// A new scene is made, in use at once, and shown on the scenes' page to be named.
 	tt.Frame()
 	before := len(k.SceneList())
 	o.hover = true
@@ -335,17 +311,15 @@ func TestSceneMenu(t *testing.T) {
 	}
 }
 
-// TestUnlock shows the lock above locked subtitles while the pointer rests on them, the lock alone
-// to take clicks, and nothing else of hovering.
 func TestUnlock(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, area: mygo.Rectangle{Width: 1000, Height: 520}}
 	k.Running, k.Updated = true, time.Now()
 	k.State = live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Done: true}}}
 	k.Prefs.Locked = true
-	k.Prefs.KeepShown = true // not hidden after a while: a slow machine takes seconds to get there
+	k.Prefs.KeepShown = true
 	tt := ui.NewTester(o.View, 1000, 600)
-	o.hover = true // left from before locking
+	o.hover = true
 	tt.Frame()
 	tt.Advance(time.Second)
 	if _, ok := tt.Find(locales.UnlockSubtitles()); ok || tt.HasText(locales.DragHint()) || o.lock.W != 0 {
@@ -353,7 +327,7 @@ func TestUnlock(t *testing.T) {
 	}
 	o.peek = true
 	tt.Frame()
-	tt.Advance(time.Second) // the lock fades in
+	tt.Advance(time.Second)
 	r, ok := tt.Find(locales.UnlockSubtitles())
 	if !ok || o.lock.W == 0 || o.lock.W > 60 || r.X < o.lock.X || r.X+r.W > o.lock.X+o.lock.W {
 		t.Fatalf("the lock %v, at %v", o.lock, r)
@@ -364,7 +338,6 @@ func TestUnlock(t *testing.T) {
 	if _, ok := tt.Find(locales.LockTooltip()); ok {
 		t.Errorf("the toolbar shows, locked")
 	}
-	// More subtitles come, the text taller: the lock stays where it is, under the pointer.
 	lock := o.lock
 	k.State.Lines = append(k.State.Lines,
 		live.Line{ID: 2, Src: "It is a long sentence that goes on.", Tgt: "这是一句很长、还在继续的话。", Done: true},
@@ -378,8 +351,6 @@ func TestUnlock(t *testing.T) {
 	}
 }
 
-// What takes the mouse: hovered, the block with its toolbar; locked, the lock alone while it
-// shows; else nothing, so that clicks reach the app behind.
 func TestInputRegion(t *testing.T) {
 	o := &Overlay{block: ui.Rect{X: 10.4, Y: 20.6, W: 100.2, H: 50}, lock: ui.Rect{X: 50, Y: 0, W: 28, H: 28}}
 	if got := inputRegion(true, false, o); len(got) != 1 || got[0] != (mygo.Rectangle{X: 10, Y: 20, Width: 101, Height: 51}) {
@@ -393,9 +364,6 @@ func TestInputRegion(t *testing.T) {
 	}
 }
 
-// While nothing can be grabbed, the pointer watcher sleeps and the window lets all of the mouse
-// through, as it starts; hovered, or showing the lock, it goes on watching, though the subtitles
-// went.
 func TestParks(t *testing.T) {
 	if !windowOptions(mygo.Rectangle{Width: 1000, Height: 520}, nil).IgnoreMouseEvents {
 		t.Error("the window takes the mouse before anything shows to grab")
@@ -415,8 +383,6 @@ func TestParks(t *testing.T) {
 	}
 }
 
-// The subtitles appearing wake the pointer watcher, asleep, so that resting on them works at once;
-// they wake it only as they appear, and never wait for it.
 func TestWakesWatcher(t *testing.T) {
 	k := coretest.New()
 	o := &Overlay{core: k, nav: &coretest.Nav{}, woken: make(chan struct{}, 1)}
@@ -435,7 +401,6 @@ func TestWakesWatcher(t *testing.T) {
 	if len(o.woken) != 0 {
 		t.Error("woken again while the same subtitles show")
 	}
-	// They go and come again twice, the watcher not looking: View goes on.
 	for range 2 {
 		k.Updated = time.Now().Add(-time.Minute)
 		tt.Frame()

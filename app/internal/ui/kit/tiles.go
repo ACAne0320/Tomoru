@@ -2,24 +2,16 @@ package kit
 
 import "github.com/egoist/mygo/ui"
 
-// Tile is a choice of PickTiles: what it is, and its value with a unit. Strong sets apart the one
-// that matters most, in a bigger value.
 type Tile struct {
 	Label, Value, Unit string
 	Strong             bool
 }
 
-// TileGroup is tiles under a name: a stage of something, as recognition.
 type TileGroup struct {
 	Label string
 	Tiles []Tile
 }
 
-// PickTiles chooses one of the tiles of groups, *selected its index counted through all of them: a
-// row of the groups, each its name over its tiles, the one chosen on the band. A tile's name takes
-// two lines where one is too narrow, the values staying on one line along the tiles' foot. The
-// arrows move the choice while it has the focus; name it with Label, and Changed reports a new
-// choice.
 func PickTiles(c *ui.Context, selected *int, groups []TileGroup) ui.Element {
 	p := Colors(c)
 	n := 0

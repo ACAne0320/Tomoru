@@ -11,8 +11,6 @@ import (
 	"tomoru/internal/live"
 )
 
-// target is the language a case is translated into, and its reference's track: Chinese for the
-// others and English for Chinese, unless only another translation has a reference.
 func target(c Case) (lang, ref string) {
 	want := "zh"
 	if c.Lang == "zh" {
@@ -29,8 +27,6 @@ func target(c Case) (lang, ref string) {
 	return want, ""
 }
 
-// runCase plays a case's recording through a session, recording the subtitles' changes: heard in
-// the case's language, or as recognition tells it where cfg's Src is lang.Auto.
 func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg live.Config) Result {
 	tgt, tgtRef := target(c)
 	r := Result{ID: c.ID, Lang: c.Lang, Scene: c.Scene, Tgt: tgt, TgtRef: tgtRef}
@@ -55,7 +51,7 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	cfg.Tgt, cfg.File = tgt, wav
 
 	var mu sync.Mutex
-	var at time.Time // when listening began: the recording's start
+	var at time.Time
 	listening := make(chan struct{})
 	var last live.State
 	lines := map[int]live.Line{}
@@ -131,21 +127,16 @@ func runCase(c Case, media, tmp string, maxSec float64, tail time.Duration, cfg 
 	case <-ended:
 	}
 	s.Stop()
-	s.Wait() // the processes ended count in the run's CPU
+	s.Wait()
 	mu.Lock()
 	defer mu.Unlock()
 	if stopped != nil {
 		r.Err = stopped.Error()
 	}
-	// Retain every sentence completion, including partial translations finalized by Stop.
-	// Only display-only changes beyond the recording window are excluded.
 	r.Events = slices.DeleteFunc(r.Events, func(e Event) bool { return e.Line == 0 && e.T > dur+tail.Seconds() })
 	return r
 }
 
-// recordLine consumes reliable lifecycle events; the bounded subtitle snapshot is never a
-// source of sentence records. Tracking by ID also avoids duplicates when commit is followed by
-// progress or completion with unchanged text.
 func recordLine(r *Result, lines map[int]live.Line, t float64, l live.Line) {
 	old, seen := lines[l.ID]
 	if !seen {

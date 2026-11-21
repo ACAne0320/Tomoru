@@ -6,9 +6,6 @@ import (
 	"tomoru/internal/ui/assets"
 )
 
-// PanelFrame is the menu bar panel of docs/design-system.md: the night's band at its top, which
-// head builds, the paper under it, which body builds, and the foot, under a rule. The flyout shows
-// nothing else: it returns the panel, as tall as what it holds, to fit the flyout to it.
 func PanelFrame(c *ui.Context, head, body, foot func()) ui.Element {
 	Paper(c)
 	p := Colors(c)
@@ -20,9 +17,6 @@ func PanelFrame(c *ui.Context, head, body, foot func()) ui.Element {
 	})
 }
 
-// Sticker is the mascot's sticker, h tall, taking the room of a square of side room in a row: it
-// spills into the row's padding above, below and to the left, and what is left of its width into
-// the gap after it. Awake, she and the penguin open their eyes; the two pictures cross-fade.
 func Sticker(c *ui.Context, h, room float32, awake bool) ui.Element {
 	w := h * assets.StickerAspect
 	spill := (h - room) / 2
@@ -38,8 +32,6 @@ func Sticker(c *ui.Context, h, room float32, awake bool) ui.Element {
 	})
 }
 
-// PickerField is a wide button showing value, which opens a native menu that build fills: a
-// language of the panel. Name it with Label.
 func PickerField(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element {
 	p := Colors(c)
 	const h = 40
@@ -55,29 +47,21 @@ func PickerField(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element
 	})
 }
 
-// ListCard is a white card of rows, edge to edge: MenuRows.
 func ListCard(c *ui.Context) ui.Element {
 	p := Colors(c)
 	return ui.Column(c).Radius(RadiusField).Background(p.Card).Border(1, p.Line).Clip()
 }
 
-// MenuIcon is a MenuRow's icon, of the lantern's amber.
 func MenuIcon(c *ui.Context, icon *ui.SVG) ui.Element {
 	return ui.Icon(c, icon).FontSize(menuIcon).TextColor(Colors(c).LanternText)
 }
 
-// MenuLevels is a MenuRow's Levels in its icon's place, as what a source hears: rising while a
-// voice is heard.
 func MenuLevels(c *ui.Context, on bool) ui.Element {
 	return Levels(c, on, 4, Colors(c).LanternText).Size(menuIcon, menuIcon)
 }
 
-// menuIcon is the size of a MenuRow's icon.
 const menuIcon = IconSizeMenu
 
-// MenuRow is a row of a ListCard that opens a native menu build fills: what lead builds first, its
-// icon (MenuIcon), then its name, the value chosen, and what after builds beside it, as a count.
-// Rows after the first, i above 0, have a rule above them.
 func MenuRow(c *ui.Context, i int, lead func(), label, value string, after func(), build func(m *ui.Menu)) ui.Element {
 	p := Colors(c)
 	b := ui.ButtonBase(c).Height(Space(11)).Padding(0, Space(3)).Gap(Space(3)).Justify(ui.Start).Label(label).Cursor(ui.CursorPointer)

@@ -15,8 +15,6 @@ import (
 	"tomoru/locales"
 )
 
-// Native menus invoke their actions after the frame that created them. Persisting
-// the frame's draft cannot capture those actions; they must call application commands.
 func TestNativePreferenceMenusPersist(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	k := coretest.NewWith(func(d *core.Deps) { d.PrefsPath = path })
@@ -41,8 +39,6 @@ func TestNativePreferenceMenusPersist(t *testing.T) {
 	}
 }
 
-// A family of the system's, found in the font list by a part of its name, is the subtitles' font
-// and the picker's; one not installed shows as the system's, which draws the subtitles then.
 func TestSystemFont(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	k := coretest.NewWith(func(d *core.Deps) { d.PrefsPath = path })
@@ -97,8 +93,6 @@ func TestSystemFont(t *testing.T) {
 	}
 }
 
-// The font list shows its sample in the language on top of the subtitles: the original, unless
-// the translation is shown above it or alone.
 func TestFontSampleLang(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -117,7 +111,6 @@ func TestFontSampleLang(t *testing.T) {
 		if c.src {
 			want, not = not, want
 		}
-		// A row each, against the preview's line at most.
 		if n, m := count(tt.Texts(), want), count(tt.Texts(), not); n < 3 || m > 1 {
 			t.Errorf("display %d, translation first %v: %q %d times, %q %d", c.display, c.tgtFirst, want, n, not, m)
 		}
@@ -135,7 +128,6 @@ func count(texts []string, s string) int {
 	return n
 }
 
-// Hiding the subtitles when no new ones come: how long first, which goes with it when turned off.
 func TestHideAfter(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	k := coretest.NewWith(func(d *core.Deps) { d.PrefsPath = path })
@@ -145,7 +137,6 @@ func TestHideAfter(t *testing.T) {
 	if err := tt.Click(locales.HideWaitMore()); err != nil {
 		t.Fatal(err)
 	}
-	// The switch, at the end of its row as the stepper is: its name is the row's too.
 	row, _ := tt.Find(locales.HideAfterLabel())
 	more, _ := tt.Find(locales.HideWaitMore())
 	tt.ClickAt(more.X+more.W-12, row.Y+row.H/2)

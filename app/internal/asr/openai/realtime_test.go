@@ -19,18 +19,15 @@ import (
 	"tomoru/internal/engine"
 )
 
-// fakeRealtime is the service: it takes a session's configuration, and answers each commit as
-// script says, with the turn's item ID.
 type fakeRealtime struct {
 	t       *testing.T
-	refuse  string // an error to answer the configuration with
+	refuse  string
 	mu      sync.Mutex
 	config  map[string]any
-	sent    int // bytes of audio appended
+	sent    int
 	commits int
-	// script answers a commit (its number, from 0, and item ID) with events.
-	script func(n int, item string) []map[string]any
-	conn   *websocket.Conn
+	script  func(n int, item string) []map[string]any
+	conn    *websocket.Conn
 }
 
 func (f *fakeRealtime) serve(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +42,7 @@ func (f *fakeRealtime) serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	c.SetReadLimit(1 << 22) // a turn starts with its preroll
+	c.SetReadLimit(1 << 22)
 	f.mu.Lock()
 	f.conn = c
 	f.mu.Unlock()
@@ -99,10 +96,9 @@ func completed(item, text string) map[string]any {
 	return map[string]any{"type": "conversation.item.input_audio_transcription.completed", "item_id": item, "transcript": text}
 }
 
-// feedRT gives r seconds of audio, in 0.1 s events, with voice for the spans, said 64 ms late.
 func feedRT(r *Realtime, spans [][2]float64, seconds float64) {
 	chunk := base64.StdEncoding.EncodeToString(make([]byte, 2*rate/10))
-	r.Voice(engine.Event{Type: "voice", On: false, T: 0}) // the engine detects voice
+	r.Voice(engine.Event{Type: "voice", On: false, T: 0})
 	next := 0
 	on := false
 	for i := 0; i < int(seconds*10+.5); i++ {
@@ -123,14 +119,11 @@ func feedRT(r *Realtime, spans [][2]float64, seconds float64) {
 	}
 }
 
-// TestRealtimeSession sends a turn of speech and nothing else, commits it at the pause, shows the
-// streamed text, and gives the final text in the order the turns were committed, though the
-// service completes them out of it.
 func TestRealtimeSession(t *testing.T) {
 	f := &fakeRealtime{t: t}
 	f.script = func(n int, item string) []map[string]any {
 		if n == 0 {
-			return []map[string]any{delta(item, " Hello"), delta(item, " there")} // completed after the next
+			return []map[string]any{delta(item, " Hello"), delta(item, " there")}
 		}
 		return []map[string]any{delta(item, " How are"), completed(item, "How are you?"), completed("item_a", "Hello there.")}
 	}
@@ -173,8 +166,6 @@ func TestRealtimeSession(t *testing.T) {
 		len(tr["keywords"].([]any)) != 2 || tr["prompt"] != "只狼的对话" {
 		t.Errorf("configured %v", input)
 	}
-	// Two turns of a second each, with their preroll and the pause that ends them, at 24 kHz: not
-	// the silence between them.
 	if sec := float64(f.sent) / 2 / rtRate; sec < 3 || sec > 4.5 || f.commits != 2 {
 		t.Errorf("sent %.2f s in %d turns", sec, f.commits)
 	}
@@ -201,7 +192,6 @@ func TestRealtimeSession(t *testing.T) {
 	}
 }
 
-// TestRealtimeRefused ends a session the service refused: its key, or its configuration.
 func TestRealtimeRefused(t *testing.T) {
 	f := &fakeRealtime{t: t, refuse: "Invalid 'session.audio.input.format.rate'"}
 	srv := httptest.NewServer(http.HandlerFunc(f.serve))
@@ -217,7 +207,6 @@ func TestRealtimeRefused(t *testing.T) {
 	}
 }
 
-// TestUpsample makes 16 kHz 24 kHz, through the chunks of a turn alike.
 func TestUpsample(t *testing.T) {
 	in := make([]byte, 0, 200)
 	for i := range 100 {
@@ -229,7 +218,6 @@ func TestUpsample(t *testing.T) {
 	if len(a) != len(b) || string(a) != string(b) || len(a)/2 < 148 || len(a)/2 > 150 {
 		t.Fatalf("%d and %d samples", len(a)/2, len(b)/2)
 	}
-	// A ramp stays a ramp: each sample two thirds of a step after the one before.
 	for i := 1; i < len(a)/2; i++ {
 		d := int16(binary.LittleEndian.Uint16(a[2*i:])) - int16(binary.LittleEndian.Uint16(a[2*i-2:]))
 		if d != 20 {
@@ -238,13 +226,11 @@ func TestUpsample(t *testing.T) {
 	}
 }
 
-// TestRealtimeOrder keeps a turn's text before the next's, when its text comes after the next's
-// streams: the next turn's text waits for it.
 func TestRealtimeOrder(t *testing.T) {
 	f := &fakeRealtime{t: t}
 	f.script = func(n int, item string) []map[string]any {
 		if n == 0 {
-			return nil // a short turn: nothing streamed yet
+			return nil
 		}
 		return []map[string]any{delta(item, " そなたからも何かあるのか？"), completed("item_a", "狼よ、"), completed(item, "そなたからも何かあるのか？")}
 	}

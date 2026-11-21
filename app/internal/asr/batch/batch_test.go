@@ -16,20 +16,16 @@ import (
 
 var caps = Caps{Volatile: .4, Gap: .25, Longest: 12}
 
-// near tells whether time v is t, within a window of the voice detector.
 func near(v float64, t float64) bool {
 	return math.Abs(v-t) <= float64(window)/rate
 }
 
-// fakeDec decodes a character every 0.1 s of what it is given, and a full stop at the end; with
-// stop, a full stop after the character at that time too, as the end of a sentence, until a
-// shorter stretch shows the runner went on after it.
 type fakeDec struct {
 	lens  []float64
 	fail  error
 	stop  float64
-	delay time.Duration // each decode takes
-	lang  string        // heard, in every piece
+	delay time.Duration
+	lang  string
 	done  chan struct{}
 }
 
@@ -42,7 +38,7 @@ func (d *fakeDec) Decode(_ context.Context, pcm []byte) ([]Piece, error) {
 	}
 	s := float64(len(pcm)/2) / rate
 	if n := len(d.lens); n > 0 && s < d.lens[n-1] {
-		d.stop = 0 // the stretch starts after the sentence now: it is said once
+		d.stop = 0
 	}
 	d.lens = append(d.lens, s)
 	var out []Piece
@@ -66,12 +62,9 @@ func (d *fakeDec) Stop() {
 func (d *fakeDec) Done() <-chan struct{} { return d.done }
 func (d *fakeDec) Err() error            { return nil }
 
-// feed gives r seconds of audio, in the engine's 0.1 s events, with its voice detection's events
-// for spans of voice: on 64 ms after voice starts, off 96 ms after it stops, each at the start of
-// those (docs/engine-protocol.md). Without spans, no voice event at all.
 func feed(r *Runner, spans [][2]float64, seconds float64) error {
 	type vev struct {
-		at float64 // when the engine says it
+		at float64
 		ev engine.Event
 	}
 	var vs []vev
@@ -97,7 +90,6 @@ func feed(r *Runner, spans [][2]float64, seconds float64) error {
 	return nil
 }
 
-// run runs a runner's logic on the test's goroutine: no loop, so nothing is skipped.
 func run(t *testing.T, spans [][2]float64, seconds float64) ([]engine.Event, *fakeDec, *Runner) {
 	t.Helper()
 	var evs []engine.Event
@@ -141,7 +133,6 @@ func TestStretch(t *testing.T) {
 	}
 	f := res[len(res)-1]
 	toks := f.Tokens
-	// From the preroll to the end of the gap that ended it.
 	if !f.Final || !near(f.Start, 1-preroll) || !near(f.End, 3+caps.Gap) || toks[0].Text != "あ" ||
 		*toks[0].Start != f.Start || !near(*toks[1].Start, 1-preroll+.1) {
 		t.Errorf("final %v", f)
@@ -149,18 +140,15 @@ func TestStretch(t *testing.T) {
 	if clocks := of(evs, "clock"); len(clocks) != 50 || clocks[49].T != 5.0 {
 		t.Errorf("%d clocks, last %v", len(clocks), clocks[len(clocks)-1])
 	}
-	// The first volatile decode shows nothing, having none to agree with; the final decodes too.
 	if len(dec.lens) != vol+2 {
 		t.Errorf("decoded %d times", len(dec.lens))
 	}
 }
 
-// TestEarly makes a sentence the decoder ended final while the stretch goes on, once two decodes
-// agree on it and on speech after it; the stretch goes on from after it, decoded without it.
 func TestEarly(t *testing.T) {
 	var evs []engine.Event
 	dec := newFake()
-	dec.stop = .5 // 0.5 s into the stretch, 1.1 s of audio: it starts at 0.6 with its preroll
+	dec.stop = .5
 	r := &Runner{dec: dec, caps: caps, on: func(e engine.Event) { evs = append(evs, e) }}
 	if err := feed(r, [][2]float64{{1, 6}}, 7); err != nil {
 		t.Fatal(err)
@@ -181,7 +169,6 @@ func TestEarly(t *testing.T) {
 	if rest.Start != first.End || !near(rest.End, 6+caps.Gap) || strings.Contains(strings.TrimSuffix(rest.Text(), "。"), "。") {
 		t.Errorf("the rest %q %v-%v", rest.Text(), rest.Start, rest.End)
 	}
-	// A sentence the decoder ended last, with nothing after it yet, waits.
 	if n := Sentences(pieces("あ", "。")); n != 0 {
 		t.Errorf("%d pieces of a sentence with nothing after it", n)
 	}
@@ -190,8 +177,6 @@ func TestEarly(t *testing.T) {
 	}
 }
 
-// TestStops leaves the full stop a decoder ends every decode with out of final results, where the
-// stretch ends: no sentence ends there.
 func TestStops(t *testing.T) {
 	var evs []engine.Event
 	r := &Runner{dec: newFake(), caps: Caps{Volatile: .4, Gap: .25, Longest: 12, Stops: true}, on: func(e engine.Event) { evs = append(evs, e) }}
@@ -204,7 +189,6 @@ func TestStops(t *testing.T) {
 	}
 }
 
-// TestLang has each result say the language its pieces were heard in.
 func TestLang(t *testing.T) {
 	var evs []engine.Event
 	dec := newFake()
@@ -224,9 +208,6 @@ func TestLang(t *testing.T) {
 	}
 }
 
-// TestUntimed spreads an untimed decoder's stretch over its pieces, makes no sentence final while
-// the stretch goes on (the segmenter commits it from the volatile text), and ends a stretch past
-// Longest at the next pause, however short, else past twice Longest where it is.
 func TestUntimed(t *testing.T) {
 	untimed := Caps{Volatile: .4, Gap: .25, Longest: 12, Untimed: true}
 	run := func(spans [][2]float64, seconds float64, stop float64) []engine.Event {
@@ -262,36 +243,31 @@ func TestUntimed(t *testing.T) {
 	sawEnd := false
 	for _, e := range of(evs, "result") {
 		if !e.Final && strings.Contains(e.Text(), "。") {
-			sawEnd = true // a sentence end in the volatile text, for the segmenter
+			sawEnd = true
 		}
 	}
 	if !sawEnd {
 		t.Error("no sentence end in the volatile text")
 	}
 
-	// A sentence ended, and a pause of 0.1 s after it, shorter than the gap: the stretch ends there.
 	f = finals(run([][2]float64{{1, 4}, {4.1, 6}}, 7, .5))
 	if len(f) != 2 || math.Abs(f[0].End-4) > .15 {
 		t.Errorf("after a sentence, at a short pause: %v", f)
 	}
-	// No sentence ended: a short pause goes on.
 	if f = finals(run([][2]float64{{1, 4}, {4.1, 6}}, 7, 0)); len(f) != 1 {
 		t.Errorf("no sentence, a short pause: %v", f)
 	}
 
-	// A pause of 0.2 s, shorter than the gap, past Longest: the stretch ends there.
 	f = finals(run([][2]float64{{1, 14}, {14.2, 20}}, 21, 0))
-	if len(f) != 2 || math.Abs(f[0].End-14) > .15 { // the detector says so 96 ms late, at a window
+	if len(f) != 2 || math.Abs(f[0].End-14) > .15 {
 		t.Errorf("past Longest, at a short pause: %v", f)
 	}
-	// No pause at all: final past twice Longest, and the rest when the voice ends.
 	f = finals(run([][2]float64{{1, 30}}, 31, 0))
 	if len(f) != 2 || !near(f[0].End, 1-preroll+2*untimed.Longest) || f[1].Start != f[0].End {
 		t.Errorf("no pause: %v", f)
 	}
 }
 
-// TestNoVolatile decodes each stretch once, as it ends, for a decoder whose decodes cost.
 func TestNoVolatile(t *testing.T) {
 	var evs []engine.Event
 	dec := newFake()
@@ -305,8 +281,6 @@ func TestNoVolatile(t *testing.T) {
 	}
 }
 
-// TestPauses keeps a stretch through pauses shorter than the gap, and ignores voice too short to
-// be speech.
 func TestPauses(t *testing.T) {
 	evs, _, _ := run(t, [][2]float64{{1, 2}, {2.1, 3}, {4, 4.1}}, 6)
 	if voice := of(evs, "voice"); len(voice) != 2 || voice[0].T != 1 || voice[1].T != 3 {
@@ -317,8 +291,6 @@ func TestPauses(t *testing.T) {
 	}
 }
 
-// TestLong makes a long stretch final every 12 s but for its last token, which starts the next
-// stretch, and never decodes more.
 func TestLong(t *testing.T) {
 	evs, dec, _ := run(t, [][2]float64{{1, 30}}, 32)
 	var finals []string
@@ -335,7 +307,6 @@ func TestLong(t *testing.T) {
 	if len(finals) != 3 {
 		t.Errorf("finals %v", finals)
 	}
-	// The cut is at the last character's start, within 0.1 s of the end of what was decoded.
 	if len(ends) == 0 || ends[0] > 1-preroll+caps.Longest+float64(window)/rate || ends[0] < 1-preroll+caps.Longest-.1 {
 		t.Errorf("first final ends at %v", ends)
 	}
@@ -346,8 +317,6 @@ func TestLong(t *testing.T) {
 	}
 }
 
-// TestUndetected takes an engine that sends no voice event for one that detects none: all it hears
-// is a stretch, made final every Longest.
 func TestUndetected(t *testing.T) {
 	evs, _, _ := run(t, nil, 30)
 	finals := 0
@@ -361,7 +330,6 @@ func TestUndetected(t *testing.T) {
 	}
 }
 
-// TestSilence keeps little audio while nobody speaks.
 func TestSilence(t *testing.T) {
 	_, dec, r := run(t, [][2]float64{}, 60)
 	if len(dec.lens) != 0 || len(r.audio) > 2*2*rate {
@@ -369,7 +337,6 @@ func TestSilence(t *testing.T) {
 	}
 }
 
-// TestFinish makes the stretch going on final as the runner stops, once.
 func TestFinish(t *testing.T) {
 	evs, _, r := run(t, [][2]float64{{0, 10}}, 1)
 	before := len(evs)
@@ -394,8 +361,6 @@ func pieces(words ...string) []Piece {
 	return out
 }
 
-// TestSettle shows what two decodes in a row agree on, as a reading goes back and forth, and a
-// new reading once two in a row agree on it.
 func TestSettle(t *testing.T) {
 	r := &Runner{}
 	for i, c := range []struct {
@@ -404,11 +369,9 @@ func TestSettle(t *testing.T) {
 	}{
 		{pieces("공산", " 과학", " 소설"), ""},
 		{pieces("공산", " 과학", " 소설", " 속", " 기술"), "공산 과학 소설"},
-		// Agreed on "공산 과학 소설"; the next reads it otherwise, then back.
 		{pieces("공산", " 과학", " 소", " 속", " 기술", " 이"), "공산 과학 소설"},
 		{pieces("공산", " 과학", " 소설", " 속", " 기술", " 이", " 있다"), "공산 과학 소설"},
 		{pieces("공산", " 과학", " 소설", " 속", " 기술", " 이", " 있다", "고"), "공산 과학 소설 속 기술 이 있다"},
-		// Two in a row read it otherwise: so it is.
 		{pieces("공상", " 과학", " 소설", " 속", " 기술", " 이", " 있다", "고", " 해도"), "공산 과학 소설 속 기술 이 있다"},
 		{pieces("공상", " 과학", " 소설", " 속", " 기술", " 이", " 있다", "고", " 해도", " 우리"), "공상 과학 소설 속 기술 이 있다고 해도"},
 	} {
@@ -427,8 +390,6 @@ func wait(t *testing.T, r *Runner) {
 	}
 }
 
-// TestStop ends the runner and its decoder, the stretch going on made final, and refuses what
-// comes after.
 func TestStop(t *testing.T) {
 	dec := newFake()
 	results := make(chan engine.Event, 1000)
@@ -468,7 +429,6 @@ func TestStop(t *testing.T) {
 	}
 }
 
-// stuckDec never returns a decode, as a llama-server that hangs, until it is stopped.
 type stuckDec struct {
 	once sync.Once
 	done chan struct{}
@@ -486,7 +446,6 @@ func (d *stuckDec) Stop()                 { d.once.Do(func() { close(d.done) }) 
 func (d *stuckDec) Done() <-chan struct{} { return d.done }
 func (d *stuckDec) Err() error            { return nil }
 
-// TestStopStuck ends the runner, with no error, though a decode never returns.
 func TestStopStuck(t *testing.T) {
 	defer func(f time.Duration) { forced = f }(forced)
 	forced = 200 * time.Millisecond
@@ -497,7 +456,6 @@ func TestStopStuck(t *testing.T) {
 		r.Audio(engine.Event{Type: "audio", PCM: chunk})
 	}
 	r.Stop()
-	// Stopped, its inputs filling up are no decoding behind.
 	for range 300 {
 		if err := r.Audio(engine.Event{Type: "audio", PCM: chunk}); !errors.Is(err, ErrStopped) {
 			t.Fatalf("audio after stopping: %v", err)
@@ -509,8 +467,6 @@ func TestStopStuck(t *testing.T) {
 	}
 }
 
-// TestBehind ends the runner with ErrBehind, and the decoder with it, when a decode does not return
-// while its inputs fill up.
 func TestBehind(t *testing.T) {
 	dec := &stuckDec{done: make(chan struct{})}
 	r := Start(dec, caps, func(engine.Event) {})
@@ -532,13 +488,12 @@ func TestBehind(t *testing.T) {
 	default:
 		t.Fatal("the decoder still runs")
 	}
-	r.Stop() // as the session does, ending
+	r.Stop()
 	if !errors.Is(r.Err(), ErrBehind) {
 		t.Fatalf("error after Stop %v", r.Err())
 	}
 }
 
-// TestDecoderFails ends the runner with the decoder's error, and the decoder with it.
 func TestDecoderFails(t *testing.T) {
 	dec := newFake()
 	dec.fail = errors.New("broken")
@@ -550,13 +505,11 @@ func TestDecoderFails(t *testing.T) {
 			break
 		}
 	}
-	// Volatile decodes may be skipped, the audio given at once; the final one never is.
 	r.Stop()
 	wait(t, r)
 	if r.Err() == nil || r.Err().Error() != "broken" {
 		t.Fatalf("error %v", r.Err())
 	}
-	// A decoder that ends by itself ends the runner too.
 	dec = newFake()
 	r = Start(dec, caps, func(engine.Event) {})
 	dec.Stop()
@@ -577,8 +530,6 @@ func TestPieces(t *testing.T) {
 	}
 }
 
-// TestSpaced starts a stretch in a script that spaces its words with a space, for it not to run
-// into the stretch before.
 func TestSpaced(t *testing.T) {
 	for in, want := range map[string]string{"us": " us", " us": " us", "우리": " 우리", "その": "その", "我们": "我们", "。": "。"} {
 		if got := Spaced([]Piece{{Text: in}}); got[0].Text != want {
@@ -587,7 +538,6 @@ func TestSpaced(t *testing.T) {
 	}
 }
 
-// TestRemote sends how long each decode of a decoder over the network took.
 func TestRemote(t *testing.T) {
 	var evs []engine.Event
 	dec := newFake()
@@ -601,8 +551,6 @@ func TestRemote(t *testing.T) {
 	}
 }
 
-// TestSettleLang takes a decode in another language than what shows for another reading: what
-// shows goes, and two decodes of it agree anew.
 func TestSettleLang(t *testing.T) {
 	r := &Runner{}
 	en := []Piece{{Text: "Congratulations", Lang: "en"}}

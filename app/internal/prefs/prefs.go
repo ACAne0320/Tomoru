@@ -1,5 +1,3 @@
-// Package prefs is the user's settings: what they are, their defaults, and the file that keeps
-// them.
 package prefs
 
 import (
@@ -15,120 +13,85 @@ import (
 	"tomoru/internal/lang"
 )
 
-// Fonts are the subtitle fonts to choose first, by key; the UI names them and knows their
-// families. The subtitles can also take a family of the system's, by its name.
 var Fonts = []string{"system", "serif", "rounded"}
 
-// MaxShown is the most sentences shown at once. Past what the screen holds, the oldest are cut
-// off at its top, faded as they are.
 const MaxShown = 10
 
-// MinTextOpacity and MinOlderOpacity are the least the text's and the older sentences' opacity
-// go, in percent: fainter, they could not be read.
 const (
 	MinTextOpacity  = 30
 	MinOlderOpacity = 20
 )
 
-// DefaultShortcut is the global shortcut at first: Option-Shift-T.
 const DefaultShortcut = "Alt+Shift+T"
 
-// DefaultImageShortcut is the shortcut that translates a picture at first: Option-Shift-S.
 const DefaultImageShortcut = "Alt+Shift+S"
 
-// What the subtitles show (Prefs.Display): the original and its translation, the translation
-// alone, or the original alone, which nothing translates.
 const (
 	DisplayBoth = iota
 	DisplayTgt
 	DisplaySrc
 )
 
-// Prefs are the settings.
 type Prefs struct {
 	Onboarded        bool
-	GuideStep        int     // the first-run guide's page, to come back to: System Settings quits the app to grant it permission
-	Src, Tgt         string  // language codes, of lang.All; Src lang.Auto too
-	Source           string  // the app to hear, by bundle ID; "" for all the system's sound
-	SourceName       string  // its name, to show while it is not running
-	Display          int     // DisplayBoth, DisplayTgt or DisplaySrc
-	TgtFirst         bool    // the translation above the source
-	Shown            float64 // sentences shown at once, MaxShown at most
-	Style            int     // 0: on a dark box (closed captions), 1: immersive, the text alone
-	Align            int     // 0: left, so that words come in at a fixed place, 1: centered
-	Edge             int     // around the text: 0 none, 1 outline, 2 drop shadow
+	GuideStep        int
+	Src, Tgt         string
+	Source           string
+	SourceName       string
+	Display          int
+	TgtFirst         bool
+	Shown            float64
+	Style            int
+	Align            int
+	Edge             int
 	EdgeColor        string
-	Font             string // a key of Fonts, or a family's name
+	Font             string
 	SrcSize, TgtSize float64
 	SrcColor         string
 	TgtColor         string
-	TextOpacity      float64 // in percent, the text's with its edge
-	BoxOpacity       float64 // in percent, the box's behind the text
-	OlderOpacity     float64 // in percent, the sentence above the newest's: those above it fade from it
-	HideAfter        float64 // seconds without speech before the subtitles go
-	KeepShown        bool    // the subtitles stay while nobody speaks, rather than going after HideAfter
+	TextOpacity      float64
+	BoxOpacity       float64
+	OlderOpacity     float64
+	HideAfter        float64
+	KeepShown        bool
 	Locked           bool
-	// The subtitle area within the overlay, which spans the work area's width: its center and
-	// width, as fractions of that width.
-	AreaX, AreaW    float64
-	Bottom          int    // the subtitle block's bottom edge, down from its display's top; 0 until moved: it grows upward
-	Screen          string // the display the subtitles show on, by its name; "" for the primary one
-	HideFromCapture bool
-	Draft           bool   // translate sentences while they are spoken
-	AutoStart       bool   // start translating at launch: launching it is asking for subtitles
-	Shortcut        string // the global shortcut that starts and stops translating, as an accelerator
-	ImageShortcut   string // the global shortcut that translates the picture on the clipboard
-	ImageTgt        string // the language pictures are translated into, as chosen on their card; "" for Tgt
-	ImageW, ImageH  int    // the size of the picture's card, as the user resized it; 0 for its own
-	// ASR is the recognition engine: "apple", Apple's speech recognition, on macOS; a recognition
-	// model's ID ("sensevoice-small"), used once downloaded; a cloud service's ID ("qwen-cloud",
-	// "openai"), used as set up in ASRAPIs; or "" where the system has none and the
-	// user chose none yet.
-	ASR     string
-	ASRAPIs []Service // the cloud recognition services the user set up
-	// ASRCloud is Qwen's service as settings kept it before ASRAPIs: read, it moves into them.
-	ASRCloud *ASRCloud `json:",omitempty"`
-	// MT is the translation engine: "cloud", a local model's ID ("local-2b"), a cloud service's
-	// ID ("hy-mt-cloud"), used as set up in MTAPIs, or "custom:" and the ID of one of Endpoints.
-	MT        string
-	MTAPIs    []Service  // the cloud translation services the user set up
-	Endpoints []Endpoint // the translation APIs the user added
-	// ImageMT is the engine that translates pictures, named as MT is, one that reads them: the
-	// cloud, a local model with its vision projector, or an endpoint not found to read none. ""
-	// until core sets it, from MT where that reads pictures.
-	ImageMT string
-	// ModelsDir is the folder the local models were moved to; "" for where they are at first
-	// (models.Dir).
-	ModelsDir string
-	UILang    string // the language the app shows, as chosen in it; "" for the system's
-	// Appearance is light or dark as chosen in the app: "light", "dark", or "" for the system's.
-	Appearance string
-	Scene      string // the translation scene in use, by ID; "" for the general one
-	History    bool   // keep the subtitles, on this computer only
-	// NoProxy reaches the cloud directly; else through ProxyURL, or the system's proxy when it is
-	// "".
-	NoProxy  bool
-	ProxyURL string // "host:port", or a URL of http, https or socks5
-	Learn    string // the endpoint that learns names from them, by ID, as last chosen
+	AreaX, AreaW     float64
+	Bottom           int
+	Screen           string
+	HideFromCapture  bool
+	Draft            bool
+	AutoStart        bool
+	Shortcut         string
+	ImageShortcut    string
+	ImageTgt         string
+	ImageW, ImageH   int
+	ASR              string
+	ASRAPIs          []Service
+	ASRCloud         *ASRCloud `json:",omitempty"`
+	MT               string
+	MTAPIs           []Service
+	Endpoints        []Endpoint
+	ImageMT          string
+	ModelsDir        string
+	UILang           string
+	Appearance       string
+	Scene            string
+	History          bool
+	NoProxy          bool
+	ProxyURL         string
+	Learn            string
 }
 
-// Endpoint is a translation API the user added: a model behind an OpenAI-compatible chat API. Its
-// API key is in the system's credential store, not here.
 type Endpoint struct {
-	ID    string
-	Name  string
-	URL   string // the base, as https://api.openai.com, without /v1
-	Model string
-	// Format is how it is prompted, as translate's formats are named: "chat", "index" (as
-	// Index-Translate is) or "hy-mt" (as Hy-MT2 is).
+	ID     string
+	Name   string
+	URL    string
+	Model  string
 	Format string
-	// Index is Format as settings kept it before, true for "index": read, it moves into Format.
-	Index bool `json:",omitempty"`
-	// Vision is whether it reads pictures, as its last test found.
+	Index  bool   `json:",omitempty"`
 	Vision Vision `json:",omitempty"`
 }
 
-// Vision is whether an endpoint reads pictures: not known until a test sends it one.
 type Vision int
 
 const (
@@ -137,29 +100,23 @@ const (
 	VisionNo
 )
 
-// Service is a cloud service the user set up, of recognition or of translation. Its API key is in
-// the system's credential store, not here.
 type Service struct {
-	ID    string // the service, as asr.Specs or core names it: "qwen-cloud", "openai", "hy-mt-cloud"
-	URL   string // its address, "" for the service's
-	Model string // "" for the service's default
-	Key   bool   // an API key is kept: the service can be used
+	ID    string
+	URL   string
+	Model string
+	Key   bool
 }
 
-// ASRCloud is Qwen's service as settings kept it before ASRAPIs.
 type ASRCloud struct {
 	Host  string
 	Model string
 	Key   bool
 }
 
-// Translates tells whether the subtitles are translated: not when they show the original alone.
 func (p Prefs) Translates() bool { return p.Display != DisplaySrc }
 
-// APIs are the cloud services the user set up, of both kinds.
 func (p *Prefs) APIs() []Service { return slices.Concat(p.ASRAPIs, p.MTAPIs) }
 
-// API finds a cloud service the user set up, of either kind, by ID.
 func (p *Prefs) API(id string) (*Service, bool) {
 	for _, apis := range [][]Service{p.ASRAPIs, p.MTAPIs} {
 		for i := range apis {
@@ -171,10 +128,8 @@ func (p *Prefs) API(id string) (*Service, bool) {
 	return nil, false
 }
 
-// CustomPrefix starts MT for an endpoint.
 const CustomPrefix = "custom:"
 
-// Endpoint finds an endpoint by ID.
 func (p *Prefs) Endpoint(id string) (*Endpoint, bool) {
 	for i := range p.Endpoints {
 		if p.Endpoints[i].ID == id {
@@ -184,7 +139,6 @@ func (p *Prefs) Endpoint(id string) (*Endpoint, bool) {
 	return nil, false
 }
 
-// Clone is a copy of p that shares nothing with it.
 func (p Prefs) Clone() Prefs {
 	p.Endpoints = slices.Clone(p.Endpoints)
 	p.ASRAPIs, p.MTAPIs = slices.Clone(p.ASRAPIs), slices.Clone(p.MTAPIs)
@@ -192,9 +146,6 @@ func (p Prefs) Clone() Prefs {
 	return p
 }
 
-// Default are the settings of a first launch for a reader of locale, the language the app shows:
-// translating into it from English, or into English from Japanese for a reader of English, or of
-// a language Tomoru does not translate into.
 func Default(locale string) Prefs {
 	tgt := "en"
 	if l := lang.Of(locale); l != "" {
@@ -210,7 +161,6 @@ func Default(locale string) Prefs {
 	return p
 }
 
-// SystemASR is the recognition engine the system has, "" for none.
 func SystemASR() string {
 	if runtime.GOOS == "darwin" {
 		return "apple"
@@ -218,12 +168,8 @@ func SystemASR() string {
 	return ""
 }
 
-// DefaultASR is the recognition engine to use at first: the system's, else none, for the user to
-// choose a model to download or the cloud's.
 func DefaultASR() string { return SystemASR() }
 
-// ResetStyle sets the subtitles' look back to the defaults: the text alone, outlined, in the "ice"
-// scheme.
 func (p *Prefs) ResetStyle() {
 	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = 1, 1, "#1e2259", false
 	p.Font, p.SrcSize, p.TgtSize = Fonts[0], 20, 28
@@ -231,8 +177,6 @@ func (p *Prefs) ResetStyle() {
 	p.TextOpacity, p.BoxOpacity, p.OlderOpacity = 100, 62, 54
 }
 
-// Load reads the settings at path over the defaults for locale. A missing file gives the
-// defaults; values a person may have edited out of range are set right.
 func Load(path, locale string) (Prefs, error) {
 	p := Default(locale)
 	var err error
@@ -245,7 +189,6 @@ func Load(path, locale string) (Prefs, error) {
 	return p, err
 }
 
-// Normalize validates an edited snapshot against its previous valid values.
 func (p *Prefs) Normalize(d Prefs) { p.fix(d) }
 
 func (p *Prefs) fix(d Prefs) {
@@ -283,7 +226,6 @@ func (p *Prefs) fix(d Prefs) {
 		p.ASR = d.ASR
 	}
 	if a := p.ASRCloud; a != nil {
-		// Its key is kept under the same name: the service's ID.
 		if _, ok := p.API("qwen-cloud"); !ok && (a.Key || a.Host != "" || a.Model != "") {
 			p.ASRAPIs = append(p.ASRAPIs, Service{ID: "qwen-cloud", URL: a.Host, Model: a.Model, Key: a.Key})
 		}
@@ -306,12 +248,11 @@ func (p *Prefs) fix(d Prefs) {
 	if p.ImageShortcut == "" {
 		p.ImageShortcut = d.ImageShortcut
 	}
-	if p.ImageShortcut == p.Shortcut { // starting and stopping took ⌥⇧S before pictures came
+	if p.ImageShortcut == p.Shortcut {
 		p.ImageShortcut = DefaultShortcut
 	}
 }
 
-// isColor tells whether s is a color as the UI reads it: #rgb, #rgba, #rrggbb or #rrggbbaa.
 func isColor(s string) bool {
 	h := strings.TrimPrefix(strings.TrimSpace(s), "#")
 	if n := len(h); n != 3 && n != 4 && n != 6 && n != 8 {
@@ -320,7 +261,6 @@ func isColor(s string) bool {
 	return strings.Trim(h, "0123456789abcdefABCDEF") == ""
 }
 
-// Save writes p to path.
 func Save(path string, p Prefs) error {
 	b, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {

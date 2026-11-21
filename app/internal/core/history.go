@@ -7,25 +7,17 @@ import (
 	"tomoru/internal/history"
 )
 
-// The subtitles kept, when the user turned it on (Prefs.History): on this computer only, a file a
-// session, under its scene. A line is kept once translated, or as far as it came when translating
-// stops.
-
-// HistoryView is the sessions kept, as the settings show them.
 type HistoryView struct {
-	Loaded  bool
-	Loading bool
-	Records []history.Record
-	Err     error
-	// Shown is the session being read, by path, and Lines its lines once read.
-	Shown string
-	Lines []history.Entry
-	// Exports counts the sessions exported, and ExportErr is why the last one failed.
+	Loaded    bool
+	Loading   bool
+	Records   []history.Record
+	Err       error
+	Shown     string
+	Lines     []history.Entry
 	Exports   int
 	ExportErr error
 }
 
-// HistoryOn tells whether history has a storage location.
 func (c *Core) HistoryOn() bool { return c.deps.HistoryDir != "" }
 
 func (c *Core) syncHistoryPolicy() {
@@ -37,8 +29,6 @@ func (c *Core) syncHistoryPolicy() {
 	c.HistoryService.configure(c.deps.HistoryDir, c.Prefs.History && c.Prefs.Onboarded, head)
 }
 
-// LoadHistory lists the sessions kept, in the background. The first time a launch, it purges
-// those deleted before.
 func (c *HistoryService) LoadHistory() {
 	if c.dir == "" || c.History.Loading {
 		return
@@ -53,17 +43,14 @@ func (c *HistoryService) LoadHistory() {
 		rs, err := history.List(dir)
 		c.work.Post(func() {
 			c.History.Loading, c.History.Loaded, c.History.Records, c.History.Err = false, true, rs, err
-			c.listed = gen == c.histGen // else what is kept changed meanwhile
+			c.listed = gen == c.histGen
 			c.changed()
 		})
 	})
 }
 
-// HistoryStale tells whether the sessions shown are not those kept: a session was kept since, or
-// they were never listed. The settings list them again then.
 func (c *HistoryService) HistoryStale() bool { return !c.listed && !c.History.Loading }
 
-// ShowHistory reads the session at path, in the background; "" shows none.
 func (c *HistoryService) ShowHistory(path string) {
 	c.History.Shown, c.History.Lines = path, nil
 	c.changed()
@@ -84,7 +71,6 @@ func (c *HistoryService) ShowHistory(path string) {
 	})
 }
 
-// DeleteHistory deletes the sessions at paths. undo puts them back.
 func (c *HistoryService) DeleteHistory(paths []string) (undo func()) {
 	u, err := history.Delete(paths)
 	if err != nil {
@@ -99,14 +85,11 @@ func (c *HistoryService) DeleteHistory(paths []string) (undo func()) {
 	}
 }
 
-// histChanged tells that what is kept changed: the sessions listed, or being listed, are stale.
 func (c *HistoryService) histChanged() {
 	c.histGen++
 	c.listed = false
 }
 
-// ExportHistory writes a session exported, data, to path, in the background; History.Exports
-// tells once it is done.
 func (c *HistoryService) ExportHistory(path, data string) {
 	c.work.Go(func() {
 		err := os.WriteFile(path, []byte(data), 0o644)

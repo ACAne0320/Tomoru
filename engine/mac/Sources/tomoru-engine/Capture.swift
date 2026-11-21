@@ -1,5 +1,3 @@
-// Hearing the system: a Core Audio process tap (macOS 14.2+), which needs only the System Audio
-// Recording permission, not Screen Recording.
 import AppKit
 import AVFoundation
 import CoreAudio
@@ -8,15 +6,12 @@ struct CaptureError: Error, CustomStringConvertible {
     let description: String
 }
 
-/// TapCapture hears what apps play: all of them but this process, or one app's. The tap lives in
-/// a private aggregate device, which goes when the process does.
 final class TapCapture {
     let queue = DispatchQueue(label: "capture.tap")
     let onBuffer: (AVAudioPCMBuffer) -> Void
     var tapID = AudioObjectID(kAudioObjectUnknown), aggID = AudioObjectID(kAudioObjectUnknown)
     var procID: AudioDeviceIOProcID?
     var format: AVAudioFormat!
-    // What arrives, logged every 30 s: a denied permission gives silence, not an error.
     var frames = 0, peak: Float = 0, lastReport = Date()
 
     init(onBuffer: @escaping (AVAudioPCMBuffer) -> Void) { self.onBuffer = onBuffer }
@@ -27,7 +22,6 @@ final class TapCapture {
         }
         let desc: CATapDescription
         if let app {
-            // An app plays through helpers too (a browser's audio process), with bundle IDs of their own.
             let appPIDs = Set(NSRunningApplication.runningApplications(withBundleIdentifier: app).map(\.processIdentifier))
             var objs: [AudioObjectID] = [], bundles: Set<String> = [app]
             for obj in processObjects() {
@@ -41,7 +35,6 @@ final class TapCapture {
             }
             log("tap \(app): \(objs.count) processes, bundles \(bundles.sorted())")
             desc = CATapDescription(monoMixdownOfProcesses: objs)
-            // Processes that start later, by bundle ID (macOS 26).
             desc.bundleIDs = Array(bundles)
             desc.isProcessRestoreEnabled = true
         } else {
@@ -82,7 +75,6 @@ final class TapCapture {
             self.report(pcm)
             self.onBuffer(pcm)
         }, "IO proc")
-        // The permission prompt shows here, the first time; denied, the tap gives silence.
         try check(AudioDeviceStart(aggID, procID), "start")
         log("tap \(fmt.sampleRate) Hz, \(fmt.channelCount) ch, via \(outUID)")
     }
@@ -110,7 +102,6 @@ func stringProp(_ obj: AudioObjectID, _ sel: AudioObjectPropertySelector) -> Str
     return getProp(obj, sel, &s) ? s?.takeRetainedValue() as String? : nil
 }
 
-/// processObjects are Core Audio's process objects: the processes that use audio.
 func processObjects() -> [AudioObjectID] {
     var addr = AudioObjectPropertyAddress(
         mSelector: kAudioHardwarePropertyProcessObjectList, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
@@ -122,17 +113,10 @@ func processObjects() -> [AudioObjectID] {
     return ids
 }
 
-/// responsiblePID is the process responsible for pid: a helper's app. Private SPI, as
-/// TCCAccessPreflight is: where it is gone, pid itself.
 let responsibleFn = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "responsibility_get_pid_responsible_for_pid")
     .map { unsafeBitCast($0, to: (@convention(c) (pid_t) -> pid_t).self) }
 func responsiblePID(_ pid: pid_t) -> pid_t { responsibleFn?(pid) ?? pid }
 
-// MARK: - Permission
-
-/// tccPreflight says whether TCC lets this process (or the one responsible for it) use a service:
-/// "granted", "denied", or "unknown" when the user has not been asked. Private SPI: there is no
-/// public API to check System Audio Recording.
 func tccPreflight(_ service: String) -> String {
     guard let h = dlopen("/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC", RTLD_NOW),
           let f = dlsym(h, "TCCAccessPreflight") else { return "unknown" }
@@ -144,18 +128,12 @@ func tccPreflight(_ service: String) -> String {
     }
 }
 
-/// audioAccess says whether a tap may hear the system. Screen Recording covers it too.
 func audioAccess() -> String {
     CGPreflightScreenCaptureAccess() ? "granted" : tccPreflight("kTCCServiceAudioCapture")
 }
 
-/// screenAccess says whether the app may capture the screen (Screen Recording), which selecting a
-/// part of it to translate takes: "granted", "denied", or "unknown" when the user has not been asked.
 func screenAccess() -> String { tccPreflight("kTCCServiceScreenCapture") }
 
-/// requestScreenAccess has the system ask the user for Screen Recording, once, and waits for the
-/// answer, a minute at most. The system only offers to open System Settings, where the user turns
-/// it on; it takes effect once the app is reopened, which System Settings offers.
 func requestScreenAccess() -> String {
     if screenAccess() == "unknown" {
         _ = CGRequestScreenCaptureAccess()
@@ -164,13 +142,8 @@ func requestScreenAccess() -> String {
     return screenAccess()
 }
 
-// MARK: - Apps
-
-/// listApps sends the apps whose sound can be heard on their own: the running apps with a Dock
-/// icon, and any app playing sound, those playing first.
 func listApps() {
     let playing = playingPIDs()
-    // Not the app that runs the engine: Tomoru itself.
     let own = NSRunningApplication(processIdentifier: responsiblePID(getpid()))?.bundleIdentifier
     var seen = Set<String>()
     var apps: [(name: String, id: String, playing: Bool)] = []
@@ -187,8 +160,6 @@ func listApps() {
     for a in apps { send(.app(a.id, a.name, a.playing)) }
 }
 
-/// playingPIDs are the apps playing sound now. A helper that plays for an app, as a browser's
-/// audio process, counts as the app responsible for it.
 func playingPIDs() -> Set<pid_t> {
     var out = Set<pid_t>()
     for id in processObjects() {

@@ -12,10 +12,8 @@ import (
 	"unsafe"
 )
 
-// selectArea has the user select a part of the screen and writes its picture to path, as PNG, and
-// tells where it is. Cancelled, it writes nothing, as macOS's screencapture does, and tells nothing.
 func selectArea(path string) (*image.Rectangle, error) {
-	runtime.LockOSThread() // the window, on the thread whose messages it gets
+	runtime.LockOSThread()
 	var px *C.uint8_t
 	var x, y, w, h C.int
 	switch r := C.tc_select(&px, &x, &y, &w, &h); {

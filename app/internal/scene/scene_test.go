@@ -22,16 +22,13 @@ func TestApply(t *testing.T) {
 		in, out string
 		terms   []translate.Term
 	}{
-		// The user's own term goes first; the one heard wrong is written as said.
 		{"メデオの脅威からクラウドが", "メテオの脅威からクラウドが", []translate.Term{{Src: "クラウド", Tgt: "克劳德"}, {Src: "メテオ", Tgt: "陨石"}}},
-		// Normalized: width, spaces, a numeral's form.
 		{"ファイナルファンタジー Ⅶ が完結", "ファイナルファンタジー Ⅶ が完結", []translate.Term{{Src: "ファイナルファンタジーVII", Tgt: "最终幻想7"}}},
-		// Latin: a whole word, in any case; a word within another is not the name.
 		{"eva and Ava, Ava!", "eva and Eva, Eva!", []translate.Term{{Src: "Eva", Tgt: "爱娃"}}},
 		{"We evaluate Avatar.", "We evaluate Avatar.", nil},
 		{"开着车在刘北赛道上，挑战刘备", "开着车在纽北赛道上，挑战纽北", []translate.Term{{Src: "纽北", Tgt: "Nürburgring"}}},
 		{"大家决定重启 Ava项目", "大家决定重启 Eva项目", []translate.Term{{Src: "Eva", Tgt: "爱娃"}}},
-		{"Grade F is fine.", "Grade F is fine.", nil}, // too short a way heard to write right
+		{"Grade F is fine.", "Grade F is fine.", nil},
 		{"nothing here", "nothing here", nil},
 	} {
 		out, terms := g.Apply(c.in)
@@ -57,7 +54,6 @@ func TestMaxTerms(t *testing.T) {
 	}
 }
 
-// TestLoad keeps the general scene first, and makes it when the file has none.
 func TestLoad(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "scenes.json")
 	if ss, err := Load(path); err != nil || len(ss) != 1 || ss[0].ID != "" {
@@ -80,15 +76,13 @@ func TestLoad(t *testing.T) {
 func TestNames(t *testing.T) {
 	g := NewGlossary([]Term{{Src: "葦名", Tgt: "苇名", Auto: true}, {Src: "一心", Tgt: "一心"}, {Src: "一心", Tgt: "一心", Auto: true}, {Src: "九郎"}}, false)
 	if got := g.Names(); !slices.Equal(got, []string{"一心", "葦名"}) {
-		t.Errorf("%q", got) // the user's own first; none twice; none untranslated
+		t.Errorf("%q", got)
 	}
 	if (*Glossary)(nil).Names() != nil {
 		t.Error("a nil glossary's names")
 	}
 }
 
-// The general scene's names go with whatever is watched: only as said, never told to recognition
-// or written over what was heard.
 func TestGeneral(t *testing.T) {
 	g := NewGlossary([]Term{{Src: "Claude", Tgt: "Claude", Heard: []string{"cloud"}}}, true)
 	if got := g.Names(); got != nil {

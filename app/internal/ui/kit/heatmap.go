@@ -6,32 +6,22 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// HeatDay is a day of a Heatmap: its value, NaN for a day still to come, and what it says.
 type HeatDay struct {
 	Value float64
 	Tip   string
 }
 
-// heatLevels are the depths of the lantern's amber a day can take, past none: its ramp's.
 const heatLevels = len(Palette{}.Amber) - 1
 
-// A square of a Heatmap is about heatSize, heatGap from the next: small, as a year of days reads
-// at a glance. It grows to fill its row, so that a year in a wide window spans the card.
 const (
 	heatSize = 12
 	heatGap  = 3
 )
 
-// HeatWeeks are the weeks a Heatmap as wide as width shows at about its squares' size.
 func HeatWeeks(width float32) int {
 	return max(1, int((width-Space(8)-heatGap)/(heatSize+heatGap)))
 }
 
-// Heatmap shows a value a day as squares, a week a column from Monday, of deeper amber for more:
-// weeks names the columns over them (a month's name where it starts, "" for none) and weekdays the
-// rows beside them ("" for none); less and more name the ends of the legend under them. A square
-// says its tip on hovering, outlined in ink; clicked, or with Enter once the arrows bring the focus
-// to it, it calls pick with its day's index, if pick is not nil. Name it with label.
 func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekdays [7]string, less, more string, pick func(day int)) ui.Element {
 	p := Colors(c)
 	top := 0.0
@@ -54,8 +44,6 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 	return ui.Column(c).Gap(Space(1)).Role(ui.RoleGroup).Label(label).Children(func() {
 		ui.Row(c).Gap(heatGap).AlignItems(ui.Start).Children(func() {
 			side(ui.Box(c))
-			// A name with no room from its week to the last ends at the last instead, over the
-			// squares rather than past them.
 			last := ""
 			for w, name := range weeks {
 				n := float32(len(weeks) - w)
@@ -72,12 +60,9 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 				})
 			}
 		})
-		// The squares, one stop of Tab, among which the arrows move.
 		ui.Column(c).Gap(heatGap).FocusGroup(ui.Horizontal | ui.Vertical).Children(func() {
 			for d := range 7 {
 				ui.Row(c.Key(d)).Gap(heatGap).AlignItems(ui.Center).Children(func() {
-					// No taller than the squares, so that the rows are as far apart as the columns
-					// (Segoe UI's lines are taller than SF's).
 					side(ui.Box(c)).Height(heatSize).Justify(ui.Center).Children(func() {
 						ui.Text(c, weekdays[d]).NoWrap().FontSize(TextMicro).TextColor(p.InkMuted)
 					})
@@ -97,7 +82,7 @@ func Heatmap(c *ui.Context, label string, days []HeatDay, weeks []string, weekda
 						}
 						sq.Focusable().Cursor(ui.CursorPointer)
 						if sq.Hovered() || sq.FocusVisible() {
-							sq.InsetShadow(0, 0, 0, 1.5, p.Ink) // an outline inside it, which takes no room
+							sq.InsetShadow(0, 0, 0, 1.5, p.Ink)
 						}
 						if sq.Clicked() {
 							pick(i)

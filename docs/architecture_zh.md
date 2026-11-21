@@ -2,7 +2,7 @@
 
 [English](architecture.md)
 
-本文描述维护中的代码边界。开发与验证入口见 [开发指南](development_zh.md)，边界决策见 [ADR 001](adr/001-state-events-and-runtime-boundaries_zh.md)。
+本文描述维护中的代码边界。开发与验证入口见 [开发指南](development_zh.md)，边界决策见 [ADR 001](adr/001-state-events-and-runtime-boundaries_zh.md)。代码不写注释：各部分背后的决定都在 [`adr/`](adr/)，从 [ADR 002](adr/002-live-session-and-segmenting_zh.md)（实时会话）到 [ADR 010](adr/010-tooling-benchmark-and-site_zh.md)（工具和网站）。
 
 ## 目录与职责
 

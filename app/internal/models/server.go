@@ -22,17 +22,10 @@ import (
 	"tomoru/internal/resource"
 )
 
-// Server runs llama-server, one model at a time, on a port of its own. It is safe for concurrent
-// use.
 type Server struct {
-	bin string
-	// Vision is the vision projector of the model at a path, which EnsureVision loads with it; ""
-	// for none: Manager.VisionOf. Nil loads none.
+	bin    string
 	Vision func(model string) string
-	// Warm has a server that answers do its first request, for the first real one not to wait:
-	// recognition's, a stretch of speech. Nil translates a sentence, and reads a picture with the
-	// vision projector (warm).
-	Warm func(ctx context.Context, url string) error
+	Warm   func(ctx context.Context, url string) error
 
 	mu   sync.Mutex
 	cur  *process
@@ -41,30 +34,22 @@ type Server struct {
 
 type process struct {
 	cmd    *exec.Cmd
-	model  string // the model file's path
-	vision string // its vision projector's, "" for none
+	model  string
+	vision string
 	port   int
 	url    string
-	done   chan struct{} // closed when it exits
+	done   chan struct{}
 
 	warming sync.Once
-	warmed  chan struct{} // closed once warm returned
+	warmed  chan struct{}
 }
 
-// NewServer runs the llama-server at bin, writing its log to logs (nil for none).
 func NewServer(bin string, logs io.Writer) *Server { return &Server{bin: bin, logs: logs} }
 
-// Ensure has llama-server serve the model at path, starting it unless it does already, and waits
-// until it answers and has translated once (warm): a few seconds, the model loading, and up to a
-// minute the first time on a GPU. It returns the server's base URL.
 func (s *Server) Ensure(ctx context.Context, path string) (string, error) {
 	return s.ensure(ctx, path, false)
 }
 
-// EnsureVision is Ensure, with the model's vision projector loaded too, for it to read pictures. A
-// server of the model without it starts again with it, on the same port, where the translator of a
-// session going on sends its sentences, and keeps it. Its memory (430 MB more for 2B, 680 MB for
-// 9B) is taken only once a picture is translated.
 func (s *Server) EnsureVision(ctx context.Context, path string) (string, error) {
 	return s.ensure(ctx, path, true)
 }
@@ -86,7 +71,7 @@ func (s *Server) ensure(ctx context.Context, path string, sees bool) (string, er
 	same := p != nil && p.model == path && !p.exited()
 	if !same || vision != "" && p.vision != vision {
 		if same {
-			port = p.port // the same model, now with its vision projector
+			port = p.port
 		}
 		s.stopLocked()
 		if err := ctx.Err(); err != nil {
@@ -103,7 +88,6 @@ func (s *Server) ensure(ctx context.Context, path string, sees bool) (string, er
 	s.mu.Unlock()
 	if err := p.wait(ctx); err != nil {
 		if port != 0 && ctx.Err() == nil {
-			// The port was not free again: on another.
 			s.mu.Lock()
 			if s.cur == p {
 				s.stopLocked()
@@ -129,7 +113,6 @@ func (s *Server) ensure(ctx context.Context, path string, sees bool) (string, er
 	return p.url, nil
 }
 
-// Stop stops llama-server, which gives its memory back.
 func (s *Server) Stop() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -141,8 +124,6 @@ func (s *Server) stopLocked() {
 		p := s.cur
 		s.cur = nil
 		_ = p.cmd.Process.Kill()
-		// Wait reaps the child before a replacement starts, without allowing shutdown
-		// to hang indefinitely if the OS does not acknowledge termination.
 		timer := time.NewTimer(2 * time.Second)
 		defer timer.Stop()
 		select {
@@ -152,8 +133,6 @@ func (s *Server) stopLocked() {
 	}
 }
 
-// start starts llama-server with the model at path, and its vision projector unless "", on port,
-// or on a free one when 0.
 func (s *Server) start(path, vision string, port int) (*process, error) {
 	if port == 0 {
 		var err error
@@ -161,7 +140,6 @@ func (s *Server) start(path, vision string, port int) (*process, error) {
 			return nil, err
 		}
 	}
-	// No prompt cache: it grew the footprint to 7 GB over a few hundred lines, at no gain in speed.
 	args := []string{"-m", path, "--host", "127.0.0.1", "--port", strconv.Itoa(port),
 		"-c", "4096", "-ngl", "99", "--cache-ram", "0", "-ctxcp", "1"}
 	if vision != "" {
@@ -188,12 +166,9 @@ func (p *process) exited() bool {
 	}
 }
 
-// wait waits until the server has loaded the model and answers, and checks that the server
-// answering is p's, with p's model: another program may have taken the port meanwhile.
 func (p *process) wait(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	// A replaced or stopped process must also interrupt an in-flight HTTP request.
 	go func() {
 		select {
 		case <-p.done:
@@ -218,7 +193,7 @@ func (p *process) wait(ctx context.Context) error {
 		}
 		r.Body.Close()
 		if r.StatusCode != http.StatusOK {
-			continue // loading the model
+			continue
 		}
 		r, err = serverRequest(ctx, client, p.url+"/v1/models")
 		if err != nil {
@@ -239,13 +214,6 @@ func (p *process) wait(ctx context.Context) error {
 	}
 }
 
-// warm has the server translate a sentence once, as the app's requests look, and read a picture
-// with it when it has its vision projector, for the first translation not to wait. The first time a
-// GPU runs them, Vulkan builds its programs, in 10 to 40 seconds, which its driver keeps on disk;
-// whether it has is not to be known from here, so it warms each time, which then takes as long as a
-// sentence. The request has its own context: it finishes when the one waiting gives up, for the next
-// not to build them again. A failure only leaves the first translation slow. custom, when not nil,
-// is the request instead.
 func (p *process) warm(custom func(context.Context, string) error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
@@ -290,11 +258,8 @@ func (p *process) warm(custom func(context.Context, string) error) error {
 	return nil
 }
 
-// warmText is what warm translates: about as long as a subtitle's request.
 const warmText = "把下面的文本翻译成中文，只输出译文，不要解释。\n\nI never thought I would see you again, not after everything that happened at the harbor that night."
 
-// warmPicture is the picture warm has read: lines of light strokes on dark, as a game's dialogue,
-// about as many tokens as a selection's (some 380), in base64.
 var warmPicture = sync.OnceValue(func() string {
 	const w, h = 768, 384
 	im := image.NewGray(image.Rect(0, 0, w, h))
@@ -312,8 +277,6 @@ var warmPicture = sync.OnceValue(func() string {
 	return base64.StdEncoding.EncodeToString(b.Bytes())
 })
 
-// serverRequest binds both connection establishment and body reads to cancellation
-// and to a short per-request timeout, within the overall model-loading deadline.
 func serverRequest(ctx context.Context, client *http.Client, url string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -322,7 +285,6 @@ func serverRequest(ctx context.Context, client *http.Client, url string) (*http.
 	return client.Do(req)
 }
 
-// freePort is a port nothing listens on now.
 func freePort() (int, error) {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

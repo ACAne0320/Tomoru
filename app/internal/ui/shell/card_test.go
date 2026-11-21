@@ -9,8 +9,6 @@ import (
 	"tomoru/internal/ui/imagecard"
 )
 
-// TestCardPlace puts the card under what it translates, over it at the work area's foot, and in
-// the work area; in its middle with nothing to go by.
 func TestCardPlace(t *testing.T) {
 	work := mygo.Rectangle{X: 0, Y: 25, Width: 1440, Height: 875}
 	for _, c := range []struct {
@@ -34,7 +32,6 @@ func TestCardPlace(t *testing.T) {
 	}
 }
 
-// TestToDIPs divides the pixels by the scale of the display they are on.
 func TestToDIPs(t *testing.T) {
 	displays := []mygo.Display{
 		{Bounds: mygo.Rectangle{X: 0, Y: 0, Width: 1440, Height: 900}, ScaleFactor: 2},
@@ -51,8 +48,6 @@ func TestToDIPs(t *testing.T) {
 	}
 }
 
-// TestCardSize sizes the card as the user last resized it, its own size before, within the least it
-// is resized to and the room of the screen.
 func TestCardSize(t *testing.T) {
 	work := mygo.Rectangle{Width: 1440, Height: 875}
 	for _, c := range []struct{ w, h, wantW, wantH int }{
@@ -67,8 +62,6 @@ func TestCardSize(t *testing.T) {
 	}
 }
 
-// TestPictureBounds shows a picture as large as it was on a Retina display, in the middle of the
-// work area, and one larger than the screen at nine tenths of it, its shape kept.
 func TestPictureBounds(t *testing.T) {
 	d := mygo.Display{ScaleFactor: 2, WorkArea: mygo.Rectangle{X: 0, Y: 25, Width: 1440, Height: 875}}
 	if r := pictureBounds(1040, 360, d); r != (mygo.Rectangle{X: 460, Y: 372, Width: 520, Height: 180}) {

@@ -1,16 +1,11 @@
 name: Deploy site
 
-# Publishes site/ to https://tomoru.acane.dev (Cloudflare Workers) when it, or the app version it
-# shows, changes on main.
-# Needs the repository secrets CLOUDFLARE_API_TOKEN ("Edit Cloudflare Workers" template)
-# and CLOUDFLARE_ACCOUNT_ID.
-
 on:
   push:
     branches: [main]
     paths:
       - site/**
-      - app/mygo.json # the version in the pages and llms.txt
+      - app/mygo.json
       - .github/workflows/site.yml
   workflow_dispatch:
 

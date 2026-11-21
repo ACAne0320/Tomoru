@@ -24,7 +24,7 @@ type fakeModels struct {
 	ready  map[string]bool
 	dir    string
 	moving models.Move
-	moved  func(error) // ends the move asked for
+	moved  func(error)
 }
 
 func (m *fakeModels) Status(id string) models.Status {
@@ -54,7 +54,7 @@ type fakeServer struct {
 	mu      sync.Mutex
 	ensured []string
 	stops   int
-	url     string // where the model answers; "" for nowhere
+	url     string
 }
 
 func (s *fakeServer) Ensure(_ context.Context, path string) (string, error) {
@@ -85,7 +85,6 @@ func (s fakeSecrets) Get(k string) ([]byte, error) {
 func (s fakeSecrets) Set(k string, v []byte) error { s[k] = v; return nil }
 func (s fakeSecrets) Delete(k string) error        { delete(s, k); return nil }
 
-// engineCore is a Core whose translators are the real choice among engines.
 func engineCore(t *testing.T) (*Core, *fake, *fakeModels, *fakeServer, fakeSecrets) {
 	c, f := newCore(t)
 	m, srv, sec := &fakeModels{ready: map[string]bool{}}, &fakeServer{}, fakeSecrets{}
@@ -113,7 +112,6 @@ func TestLocalModel(t *testing.T) {
 		t.Errorf("translator %+v, ensured %q", ep, srv.ensured)
 	}
 
-	// Back to the cloud: the server goes.
 	c.SetEngine("cloud")
 	f.flush(t, 1)
 	srv.mu.Lock()
@@ -123,7 +121,6 @@ func TestLocalModel(t *testing.T) {
 		t.Error("the server still runs")
 	}
 
-	// Deleting the model in use goes back to the cloud.
 	c.SetEngine("local-2b")
 	f.flush(t, 1)
 	c.DeleteModel("local-2b")
@@ -136,7 +133,7 @@ func TestLocalModel(t *testing.T) {
 func TestEndpoints(t *testing.T) {
 	var auth, model string
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if b, _ := io.ReadAll(r.Body); !strings.Contains(string(b), "image_url") { // the test's picture goes alongside
+		if b, _ := io.ReadAll(r.Body); !strings.Contains(string(b), "image_url") {
 			auth, model = r.Header.Get("Authorization"), r.URL.Path
 		}
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"大家晚上好。\"}}]}\n\ndata: [DONE]\n\n")
@@ -150,7 +147,6 @@ func TestEndpoints(t *testing.T) {
 		t.Fatalf("saved %+v, key %q", e, sec[keyName(id)])
 	}
 
-	// A test with the key kept.
 	c.TestEndpoint(id, *e, "")
 	if !c.Tests[id].Running {
 		t.Error("not running")
@@ -160,7 +156,6 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("test %+v, auth %q, path %q", r, auth, model)
 	}
 
-	// Translating with it.
 	c.SetEngine(prefs.CustomPrefix + id)
 	c.Start()
 	f.flush(t, 1)
@@ -168,7 +163,6 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("translator %+v", ep)
 	}
 
-	// Deleting it stops translating, rather than going on with the cloud, and forgets the key.
 	undo := c.DeleteEndpoint(id)
 	if c.Prefs.MT != prefs.CustomPrefix+id || len(c.Prefs.Endpoints) != 0 || sec[keyName(id)] != nil {
 		t.Errorf("after delete: engine %q, endpoints %v, key %q", c.Prefs.MT, c.Prefs.Endpoints, sec[keyName(id)])
@@ -177,7 +171,6 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("after delete: running %v, err %v, %d sessions", c.Running, c.Err, len(f.sessions))
 	}
 
-	// Undoing it puts it back, its key, and translating with it.
 	undo()
 	f.flush(t, 1)
 	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.MT != prefs.CustomPrefix+id || string(sec[keyName(id)]) != "sk-1" {
@@ -190,7 +183,6 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("after undo: translator %+v", f.sessions[1].cfg.Translator)
 	}
 
-	// Prompted as Index-Translate is, from the next session.
 	e, _ = c.Prefs.Endpoint(id)
 	changed := *e
 	changed.Format = "index"
@@ -201,8 +193,6 @@ func TestEndpoints(t *testing.T) {
 	}
 }
 
-// TestChoosePending chooses a model not downloaded: the cloud translates until it comes in, then
-// it does.
 func TestChoosePending(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	c.Choose(MT, "local-9b")
@@ -215,7 +205,6 @@ func TestChoosePending(t *testing.T) {
 		t.Errorf("came in: in use %q, chosen %q", c.Prefs.MT, c.Chosen(MT))
 	}
 
-	// Choosing one in use, or setting one, forgets the one waiting.
 	c.Choose(MT, "local-2b")
 	c.Choose(MT, "local-9b")
 	m.ready["local-2b"] = true
@@ -234,12 +223,9 @@ func TestChoosePending(t *testing.T) {
 	}
 }
 
-// TestRecognitionModel recognizes with a downloaded model: chosen before it is downloaded, it is
-// used once it is, with tomoru-asr; deleted, recognition goes back to the system's, where there is
-// one.
 func TestRecognitionModel(t *testing.T) {
 	c, f, m, _, _ := engineCore(t)
-	c.Prefs.ASR = prefs.DefaultASR() // as the system has it at first
+	c.Prefs.ASR = prefs.DefaultASR()
 	c.deps.ASRPath = func() (string, error) { return "/asr", nil }
 	c.Choose(ASR, "sensevoice-small")
 	if c.Prefs.ASR != prefs.DefaultASR() || c.Chosen(ASR) != "sensevoice-small" {
@@ -258,7 +244,7 @@ func TestRecognitionModel(t *testing.T) {
 
 	c.DeleteModel("sensevoice-small")
 	if prefs.SystemASR() != "" {
-		f.flush(t, 1) // restarted with the system's; without one, it stops for the user to choose
+		f.flush(t, 1)
 	} else if c.Running || !errors.Is(c.Err, ErrNoASR) {
 		t.Errorf("after delete, no recognition: running %v, err %v", c.Running, c.Err)
 	}
@@ -269,7 +255,6 @@ func TestRecognitionModel(t *testing.T) {
 		t.Error("restarted with a recognizer")
 	}
 
-	// Chosen in the settings file and not downloaded, it says so.
 	c.Stop()
 	c.Prefs.ASR = "sensevoice-small"
 	c.Start()
@@ -278,11 +263,9 @@ func TestRecognitionModel(t *testing.T) {
 	}
 }
 
-// TestCloudRecognition can't use the cloud's recognition before it has a key; saving the key,
-// which goes to the credential store under the service's name, uses nothing; then it can be used.
 func TestCloudRecognition(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
-	c.Prefs.ASR = prefs.DefaultASR() // as the system has it at first
+	c.Prefs.ASR = prefs.DefaultASR()
 	if c.Use(ASR, QwenCloud) || c.Prefs.ASR != prefs.DefaultASR() {
 		t.Fatalf("used without a key: in use %q", c.Prefs.ASR)
 	}
@@ -296,7 +279,6 @@ func TestCloudRecognition(t *testing.T) {
 	if got := c.EngineService.cloudConfig(c.API(QwenCloud), ""); got.Key != "sk-1" {
 		t.Errorf("config %+v", got)
 	}
-	// Saved again without a key, it keeps the one it has.
 	c.SaveAPI(prefs.Service{ID: QwenCloud, Model: "qwen-audio-3.0-asr-flash-streaming"}, "")
 	if a := c.API(QwenCloud); !a.Key || len(c.Prefs.ASRAPIs) != 1 || string(sec["asr-key:qwen-cloud"]) != "sk-1" {
 		t.Errorf("resaved: %+v", c.Prefs.ASRAPIs)
@@ -315,8 +297,6 @@ func TestCloudRecognition(t *testing.T) {
 	}
 }
 
-// TestCloudSizes translates with Index-Translate's cloud in the size chosen; choosing the family
-// uses 35B, the default, which alone of them reads pictures.
 func TestCloudSizes(t *testing.T) {
 	c, f, _, _, _ := engineCore(t)
 	var family []Engine
@@ -345,16 +325,12 @@ func TestCloudSizes(t *testing.T) {
 	}
 }
 
-// TestCloudTranslation can't translate with Hy-MT2 on Tencent Cloud before it has a key; saved,
-// with its key in the credential store under its own name, it translates with TokenHub's Hy-MT2 in
-// Hy-MT2's format, Plus unless another model is chosen; and it is not offered for pictures, which
-// Hy-MT2 doesn't read.
 func TestCloudTranslation(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
 	if c.Use(MT, HyMTCloud) || c.Prefs.MT == HyMTCloud {
 		t.Fatalf("used without a key: in use %q", c.Prefs.MT)
 	}
-	c.Prefs.MT = HyMTCloud // as settings kept it, its key gone
+	c.Prefs.MT = HyMTCloud
 	c.Start()
 	if !errors.Is(c.Err, ErrMTCloudKey) || c.Running {
 		t.Fatalf("without a key: running %v, err %v", c.Running, c.Err)
@@ -392,8 +368,6 @@ func TestCloudTranslation(t *testing.T) {
 	}
 }
 
-// TestOpenAIRecognition sets up OpenAI's recognition beside Qwen's: each has its own key, and the
-// one in use is the one started.
 func TestOpenAIRecognition(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
 	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-qwen")
@@ -415,8 +389,6 @@ func TestOpenAIRecognition(t *testing.T) {
 	}
 }
 
-// TestNoRecognition starts with no recognition chosen, as on a computer without the system's:
-// translating does not start, and says to choose one.
 func TestNoRecognition(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	c.Prefs.ASR = ""
@@ -426,9 +398,6 @@ func TestNoRecognition(t *testing.T) {
 	}
 }
 
-// TestServedModel: a recognition model llama-server runs is loaded on its own server, apart from
-// translation's, in the background before the session starts; choosing another recognizer, or
-// deleting the model, stops that server.
 func TestServedModel(t *testing.T) {
 	c, f, m, _, _ := engineCore(t)
 	asrSrv := &fakeServer{}
@@ -458,8 +427,6 @@ func TestServedModel(t *testing.T) {
 	}
 }
 
-// TestStopFreesModels: stopping or pausing stops the local models' servers, which give their
-// memory back, but translation's while a picture is translated on it; restarting keeps them.
 func TestStopFreesModels(t *testing.T) {
 	c, f, m, srv, _ := engineCore(t)
 	asrSrv := &fakeServer{}
@@ -478,7 +445,7 @@ func TestStopFreesModels(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	mt, asr := stops()
-	c.RestartIfRunning() // as when the languages change
+	c.RestartIfRunning()
 	f.flush(t, 1)
 	if m2, a2 := stops(); m2 != mt || a2 != asr {
 		t.Errorf("restarting stopped the servers: translation %d, recognition %d times", m2-mt, a2-asr)
@@ -499,9 +466,6 @@ func TestStopFreesModels(t *testing.T) {
 	}
 }
 
-// TestRecommended recommends one engine of each kind: a family's size to recommend where the GPU
-// has the memory it needs, Qwen3-ASR from 3 GB, Index-Translate 9B from 8 GB; else the cloud's
-// translation, and no recognition.
 func TestRecommended(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	recommended := func() (out []string) {
@@ -526,7 +490,7 @@ func TestRecommended(t *testing.T) {
 		{0, []string{"cloud"}},
 		{2 << 30, []string{"cloud"}},
 		{4 << 30, []string{"qwen3-asr-1.7b", "cloud"}},
-		{7895 << 20, []string{"qwen3-asr-1.7b", "local-9b"}}, // a card of 8 GB, as its driver says
+		{7895 << 20, []string{"qwen3-asr-1.7b", "local-9b"}},
 		{24 << 30, []string{"qwen3-asr-1.7b", "local-9b"}},
 	} {
 		gpu = tc.gpu
@@ -534,15 +498,12 @@ func TestRecommended(t *testing.T) {
 			t.Errorf("a GPU of %d MiB: %q, want %q", tc.gpu>>20, got, tc.want)
 		}
 	}
-	// A Mac of 8 GB runs no 9B, whatever its GPU may take.
 	c.deps.Memory = func() uint64 { return 8 << 30 }
 	if got := recommended(); !slices.Equal(got, []string{"qwen3-asr-1.7b", "cloud"}) {
 		t.Errorf("8 GB of memory: %q", got)
 	}
 }
 
-// TestShortfall says what a computer lacks to run a model, its memory first, in whole GB; nothing
-// where what it has is not known.
 func TestShortfall(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	large, _ := models.ByID("local-9b")
@@ -558,14 +519,12 @@ func TestShortfall(t *testing.T) {
 	if got := c.Shortfall(large); got != (Shortfall{Need: 8, Has: 6, GPU: true}) {
 		t.Errorf("a GPU of 6 GB: %+v", got)
 	}
-	mem, gpu = 16<<30-200<<20, 7895<<20 // as Windows and a card of 8 GB tell them
+	mem, gpu = 16<<30-200<<20, 7895<<20
 	if got := c.Shortfall(large); got != (Shortfall{}) {
 		t.Errorf("16 GB and a card of 8: %+v", got)
 	}
 }
 
-// TestPick picks the size of a family to use on choosing it: the one in use, else the one to
-// recommend, else the largest; only those downloaded that this computer runs.
 func TestPick(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	index := c.Families(MT)[0]
@@ -601,8 +560,6 @@ func TestPick(t *testing.T) {
 	}
 }
 
-// TestSuggested offers a family's size to recommend where this computer runs it, else the largest
-// it runs, else the smallest.
 func TestSuggested(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	index, hy := c.Families(MT)[0], c.Families(MT)[1]
@@ -623,8 +580,6 @@ func TestSuggested(t *testing.T) {
 	}
 }
 
-// TestUse uses only what can be used now: a model downloaded, never one to download, which it
-// leaves waiting for nothing; and forgets what the guide chose to use once downloaded.
 func TestUse(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	if c.Use(MT, "local-2b") || c.Prefs.MT != "cloud" || c.Chosen(MT) != "cloud" {
@@ -635,7 +590,7 @@ func TestUse(t *testing.T) {
 	if c.Prefs.MT != "cloud" {
 		t.Fatalf("came in, used unasked: %q", c.Prefs.MT)
 	}
-	c.Choose(MT, "local-9b") // as the guide does
+	c.Choose(MT, "local-9b")
 	if !c.Use(MT, "local-2b") || c.Prefs.MT != "local-2b" {
 		t.Fatalf("downloaded: in use %q", c.Prefs.MT)
 	}
@@ -646,8 +601,6 @@ func TestUse(t *testing.T) {
 	}
 }
 
-// TestSpokenWith tells the language spoken once a recognizer is used: the one now, if it hears
-// it, else English, else Japanese, but the one translated into.
 func TestSpokenWith(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	sense, _ := c.Engine(ASR, "sensevoice-small")
@@ -665,8 +618,6 @@ func TestSpokenWith(t *testing.T) {
 	}
 }
 
-// TestFamilies lists a model's sizes together, in the catalog's order, local before cloud, and
-// the cloud's and the user's APIs each on its own.
 func TestFamilies(t *testing.T) {
 	c, _, _, _, _ := engineCore(t)
 	c.Prefs.Endpoints = []prefs.Endpoint{{ID: "a"}, {ID: "b"}}
@@ -684,8 +635,6 @@ func TestFamilies(t *testing.T) {
 	}
 }
 
-// TestModelFormats prompts each translation model in a format translate knows, and a local model's
-// translator in its model's.
 func TestModelFormats(t *testing.T) {
 	for _, m := range models.All {
 		if _, ok := translate.FormatByID(m.Format); !m.ASR && !ok {
@@ -704,8 +653,6 @@ func TestModelFormats(t *testing.T) {
 	}
 }
 
-// TestRecognitionHints tells recognition the active scene's names, as the session starts, and
-// starts again for another scene's.
 func TestRecognitionHints(t *testing.T) {
 	c, f, _, _, _ := engineCore(t)
 	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
@@ -715,7 +662,7 @@ func TestRecognitionHints(t *testing.T) {
 	c.AddTerm(id, scene.Term{Src: "葦名", Tgt: "苇名", Auto: true})
 	c.AddTerm("", scene.Term{Src: "Claude", Tgt: "Claude"})
 	if h := c.hints(); h.Names != nil {
-		t.Fatalf("the general scene's names are hints: %+v", h) // they go with whatever is watched
+		t.Fatalf("the general scene's names are hints: %+v", h)
 	}
 	c.SetScene(id)
 	if h := c.hints(); !slices.Equal(h.Names, []string{"一心", "葦名"}) {
@@ -726,7 +673,6 @@ func TestRecognitionHints(t *testing.T) {
 	if len(f.sessions) != 1 || f.sessions[0].cfg.Recognize == nil {
 		t.Fatal("no recognizer")
 	}
-	// Another scene, of other names, in the same languages: a new session hears them.
 	other := c.AddScene("葬送のフリーレン")
 	c.AddTerm(other, scene.Term{Src: "フリーレン", Tgt: "芙莉莲"})
 	c.SetScene(other)
@@ -736,8 +682,6 @@ func TestRecognitionHints(t *testing.T) {
 	}
 }
 
-// TestMoveModels stops translating and the model's server while the models move, starts nothing
-// with them meanwhile, and goes on after, the folder kept on success only.
 func TestMoveModels(t *testing.T) {
 	for _, fails := range []bool{false, true} {
 		t.Run(map[bool]string{false: "moved", true: "failed"}[fails], func(t *testing.T) {

@@ -20,7 +20,6 @@ import (
 	"time"
 )
 
-// picture is a PNG of w by h pixels.
 func picture(t *testing.T, w, h int) []byte {
 	t.Helper()
 	var b bytes.Buffer
@@ -30,8 +29,6 @@ func picture(t *testing.T, w, h int) []byte {
 	return b.Bytes()
 }
 
-// TestTranslateImage sends a picture with the prompt in one turn, the glossary whole in it, and
-// reads the translation as it streams in, a line repeated once.
 func TestTranslateImage(t *testing.T) {
 	var body struct {
 		Messages []struct {
@@ -53,7 +50,7 @@ func TestTranslateImage(t *testing.T) {
 	defer srv.Close()
 
 	e := &Endpoint{URL: srv.URL, Model: "m", Format: Index, Llama: true}
-	pic := picture(t, 1200, 300) // sent as it is
+	pic := picture(t, 1200, 300)
 	var last string
 	out, err := e.TranslateImage(context.Background(), pic, "zh", []Term{{"クロード", "克劳德"}, {"エルナ", "艾露娜"}}, func(s string) { last = s })
 	if want := "艾露娜：克劳德。\nHP 120\n完"; err != nil || out != want || last != want {
@@ -75,7 +72,6 @@ func TestTranslateImage(t *testing.T) {
 	}
 }
 
-// TestNoPictures sends nothing to a model whose format reads no pictures, and says so.
 func TestNoPictures(t *testing.T) {
 	var asked int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +88,6 @@ func TestNoPictures(t *testing.T) {
 	}
 }
 
-// TestImagePrompt asks plainly without a glossary, and a chat model in English.
 func TestImagePrompt(t *testing.T) {
 	if p := indexImagePrompt("en", nil); p != "请将图片中的文本翻译为英语，直接输出翻译结果。" {
 		t.Errorf("Index prompt %q", p)
@@ -102,9 +97,6 @@ func TestImagePrompt(t *testing.T) {
 	}
 }
 
-// TestFit scales a picture larger than MaxSide down to it, keeping its shape, one smaller than
-// MinSide up two or three times, no larger than the most a model takes, and sends one between as it
-// is; what is not a PNG is an error.
 func TestFit(t *testing.T) {
 	mid := picture(t, 1200, 300)
 	if got, err := fit(mid, MaxSide); err != nil || !bytes.Equal(got, mid) {
@@ -112,10 +104,10 @@ func TestFit(t *testing.T) {
 	}
 	for _, c := range []struct{ w, h, max, wantW, wantH int }{
 		{4096, 1024, MaxSide, 2048, 512},
-		{348, 126, MaxSide, 1044, 378}, // a selection on a screen at 100%: three times
-		{520, 180, MaxSide, 1040, 360}, // twice
-		{120, 600, MaxSide, 240, 1200}, // the long side counts, either way
-		{900, 300, 1280, 1280, 426},    // as far as a local model's most
+		{348, 126, MaxSide, 1044, 378},
+		{520, 180, MaxSide, 1040, 360},
+		{120, 600, MaxSide, 240, 1200},
+		{900, 300, 1280, 1280, 426},
 	} {
 		got, err := fit(picture(t, c.w, c.h), c.max)
 		if err != nil {
@@ -134,7 +126,7 @@ func TestFit(t *testing.T) {
 func TestDedupe(t *testing.T) {
 	for in, want := range map[string]string{
 		"a\nb\nb\nc":  "a\nb\nc",
-		"a\n\na\nb":   "a\n\nb", // the blank line between keeps its place
+		"a\n\na\nb":   "a\n\nb",
 		"a\nb\na":     "a\nb\na",
 		"HP 1\nHP 1 ": "HP 1",
 		"":            "",
@@ -145,8 +137,6 @@ func TestDedupe(t *testing.T) {
 	}
 }
 
-// TestImageLoop ends a translation whose model says a line over and over, keeping what came before;
-// a picture is scaled to the endpoint's ImageSide.
 func TestImageLoop(t *testing.T) {
 	var sent []byte
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -184,8 +174,8 @@ func TestImageLoop(t *testing.T) {
 func TestLooping(t *testing.T) {
 	for in, want := range map[string]bool{
 		"a\na\na\n":       true,
-		"a\na\n\na\n":     true,  // blank lines between
-		"a\na\na":         false, // the third not ended yet
+		"a\na\n\na\n":     true,
+		"a\na\na":         false,
 		"a\na\nb\n":       false,
 		"b\na\na\na\nx":   true,
 		"a\nb\na\nb\na\n": false,
@@ -197,12 +187,10 @@ func TestLooping(t *testing.T) {
 	}
 }
 
-// TestImageStalled asks a picture whose first words have not come within ImageWait again, once,
-// on a new connection: over HTTP/2 the request would go on the one that answers nothing.
 func TestImageStalled(t *testing.T) {
 	var mu sync.Mutex
 	var conns []string
-	answer := 1 // the request that answers, from 0; others answer nothing
+	answer := 1
 	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		n, a := len(conns), answer
@@ -217,7 +205,6 @@ func TestImageStalled(t *testing.T) {
 	srv.EnableHTTP2 = true
 	srv.StartTLS()
 	defer srv.Close()
-	// stalled handlers may still run after a call returns, so the test reads and sets under mu too
 	seen := func() []string {
 		mu.Lock()
 		defer mu.Unlock()
@@ -238,7 +225,7 @@ func TestImageStalled(t *testing.T) {
 	if len(c) != 2 || c[0] == c[1] {
 		t.Errorf("asked on %q, not on a new connection", c)
 	}
-	reset(c, 2) // the next picture goes on a connection other than the one stalled
+	reset(c, 2)
 	_, err = e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
 	if c = seen(); err != nil || len(c) != 3 || c[2] == c[0] {
 		t.Errorf("%v, asked on %q", err, c)
@@ -251,12 +238,10 @@ func TestImageStalled(t *testing.T) {
 	}
 }
 
-// TestImageSlow reads a picture whose first words come past ImageWait, asked again meanwhile: the
-// first request is not dropped, as the cloud, slow, is as slow for one asked again.
 func TestImageSlow(t *testing.T) {
 	var asked atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(io.Discard, r.Body) // read, the request's end is seen when the client drops it
+		io.Copy(io.Discard, r.Body)
 		if asked.Add(1) > 1 {
 			<-r.Context().Done()
 			return

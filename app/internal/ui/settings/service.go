@@ -14,37 +14,28 @@ import (
 	"tomoru/locales"
 )
 
-// The form that sets up a cloud service in place on the engines page, of recognition, Qwen's or
-// OpenAI's, or of translation, Hy-MT2 on Tencent Cloud: its model, its address and its API key.
-
-// serviceEdit is the form's state while it shows.
 type serviceEdit struct {
 	open   bool
-	url    string        // the service's own address
-	models []string      // the service's models, the first its default
-	a      prefs.Service // as edited
-	key    string        // a new API key, or "" to keep the one kept
-	model  int           // of models, for a service of models of its own
-	test   string        // the key of its tests in Core.Tests
-	more   bool          // its model and address show: the service's own do without them
+	url    string
+	models []string
+	a      prefs.Service
+	key    string
+	model  int
+	test   string
+	more   bool
 }
 
-// keyPages are where each service's API keys are made: its note under the key links there.
 var keyPages = map[string]string{
 	core.QwenCloud: "https://bailian.console.aliyun.com/cn-beijing/model/settings/api-key",
 	core.OpenAI:    "https://platform.openai.com/api-keys",
 	core.HyMTCloud: "https://console.cloud.tencent.com/tokenhub/apikey",
 }
 
-// modelNames name, in its form, the models of a service of models of its own, as core.ServiceOf
-// lists them; OpenAI's, a compatible service naming its own, are typed.
 var modelNames = map[string][]string{
 	core.QwenCloud: {"3.1", "3.0"},
 	core.HyMTCloud: {"Plus", "Pro", "Lite"},
 }
 
-// Open opens the form on the service id as k has it. n tells its tests from those of the forms
-// before.
 func (d *serviceEdit) Open(k *core.Core, id string, n int) {
 	if d.open {
 		k.ForgetTest(d.test)
@@ -55,9 +46,6 @@ func (d *serviceEdit) Open(k *core.Core, id string, n int) {
 		more: a.URL != "" || a.Model != "" && a.Model != models[0]}
 }
 
-// serviceForm is the form of the service set up, or being set up: its API key first, all a
-// service needs, then, folded unless they were changed, its model and address; Cancel only for
-// one set up. Saving uses nothing: Use does.
 func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 	k := s.core
 	names := modelNames[d.a.ID]
@@ -70,13 +58,12 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 	case core.HyMTCloud:
 		keyNote, keyLink = locales.MtHyMtIntro(), locales.MtHyMtConsole()
 	}
-	ui.Column(c).Gap(kit.Space(3)).Children(func() { // each under its label: the pane is narrow
+	ui.Column(c).Gap(kit.Space(3)).Children(func() {
 		ui.Field(c, locales.EndpointKey(), func() {
 			in := kit.TextField(c, &d.key).Password().Label(locales.EndpointKey())
 			if d.a.Key {
 				in.Placeholder(locales.EndpointKeyKeep())
 			}
-			// As a description is, in its ink, with its link: a field's description is text alone.
 			kit.Linked(c, keyNote, keyLink, keyPages[d.a.ID], kit.TextCaption, kit.Colors(c).Faint)
 		})
 		if kit.Disclosure(c, &d.more, locales.ModelAndAddress()) {
@@ -84,7 +71,6 @@ func (s *Settings) serviceForm(c *ui.Context, d *serviceEdit, setUp bool) {
 				if names != nil {
 					kit.Segmented(c, &d.model, names...).AlignSelf(ui.Start).Label(locales.EndpointModel())
 				} else {
-					// A compatible service names its own models.
 					kit.TextField(c, &d.a.Model).Placeholder(d.models[0]).Label(locales.EndpointModel())
 				}
 			})

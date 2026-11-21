@@ -17,15 +17,11 @@ import (
 	"tomoru/locales"
 )
 
-// home is the window's first page (docs/design-system.md): whether it translates, and the button
-// to start or pause; the scenes, and under them what it hears and the scene's languages, in a
-// sentence whose values are menus; its numbers; its lines day by day; the records. The subtitles
-// show over the screen, not here.
 func (s *Settings) home(c *ui.Context) {
 	k := s.core
 	p := kit.Colors(c)
 	if k.Running {
-		c.After(time.Second - k.RunFor()%time.Second) // the running time shows its next second
+		c.After(time.Second - k.RunFor()%time.Second)
 	}
 	ui.Column(c).Gap(kit.Space(4)).Children(func() {
 		ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Start).Children(func() {
@@ -45,7 +41,6 @@ func (s *Settings) home(c *ui.Context) {
 		if why := homeState(s); why != "" {
 			ui.Text(c, why).FontSize(kit.TextControl).TextColor(p.InkMuted).MaxLines(3)
 		}
-		// Why it stopped, and the one action that resolves it.
 		if err := shared.ErrorText(k.Err); err != "" {
 			ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 				ui.Text(c, err).FontSize(kit.TextControl).TextColor(p.Danger).MaxLines(3).Grow(1)
@@ -58,7 +53,6 @@ func (s *Settings) home(c *ui.Context) {
 	homeRecent(c, s)
 }
 
-// homeState says what translating waits for, when it does.
 func homeState(s *Settings) string {
 	k := s.core
 	if !k.Running {
@@ -75,13 +69,12 @@ func homeState(s *Settings) string {
 	return ""
 }
 
-// homeStats are the numbers: this run's while translating, today's while not.
 func homeStats(c *ui.Context, s *Settings) {
 	k := s.core
 	run, st := k.RunFor(), k.State.Stats
 	label, lines, linesLabel := locales.StatRunning(), st.Lines, locales.StatLines()
 	if k.Running && !k.Preferences().Translates() {
-		linesLabel = locales.StatHeard() // the original only: nothing translated
+		linesLabel = locales.StatHeard()
 	}
 	if !k.Running {
 		today := k.TodayStats()
@@ -95,9 +88,6 @@ func homeStats(c *ui.Context, s *Settings) {
 	})
 }
 
-// homeActivity is the lines of each day of the last weeks, as many as the card holds up to a year,
-// a square a day, as the user's region writes dates: a week a column from Monday, a month's name
-// over the week it starts in. A day clicked shows in the statistics.
 func homeActivity(c *ui.Context, s *Settings) {
 	now := time.Now()
 	w, _ := c.Size()
@@ -113,7 +103,7 @@ func homeActivity(c *ui.Context, s *Settings) {
 			heads[w] = months[t.Month()-1]
 		}
 	}
-	if heads[1] == "" && heads[2] == "" { // room for the first week's month before the next
+	if heads[1] == "" && heads[2] == "" {
 		heads[0] = months[from.Month()-1]
 	}
 	days := make([]kit.HeatDay, len(lines))
@@ -137,14 +127,11 @@ func homeActivity(c *ui.Context, s *Settings) {
 	})
 }
 
-// monday is the start of the Monday of t's week.
 func monday(t time.Time) time.Time {
 	day := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	return day.AddDate(0, 0, -(int(day.Weekday())+6)%7)
 }
 
-// activityDays are the lines of each day of the last weeks weeks to now, from the Monday of the
-// first: NaN for the days after today.
 func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lines []float64) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from = monday(now).AddDate(0, 0, -7*(weeks-1))
@@ -159,30 +146,26 @@ func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lin
 		if err != nil || t.Before(from) || t.After(today) {
 			continue
 		}
-		lines[(t.Sub(from)+12*time.Hour)/(24*time.Hour)] += float64(d.Total().Lines) // days of 23 or 25 hours too
+		lines[(t.Sub(from)+12*time.Hour)/(24*time.Hour)] += float64(d.Total().Lines)
 	}
 	return from, lines
 }
 
-// homeLine is what is heard, then the scene in use and its languages, from one to the other, each a
-// menu, and a button between the two that swaps them: the sound is what is translated, and the scene decides how, keeping its languages. The two
-// go to the next line whole, in a narrow window, and in a narrower one, what is in them.
 func homeLine(c *ui.Context, s *Settings) {
 	k, p := s.core, kit.Colors(c)
 	label := func(t string) { ui.Text(c, t).SingleLine().Shrink(0) }
 	ui.Row(c).GapX(kit.Space(6)).GapY(kit.Space(3)).AlignItems(ui.Center).Wrap().FontSize(kit.TextBody).TextColor(p.InkMuted).Children(func() {
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
-			label(locales.Source()) // as the panel names it
+			label(locales.Source())
 			k.ListApps()
-			c.After(core.ListEvery) // the apps playing change
+			c.After(core.ListEvery)
 			kit.Picker(c, shared.SourceName(k), s.source.Build(k)).Label(locales.Source())
 		})
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
 			label(locales.Scene())
 			kit.Picker(c, shared.CurrentSceneName(k), shared.SceneMenu(k, false, func() { s.Open("scenes") })).Label(locales.Scene())
 			kit.Picker(c, shared.LangName(k.Preferences().Src), kit.Choices(k.Preferences().Src, shared.LangChoices(k.SourceLangs()), shared.LangName, k.SetSrc)).Label(locales.SpokenLanguage())
-			// From one to the other, which swaps them, as in the panel.
-			off := !k.Preferences().Translates() // the original only: nothing is translated into it
+			off := !k.Preferences().Translates()
 			if kit.Off(c, kit.IconButton(c, kit.Quiet, kit.Small, assets.Swap, locales.SwapLanguages()), !k.CanSwap() || off).Clicked() {
 				k.Swap()
 			}
@@ -191,8 +174,6 @@ func homeLine(c *ui.Context, s *Settings) {
 	})
 }
 
-// homeRecent is the records kept last, as the history lists them, once there are any: one
-// clicked shows in the history.
 func homeRecent(c *ui.Context, s *Settings) {
 	k := s.core
 	if !k.HistoryOn() {

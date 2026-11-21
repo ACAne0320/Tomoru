@@ -6,10 +6,6 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// Segmented chooses one of labels, *selected its index: a track of the paper's fill, the chosen
-// segment raised on it, every segment as wide as the widest. Grown, as in a Control, the segments
-// share its width alike. In a disabled row (SettingRowOff) none is raised and their labels are
-// faint. Name it with Label; Changed reports a new choice.
 func Segmented(c *ui.Context, selected *int, labels ...string) ui.Element {
 	p := Colors(c)
 	parts := ui.SegmentedBase(c, selected, len(labels))
@@ -21,7 +17,6 @@ func Segmented(c *ui.Context, selected *int, labels ...string) ui.Element {
 	}
 	w = float32(math.Ceil(float64(w)))
 	off := parts.Track.IsDisabled()
-	// As wide as its segments with their labels Space(3) in, and narrowed, never below Space(2).
 	n := float32(len(labels))
 	track := func(pad float32) float32 { return n*(w+2*pad) + (n-1)*gap + 2*in }
 	return parts.Track.Shrink(1).MinWidth(track(Space(2))).Padding(in).Gap(gap).Radius(RadiusField).Background(p.Fill).Children(func() {

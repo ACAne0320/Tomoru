@@ -1,6 +1,4 @@
 #!/bin/sh
-# Keep checked-in notices with the resources that MyGo copies into a release.
-# This never downloads a model, binary, or license.
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
@@ -35,7 +33,6 @@ dest="$root/app/resources/$platform/licenses"
 
 if [ "$mode" = copy ]; then
     mkdir -p "$dest"
-    # Update only managed notices. Unknown files are reported by the release check.
     for file in "$root"/third_party/licenses/*; do
         cp "$file" "$dest/"
     done

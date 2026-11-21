@@ -1,6 +1,3 @@
-// Package shared is what Tomoru's Go engines share: the protocol of docs/engine-protocol.md, its
-// command line, hearing a Source or a recording, and voice detection. Each engine, as
-// engine/windows and engine/linux, gives it what its system does its own way.
 package shared
 
 import (
@@ -12,29 +9,18 @@ import (
 	"slices"
 )
 
-// Platform is what an engine does its own way.
 type Platform struct {
-	Engine string // the engine's name in hello, as "windows"
-	System string // the system's, as people say it: "Windows"
-	App    string // what --app takes, as "<exe>"
+	Engine string
+	System string
+	App    string
 
-	// Source hears the system, or app alone when it is not "".
-	Source func(app string) Source
-	// Apps sends an `app` for each app that can be heard on its own.
-	Apps func()
-	// Speak says lines aloud in locale through the default output, as `speak` does.
-	Speak func(locale string, lines []string)
-	// Select has the user select a part of the screen and writes its picture to path, as PNG,
-	// and tells where it is; nil when cancelled, with nothing written.
-	Select func(path string) (*image.Rectangle, error)
-	// ScreenAccess tells whether the user lets the app take pictures of the screen, which
-	// selecting takes: "granted", "denied" or "unknown", having the system ask them first when
-	// request. Nil when the system asks no permission for it.
+	Source       func(app string) Source
+	Apps         func()
+	Speak        func(locale string, lines []string)
+	Select       func(path string) (*image.Rectangle, error)
 	ScreenAccess func(request bool) string
 }
 
-// Run runs the command of the command line, as p does it: hearing only, for the system has no
-// recognizer for apps to use, so tomoru-asr or the cloud recognizes what it hears.
 func Run(p Platform) {
 	log.SetFlags(0)
 	log.SetPrefix("[engine] ")
@@ -56,7 +42,6 @@ func Run(p Platform) {
 		Send(Event{Type: "access", State: state})
 
 	case "access", "request-access":
-		// The system asks no permission to hear what plays.
 		Send(Event{Type: "access", State: "granted"})
 
 	case "apps":
@@ -109,16 +94,14 @@ func Run(p Platform) {
 			src = p.Source(*app)
 		}
 		listen(src, *vad)
-		select {} // until stdin closes
+		select {}
 
 	default:
 		usage()
 	}
 }
 
-// listen hears src and sends what it hears until stdin closes.
 func listen(src Source, vad string) {
-	// Commands come on stdin; when it closes, the app has gone, and so does the engine.
 	go func() {
 		if err := readCommands(os.Stdin, func(Command) {}); err != nil {
 			Fail("internal", "stdin: %v", err)
@@ -132,7 +115,6 @@ func listen(src Source, vad string) {
 			log.Printf("voice detection off: %v", err)
 		} else {
 			voice = Feeder(NewDetector(v, func(on bool, t float64) { Send(Event{Type: "voice", On: on, T: t}) }))
-			// Voice detection is on: nobody speaks yet.
 			Send(Event{Type: "voice", On: false, T: 0})
 		}
 	}

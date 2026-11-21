@@ -11,24 +11,15 @@ import (
 	"tomoru/locales"
 )
 
-// permission asks for System Audio Recording, and shows the answer as soon as there is one. Screen
-// Recording is not asked here: macOS has it turned on in System Settings and the app reopened,
-// which would break the guide off; selecting a part of the screen is for the settings
-// (docs/image-translation.md).
 func (g *Guide) permission(c *ui.Context) {
 	k := g.core
 	granted := k.Access == "granted"
-	// Answered, the system's prompt gives the front back to the app before. Tomoru starts as a
-	// regular app for the guide so that it is that app (main.go); should another be, take it back.
 	if k.Asking {
 		g.asked = true
 	} else if g.asked {
 		g.asked = false
 		g.nav.Focus()
 	}
-	// Check now when the guide opens at this step, and again every so often: the user may answer
-	// the system's prompt after the request gave up waiting. (Turned on in System Settings, it
-	// takes effect when the app is reopened.)
 	if !k.Asking && !granted {
 		if wait := 1500*time.Millisecond - time.Since(k.CheckedAt); wait > 0 {
 			c.After(wait)
@@ -44,7 +35,6 @@ func (g *Guide) permission(c *ui.Context) {
 			})
 		})
 	})
-	// What to do, when the user has something to do: the row's mark says the rest.
 	text := ""
 	switch {
 	case k.Asking:
@@ -63,8 +53,6 @@ func (g *Guide) permission(c *ui.Context) {
 	})
 }
 
-// permissionRow is a permission: its icon, its name, what it is for, and at its end what trailing
-// builds, its answer.
 func permissionRow(c *ui.Context, icon *ui.SVG, name, what string, trailing func()) {
 	pal := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(4)).Radius(kit.RadiusTile).Background(pal.Card).Border(1, pal.Line).AlignItems(ui.Center).Children(func() {
@@ -80,8 +68,6 @@ func permissionRow(c *ui.Context, icon *ui.SVG, name, what string, trailing func
 	})
 }
 
-// permissionStage is System Settings' switch, turning on as the permission is given, and what the
-// app does with what it hears and sees.
 func (g *Guide) permissionStage(c *ui.Context) {
 	k := g.core
 	pal := kit.Colors(c)
@@ -119,7 +105,6 @@ func (g *Guide) permissionStage(c *ui.Context) {
 	})
 }
 
-// toggle is a switch as System Settings draws it, which turns as on changes; only to show.
 func toggle(c *ui.Context, on bool) {
 	pal := kit.Colors(c)
 	const w, h, knob = 34, 20, 16

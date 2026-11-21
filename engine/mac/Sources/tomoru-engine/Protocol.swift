@@ -1,12 +1,9 @@
-// The engine's half of docs/engine-protocol.md: JSON lines on stdout, logs on stderr.
 import CoreGraphics
 import Foundation
 
 let protocolVersion = 1
 let engineVersion = "0.1.0"
 
-/// Typed v1 records keep the producer and the standalone contract verifier on the same schema.
-/// Optional token times are deliberately distinct from a time of zero.
 struct WireToken: Codable {
     var text: String
     var start: Double? = nil
@@ -62,8 +59,6 @@ struct WireCommand: Decodable {
     var pcm: String? = nil
 }
 
-/// EOF returns to the caller, which owns process shutdown. Unknown commands are passed through
-/// for the caller to ignore; unknown fields are ignored by Decodable.
 func consumeCommands(nextLine: () -> String?, apply: (WireCommand) -> Void) throws {
     let decoder = JSONDecoder()
     while let line = nextLine() {
@@ -79,7 +74,6 @@ func encoded(_ event: WireEvent) throws -> Data {
     return try encoder.encode(event)
 }
 
-/// send writes one protocol object to stdout, as a line of its own.
 func send(_ event: WireEvent) {
     do {
         var data = try encoded(event)
@@ -95,7 +89,6 @@ func send(_ event: WireEvent) {
 
 func hello() { send(.hello()) }
 
-/// fail sends an error and exits: every error ends the command.
 func fail(_ code: String, _ message: String) -> Never {
     send(.error(code, message))
     log("error \(code): \(message)")

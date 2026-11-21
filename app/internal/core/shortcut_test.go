@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// TestPress tells when a shortcut was pressed, and whether it is held: held, it does nothing else.
 func TestPress(t *testing.T) {
 	c, _ := newCore(t)
 	before := time.Now().Add(-time.Second)

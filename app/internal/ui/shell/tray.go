@@ -10,15 +10,8 @@ import (
 	"tomoru/locales"
 )
 
-// menuOnly tells whether the tray icon only has its menu: Linux's (AppIndicator) opens it on a
-// click, and tells neither clicks nor where the icon is, so the menu shows the panel, in the middle
-// of the screen.
 var menuOnly = runtime.GOOS == "linux"
 
-// trayMenu is the menu bar icon's menu, the system's, which its right button opens, as the panel
-// its left: what one does at once, without opening the panel, and quitting. It is made as it opens,
-// for translating's state and the shortcuts, which it shows: the menu cannot press them, the
-// system's shortcuts having them first. Where the icon only has its menu, it shows the panel too.
 func (s *Shell) trayMenu() *mygo.Menu {
 	k := s.core
 	toggle := &mygo.MenuItem{Label: shared.StartText(k.Preferences()), Accelerator: k.Preferences().Shortcut,
@@ -42,8 +35,6 @@ func (s *Shell) trayMenu() *mygo.Menu {
 	))
 }
 
-// openTrayMenu opens the menu bar icon's menu, out of the panel's way. It is the icon's only while
-// open: the left button opens the panel.
 func (s *Shell) openTrayMenu() {
 	s.closePanel()
 	s.tray.SetMenu(s.trayMenu())
@@ -51,8 +42,6 @@ func (s *Shell) openTrayMenu() {
 	s.tray.SetMenu(nil)
 }
 
-// setTrayMenu sets the menu of an icon that only has its menu again when what it shows changed,
-// as the menu shows it when it opens.
 func (s *Shell) setTrayMenu() {
 	m := s.trayMenu()
 	var b strings.Builder

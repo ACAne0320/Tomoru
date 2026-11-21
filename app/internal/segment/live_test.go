@@ -14,9 +14,6 @@ import (
 	"tomoru/internal/lang"
 )
 
-// TestLive runs the segmenter on the real engine while a recording plays, when TOMORU_LIVE names
-// it ("zh:/path/to/zh.wav"), with voice activity and without (TOMORU_LIVE_VOICE=0), and logs each
-// commit with how long after the speaker's last pause it came. The recording plays out loud.
 func TestLive(t *testing.T) {
 	spec := os.Getenv("TOMORU_LIVE")
 	if spec == "" {
@@ -29,7 +26,7 @@ func TestLive(t *testing.T) {
 	}
 	useVoice := os.Getenv("TOMORU_LIVE_VOICE") != "0"
 	var mu sync.Mutex
-	s := New(Config{VolatileSentences: true}) // Apple's, in the engine
+	s := New(Config{VolatileSentences: true})
 	lastOff, listening := 0.0, make(chan struct{})
 	var log []string
 	act := func(acts []Action) {

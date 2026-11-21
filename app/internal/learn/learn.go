@@ -1,6 +1,3 @@
-// Package learn finds the names that subtitles kept got wrong, with a chat model the user chose:
-// those recognition heard wrong, and those translated wrong (docs/scenes.md). It gives
-// suggestions for the user to take into a scene's glossary; it takes none itself.
 package learn
 
 import (
@@ -15,22 +12,17 @@ import (
 	"tomoru/internal/scene"
 )
 
-// Chunk is the seconds of subtitles asked about at once.
 const Chunk = 120
 
-// Line is a line of subtitles: as shown, and its translation.
 type Line struct{ Src, Tgt string }
 
-// Context is what the model is told besides the lines: the scene and its glossary.
 type Context struct {
-	SrcLang, TgtLang string // language codes
+	SrcLang, TgtLang string
 	Name, About      string
 	Terms            []scene.Term
 	Rejected         []string
 }
 
-// Suggestion is a name to take into the glossary: how it is written and translated, the ways it
-// was heard wrong, the lines it is in, and the first of them.
 type Suggestion struct {
 	Src, Tgt string
 	Heard    []string
@@ -38,12 +30,10 @@ type Suggestion struct {
 	Example  string
 }
 
-// Asker asks a chat model: a *translate.Endpoint.
 type Asker interface {
 	Chat(ctx context.Context, system, user string, maxTokens int) (string, error)
 }
 
-// Ask asks the model about a chunk's lines, and gives what it found, as the rules take it.
 func Ask(ctx context.Context, m Asker, c Context, lines []Line) ([]Suggestion, error) {
 	reply, err := m.Chat(ctx, system(c), user(c, lines), 1024)
 	if err != nil {
@@ -56,7 +46,6 @@ func Ask(ctx context.Context, m Asker, c Context, lines []Line) ([]Suggestion, e
 	return Filter(found, c, lines), nil
 }
 
-// langName is a language's name in Chinese, for the prompt: "" for lang.Auto, of many.
 func langName(l string) string {
 	if l == lang.Auto {
 		return ""
@@ -64,8 +53,6 @@ func langName(l string) string {
 	return lang.Name(l, "zh-Hans")
 }
 
-// system is the prompt of the experiment's second round (docs/scenes.md), which found names
-// right more often than wrong with the stronger models.
 func system(c Context) string {
 	src, tgt := langName(c.SrcLang), langName(c.TgtLang)
 	return fmt.Sprintf(`你帮实时字幕纠正专名。下面每行是语音识别出的%[1]s原文，和它当时的%[2]s译文。
@@ -95,14 +82,13 @@ func user(c Context, lines []Line) string {
 	b.WriteString("\n")
 	for _, l := range lines {
 		fmt.Fprintf(&b, "原文：%s\n", l.Src)
-		if l.Tgt != "" { // none where the subtitles showed the original only, or it failed
+		if l.Tgt != "" {
 			fmt.Fprintf(&b, "译文：%s\n", l.Tgt)
 		}
 	}
 	return b.String()
 }
 
-// found is a name as the model gives it.
 type found struct {
 	Heard, Src, Tgt string
 	Sure            bool
@@ -110,7 +96,6 @@ type found struct {
 
 var object = regexp.MustCompile(`(?s)\{.*\}`)
 
-// parse reads the model's JSON, from a reply that may have more around it.
 func parse(reply string) ([]found, error) {
 	var v struct {
 		Terms []found `json:"terms"`
@@ -125,9 +110,6 @@ func parse(reply string) ([]found, error) {
 	return v.Terms, nil
 }
 
-// Filter keeps of what the model found what the experiment found worth suggesting: a name it is
-// sure of, heard as it says in the lines; not one the user wrote, or turned down, or that the
-// glossary has already; and not one whose translation was right in every line it is in.
 func Filter(fs []found, c Context, lines []Line) []Suggestion {
 	var out []Suggestion
 	for _, f := range fs {
@@ -135,8 +117,6 @@ func Filter(fs []found, c Context, lines []Line) []Suggestion {
 		if !f.Sure || h == "" || src == "" || tgt == "" {
 			continue
 		}
-		// Only case, spaces or dots apart; or the name with a particle after it ("개미들" for
-		// "개미"): heard right, only its translation to give.
 		if scene.Same(h, src) || strings.HasPrefix(norm(h), norm(src)) {
 			h = src
 		}
@@ -150,7 +130,7 @@ func Filter(fs []found, c Context, lines []Line) []Suggestion {
 			continue
 		}
 		if h == src && slices.IndexFunc(in, func(l Line) bool { return !strings.Contains(norm(l.Tgt), norm(tgt)) }) < 0 {
-			continue // translated right wherever it is
+			continue
 		}
 		if have(c, src, tgt, h) {
 			continue
@@ -170,20 +150,16 @@ func rejected(c Context, h string) bool {
 	return slices.ContainsFunc(c.Rejected, func(r string) bool { return scene.Same(r, h) })
 }
 
-// mine tells whether the user wrote a term of that name: theirs goes first.
 func mine(c Context, src string) bool {
 	return slices.ContainsFunc(c.Terms, func(t scene.Term) bool { return !t.Auto && scene.Same(t.Src, src) })
 }
 
-// have tells whether the glossary has the term already, translated so and heard so.
 func have(c Context, src, tgt, h string) bool {
 	return slices.ContainsFunc(c.Terms, func(t scene.Term) bool {
 		return scene.Same(t.Src, src) && t.Tgt == tgt && (h == src || slices.ContainsFunc(t.Heard, func(x string) bool { return scene.Same(x, h) }))
 	})
 }
 
-// Merge adds s to ss: into the suggestion of the same name, with its ways heard and its lines, if
-// there is one. The first translation suggested stays.
 func Merge(ss []Suggestion, s Suggestion) []Suggestion {
 	i := slices.IndexFunc(ss, func(o Suggestion) bool { return scene.Same(o.Src, s.Src) })
 	if i < 0 {

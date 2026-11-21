@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-// TestOSVersion names the system with its version, for a report of a problem.
 func TestOSVersion(t *testing.T) {
 	got := osVersion()
 	t.Log(got)

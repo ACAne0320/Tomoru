@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-// tasks owns application workers. Cancelling also invalidates callbacks already
-// queued for the main thread; workers never need that thread to finish.
 type tasks struct {
 	ctx      context.Context
 	cancel   context.CancelFunc

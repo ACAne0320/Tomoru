@@ -1,22 +1,3 @@
-// Package segment turns a recognizer's output into subtitle segments as speech goes on, where
-// the recognizer ends its sentences (docs/recognition.md): sentences are the recognizer's to tell,
-// by its punctuation and its end of utterance, not ours by pauses or length.
-//
-// The recognizer gives two kinds of input:
-//   - Final tokens: fixed, each timed. Bookkeeping is in audio time (committedUntil). A sentence
-//     they finish is committed. What follows the last sentence end is committed with them where a
-//     final result ends an utterance (Config.FinalsEnd: a service's own end of utterance); else it
-//     waits for the next final result, which joins it, or for the speaker to stop.
-//   - Volatile text: the live hypothesis since the last final one, revised as more is heard, and
-//     untimed. Where the recognizer's volatile sentence ends hold (Config.VolatileSentences), a
-//     sentence it ends is committed at once, without waiting for a final result. Where the
-//     committed text sits inside a revised hypothesis is found by fuzzy alignment (edit distance
-//     over letters and digits), never by string offsets.
-//
-// One rule is ours, a safety: a sentence past two lines is cut, within them, at its last clause
-// mark, or else between its last two words.
-//
-// A Segmenter is not safe for concurrent use.
 package segment
 
 import (
@@ -27,89 +8,61 @@ import (
 	"golang.org/x/text/width"
 )
 
-// Token is a word or character of a final result, timed in seconds of audio.
 type Token struct {
 	Text       string
 	Start, End float64
 }
 
-// Segment is a committed piece of speech: a sentence, or what was said before a pause, or a
-// clause cut from a long stretch.
 type Segment struct {
-	Text string
-	// Timed tells whether Start and End are known: a segment committed from volatile text has no
-	// times yet.
+	Text       string
 	Timed      bool
 	Start, End float64
-	Reason     string // "sentence", "pause" (the speaker stopped mid-sentence) or "length"
-	Seq        int    // its number, from 1, in the order committed
+	Reason     string
+	Seq        int
 }
 
-// Ended is when the speech of a segment committed untimed ended, as its final result tells, by
-// the segment's Seq.
 type Ended struct {
 	Seq int
 	End float64
 }
 
-// Action is what the caller does after an input: show a segment.
 type Action struct {
 	Commit *Segment
 }
 
-// Config tunes a Segmenter. The zero value of a field takes its default.
 type Config struct {
-	// VolatileSentences commits sentences the volatile text ends: for recognizers whose volatile
-	// sentence ends hold (Apple's; Qwen's cloud, steadied by qwencloud).
 	VolatileSentences bool
-	// FinalsEnd tells the recognizer's final results end utterances, as a service ends one where it
-	// hears the speaker stop: what they hold is committed at once. Else (stretches of speech a
-	// voice detector cut, which may pause mid-sentence) their unfinished tail waits for the next.
-	FinalsEnd bool
-	// TailWait is the silence, in seconds, after which the unfinished tail of final results is
-	// committed: by voice activity, else since the last speech heard; 0.6. 1.0 had SenseVoice's
-	// lines final 1 s later and translated 0.4 s later at p90, and long lines 4 in 100, joining
-	// sentences across pauses (the benchmark's quick set, 2026-10-31).
-	TailWait float64
-	// MaxWidth is the width of two lines of subtitles, a CJK character as wide as two letters, past
-	// which a sentence is cut; 90, as the benchmark's Long % counts it.
-	MaxWidth int
+	FinalsEnd         bool
+	TailWait          float64
+	MaxWidth          int
 }
 
-// Segmenter is the state machine. Feed it with Final, Volatile and Tick, in the order they
-// happen, and act on what they return.
 type Segmenter struct {
 	cfg            Config
-	stable         []Token // final, not yet committed
+	stable         []Token
 	committedUntil float64
-	vol            string // the live hypothesis since the last final result
+	vol            string
 	volEnd         float64
-	volCommitted   string // the part of the hypothesis already committed, not final yet
-	// volSegs are the segments that end in volCommitted, untimed, and where they end in it: its
-	// runes up to there.
-	volSegs       []volSeg
-	ended         []Ended // what Ended gives next
-	seq           int     // the last segment's Seq
-	lastSpeechEnd float64 // the latest audio time known to hold speech, final or volatile
-	clock         float64
+	volCommitted   string
+	volSegs        []volSeg
+	ended          []Ended
+	seq            int
+	lastSpeechEnd  float64
+	clock          float64
 
-	// Voice activity, once the recognizer's engine reports it.
 	voiceKnown bool
 	voiceOn    bool
-	offAt      float64 // when the voice last stopped
+	offAt      float64
 }
 
 type volSeg struct{ seq, end int }
 
-// Ended gives the segments committed untimed whose final results came since it was last called,
-// and when their speech ended.
 func (s *Segmenter) Ended() []Ended {
 	e := s.ended
 	s.ended = nil
 	return e
 }
 
-// New returns a Segmenter.
 func New(cfg Config) *Segmenter {
 	if cfg.TailWait == 0 {
 		cfg.TailWait = 0.6
@@ -120,7 +73,6 @@ func New(cfg Config) *Segmenter {
 	return &Segmenter{cfg: cfg}
 }
 
-// Final takes the tokens of a final result.
 func (s *Segmenter) Final(incoming []Token) []Action {
 	var toks []Token
 	for _, t := range incoming {
@@ -129,16 +81,12 @@ func (s *Segmenter) Final(incoming []Token) []Action {
 		}
 	}
 	if s.volCommitted != "" && len(toks) > 0 {
-		// Some of this final result was committed from volatile text already: drop that part.
 		finalText := joinTokens(toks)
 		s.timeVolSegs(toks, finalText)
 		if !hasSpeech(finalText) {
-			// No words to align ("?..?" for "Any questions so far?"), and the next hypothesis
-			// starts after this result all the same: nothing committed is left in it.
 			s.committedUntil = toks[len(toks)-1].End
 			s.volCommitted, s.volSegs, toks = "", nil, nil
 		} else if len(norm(finalText)) < len(norm(s.volCommitted)) {
-			// The final result covers only part of what was committed.
 			vc := []rune(s.volCommitted)
 			d := alignEnd(finalText, s.volCommitted)
 			s.volCommitted = string(vc[d:])
@@ -172,8 +120,6 @@ func (s *Segmenter) Final(incoming []Token) []Action {
 	return s.evaluate()
 }
 
-// timeVolSegs times the segments committed untimed that the final tokens toks, of text finalText,
-// cover: their speech ended with the token their text ends in.
 func (s *Segmenter) timeVolSegs(toks []Token, finalText string) {
 	vc := []rune(s.volCommitted)
 	covered := len(norm(finalText))
@@ -191,7 +137,6 @@ func (s *Segmenter) timeVolSegs(toks []Token, finalText string) {
 	s.volSegs = keep
 }
 
-// Volatile takes the live hypothesis for the audio from start to end, which replaces the last.
 func (s *Segmenter) Volatile(text string, start, end float64) []Action {
 	s.clock = max(s.clock, end)
 	s.vol = text
@@ -202,7 +147,6 @@ func (s *Segmenter) Volatile(text string, start, end float64) []Action {
 	return s.evaluate()
 }
 
-// Voice takes voice activity: the speaker's voice started (on) or stopped at t, seconds of audio.
 func (s *Segmenter) Voice(on bool, t float64) []Action {
 	s.voiceKnown, s.voiceOn = true, on
 	if !on {
@@ -211,16 +155,13 @@ func (s *Segmenter) Voice(on bool, t float64) []Action {
 	return s.evaluate()
 }
 
-// Tick moves the audio clock, which commits the tail the speaker stopped after.
 func (s *Segmenter) Tick(clock float64) []Action {
 	s.clock = max(s.clock, clock)
 	return s.evaluate()
 }
 
-// Pending is the text heard and not committed yet, to show as it is spoken.
 func (s *Segmenter) Pending() string { return clean(s.stableText() + s.volPending()) }
 
-// CommittedUntil is the audio time that committed segments reach, by final tokens.
 func (s *Segmenter) CommittedUntil() float64 { return s.committedUntil }
 
 func (s *Segmenter) stableText() string { return joinTokens(s.stable) }
@@ -240,20 +181,14 @@ func (s *Segmenter) evaluate() []Action {
 		}
 	}
 
-	// 1. Complete sentences, one segment each, where the recognizer ends them: in final results,
-	// then in the hypothesis where its sentence ends hold. One too long for two lines is cut
-	// within them, as in 3.
 	for seg := s.commitFirstSentence(); seg != nil; seg = s.commitFirstSentence() {
 		commit(seg)
 	}
 
-	// 2. The recognizer ended the utterance, or the speaker stopped mid-sentence: the tail of
-	// final results is all they said.
 	if hasSpeech(s.stableText()) && (s.cfg.FinalsEnd || !hasSpeech(s.volPending()) && s.quiet()) {
 		commit(s.commitStable("pause"))
 	}
 
-	// 3. Too long without a sentence end: cut within two lines, as often as it takes.
 	for Width(clean(s.stableText()+s.volPending())) > s.cfg.MaxWidth {
 		seg := s.commitWithin()
 		if seg == nil {
@@ -264,8 +199,6 @@ func (s *Segmenter) evaluate() []Action {
 	return out
 }
 
-// quiet tells whether the speaker has been silent for TailWait: by voice activity, else since the
-// last speech the recognizer heard.
 func (s *Segmenter) quiet() bool {
 	if s.voiceKnown {
 		return !s.voiceOn && s.clock-s.offAt >= s.cfg.TailWait
@@ -273,8 +206,6 @@ func (s *Segmenter) quiet() bool {
 	return s.clock-s.lastSpeechEnd >= s.cfg.TailWait
 }
 
-// commitFirstSentence commits the first complete sentence of the stable text and the hypothesis,
-// if there is one. A sentence of punctuation alone is dropped, and returns nil too.
 func (s *Segmenter) commitFirstSentence() *Segment {
 	st := []rune(s.stableText())
 	full := st
@@ -286,7 +217,6 @@ func (s *Segmenter) commitFirstSentence() *Segment {
 		return nil
 	}
 	if Width(clean(string(full[:b]))) > s.cfg.MaxWidth {
-		// Too long for two lines: cut within them, as text with no sentence end is (rule 3).
 		if seg := s.commitWithin(); seg != nil {
 			return seg
 		}
@@ -294,20 +224,15 @@ func (s *Segmenter) commitFirstSentence() *Segment {
 	return s.commit(full, len(st), b, "sentence")
 }
 
-// commitStable commits the final tokens not committed yet.
 func (s *Segmenter) commitStable(reason string) *Segment {
 	st := []rune(s.stableText())
 	return s.commit(st, len(st), len(st), reason)
 }
 
-// commitWithin commits what fits in two lines of the pending text, cut at its last clause mark
-// there, if that leaves a third of the lines or more; else between its last two words there; else
-// at its last clause mark there at all. Nil when it has none of these: Chinese or Japanese with no
-// comma.
 func (s *Segmenter) commitWithin() *Segment {
 	st := []rune(s.stableText())
 	full := append(st, []rune(s.volPending())...)
-	fits := 0 // how many runes fit in two lines
+	fits := 0
 	for fits < len(full) && Width(clean(string(full[:fits+1]))) <= s.cfg.MaxWidth {
 		fits++
 	}
@@ -331,7 +256,6 @@ func (s *Segmenter) commitWithin() *Segment {
 	return nil
 }
 
-// Width is how wide text shows: a wide or fullwidth character, as CJK's, as wide as two letters.
 func Width(text string) int {
 	w := 0
 	for _, r := range text {
@@ -345,12 +269,9 @@ func Width(text string) int {
 	return w
 }
 
-// commit commits full[:cut], where full is the stable text (its first stableLen runes) and then
-// the pending hypothesis.
 func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segment {
 	seg := &Segment{Reason: reason}
 	if cut <= stableLen {
-		// All within final tokens: commit by token, with their times.
 		k := tokenCount(s.stable, cut)
 		if k == 0 {
 			return nil
@@ -359,7 +280,6 @@ func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segm
 		s.committedUntil = seg.End
 		s.stable = s.stable[k:]
 	} else {
-		// All the final tokens, and the start of the hypothesis.
 		if len(s.stable) > 0 {
 			seg.Start = s.stable[0].Start
 			s.committedUntil = s.stable[len(s.stable)-1].End
@@ -368,7 +288,6 @@ func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segm
 		s.volCommitted += string(full[stableLen:cut])
 	}
 	seg.Text = clean(string(full[:cut]))
-	// What is left of punctuation alone, as a lone "。", is no subtitle.
 	if !hasSpeech(seg.Text) {
 		return nil
 	}
@@ -380,17 +299,12 @@ func (s *Segmenter) commit(full []rune, stableLen, cut int, reason string) *Segm
 	return seg
 }
 
-// Letters counts the letters and digits of s: how much speech it holds, punctuation and spaces
-// aside.
 func Letters(s string) int { return len(norm(s)) }
-
-// Helpers.
 
 func isSpeech(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) }
 
 func hasSpeech(s string) bool { return strings.IndexFunc(s, isSpeech) >= 0 }
 
-// norm is s as alignment compares it: letters and digits, lowercased.
 func norm(s string) []rune {
 	var out []rune
 	for _, r := range s {
@@ -409,15 +323,12 @@ func joinTokens(toks []Token) string {
 	return b.String()
 }
 
-// alignEnd returns where a, text committed already, ends inside the hypothesis h, as an index of
-// h's runes. It aligns a against a prefix of h by edit distance over their letters and digits,
-// and skips the punctuation and spaces that follow the match.
 func alignEnd(a, h string) int {
 	x := norm(a)
 	hr := []rune(h)
 	type at struct {
 		r   rune
-		end int // the index just after it in hr
+		end int
 	}
 	var hs []at
 	for i, r := range hr {
@@ -428,7 +339,7 @@ func alignEnd(a, h string) int {
 	if len(x) == 0 || len(hs) == 0 {
 		return 0
 	}
-	prev := make([]int, len(hs)+1) // aligning nothing against hs[:j] costs j
+	prev := make([]int, len(hs)+1)
 	for j := range prev {
 		prev[j] = j
 	}
@@ -444,7 +355,7 @@ func alignEnd(a, h string) int {
 		}
 		prev, cur = cur, prev
 	}
-	best := 0 // the lowest cost, then the shortest prefix
+	best := 0
 	for j := range prev {
 		if prev[j] < prev[best] {
 			best = j
@@ -460,7 +371,6 @@ func alignEnd(a, h string) int {
 	return end
 }
 
-// tokenCount returns how many of the first tokens lie before cut, a rune index of their text.
 func tokenCount(toks []Token, cut int) int {
 	k, pos := 0, 0
 	for _, t := range toks {
@@ -478,8 +388,6 @@ var (
 	spaces         = regexp.MustCompile(`[\s\p{Zs}]+`)
 )
 
-// clean evens out the recognizer's spacing: SpeechAnalyzer writes " ，" in Chinese and Japanese,
-// and starts English words with a space.
 func clean(s string) string {
 	s = spaceBeforeCJK.ReplaceAllString(s, "$1")
 	s = spaces.ReplaceAllString(s, " ")

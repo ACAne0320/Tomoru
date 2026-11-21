@@ -1,13 +1,9 @@
-// Hearing only (`listen --asr none`): the tap's audio sent as protocol `audio`, for tomoru-asr or
-// the cloud to recognize. No recognition and no clock: they come from what is recognized. Voice
-// detection runs on the audio sent, for the cloud's session to hang up while nobody speaks.
 import AVFoundation
 import Foundation
 
-/// Hearer runs `listen --asr none`.
 final class Hearer {
     static let rate = 16000.0
-    static let chunk = 1600 // samples an `audio` object carries: 100 ms
+    static let chunk = 1600
 
     let app: String?
     let vadModel: URL?
@@ -18,17 +14,15 @@ final class Hearer {
     var capture: AudioSource?
     var timer: DispatchSourceTimer?
 
-    // What is heard and not sent yet, and the time of its first sample; under lock, as the tap's
-    // queue adds to it and the timer's fills silence.
     let lock = NSLock()
     var pending: [Int16] = []
-    var sent: Int64 = 0 // samples sent
+    var sent: Int64 = 0
     let now: () -> TimeInterval
     let emit: (WireEvent) -> Void
     var started: TimeInterval
     var lastFeed = -TimeInterval.infinity
 
-    let file: String? // the recording to hear instead of the system, with --file
+    let file: String?
 
     init(app: String?, vad: URL?, file: String?,
          now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
@@ -55,7 +49,6 @@ final class Hearer {
         if let url = vadModel {
             do {
                 voice = try VoiceDetector(model: url) { [weak self] on, t in self?.emit(.voice(on, t)) }
-                // Voice detection is on: nobody speaks yet.
                 emit(.voice(false, 0))
             } catch {
                 log("voice detection off: \(error)")
@@ -65,9 +58,6 @@ final class Hearer {
         }
         emit(.state("listening"))
 
-        // While the tap delivers nothing, time goes on as silence: tomoru-asr's pauses and clock
-        // come from the audio alone. Only then: a tap delivering is the timeline, though its clock
-        // drifts from the wall's.
         let t = DispatchSource.makeTimerSource(queue: DispatchQueue(label: "silence"))
         t.schedule(deadline: .now() + 0.1, repeating: 0.1)
         t.setEventHandler { [weak self] in self?.fillSilence() }
@@ -75,7 +65,6 @@ final class Hearer {
         timer = t
     }
 
-    /// feed converts a buffer of the tap to 16 kHz mono 16-bit and sends what makes whole chunks.
     func feed(_ pcm: AVAudioPCMBuffer) {
         if converter == nil || converter!.inputFormat != pcm.format {
             converter = AVAudioConverter(from: pcm.format, to: format)
@@ -107,8 +96,6 @@ final class Hearer {
         let have = sent + Int64(pending.count)
         if at - lastFeed > 0.3, due > have {
             var missing = due - have
-            // Keep enough silence to finalize speech after a suspension, without replaying
-            // the whole gap. Rebase so the next tick resumes normally, with no backlog.
             if missing > Int64(2 * Hearer.rate) {
                 missing = Int64(2 * Hearer.rate)
                 started = at - Double(have + missing) / Hearer.rate
@@ -118,7 +105,6 @@ final class Hearer {
         }
     }
 
-    /// flush sends the whole chunks of pending, under lock.
     func flush() {
         while pending.count >= Hearer.chunk {
             let chunk = pending[0..<Hearer.chunk]

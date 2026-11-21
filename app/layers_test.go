@@ -12,9 +12,6 @@ import (
 	"testing"
 )
 
-// Every internal package family is classified here. New families fail closed, while
-// subpackages inherit the same restrictions. UI surfaces may share kit/shared/subtitle,
-// but only shell may import another surface. Test adapters never enter production.
 var packageDependencies = map[string][]string{
 	"applog": {}, "capture": {"resource"}, "resource": {}, "samples": {}, "models": {"resource"},
 	"prefs": {"atomicfile", "lang"}, "proxy": {}, "history": {}, "usage": {}, "atomicfile": {}, "lang": {},
@@ -36,8 +33,6 @@ var packageDependencies = map[string][]string{
 	"ui/shell":      {"core", "prefs", "ui/assets", "ui/guide", "ui/imagecard", "ui/kit", "ui/overlay", "ui/panel", "ui/settings", "ui/shared"},
 }
 
-// Test fixtures may construct the data consumed by a package, or use the desktop test
-// adapter. These permissions apply only to _test.go files, never production imports.
 var testDependencies = map[string][]string{
 	"segment":      {"engine"},
 	"live":         {"models", "resource"},
@@ -74,7 +69,6 @@ func mayImport(pkg, imp string, test bool) bool {
 	}
 	ui := strings.HasPrefix(family, "ui/")
 	desktop := ui || family == "core/coretest"
-	// MyGo's netproxy is a library, not the desktop: proxy reads the system's settings with it.
 	if imp == "github.com/egoist/mygo/netproxy" && family == "proxy" {
 		return true
 	}
@@ -96,7 +90,6 @@ func mayImport(pkg, imp string, test bool) bool {
 }
 
 func TestLayers(t *testing.T) {
-	// Parse all platforms, not just packages chosen by this machine's build tags.
 	err := filepath.WalkDir("internal", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -172,8 +165,6 @@ func TestLayerRules(t *testing.T) {
 	}
 }
 
-// UI bindings use detached snapshots. Calling a save from a view or reaching through
-// the facade's compatibility fields would reintroduce redraw-dependent persistence.
 func TestUIStateAccess(t *testing.T) {
 	err := filepath.WalkDir("internal/ui", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -209,10 +200,6 @@ func TestUIStateAccess(t *testing.T) {
 	}
 }
 
-// platformFiles are the production files that name the platform, by a build constraint or by
-// runtime.GOOS and GOARCH: the edges of docs/architecture.md, and the domain's few platform facts
-// (what the system has, where files go). A new one is a decision, made by changing this list; a
-// domain file that behaves differently by platform does not belong on it.
 var platformFiles = []string{
 	"internal/asr/asr.go",
 	"internal/core/feedback.go",

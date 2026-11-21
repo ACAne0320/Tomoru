@@ -34,7 +34,9 @@ on GitHub opens the matching form, started with what you wrote.
 6. Changes to recognition, segmenting or translation quality: show numbers from the
    [benchmark](bench/README.md).
 
-Code comments and commit messages are in English; commit messages follow
+Code carries no comments: names and types say what it does, and decisions go in
+[`docs/adr/`](docs/adr/) (`scripts/check.sh` holds each file to `app/comments.txt`). Commit
+messages are in English and follow
 [Conventional Commits](https://www.conventionalcommits.org) (`fix(asr): …`). Documents come in
 pairs: `name.md` in English and `name_zh.md` in Chinese; update both, or say in the pull request
 which one still needs it.

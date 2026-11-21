@@ -54,7 +54,6 @@ func seconds(s string) float64 {
 
 func round(x float64) float64 { return float64(int64(x*1000+.5)) / 1000 }
 
-// readGlossary reads a case's glossary: none if it has no file.
 func readGlossary(path string) (*scene.Glossary, error) {
 	b, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -70,7 +69,6 @@ func readGlossary(path string) (*scene.Glossary, error) {
 	return scene.NewGlossary(terms, false), nil
 }
 
-// readAbout reads the description of case id's scene, <id>.txt in dir: "" when there is none.
 func readAbout(dir, id string) (string, error) {
 	if dir == "" {
 		return "", nil

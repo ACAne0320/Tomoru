@@ -29,8 +29,6 @@ func TestAnswer(t *testing.T) {
 	}
 }
 
-// TestGrammar leaves the model its language or None, no speech, to start its answer with; for
-// lang.Auto, any it recognizes.
 func TestGrammar(t *testing.T) {
 	for lang, want := range map[string]string{"ja": `root ::= "language " ("Japanese" | "None") [^\x00]*`,
 		"yue": `root ::= "language " ("Cantonese" | "None") [^\x00]*`, "zh-Hant": "", "xx": ""} {
@@ -45,9 +43,6 @@ func TestGrammar(t *testing.T) {
 	}
 }
 
-// TestAuto has the model tell the language first heard among those it recognizes, in one ask;
-// then, of a short stretch, another takes over where the model is sure of it, and else the stretch
-// is decoded again in the one heard last; of a long one, the model's is taken as told.
 func TestAuto(t *testing.T) {
 	const told = `{"choices":[{"message":{"content":"language %s<asr_text>%s"},"logprobs":{"content":[` +
 		`{"token":"language","top_logprobs":[{"token":"language","logprob":0}]},` +
@@ -57,11 +52,11 @@ func TestAuto(t *testing.T) {
 		switch n := len(grammars); {
 		case n == 1:
 			w.Write([]byte(`{"choices":[{"message":{"content":"language Korean<asr_text>안녕하세요."}}]}`))
-		case n == 2: // Chinese, and sure it is not Korean
+		case n == 2:
 			fmt.Fprintf(w, told, "Chinese", "我们BLG就是最强的。", "Chinese", "Chinese", -20)
-		case n == 3, n == 5: // Japanese, not sure it is not Chinese
+		case n == 3, n == 5:
 			fmt.Fprintf(w, told, "Japanese", "食べい。", "Japanese", "Japanese", -2)
-		default: // decoded again in Chinese
+		default:
 			w.Write([]byte(`{"choices":[{"message":{"content":"language Chinese<asr_text>吃吧。"}}]}`))
 		}
 	}
@@ -87,8 +82,6 @@ func TestAuto(t *testing.T) {
 	}
 }
 
-// TestDecode sends the stretch as a WAV, the model to tell the language with its likeliest
-// alternatives, and reads the answer.
 func TestDecode(t *testing.T) {
 	var got struct {
 		Messages []struct {
@@ -117,7 +110,7 @@ func TestDecode(t *testing.T) {
 	if len(got.Messages) != 2 || got.Messages[0].Role != "system" || system != "一心, 葦名" || got.Messages[1].Role != "user" || got.Grammar != "" || !got.Logprobs || got.TopLogprobs != topLogprobs {
 		t.Fatalf("messages %d, system %q, grammar %q, logprobs %v %d", len(got.Messages), system, got.Grammar, got.Logprobs, got.TopLogprobs)
 	}
-	got.Messages = got.Messages[1:] // the user's, with the audio, first
+	got.Messages = got.Messages[1:]
 	var parts []struct {
 		Type       string
 		InputAudio struct{ Data, Format string } `json:"input_audio"`
@@ -130,8 +123,6 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-// TestLanguage keeps another language than the session's when the model is sure of it, and decodes
-// again in the session's language when not.
 func TestLanguage(t *testing.T) {
 	const other = `{"choices":[{"message":{"content":"language Chinese<asr_text>我们BLG就是最强的。"},"logprobs":{"content":[` +
 		`{"token":"language","top_logprobs":[{"token":"language","logprob":0}]},` +
@@ -167,9 +158,6 @@ func TestLanguage(t *testing.T) {
 	}
 }
 
-// TestBound gives an answer as many tokens as the stretch's speech may take, and takes one that
-// used them all as no speech: the model going on by itself. An empty context is still sent, as the
-// model was trained.
 func TestBound(t *testing.T) {
 	var got struct {
 		Messages  []struct{ Role string }
@@ -196,7 +184,6 @@ func TestBound(t *testing.T) {
 	}
 }
 
-// TestStop cancels a decode in flight, and a server error fails a decode.
 func TestStop(t *testing.T) {
 	release := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -231,8 +218,6 @@ func TestStop(t *testing.T) {
 	}
 }
 
-// TestUnfit takes a stretch decoded again in the language heard last, which the model wrote in
-// another all the same, as of none known.
 func TestUnfit(t *testing.T) {
 	n := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -240,11 +225,11 @@ func TestUnfit(t *testing.T) {
 		switch n {
 		case 1:
 			w.Write([]byte(`{"choices":[{"message":{"content":"language Chinese<asr_text>我不要。"}}]}`))
-		case 2: // Japanese, not sure it is not Chinese
+		case 2:
 			w.Write([]byte(`{"choices":[{"message":{"content":"language Japanese<asr_text>金になる。"},"logprobs":{"content":[` +
 				`{"token":"language","top_logprobs":[{"token":"language","logprob":0}]},` +
 				`{"token":" Japanese","top_logprobs":[{"token":" Japanese","logprob":0},{"token":" Chinese","logprob":-2}]}]}}]}`))
-		default: // in Chinese, as asked, written in Japanese
+		default:
 			w.Write([]byte(`{"choices":[{"message":{"content":"language Chinese<asr_text>金になるかもしれない。"}}]}`))
 		}
 	}))

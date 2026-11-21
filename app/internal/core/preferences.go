@@ -6,14 +6,11 @@ import (
 	"tomoru/internal/prefs"
 )
 
-// PreferencesService owns settings snapshots and their persistence acknowledgement.
-// Application code changes settings through Core.UpdatePrefs or a feature action.
 type PreferencesService struct {
 	Prefs prefs.Prefs
 	saved prefs.Prefs
 }
 
-// Preferences returns a detached snapshot suitable for a view's editing draft.
 func (s *PreferencesService) Preferences() prefs.Prefs { return s.Prefs.Clone() }
 
 func (s *PreferencesService) save(path string) error {
@@ -27,8 +24,6 @@ func (s *PreferencesService) save(path string) error {
 	return nil
 }
 
-// UpdatePrefs applies an explicit settings edit and its effects. UI bindings must
-// use detached drafts, so a redraw alone never changes or saves application state.
 func (c *Core) UpdatePrefs(edit func(*prefs.Prefs)) {
 	before := c.Preferences()
 	next := before.Clone()
@@ -37,7 +32,6 @@ func (c *Core) UpdatePrefs(edit func(*prefs.Prefs)) {
 		return
 	}
 	next.Normalize(before)
-	// Scene selection has its own language and history boundary.
 	sceneID := next.Scene
 	next.Scene = before.Scene
 	c.Prefs = next.Clone()
@@ -63,8 +57,6 @@ func (c *Core) UpdatePrefs(edit func(*prefs.Prefs)) {
 	}
 }
 
-// ApplyPreferences merges only fields edited in a view draft. Actions executed
-// while building that view cannot be overwritten by its older snapshot.
 func (c *Core) ApplyPreferences(before, after prefs.Prefs) {
 	if reflect.DeepEqual(before, after) {
 		return

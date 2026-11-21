@@ -4,8 +4,9 @@ Read [architecture](docs/architecture.md) and [development](docs/development.md)
 
 ## Style
 
-- Keep answers, comments and docs short, plain and direct; no filler, no emojis.
-- Write code like the code around it: its naming, idioms and comment density.
+- Keep answers and docs short, plain and direct; no filler, no emojis.
+- Write code like the code around it: its naming and idioms.
+- Code carries no comments: say it with names and types, record a decision in `docs/adr/`, and file an issue for a workaround; `app/comments.txt` only goes down.
 - Do what was asked; mention a possible extension in one line instead of building it.
 
 ## Product

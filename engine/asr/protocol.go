@@ -7,13 +7,11 @@ import (
 	"io"
 )
 
-// Event and Token are protocol v1 records. MarshalJSON includes required zero-valued fields
-// (voice off, time zero and empty final tokens) without adding fields of other event types.
 type Event struct {
 	Type, Engine, Version, Code, Message, ID string
 	Protocol                                 int
 	Tokens                                   []Token
-	Lang                                     string // decoded: the language heard, "" for none
+	Lang                                     string
 }
 
 type Token struct {
@@ -54,15 +52,12 @@ func (e Event) MarshalJSON() ([]byte, error) {
 	}
 }
 
-// Command decodes stdin. Unknown commands and fields are forward-compatible.
 type Command struct {
 	Type string `json:"type"`
 	ID   string `json:"id"`
 	PCM  string `json:"pcm"`
 }
 
-// readCommands preserves input ordering and propagates malformed lines/oversized input. EOF
-// returns normally, which lets the entry point exit.
 func readCommands(r io.Reader, apply func(Command) error) error {
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 64<<10), 1<<20)

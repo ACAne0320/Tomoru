@@ -13,8 +13,6 @@ import (
 	"tomoru/internal/samples"
 )
 
-// ask runs an engine command in the background, and hands its events, or nil, to done on the
-// main thread.
 func (c *Core) ask(timeout time.Duration, done func([]engine.Event), args ...string) {
 	c.work.Go(func() {
 		var evs []engine.Event
@@ -35,9 +33,6 @@ func (c *Core) ask(timeout time.Duration, done func([]engine.Event), args ...str
 	})
 }
 
-// PrepareASR has recognition for a language got ready, downloading it if need be (13–21 s for a
-// new one), so that the first start does not wait on it. It is done once: starting translating
-// tries again after an error. Only the system's recognition gets ready so: a model's is downloaded.
 func (c *Core) PrepareASR(code string) {
 	if c.ASR[code] != "" || prefs.SystemASR() == "" || !slices.Contains(c.SourceLangs(), code) {
 		return
@@ -51,12 +46,8 @@ func (c *Core) PrepareASR(code string) {
 	}, "prepare", "--locale", lang.Locale(code))
 }
 
-// AsksAccess tells whether the system asks the user before the app may hear what it plays:
-// macOS does, Windows does not.
 func AsksAccess() bool { return runtime.GOOS == "darwin" }
 
-// CheckAccess asks whether the engine may hear the system. Run from a terminal, the engine has the
-// terminal's permissions; the packaged app has its own.
 func (c *Core) CheckAccess() {
 	if c.Checking || c.Asking {
 		return
@@ -65,7 +56,6 @@ func (c *Core) CheckAccess() {
 	c.ask(10*time.Second, func(evs []engine.Event) { c.Checking = false; c.setAccess(evs) }, "access")
 }
 
-// RequestAccess has the system ask the user, which it does the first time the engine records.
 func (c *Core) RequestAccess() {
 	if c.Asking {
 		return
@@ -82,8 +72,6 @@ func (c *Core) setAccess(evs []engine.Event) {
 	}
 }
 
-// ListApps lists the apps to hear anew, unless it did in the last few seconds: views that show
-// them ask while they show, as apps start and stop playing.
 func (c *Core) ListApps() {
 	if time.Since(c.listedAt) < ListEvery {
 		return
@@ -103,10 +91,8 @@ func (c *Core) ListApps() {
 	}, "apps")
 }
 
-// ListEvery is how often the apps are listed while a view shows them.
 const ListEvery = 3 * time.Second
 
-// SetOpenAtLogin opens the app at login, or not. It needs the packaged app.
 func (c *Core) SetOpenAtLogin(on bool) {
 	if c.deps.Login == nil {
 		return
@@ -119,14 +105,8 @@ func (c *Core) SetOpenAtLogin(on bool) {
 	c.changed()
 }
 
-// HasSample tells whether there are sample sentences to say in the spoken language, and a voice
-// to say them with.
 func (c *Core) HasSample() bool { return !c.deps.NoVoice && samples.Has(c.Prefs.Src) }
 
-// Speak says the sample sentences in the spoken language aloud, with the system's voice for it,
-// for translating to hear as it hears a video: the first-run guide tries translating with them.
-// Speaking is true until they are said or StopSpeaking stops them; SpeakErr says why they could
-// not be. It says nothing in a language with no samples (HasSample).
 func (c *Core) Speak() {
 	c.StopSpeaking()
 	if !c.HasSample() {
@@ -159,7 +139,6 @@ func (c *Core) Speak() {
 	c.changed()
 }
 
-// StopSpeaking stops saying the samples.
 func (c *Core) StopSpeaking() {
 	if c.speak == nil {
 		return

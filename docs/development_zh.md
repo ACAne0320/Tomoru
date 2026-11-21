@@ -67,7 +67,7 @@ scripts/test.sh --race      # 开启 Go 的 race detector
 
 | | 部分 | 运行内容 |
 |---|---|---|
-| `check.sh` | `go` | 许可证清单、`gofmt`；app 针对 macOS、Windows 和 Linux、各引擎针对本平台和 Windows（Linux 引擎只在 Linux 上，需要 `apt install libpulse-dev libgtk-3-dev`）的 `go vet`、`.golangci.yml` 里的 linter 和没有调用方的函数（`deadcode`）（需要 mingw-w64：`brew install mingw-w64`，`apt install gcc-mingw-w64-x86-64`）；以及 app 的分层、平台和设计规则。linter 的版本写在脚本里，第一次运行时构建到 `~/.cache/tomoru-tools` |
+| `check.sh` | `go` | 许可证清单、`gofmt`；app 针对 macOS、Windows 和 Linux、各引擎针对本平台和 Windows（Linux 引擎只在 Linux 上，需要 `apt install libpulse-dev libgtk-3-dev`）的 `go vet`、`.golangci.yml` 里的 linter 和没有调用方的函数（`deadcode`）（需要 mingw-w64：`brew install mingw-w64`，`apt install gcc-mingw-w64-x86-64`）；以及 app 的分层、平台和设计规则；还有不加新注释，每个文件的注释行数不超过 `app/comments.txt` 里的数（`app/comments_test.go`；在 `app/` 里运行 `go test -count=1 comments_test.go -update-comments` 调低）。linter 的版本写在脚本里，第一次运行时构建到 `~/.cache/tomoru-tools` |
 | | `swift` | Swift 引擎的类型检查，警告视为错误 |
 | `test.sh` | `go` | `app`、`engine/asr` 和 `engine/shared` 的测试，含 benchmark，不含 UI 和 `core/coretest` 桌面适配器 |
 | | `ui` | app 的 UI 测试 |
@@ -94,7 +94,7 @@ go test ./...
 | 层级 | 作用 | 执行时机 |
 | --- | --- | --- |
 | 受影响包测试 | 验证当前行为、失败与取消路径 | 每次功能变更 |
-| `check.sh` | 格式、针对 macOS、Windows 和 Linux 的 vet 和 lint、无用代码、包边界和平台边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
+| `check.sh` | 格式、针对 macOS、Windows 和 Linux 的 vet 和 lint、无用代码、注释、包边界和平台边界、设计规则、许可证、Swift 引擎的类型 | 每次代码变更、CI |
 | `test.sh --race` | 业务规则、持久化、子进程、并发、协议实现、UI、Swift 契约 | 每次代码变更、CI、发布门槛 |
 | 人工录音与桌面验收 | 权限、真实录音、快捷键、跨屏字幕、退出、打包资源 | 发布前及平台行为变更 |
 | Windows 11 x64 实机 | 在 MSYS2 里运行 `scripts/check.sh go` 和 `scripts/test.sh go`（或用 `GOOS=windows GOARCH=amd64 go test -c` 交叉编译测试程序，在包目录运行）、引导全流程、采集、截图、托盘 | Windows 自己的代码（`engine/windows`、`capture`、`shell`）变更；发布前测上次发布以来的改动 |

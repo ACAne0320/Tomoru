@@ -9,8 +9,6 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// trayIcon is a template icon, black on clear, as Windows shows it, which tints none: white on a
-// dark taskbar, black on a light one, as its own icons are.
 func trayIcon(template []byte) ([]byte, bool) {
 	ink := uint8(255)
 	if k, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`, registry.QUERY_VALUE); err == nil {

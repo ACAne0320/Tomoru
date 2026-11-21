@@ -15,11 +15,8 @@ import (
 	"tomoru/locales"
 )
 
-// appearances are the choices of Appearance, as prefs keeps them.
 var appearances = []string{"", "light", "dark"}
 
-// general is Preferences: how the app looks and the language it shows; what it does at launch, and
-// its shortcut. What it hears and the languages it translates are the home page's.
 func (s *Settings) general(c *ui.Context) {
 	k := s.core
 	before := k.Preferences()
@@ -67,12 +64,10 @@ func (s *Settings) general(c *ui.Context) {
 	})
 }
 
-// network is how the app reaches the cloud: through a proxy, the user's or else the system's, or
-// directly.
 func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 	k := s.core
 	k.RefreshSystemProxy()
-	c.After(3 * time.Second) // the system's settings change
+	c.After(3 * time.Second)
 	kit.Group(c, locales.PrefsNetwork(), nil, kit.RowsCard, func() {
 		kit.SettingRow(c, 0, locales.UseProxy(), locales.UseProxyDesc(), func() {
 			on := !draft.NoProxy
@@ -96,8 +91,6 @@ func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 	}).Grow(1).Basis(360)
 }
 
-// uiLanguage chooses the language the app shows: the system's, or one it is written in, each
-// named in itself.
 func (s *Settings) uiLanguage(c *ui.Context) {
 	p := s.core.Preferences()
 	options := append([]string{""}, mygo.App.Languages()...)
