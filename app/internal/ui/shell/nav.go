@@ -94,16 +94,19 @@ func (s *Shell) ShowSettingsPage(page string) {
 		s.pages = settings.New(s.core, s)
 		w := mygo.NewWindow(mygo.WindowOptions{
 			Title: locales.SettingsTitle(), Width: settings.Width, Height: settings.Height, MinWidth: settings.MinWidth, MinHeight: settings.MinHeight,
-			TitleBarStyle: mygo.TitleBarHidden, // the frame draws under the window's controls
-			StateKey:      "settings",
-			Content:       ui.View(s.pages.View),
+			TitleBarStyle:  mygo.TitleBarHidden, // the paper draws under the window's buttons
+			TitleBarHeight: kit.TitleBarHeight,
+			// The traffic lights inside the sidebar's card, 12 in from its corner.
+			TrafficLightPosition: &mygo.Point{X: 20, Y: 20},
+			StateKey:             "settings",
+			Content:              ui.View(s.pages.View),
 		})
-		// Its controls are on the night's band, dark in either appearance: drawn light (Windows).
-		w.SetWindowButtonsTheme(mygo.ThemeDark)
-		// GTK's take the theme's color, dark in a light one, whatever the window: theirs alone
-		// are over a hidden title bar, so those are made light (Linux; nothing elsewhere).
-		if err := mygo.Theme.SetGTKCSS(`headerbar.mygo-window-controls button.titlebutton { color: #f6efe4; }`); err != nil {
-			log.Println("settings:", err)
+		// GTK puts buttons at the start of a title bar in its corner, over the sidebar card's edge:
+		// moved in onto the card. Only this window has GTK's title buttons (Linux; nothing elsewhere).
+		if len(mygo.Theme.WindowButtons().Start) > 0 {
+			if err := mygo.Theme.SetGTKCSS(`headerbar.mygo-window-controls { margin: 8px 0 0 8px; }`); err != nil {
+				log.Println("settings:", err)
+			}
 		}
 		s.settings = w
 		w.OnClosed(func() {
