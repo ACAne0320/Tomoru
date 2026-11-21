@@ -82,7 +82,7 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 			chart.Select(c, area, chosen, xs, func(i int) string { return bins[i].Tip })
 			for i, b := range bins {
 				col := color(b)
-				if *chosen >= 0 && *chosen != i {
+				if *chosen != NoPick && *chosen != i {
 					col = p.Dim(col)
 				}
 				chart.Rect(c.Key(i), chart.Span{Lo: x.At(b.Lo), Hi: x.At(b.Hi)}, y.Span(0, density(b))).Margin(0, 1).

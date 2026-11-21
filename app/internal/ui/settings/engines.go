@@ -513,15 +513,15 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs
 			if k.InUse(e.Kind) == e.ID {
 				s.ask(question, s.takingOver(e.Kind, size), remove)
 			} else {
-				s.deleting = e.ID
+				s.confirmingDeleteModel = e.ID
 			}
 		}
-		open := s.deleting == e.ID
+		open := s.confirmingDeleteModel == e.ID
 		if kit.Popconfirm(c, del, &open, question, locales.AskDeleteModelDetail(size), locales.Delete()) {
 			remove(c)
 		}
-		if !open && s.deleting == e.ID {
-			s.deleting = ""
+		if !open && s.confirmingDeleteModel == e.ID {
+			s.confirmingDeleteModel = ""
 		}
 	}
 }

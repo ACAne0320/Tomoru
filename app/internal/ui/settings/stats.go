@@ -32,9 +32,27 @@ type statsEdit struct {
 	latBar  int
 }
 
-var statsSpans = [...]int{7, 30, 0}
+const (
+	span7 = iota
+	span30
+	spanAll
+)
 
-const monthly = 45
+const allTime = 0
+
+var statsSpans = [...]int{span7: 7, span30: 30, spanAll: allTime}
+
+const (
+	kindListening = iota
+	kindTranslation
+)
+
+const (
+	latSpread = iota
+	latDaily
+)
+
+const maxDailyBars = 45
 
 type statsKind struct {
 	has      func(usage.Use) bool
@@ -46,15 +64,15 @@ type statsKind struct {
 }
 
 var statsKinds = [...]statsKind{
-	{
-		has:      func(u usage.Use) bool { return u.ASR != "" || u.RunSeconds > 0 },
+	kindListening: {
+		has:      usage.Use.Listened,
 		id:       func(u usage.Use) string { return u.ASR },
 		value:    func(n usage.Counts) float64 { return n.RunSeconds / 3600 },
 		tick:     func(v float64) string { return locales.Hours(kit.Number(v)) },
 		tip:      func(v float64) string { return listened(v * 3600) },
 		describe: asrUse,
 	},
-	{
+	kindTranslation: {
 		has:      func(u usage.Use) bool { return !u.Untranslated },
 		id:       func(u usage.Use) string { return u.MT },
 		value:    func(n usage.Counts) float64 { return float64(n.Lines) },
@@ -73,7 +91,7 @@ func (s *Settings) stats(c *ui.Context) {
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Wrap().Children(func() {
 		ui.Text(c, locales.TabStats()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
 		if kit.Segmented(c, &e.span, locales.StatsRange7(), locales.StatsRange30(), locales.StatsRangeAll()).Label(locales.StatsRange()).Changed() {
-			e.bar, e.latBar, e.picked = -1, -1, false
+			e.bar, e.latBar, e.picked = kit.NoPick, kit.NoPick, false
 		}
 	})
 	ledger := k.Usage()
@@ -105,7 +123,7 @@ func (s *Settings) stats(c *ui.Context) {
 	}
 	kit.Group(c, locales.StatsUsage(), func() {
 		if kit.Segmented(c, &e.kind, locales.EnginesAsr(), locales.EnginesMt()).Label(locales.StatsChartShows()).Changed() {
-			e.bar, e.picked = -1, false
+			e.bar, e.picked = kit.NoPick, false
 		}
 	}, func(c *ui.Context) ui.Element { return kit.Card(c).Gap(0) }, func() {
 		var was *usage.Counts
@@ -119,7 +137,7 @@ func (s *Settings) stats(c *ui.Context) {
 		}
 		picked, ok := index[e.engine]
 		if !e.picked || !ok {
-			picked = -1
+			picked = kit.NoPick
 		}
 		bars := make([]kit.Bar, len(buckets))
 		for i, b := range buckets {
@@ -171,7 +189,7 @@ func (s *Settings) stats(c *ui.Context) {
 				}
 				if kit.ShareRow(c, kit.Share{Color: colors[j], Name: en.name, Sub: en.sub, Value: en.figure, Unit: en.unit, Share: share, Muted: !en.known},
 					picked == j).Clicked() {
-					e.engine, e.picked, e.bar = kind.id(u), picked != j, -1
+					e.engine, e.picked, e.bar = kind.id(u), picked != j, kit.NoPick
 				}
 				if len(en.facts) > 0 {
 					kit.Facts(c, en.facts).Padding(0, 0, kit.Space(1), kit.Space(6))
@@ -191,14 +209,14 @@ func (s *Settings) statsDay(day, now time.Time) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location())
 	ago := int(math.Round(today.Sub(day).Hours() / 24))
-	e.span = 2
+	e.span = spanAll
 	for i, span := range statsSpans {
 		if span > ago {
 			e.span = i
 			break
 		}
 	}
-	e.kind, e.picked, e.bar = 1, false, -1
+	e.kind, e.picked, e.bar = kindTranslation, false, kit.NoPick
 	if l := s.core.Usage(); len(l.Days) > 0 {
 		buckets, _ := statsBuckets(l, statsSpans[e.span], now)
 		for i, b := range buckets {
@@ -207,7 +225,7 @@ func (s *Settings) statsDay(day, now time.Time) {
 			}
 		}
 	}
-	s.Tab = "stats"
+	s.Tab = shared.PageStats
 }
 
 func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usage.Counts, span int) ui.Element {
@@ -219,7 +237,7 @@ func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usag
 	}
 	note := locales.StatsPerDay(locales.Hours(hours(total.RunSeconds/float64(days)))) + " · " +
 		locales.StatSpeech() + " " + locales.Minutes(kit.Count(int(total.SpeechSeconds/60)))
-	if kind == 1 {
+	if kind == kindTranslation {
 		label, value, unit = locales.StatLines(), kit.Count(total.Lines), locales.UnitLines()
 		now, then = float64(total.Lines), 0
 		if was != nil {
@@ -253,7 +271,7 @@ func change(now, then float64) string {
 }
 
 func statsBefore(l usage.Ledger, span int, now time.Time, has func(usage.Use) bool) (sum usage.Counts, ok bool) {
-	if span == 0 {
+	if span == allTime {
 		return sum, false
 	}
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
@@ -360,12 +378,12 @@ type bucket struct {
 func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth bool) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from := today.AddDate(0, 0, 1-span)
-	if span == 0 {
+	if span == allTime {
 		from = today
 		if first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Date, now.Location()); err == nil && first.Before(today) {
 			from = first
 		}
-		byMonth = today.Sub(from) > monthly*24*time.Hour
+		byMonth = today.Sub(from) > maxDailyBars*24*time.Hour
 	}
 	if byMonth {
 		from = time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, now.Location())
@@ -400,16 +418,47 @@ func round(v float64) float64 {
 }
 
 type latency struct {
+	group      latencyGroup
 	name, what func() string
 	hist       func(usage.Latency) usage.Hist
 }
 
+type latencyGroup int
+
+const (
+	youWait latencyGroup = iota
+	recognition
+	translation
+)
+
+func (g latencyGroup) label() string {
+	switch g {
+	case recognition:
+		return locales.EnginesAsr()
+	case translation:
+		return locales.EnginesMt()
+	}
+	return locales.LatYouWait()
+}
+
 var statsLatencies = [...]latency{
-	{locales.LatEndToEnd, locales.LatEndToEndDescription, func(l usage.Latency) usage.Hist { return l.EndToEnd }},
-	{locales.LatFirstText, locales.LatFirstTextDescription, func(l usage.Latency) usage.Hist { return l.FirstText }},
-	{locales.LatFinal, locales.LatFinalDescription, func(l usage.Latency) usage.Hist { return l.Final }},
-	{locales.LatFirstTranslation, locales.LatFirstTranslationDescription, func(l usage.Latency) usage.Hist { return l.FirstTranslation }},
-	{locales.LatTranslation, locales.LatTranslationDescription, func(l usage.Latency) usage.Hist { return l.Translation }},
+	{youWait, locales.LatEndToEnd, locales.LatEndToEndDescription, func(l usage.Latency) usage.Hist { return l.EndToEnd }},
+	{recognition, locales.LatFirstText, locales.LatFirstTextDescription, func(l usage.Latency) usage.Hist { return l.FirstText }},
+	{recognition, locales.LatFinal, locales.LatFinalDescription, func(l usage.Latency) usage.Hist { return l.Final }},
+	{translation, locales.LatFirstTranslation, locales.LatFirstTranslationDescription, func(l usage.Latency) usage.Hist { return l.FirstTranslation }},
+	{translation, locales.LatTranslation, locales.LatTranslationDescription, func(l usage.Latency) usage.Hist { return l.Translation }},
+}
+
+func latencyGroups(tiles []kit.Tile) []kit.TileGroup {
+	var groups []kit.TileGroup
+	for i, l := range statsLatencies {
+		if i == 0 || statsLatencies[i-1].group != l.group {
+			groups = append(groups, kit.TileGroup{Label: l.group.label()})
+		}
+		g := &groups[len(groups)-1]
+		g.Tiles = append(g.Tiles, tiles[i])
+	}
+	return groups
 }
 
 func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.Latency, span int, buckets []bucket, byMonth bool) {
@@ -433,15 +482,11 @@ func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.L
 	}
 	kit.Group(c, locales.StatsLatency(), func() {
 		if kit.Segmented(c, &e.latView, locales.StatsSpread(), daily).Label(locales.StatsChartShows()).Changed() {
-			e.latBar = -1
+			e.latBar = kit.NoPick
 		}
 	}, kit.Card, func() {
-		if kit.PickTiles(c, &e.lat, []kit.TileGroup{
-			{Label: locales.LatYouWait(), Tiles: tiles[:1]},
-			{Label: locales.EnginesAsr(), Tiles: tiles[1:3]},
-			{Label: locales.EnginesMt(), Tiles: tiles[3:]},
-		}).Label(locales.StatsLatency()).Changed() {
-			e.latBar = -1
+		if kit.PickTiles(c, &e.lat, latencyGroups(tiles)).Label(locales.StatsLatency()).Changed() {
+			e.latBar = kit.NoPick
 		}
 		mid, ok := h.Quantile(.5)
 		ui.Row(c).Gap(kit.Space(4)).AlignItems(ui.Start).Children(func() {
@@ -458,7 +503,7 @@ func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.L
 			return
 		}
 		p90, _ := h.Quantile(.9)
-		if e.latView == 1 {
+		if e.latView == latDaily {
 			kit.WhiskerChart(c, l.name(), latencyDays(buckets, l), func(v float64) string { return locales.Seconds(fmt.Sprintf("%g", round(v))) }, &e.latBar)
 			return
 		}

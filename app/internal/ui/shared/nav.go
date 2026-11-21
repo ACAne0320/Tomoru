@@ -7,7 +7,7 @@ type Nav interface {
 	OpenPanelAbove(r mygo.Rectangle)
 	FitPanel(h int)
 	ShowSettings()
-	ShowSettingsPage(page string)
+	ShowSettingsPage(page Page)
 	ShowGuide()
 	FinishGuide()
 	TranslateImage()
@@ -19,3 +19,16 @@ type Nav interface {
 	Focus()
 	SetAppearance(appearance string)
 }
+
+type Page string
+
+const (
+	PageHome      Page = "home"
+	PageSubtitles Page = "subtitles"
+	PageEngines   Page = "engines"
+	PageScenes    Page = "scenes"
+	PageHistory   Page = "history"
+	PageStats     Page = "stats"
+	PageGeneral   Page = "general"
+	PageAbout     Page = "about"
+)

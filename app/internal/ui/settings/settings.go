@@ -16,75 +16,75 @@ const Width, Height = 1040, 720
 const MinWidth, MinHeight = 860, 600
 
 type Settings struct {
-	core         *core.Core
-	nav          shared.Nav
-	Tab          string
-	source       shared.SourceMenu
-	edit         endpointEdit
-	models       map[string]models.State
-	modelsMoving bool
-	keys         shared.ShortcutRecorder
-	imageKeys    shared.ShortcutRecorder
-	customColors bool
-	navWidth     float32
+	core             *core.Core
+	nav              shared.Nav
+	Tab              shared.Page
+	source           shared.SourceMenu
+	learnAPI         endpointEdit
+	models           map[string]models.State
+	modelsMoving     bool
+	startStopKeys    shared.ShortcutRecorder
+	imageKeys        shared.ShortcutRecorder
+	customColorsOpen bool
+	navWidth         float32
 	enginesEdit
 	sceneEdit
 	historyEdit
-	learn     learnEdit
-	confirm   confirmEdit
-	feedback  feedbackEdit
-	fonts     fontEdit
-	deleting  string
-	statsEdit statsEdit
+	learn                 learnEdit
+	confirm               confirmEdit
+	feedback              feedbackEdit
+	fonts                 fontEdit
+	confirmingDeleteModel string
+	statsEdit             statsEdit
 }
 
 func New(k *core.Core, nav shared.Nav) *Settings {
-	return &Settings{core: k, nav: nav, Tab: "home", models: map[string]models.State{}, enginesEdit: enginesEdit{shown: map[core.Kind]string{}},
-		statsEdit: statsEdit{kind: 1, bar: -1, latBar: -1}}
+	return &Settings{core: k, nav: nav, Tab: shared.PageHome, models: map[string]models.State{}, enginesEdit: enginesEdit{shown: map[core.Kind]string{}},
+		statsEdit: statsEdit{kind: kindTranslation, bar: kit.NoPick, latBar: kit.NoPick}}
 }
 
 func (s *Settings) View(c *ui.Context) {
 	k := s.core
 	top := []kit.NavEntry{
-		{ID: "home", Icon: assets.Home, Label: locales.TabHome()},
-		{ID: "subtitles", Icon: assets.Captions, Label: locales.TabSubtitles()},
-		{ID: "engines", Icon: assets.Languages, Label: locales.TabEngines()},
-		{ID: "scenes", Icon: assets.Book, Label: locales.TabScenes()},
+		{ID: string(shared.PageHome), Icon: assets.Home, Label: locales.TabHome()},
+		{ID: string(shared.PageSubtitles), Icon: assets.Captions, Label: locales.TabSubtitles()},
+		{ID: string(shared.PageEngines), Icon: assets.Languages, Label: locales.TabEngines()},
+		{ID: string(shared.PageScenes), Icon: assets.Book, Label: locales.TabScenes()},
 	}
 	if k.HistoryOn() {
-		top = append(top, kit.NavEntry{ID: "history", Icon: assets.History, Label: locales.TabHistory()})
+		top = append(top, kit.NavEntry{ID: string(shared.PageHistory), Icon: assets.History, Label: locales.TabHistory()})
 	}
-	top = append(top, kit.NavEntry{ID: "stats", Icon: assets.Chart, Label: locales.TabStats()})
+	top = append(top, kit.NavEntry{ID: string(shared.PageStats), Icon: assets.Chart, Label: locales.TabStats()})
 	bottom := []kit.NavEntry{
-		{ID: "general", Icon: assets.Sliders, Label: locales.TabGeneral()},
-		{ID: "about", Icon: assets.Info, Label: locales.TabAbout()},
+		{ID: string(shared.PageGeneral), Icon: assets.Sliders, Label: locales.TabGeneral()},
+		{ID: string(shared.PageAbout), Icon: assets.Info, Label: locales.TabAbout()},
 	}
 	s.navWidth = kit.NavWidth(c, top, bottom)
-	kit.AppFrame(c, &s.Tab, top, bottom, func() {
+	kit.AppFrame(c, (*string)(&s.Tab), top, bottom, func() {
 		switch s.Tab {
-		case "home":
+		case shared.PageHome:
 			s.home(c)
-		case "general":
+		case shared.PageGeneral:
 			s.general(c)
-		case "scenes":
+		case shared.PageScenes:
 			s.scenes(c)
-		case "history":
+		case shared.PageHistory:
 			s.history(c)
-		case "stats":
+		case shared.PageStats:
 			s.stats(c)
-		case "subtitles":
+		case shared.PageSubtitles:
 			s.subtitles(c)
-		case "engines":
+		case shared.PageEngines:
 			s.engines(c)
-		case "about":
+		case shared.PageAbout:
 			s.about(c)
 		}
 		s.confirmDialog(c)
 	})
 }
 
-func (s *Settings) Open(page string) {
-	if page == "scenes" {
+func (s *Settings) Open(page shared.Page) {
+	if page == shared.PageScenes {
 		s.sceneEdit.id = false
 	}
 	s.Tab = page

@@ -261,7 +261,7 @@ func (o *Overlay) sceneMenu(c *ui.Context) {
 		ui.Text(c, shared.LangsOf(pr)).FontSize(13).TextColor(ui.RGBA(255, 255, 255, .62)).SingleLine()
 		ui.Icon(c, assets.Chevron).FontSize(12).TextColor(ui.RGBA(255, 255, 255, .62)).Margin(0, 0, 0, -2)
 	})
-	b.Menu(shared.SceneMenu(k, true, func() { o.nav.ShowSettingsPage("scenes") }))
+	b.Menu(shared.SceneMenu(k, true, func() { o.nav.ShowSettingsPage(shared.PageScenes) }))
 }
 
 const (

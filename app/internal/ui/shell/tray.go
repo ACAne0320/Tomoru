@@ -29,7 +29,7 @@ func (s *Shell) trayMenu() *mygo.Menu {
 			Click: func(*mygo.MenuItem, *mygo.Window) { s.TranslateImage() }},
 		mygo.Separator(),
 		&mygo.MenuItem{Label: locales.OpenTomoru(), Click: func(*mygo.MenuItem, *mygo.Window) { s.ShowSettings() }},
-		&mygo.MenuItem{Label: locales.AboutTomoru(), Click: func(*mygo.MenuItem, *mygo.Window) { s.ShowSettingsPage("about") }},
+		&mygo.MenuItem{Label: locales.AboutTomoru(), Click: func(*mygo.MenuItem, *mygo.Window) { s.ShowSettingsPage(shared.PageAbout) }},
 		mygo.Separator(),
 		&mygo.MenuItem{Label: locales.QuitTomoru(), Accelerator: "CmdOrCtrl+Q", Click: func(*mygo.MenuItem, *mygo.Window) { mygo.App.Quit() }},
 	))

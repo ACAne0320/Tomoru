@@ -60,7 +60,7 @@ func (s *Settings) apiForm(c *ui.Context, d *endpointEdit, close func()) {
 }
 
 func (s *Settings) endpointDialog(c *ui.Context) {
-	k, d := s.core, &s.edit
+	k, d := s.core, &s.learnAPI
 	if !d.open {
 		return
 	}

@@ -126,3 +126,18 @@ func TestDisplay(t *testing.T) {
 		}
 	}
 }
+
+func TestSetStyle(t *testing.T) {
+	p := Default("en")
+	p.Style, p.Edge = StyleBox, EdgeNone
+	p.SetStyle(StyleImmersive)
+	if p.Style != StyleImmersive || p.Edge != EdgeOutline {
+		t.Errorf("immersive with no edge: %v, %v", p.Style, p.Edge)
+	}
+	p.Edge = EdgeShadow
+	p.SetStyle(StyleBox)
+	p.SetStyle(StyleImmersive)
+	if p.Edge != EdgeShadow {
+		t.Errorf("an edge chosen was changed to %v", p.Edge)
+	}
+}

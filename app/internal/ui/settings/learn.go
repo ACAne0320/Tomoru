@@ -56,7 +56,7 @@ func (s *Settings) learnFrom(paths []string, id string) {
 
 func (s *Settings) learnDialog(c *ui.Context) {
 	k, d := s.core, &s.learn
-	if !d.open || s.edit.open {
+	if !d.open || s.learnAPI.open {
 		return
 	}
 	dialog := kit.Dialog(c, &d.open, locales.LearnNames(), "", func() {
@@ -108,7 +108,7 @@ func (s *Settings) learnSetup(c *ui.Context) {
 				d.open = false
 			}
 			if kit.Button(c, kit.Primary, kit.Small, assets.Plus, locales.AddEndpoint()).Clicked() {
-				s.editAPI(&s.edit, prefs.Endpoint{})
+				s.editAPI(&s.learnAPI, prefs.Endpoint{})
 			}
 		})
 		return
