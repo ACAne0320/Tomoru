@@ -24,7 +24,7 @@ type learnEdit struct {
 	took     int
 	tookTo   string
 	done     bool
-	asking   bool
+	discard  kit.DiscardGuard
 }
 
 func (d *learnEdit) unsaved(l core.Learning) bool {
@@ -90,7 +90,7 @@ func (s *Settings) learnDialog(c *ui.Context) {
 			k.CancelRetranslating()
 		}
 	}
-	kit.Guard(dialog, &d.open, &d.asking, unsaved)
+	d.discard.Guard(dialog, &d.open, unsaved)
 	if !d.open {
 		k.ForgetLearning()
 		k.ForgetRetranslating()
@@ -126,7 +126,7 @@ func (s *Settings) learnSetup(c *ui.Context) {
 		return e.Name
 	}
 	kit.SettingRow(c, 0, locales.LearnEndpoint(), "", func() {
-		kit.Picker(c, name(d.endpoint), kit.Choices(d.endpoint, ids, name, func(id string) { d.endpoint = id })).Label(locales.LearnEndpoint())
+		kit.Picker(c, name(d.endpoint), kit.Choices(d.endpoint, [][]string{ids}, name, func(id string) { d.endpoint = id })).Label(locales.LearnEndpoint())
 	})
 	kit.Caption(c, locales.LearnSends(name(d.endpoint)))
 	kit.DialogActions(c, func() {
@@ -200,10 +200,10 @@ func (s *Settings) learnFound(c *ui.Context) {
 		d.target = ""
 	}
 	kit.SettingRow(c, 0, locales.LearnAddTo(), "", func() {
-		kit.Picker(c, name(d.target), kit.Choices(d.target, ids, name, func(id string) { d.target = id })).Label(locales.LearnAddTo())
+		kit.Picker(c, name(d.target), kit.Choices(d.target, [][]string{ids}, name, func(id string) { d.target = id })).Label(locales.LearnAddTo())
 	})
-	if d.asking {
-		kit.Discard(c, &d.open, &d.asking)
+	if d.discard.Asking {
+		d.discard.Actions(c, &d.open)
 		return
 	}
 	some := slices.Contains(d.taken[:len(l.Suggestions)], true)

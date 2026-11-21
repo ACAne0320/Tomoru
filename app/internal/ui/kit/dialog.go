@@ -95,20 +95,31 @@ func confirmActions(c *ui.Context, open, chosen *bool, action string) {
 	})
 }
 
-func Guard(dialog ui.Element, open, asking *bool, changed bool) {
-	if dialog.Dismissed() && (changed || *asking) {
-		*open, *asking = true, !*asking
+type DiscardGuard struct{ Asking bool }
+
+func (g *DiscardGuard) Guard(dialog ui.Element, open *bool, changed bool) {
+	if !dialog.Dismissed() {
+		return
 	}
+	switch {
+	case g.Asking:
+		g.Asking = false
+	case changed:
+		g.Asking = true
+	default:
+		return
+	}
+	*open = true
 }
 
-func Discard(c *ui.Context, open, asking *bool) {
+func (g *DiscardGuard) Actions(c *ui.Context, open *bool) {
 	DialogActions(c, func() {
 		ui.Text(c, locales.AskDiscard()).FontSize(TextControl).FontWeight(WeightBold).TextColor(Colors(c).Ink).Grow(1).MaxLines(2)
 		if Button(c, Plain, Small, nil, locales.KeepEditing()).AutoFocus().Clicked() {
-			*asking = false
+			g.Asking = false
 		}
 		if Button(c, Danger, Small, nil, locales.Discard()).Clicked() {
-			*open, *asking = false, false
+			*open, g.Asking = false, false
 		}
 	})
 }

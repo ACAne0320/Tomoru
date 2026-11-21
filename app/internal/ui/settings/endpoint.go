@@ -17,12 +17,12 @@ import (
 )
 
 type endpointEdit struct {
-	open   bool
-	e      prefs.Endpoint
-	was    prefs.Endpoint
-	key    string
-	test   string
-	asking bool
+	open    bool
+	e       prefs.Endpoint
+	was     prefs.Endpoint
+	key     string
+	test    string
+	discard kit.DiscardGuard
 }
 
 func (s *Settings) next() int {
@@ -71,13 +71,13 @@ func (s *Settings) endpointDialog(c *ui.Context) {
 		if r, ok := k.Tests[d.test]; ok {
 			testResult(c, r)
 		}
-		if d.asking {
-			kit.Discard(c, &d.open, &d.asking)
+		if d.discard.Asking {
+			d.discard.Actions(c, &d.open)
 		} else {
 			kit.DialogActions(c, func() { s.endpointActions(c, d, func() { d.open = false }) })
 		}
 	})
-	kit.Guard(dialog, &d.open, &d.asking, d.changed())
+	d.discard.Guard(dialog, &d.open, d.changed())
 	if !d.open {
 		k.ForgetTest(d.test)
 	}
@@ -110,7 +110,7 @@ func endpointForm(c *ui.Context, d *endpointEdit) {
 				return cmp.Or(f.Name, locales.EndpointFormatChat())
 			}
 			id := formatOf(d.e)
-			kit.Picker(c, name(id), kit.Choices(id, ids, name, func(id string) { d.e.Format = id })).AlignSelf(ui.Start).Label(locales.EndpointFormat())
+			kit.Picker(c, name(id), kit.Choices(id, [][]string{ids}, name, func(id string) { d.e.Format = id })).AlignSelf(ui.Start).Label(locales.EndpointFormat())
 		})
 	})
 }

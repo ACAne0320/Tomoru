@@ -43,6 +43,8 @@ func (s ControlSize) height() float32 {
 	return 32
 }
 
+func (s ControlSize) iconSide() float32 { return s.height() - 2 }
+
 var hover = ui.Animation{Duration: 120 * time.Millisecond}
 
 func face(p *Palette, kind Kind) (rest, hovered, pressed, ink ui.Color) {
@@ -145,7 +147,7 @@ func IconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label 
 }
 
 func TurnedIconButton(c *ui.Context, kind Kind, size ControlSize, icon *ui.SVG, label string, degrees float32) ui.Element {
-	h := size.height() - 2
+	h := size.iconSide()
 	b := ui.ButtonBase(c).Size(h, h).Radius(Pill(h)).Label(label).Tooltip(label).Shrink(0)
 	glyph := float32(IconSizeButton)
 	if size == Small {
@@ -163,7 +165,7 @@ func DeleteButton(c *ui.Context, size ControlSize, label string) ui.Element {
 	return IconButton(c, Destructive(Quiet), size, assets.Trash, label)
 }
 
-const QuietInset = 8
+var QuietInset = (Small.iconSide() - IconSizeSmall) / 2
 
 func CancelButton(c *ui.Context, label string) ui.Element {
 	return IconButton(c, Destructive(Quiet), Small, assets.Close, label)

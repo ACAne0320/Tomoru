@@ -68,13 +68,14 @@ func StatusMark(c *ui.Context, s MarkState, since time.Time, level func(time.Tim
 		}
 		open, glance := float32(1), float32(0)
 		if eyes > 0 && !still {
-			var next time.Duration
-			open, glance, next = look(now.Sub(since))
+			var step lookStep
+			var wait time.Duration
+			open, glance, step, wait = look(now.Sub(since))
 			switch {
-			case next == 0 || eyes < 1:
+			case step == lookMoving || eyes < 1:
 				p.AnimationFrame()
-			case next > 0:
-				p.After(next)
+			case step == lookWaiting:
+				p.After(wait)
 			}
 		}
 		t := float64(now.UnixMilli()%1_000_000) / 1000
@@ -158,7 +159,15 @@ func breath(d time.Duration) float32 {
 	return in * (1 - out)
 }
 
-func look(t time.Duration) (open, glance float32, next time.Duration) {
+type lookStep int
+
+const (
+	lookMoving lookStep = iota
+	lookWaiting
+	lookDone
+)
+
+func look(t time.Duration) (open, glance float32, step lookStep, wait time.Duration) {
 	ms := float32(t.Milliseconds())
 	open = smoothstep((ms - 150) / 300)
 	for _, at := range []float32{1000, 3300, 3520} {
@@ -180,13 +189,13 @@ func look(t time.Duration) (open, glance float32, next time.Duration) {
 	moves := []float32{150, 450, 1000, 1190, 1600, 1820, 2300, 2520, 2900, 3120, 3300, 3710}
 	for i := 0; i < len(moves); i += 2 {
 		if ms >= moves[i] && ms < moves[i+1] {
-			return open, glance, 0
+			return open, glance, lookMoving, 0
 		}
 		if ms < moves[i] {
-			return open, glance, time.Duration(moves[i]-ms) * time.Millisecond
+			return open, glance, lookWaiting, time.Duration(moves[i]-ms) * time.Millisecond
 		}
 	}
-	return open, glance, -1
+	return open, glance, lookDone, 0
 }
 
 func smoothstep(x float32) float32 {

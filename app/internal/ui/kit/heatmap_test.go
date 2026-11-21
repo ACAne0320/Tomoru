@@ -2,7 +2,6 @@ package kit
 
 import (
 	"image"
-	"math"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -13,7 +12,7 @@ func TestHeatmapHover(t *testing.T) {
 	for i := range days {
 		days[i] = HeatDay{Value: float64(1 + i%5), Tip: "day"}
 		if i >= 7*9+2 {
-			days[i].Value = math.NaN()
+			days[i].Future = true
 		}
 	}
 	weeks := make([]string, 10)

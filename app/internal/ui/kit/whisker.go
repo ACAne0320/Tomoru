@@ -1,8 +1,6 @@
 package kit
 
 import (
-	"math"
-
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/chart"
 )
@@ -10,6 +8,7 @@ import (
 type Whisker struct {
 	Label   string
 	Mid, Hi float64
+	Empty   bool
 	Tip     string
 }
 
@@ -19,7 +18,7 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 	var values []float64
 	for i, w := range ws {
 		labels[i] = w.Label
-		if !math.IsNaN(w.Hi) {
+		if !w.Empty {
 			values = append(values, w.Hi)
 		}
 	}
@@ -32,7 +31,7 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 	ticks := y.Ticks(4)
 	unitLast(ticks, format)
 	var under []chart.Tick
-	every := (len(ws) + chartLabels - 1) / chartLabels
+	every := (len(ws) + maxAxisLabels - 1) / maxAxisLabels
 	for i, t := range x.Ticks() {
 		if i%max(every, 1) == 0 {
 			under = append(under, t)
@@ -53,7 +52,7 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 		})
 		chart.Select(c, area, chosen, xs, func(i int) string { return ws[i].Tip })
 		for i, w := range ws {
-			if math.IsNaN(w.Mid) {
+			if w.Empty {
 				continue
 			}
 			dot, line := p.Lantern, p.Amber[3]
@@ -67,7 +66,7 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 		}
 		if i := *chosen; i >= 0 && i < len(ws) {
 			v := ws[i].Hi
-			if math.IsNaN(v) {
+			if ws[i].Empty {
 				v = 0
 			}
 			chart.Anchor(c, xs[i], y.At(v), tipAlign(xs[i]), ui.End, func() {

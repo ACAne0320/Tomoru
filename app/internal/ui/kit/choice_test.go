@@ -8,9 +8,9 @@ import (
 
 func TestChoiceList(t *testing.T) {
 	rows := []Choice{
-		{Key: "a", Head: "On device", Title: "SenseVoice", Use: "Use SenseVoice", On: true, Meta: "Small", Progress: -1},
-		{Key: "b", Title: "Qwen3-ASR", Use: "Use Qwen3-ASR", Off: true, Meta: "2 sizes · not downloaded", Progress: .4},
-		{Key: "c", Head: "Cloud", Title: "OpenAI", Use: "Use OpenAI", Progress: -1},
+		{Key: "a", Head: "On device", Title: "SenseVoice", Use: "Use SenseVoice", On: true, Meta: "Small"},
+		{Key: "b", Title: "Qwen3-ASR", Use: "Use Qwen3-ASR", Off: true, Meta: "2 sizes · not downloaded", Downloading: true, Progress: .4},
+		{Key: "c", Head: "Cloud", Title: "OpenAI", Use: "Use OpenAI"},
 	}
 	shown, used := 0, -1
 	tt := ui.NewTester(func(c *ui.Context) {

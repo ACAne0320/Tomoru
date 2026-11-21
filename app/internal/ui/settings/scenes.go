@@ -52,7 +52,7 @@ func (s *Settings) scenes(c *ui.Context) {
 				if inUse {
 					src, tgt = k.Preferences().Src, k.Preferences().Tgt
 				}
-				items[i] = kit.ListItem{Key: sc.ID, On: sc.ID == e.scene, Title: shared.SceneName(sc),
+				items[i] = kit.ListItem{Key: sc.ID, Shown: sc.ID == e.scene, Title: shared.SceneName(sc),
 					Meta: []string{shared.LangName(src) + " → " + shared.LangName(tgt), locales.TermCount(len(sc.Terms))}}
 				if inUse {
 					items[i].Trail = func() { kit.InUse(c).Label(locales.SceneInUse()) }

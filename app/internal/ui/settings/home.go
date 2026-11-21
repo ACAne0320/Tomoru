@@ -2,7 +2,6 @@ package settings
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -91,8 +90,8 @@ func homeStats(c *ui.Context, s *Settings) {
 func homeActivity(c *ui.Context, s *Settings) {
 	now := time.Now()
 	w, _ := c.Size()
-	from, lines := activityDays(s.core.Usage(), min(max(kit.HeatWeeks(w-s.navWidth-kit.Space(27)), 8), 53), now)
-	weeks := len(lines) / 7
+	weeks := min(max(kit.HeatWeeks(w-s.navWidth-kit.Space(27)), 8), 53)
+	from, lines := activityDays(s.core.Usage(), weeks, now)
 	locale := i18n.Locale()
 	months := i18n.Months(locale, i18n.Abbreviated, true)
 	names := i18n.Weekdays(locale, i18n.Abbreviated, true)
@@ -106,14 +105,17 @@ func homeActivity(c *ui.Context, s *Settings) {
 	if heads[1] == "" && heads[2] == "" {
 		heads[0] = months[from.Month()-1]
 	}
-	days := make([]kit.HeatDay, len(lines))
+	days := make([]kit.HeatDay, 7*weeks)
 	total := 0
-	for i, n := range lines {
-		days[i].Value = n
-		if !math.IsNaN(n) {
-			total += int(n)
-			days[i].Tip = i18n.FormatDate(locale, from.AddDate(0, 0, i), i18n.DateOptions{Skeleton: "yMMMEd"}) + " · " + locales.HistoryLines(int(n))
+	for i := range days {
+		if i >= len(lines) {
+			days[i].Future = true
+			continue
 		}
+		n := lines[i]
+		days[i].Value = n
+		total += int(n)
+		days[i].Tip = i18n.FormatDate(locale, from.AddDate(0, 0, i), i18n.DateOptions{Skeleton: "yMMMEd"}) + " · " + locales.HistoryLines(int(n))
 	}
 	kit.Group(c, locales.StatsActivity(), func() {
 		kit.Caption(c, locales.HistoryLines(total)).SingleLine()
@@ -135,12 +137,7 @@ func monday(t time.Time) time.Time {
 func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lines []float64) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from = monday(now).AddDate(0, 0, -7*(weeks-1))
-	lines = make([]float64, 7*weeks)
-	for i := range lines {
-		if from.AddDate(0, 0, i).After(today) {
-			lines[i] = math.NaN()
-		}
-	}
+	lines = make([]float64, int((today.Sub(from)+12*time.Hour)/(24*time.Hour))+1)
 	for _, d := range l.Days {
 		t, err := time.ParseInLocation(time.DateOnly, d.Day, now.Location())
 		if err != nil || t.Before(from) || t.After(today) {

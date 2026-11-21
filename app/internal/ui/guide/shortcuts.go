@@ -58,7 +58,7 @@ func (g *Guide) shortcutsStage(c *ui.Context) {
 func keycaps(c *ui.Context, acc string, done bool) {
 	pal := kit.Colors(c)
 	held := c.Modifiers()
-	ms := kit.ShortcutMods(acc)
+	caps := kit.ShortcutCaps(acc)
 	demo := !c.Preferences().ReduceMotion && !done && held == 0
 	glow := ui.Animation{Duration: 160 * time.Millisecond}
 	row := ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center)
@@ -67,11 +67,11 @@ func keycaps(c *ui.Context, acc string, done bool) {
 		sweep = 1
 	}
 	sweep = row.AnimateTo("sweep", sweep, ui.Animation{Duration: 900 * time.Millisecond, Ease: ui.EaseInOut})
-	keys := kit.ShortcutKeys(acc)
 	row.Children(func() {
-		for i, key := range keys {
-			lit := done || ms[i] != 0 && held&ms[i] != 0
-			cap := glass(c, ui.Box(c.Key(i)).MinWidth(capWidth(key, ms[i])).Height(54).Padding(0, kit.Space(3)).Center().Clip())
+		for i, kc := range caps {
+			key := kc.Label
+			lit := done || kc.Mod != 0 && held&kc.Mod != 0
+			cap := glass(c, ui.Box(c.Key(i)).MinWidth(capWidth(key, kc.Mod)).Height(54).Padding(0, kit.Space(3)).Center().Clip())
 			down := float32(0)
 			if lit && !done {
 				down = 2
@@ -97,7 +97,7 @@ func keycaps(c *ui.Context, acc string, done bool) {
 			} else {
 				cap.Shadow(0, 3, 0, 0, pal.Shade.Alpha(.35))
 			}
-			k := min(max(sweep*float32(len(keys)+1)-float32(i), 0), 1.5) / 1.5
+			k := min(max(sweep*float32(len(caps)+1)-float32(i), 0), 1.5) / 1.5
 			cap.Background(cap.AnimateColor("face", face, glow)).Border(1.5, cap.AnimateColor("edge", edge, glow)).Children(func() {
 				onStage(c, key, kit.TextTitle, .95).FontWeight(kit.WeightBold)
 				if k > 0 && k < 1 {

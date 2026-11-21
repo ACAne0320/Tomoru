@@ -143,7 +143,7 @@ func (s *Settings) recordItem(c *ui.Context, r history.Record, on bool, at strin
 	if r.Head.App != "" {
 		meta = append(meta, r.Head.App)
 	}
-	return kit.ListItem{Key: r.Path, On: on, Title: s.recordScene(r), Meta: meta, Lead: func() {
+	return kit.ListItem{Key: r.Path, Shown: on, Title: s.recordScene(r), Meta: meta, Lead: func() {
 		ui.Text(c, at).FontSize(kit.TextControl).FontWeight(kit.WeightBold).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(44).Shrink(0)
 	}}
 }

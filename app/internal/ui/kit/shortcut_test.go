@@ -50,12 +50,12 @@ func TestAccelerator(t *testing.T) {
 	}
 }
 
-func TestShortcutMods(t *testing.T) {
-	got := ShortcutMods("Alt+Shift+T")
-	if len(got) != 3 || got[0] != ui.Alt || got[1] != ui.Shift || got[2] != 0 {
+func TestShortcutCaps(t *testing.T) {
+	got := ShortcutCaps("Alt+Shift+T")
+	if len(got) != 3 || got[0].Mod != ui.Alt || got[1].Mod != ui.Shift || got[2] != (ShortcutCap{Label: "T"}) {
 		t.Errorf("Alt+Shift+T: %v", got)
 	}
-	if got := ShortcutMods("F5"); len(got) != 1 || got[0] != 0 {
+	if got := ShortcutCaps("F5"); len(got) != 1 || got[0] != (ShortcutCap{Label: "F5"}) {
 		t.Errorf("F5: %v", got)
 	}
 }

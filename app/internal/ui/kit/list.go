@@ -8,7 +8,7 @@ import (
 
 type ListItem struct {
 	Key   any
-	On    bool
+	Shown bool
 	Head  string
 	Title string
 	Meta  []string
@@ -21,7 +21,7 @@ func List(c *ui.Context, items []ListItem) int {
 	clicked := -1
 	tabs := false
 	for _, t := range items {
-		tabs = tabs || t.On
+		tabs = tabs || t.Shown
 	}
 	list := ui.Column(c)
 	if tabs {
@@ -39,7 +39,7 @@ func List(c *ui.Context, items []ListItem) int {
 					Padding(top, Space(4), Space(1)).MaxLines(1)
 			case i > 0:
 				col := p.LineSoft
-				if t.On || items[i-1].On {
+				if t.Shown || items[i-1].Shown {
 					col = ui.Transparent
 				}
 				ui.Box(c.Key([2]any{"rule", t.Key})).Height(1).Margin(0, Space(4)).Background(col)
@@ -57,7 +57,7 @@ func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 	row := ui.Row(c).Padding(Space(3), Space(4)).Gap(Space(3)).AlignItems(ui.Center).Radius(RadiusTile)
 	face := p.Band.Alpha(0)
 	switch {
-	case t.On:
+	case t.Shown:
 		face = p.Band
 	case row.Hovered():
 		face = p.Paper
@@ -67,7 +67,7 @@ func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 		b = ui.ButtonBase(c).Grow(1).MinWidth(0).Gap(Space(3)).Justify(ui.Start).AlignItems(ui.Center).
 			Label(t.Title).Cursor(ui.CursorPointer)
 		if tab {
-			b = b.Role(ui.RoleTab).Selected(t.On).Background(ui.Transparent)
+			b = b.Role(ui.RoleTab).Selected(t.Shown).Background(ui.Transparent)
 		}
 		b.Children(func() {
 			if t.Lead != nil {

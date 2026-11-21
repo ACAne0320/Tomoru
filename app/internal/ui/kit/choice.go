@@ -3,18 +3,19 @@ package kit
 import "github.com/egoist/mygo/ui"
 
 type Choice struct {
-	Key      any
-	Head     string
-	Shown    bool
-	On       bool
-	Off      bool
-	Use      string
-	Title    string
-	Tag      string
-	Accent   bool
-	Meta     string
-	Warn     bool
-	Progress float64
+	Key         any
+	Head        string
+	Shown       bool
+	On          bool
+	Off         bool
+	Use         string
+	Title       string
+	Tag         string
+	Accent      bool
+	Meta        string
+	Warn        bool
+	Downloading bool
+	Progress    float64
 }
 
 func ChoiceList(c *ui.Context, label string, rows []Choice) (shown, used int) {
@@ -87,7 +88,7 @@ func choiceRow(c *ui.Context, r Choice) (show, use bool) {
 				})
 			}).Clicked()
 		})
-		if r.Progress >= 0 {
+		if r.Downloading {
 			Progress(c, r.Progress).Margin(0, 0, 0, dotSize+optGap)
 		}
 	})

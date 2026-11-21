@@ -100,7 +100,7 @@ func (s *Settings) uiLanguage(c *ui.Context) {
 		}
 		return i18n.Autonym(tag)
 	}
-	kit.Picker(c, name(p.UILang), kit.Choices(p.UILang, options, name, func(tag string) {
+	kit.Picker(c, name(p.UILang), kit.Choices(p.UILang, [][]string{options}, name, func(tag string) {
 		s.core.UpdatePrefs(func(p *prefs.Prefs) { p.UILang = tag })
 		mygo.App.SetLocale(tag)
 	})).Label(locales.UiLanguage())
