@@ -97,19 +97,18 @@ func confirmActions(c *ui.Context, open, chosen *bool, action string) {
 
 type DiscardGuard struct{ Confirming bool }
 
-func (g *DiscardGuard) Guard(dialog ui.Element, open *bool, changed bool) {
-	if !dialog.Dismissed() {
-		return
-	}
-	switch {
-	case g.Confirming:
-		g.Confirming = false
-	case changed:
-		g.Confirming = true
-	default:
-		return
+func StayOpen(dialog ui.Element, open *bool, stay bool) bool {
+	if !dialog.Dismissed() || !stay {
+		return false
 	}
 	*open = true
+	return true
+}
+
+func (g *DiscardGuard) Guard(dialog ui.Element, open *bool, changed bool) {
+	if StayOpen(dialog, open, g.Confirming || changed) {
+		g.Confirming = !g.Confirming
+	}
 }
 
 func (g *DiscardGuard) Actions(c *ui.Context, open *bool) {

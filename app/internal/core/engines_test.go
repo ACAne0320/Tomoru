@@ -22,12 +22,16 @@ import (
 
 type fakeModels struct {
 	ready  map[string]bool
+	state  map[string]models.State
 	dir    string
 	moving models.Move
 	moved  func(error)
 }
 
 func (m *fakeModels) Status(id string) models.Status {
+	if st, ok := m.state[id]; ok {
+		return models.Status{State: st}
+	}
 	if m.ready[id] {
 		return models.Status{State: models.Ready}
 	}

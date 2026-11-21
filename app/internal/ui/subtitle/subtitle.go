@@ -174,6 +174,8 @@ func Sample(p prefs.Prefs, n int64) Entry {
 	return Entry{Key: rollKey(n), Src: samples.In(s, sampleSrc(p)), Lang: sampleSrc(p), Tgt: samples.In(s, p.Tgt)}
 }
 
+func MixedSample(p prefs.Prefs) Entry { return Sample(p, samples.MixedScript) }
+
 func Rolling(p prefs.Prefs, now time.Time) ([]Entry, time.Duration) {
 	every := RollEvery.Milliseconds()
 	n := now.UnixMilli() / every

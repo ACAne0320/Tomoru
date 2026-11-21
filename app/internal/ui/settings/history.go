@@ -22,38 +22,30 @@ import (
 )
 
 type historyEdit struct {
-	scene     string
-	chosen    bool
-	record    string
-	exports   int
-	exportDir string
+	filter     sceneFilter
+	recordPath string
+	exportDir  string
 }
 
-const allScenes = "*"
+type sceneFilter struct {
+	id  string
+	one bool
+}
+
+func (f sceneFilter) keeps(id string) bool { return !f.one || f.id == id }
 
 func (s *Settings) history(c *ui.Context) {
 	k, e := s.core, &s.historyEdit
 	p := kit.Colors(c)
-	if !e.chosen {
-		e.scene, e.chosen = allScenes, true
-	}
-	if _, ok := k.SceneByID(e.scene); !ok {
-		e.scene = allScenes
+	if _, ok := k.SceneByID(e.filter.id); e.filter.one && !ok {
+		e.filter = sceneFilter{}
 	}
 	if k.HistoryStale() {
 		k.LoadHistory()
 	}
-	if n := k.History.Exports; n != e.exports {
-		e.exports = n
-		if err := k.History.ExportErr; err != nil {
-			c.Toast(locales.ExportFailed(err.Error()))
-		} else {
-			c.Toast(locales.Exported())
-		}
-	}
 	var shown []history.Record
 	for _, r := range k.History.Records {
-		if e.scene == allScenes || r.Head.Scene == e.scene {
+		if e.filter.keeps(r.Head.Scene) {
 			shown = append(shown, r)
 		}
 	}
@@ -69,12 +61,13 @@ func (s *Settings) history(c *ui.Context) {
 	if len(k.History.Records) > 0 {
 		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			ui.Row(c).Grow(1).MinWidth(0).Gap(kit.Space(2)).Wrap().Role(ui.RoleGroup).Label(locales.Scene()).Children(func() {
-				if kit.Chip(c.Key(allScenes), locales.AllScenes(), e.scene == allScenes, 0).Clicked() {
-					e.scene = allScenes
+				if kit.Chip(c.Key(sceneFilter{}), locales.AllScenes(), !e.filter.one, 0).Clicked() {
+					e.filter = sceneFilter{}
 				}
 				for _, sc := range k.SceneList() {
-					if kit.Chip(c.Key(sc.ID), shared.SceneName(sc), e.scene == sc.ID, 0).Clicked() {
-						e.scene = sc.ID
+					only := sceneFilter{sc.ID, true}
+					if kit.Chip(c.Key(only), shared.SceneName(sc), e.filter == only, 0).Clicked() {
+						e.filter = only
 					}
 				}
 			})
@@ -97,17 +90,17 @@ func (s *Settings) history(c *ui.Context) {
 		default:
 			kit.Empty(c, kit.ArtHistory, locales.NoHistory(), nil)
 		}
-		e.record = ""
+		e.recordPath = ""
 	} else {
 		at := 0
 		for i, r := range shown {
-			if r.Path == e.record {
+			if r.Path == e.recordPath {
 				at = i
 			}
 		}
-		e.record = shown[at].Path
-		if k.History.Shown != e.record {
-			k.ShowHistory(e.record)
+		e.recordPath = shown[at].Path
+		if k.History.Shown != e.recordPath {
+			k.ShowHistory(e.recordPath)
 		}
 		ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Children(func() {
 			s.records(c, shown)
@@ -125,14 +118,14 @@ func (s *Settings) records(c *ui.Context, shown []history.Record) {
 	items := make([]kit.ListItem, len(shown))
 	last := ""
 	for i, r := range shown {
-		items[i] = s.recordItem(c, r, r.Path == e.record, r.Head.Start.Format("15:04"))
+		items[i] = s.recordItem(c, r, r.Path == e.recordPath, r.Head.Start.Format("15:04"))
 		if d := day(r.Head.Start); d != last {
 			items[i].Head, last = d, d
 		}
 	}
 	kit.OptionsCard(c).Grow(2).Basis(0).MinWidth(0).MaxWidth(320).Children(func() {
 		if i := kit.List(c, items); i >= 0 {
-			e.record = shown[i].Path
+			e.recordPath = shown[i].Path
 		}
 	})
 }
@@ -197,7 +190,7 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 		}
 		if kit.DeleteButton(c, kit.Small, locales.DeleteRecord()).Clicked() {
 			c.ToastAction(locales.DeletedItem(when(r)), locales.Undo(), k.DeleteHistory([]string{r.Path}))
-			e.record = ""
+			e.recordPath = ""
 		}
 	})
 	ui.Column(c).Children(func() {

@@ -19,8 +19,8 @@ type learnEdit struct {
 	paths    []string
 	scene    string
 	endpoint string
-	taken    []bool
-	target   string
+	skipped  map[string]bool
+	target   learnTarget
 	took     int
 	tookTo   string
 	done     bool
@@ -31,7 +31,26 @@ func (d *learnEdit) unsaved(l core.Learning) bool {
 	return !d.done && l.Finished && l.Err != core.ErrNoChatEndpoint && len(l.Suggestions) > 0
 }
 
-const newTarget = "+new"
+type learnTarget struct {
+	scene    string
+	newScene bool
+}
+
+const newSceneChoice = "+new"
+
+func (t learnTarget) choice() string {
+	if t.newScene {
+		return newSceneChoice
+	}
+	return t.scene
+}
+
+func targetOf(choice string) learnTarget {
+	if choice == newSceneChoice {
+		return learnTarget{newScene: true}
+	}
+	return learnTarget{scene: choice}
+}
 
 func (s *Settings) learnFrom(paths []string, id string) {
 	k := s.core
@@ -40,11 +59,7 @@ func (s *Settings) learnFrom(paths []string, id string) {
 	if _, ok := k.SceneByID(id); !ok {
 		id = ""
 	}
-	target := id
-	if id == "" {
-		target = newTarget
-	}
-	e := learnEdit{open: true, paths: slices.Clone(paths), scene: id, target: target}
+	e := learnEdit{open: true, paths: slices.Clone(paths), scene: id, target: learnTarget{scene: id, newScene: id == ""}, skipped: map[string]bool{}}
 	eps := k.ChatEndpoints()
 	if i := slices.IndexFunc(eps, func(e prefs.Endpoint) bool { return e.ID == k.Preferences().Learn }); i >= 0 {
 		e.endpoint = eps[i].ID
@@ -79,18 +94,13 @@ func (s *Settings) learnDialog(c *ui.Context) {
 			s.learnSetup(c)
 		}
 	})
-	unsaved := d.unsaved(k.Learning)
-	if dialog.Dismissed() {
-		switch {
-		case k.Learning.Running:
-			d.open = true
-			k.CancelLearning()
-		case k.Retranslating.Running:
-			d.open = true
-			k.CancelRetranslating()
-		}
+	d.discard.Guard(dialog, &d.open, d.unsaved(k.Learning))
+	switch {
+	case kit.StayOpen(dialog, &d.open, k.Learning.Running):
+		k.CancelLearning()
+	case kit.StayOpen(dialog, &d.open, k.Retranslating.Running):
+		k.CancelRetranslating()
 	}
-	d.discard.Guard(dialog, &d.open, unsaved)
 	if !d.open {
 		k.ForgetLearning()
 		k.ForgetRetranslating()
@@ -109,12 +119,13 @@ func (s *Settings) learnSetup(c *ui.Context) {
 			}
 			if kit.Button(c, kit.Primary, kit.Small, assets.Plus, locales.AddEndpoint()).Clicked() {
 				s.editAPI(&s.learnAPI, prefs.Endpoint{})
+				s.learnAPI.saved = func(id string) { d.endpoint = id }
 			}
 		})
 		return
 	}
 	if !slices.ContainsFunc(eps, func(e prefs.Endpoint) bool { return e.ID == d.endpoint }) {
-		d.endpoint = eps[len(eps)-1].ID
+		d.endpoint = eps[0].ID
 	}
 	ids := make([]string, len(eps))
 	for i, e := range eps {
@@ -159,9 +170,6 @@ func (s *Settings) learnFound(c *ui.Context) {
 		})
 		return
 	}
-	for len(d.taken) < len(l.Suggestions) {
-		d.taken = append(d.taken, true)
-	}
 	ui.Scroll(c).MaxHeight(320).Children(func() {
 		ui.Column(c).Radius(kit.RadiusField).Border(1, p.Line).Clip().Children(func() {
 			for i, sg := range l.Suggestions {
@@ -170,7 +178,10 @@ func (s *Settings) learnFound(c *ui.Context) {
 					col = col.BorderWidth(1, 0, 0).BorderColor(p.LineSoft)
 				}
 				col.Children(func() {
-					ui.Checkbox(c, &d.taken[i], sg.Src+" → "+sg.Tgt).FontWeight(kit.WeightBold)
+					take := !d.skipped[sg.Src]
+					if ui.Checkbox(c, &take, sg.Src+" → "+sg.Tgt).FontWeight(kit.WeightBold).Changed() {
+						d.skipped[sg.Src] = !take
+					}
 					ui.Column(c).Padding(0, 0, 0, kit.Space(6)).Gap(kit.Space(1)).Children(func() {
 						var more []string
 						if len(sg.Heard) > 0 {
@@ -188,36 +199,40 @@ func (s *Settings) learnFound(c *ui.Context) {
 	for _, sc := range k.SceneList() {
 		ids = append(ids, sc.ID)
 	}
-	ids = append(ids, newTarget)
+	ids = append(ids, newSceneChoice)
 	name := func(id string) string {
-		if id == newTarget {
+		if id == newSceneChoice {
 			return locales.NewScene()
 		}
 		sc, _ := k.SceneByID(id)
 		return shared.SceneName(*sc)
 	}
-	if _, ok := k.SceneByID(d.target); !ok && d.target != newTarget {
-		d.target = ""
+	if _, ok := k.SceneByID(d.target.scene); !ok && !d.target.newScene {
+		d.target = learnTarget{}
 	}
 	kit.SettingRow(c, 0, locales.LearnAddTo(), "", func() {
-		kit.Picker(c, name(d.target), kit.Choices(d.target, [][]string{ids}, name, func(id string) { d.target = id })).Label(locales.LearnAddTo())
+		kit.Picker(c, name(d.target.choice()), kit.Choices(d.target.choice(), [][]string{ids}, name, func(id string) { d.target = targetOf(id) })).Label(locales.LearnAddTo())
 	})
 	if d.discard.Confirming {
 		d.discard.Actions(c, &d.open)
 		return
 	}
-	some := slices.Contains(d.taken[:len(l.Suggestions)], true)
+	taken := make([]bool, len(l.Suggestions))
+	for i, sg := range l.Suggestions {
+		taken[i] = !d.skipped[sg.Src]
+	}
+	some := slices.Contains(taken, true)
 	kit.DialogActions(c, func() {
 		ui.Spacer(c)
 		if kit.Button(c, kit.Plain, kit.Small, nil, locales.Cancel()).Clicked() {
 			d.open = false
 		}
 		if kit.Off(c, kit.Button(c, kit.Primary, kit.Small, nil, locales.AddTerm()), !some).Clicked() {
-			id := d.target
-			if id == newTarget {
+			id := d.target.scene
+			if d.target.newScene {
 				id = k.AddScene("")
 			}
-			n, undo := k.TakeLearned(id, d.taken)
+			n, undo := k.TakeLearned(id, taken)
 			sc, _ := k.SceneByID(id)
 			d.took, d.tookTo, d.done = n, id, true
 			c.ToastAction(locales.LearnTook(n, shared.SceneName(*sc)), locales.Undo(), undo)

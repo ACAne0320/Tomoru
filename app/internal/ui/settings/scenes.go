@@ -7,7 +7,6 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"tomoru/internal/lang"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
@@ -16,30 +15,43 @@ import (
 )
 
 type sceneEdit struct {
-	id                 bool
-	scene              string
-	adding             bool
-	src, tgt           string
-	heard              string
-	heardAt, heardText string
+	scene      string
+	adding     bool
+	src, tgt   string
+	heard      string
+	heardDraft heardDraft
+}
+
+type heardDraft struct {
+	cell, text string
+}
+
+func (d *heardDraft) value(cell, saved string) *string {
+	if d.cell == cell {
+		return &d.text
+	}
+	return &saved
+}
+
+func (d *heardDraft) focus(cell string, focused bool, text string) {
+	switch {
+	case focused && d.cell != cell:
+		*d = heardDraft{cell, text}
+	case !focused && d.cell == cell:
+		*d = heardDraft{}
+	}
 }
 
 func (s *Settings) scenes(c *ui.Context) {
 	k, e := s.core, &s.sceneEdit
-	var then func()
-	defer func() {
-		if then != nil {
-			then()
-		}
-	}()
-	if _, ok := k.SceneByID(e.scene); !ok || !e.id {
-		e.scene, e.id = k.Preferences().Scene, true
+	if _, ok := k.SceneByID(e.scene); !ok {
+		e.scene = k.Preferences().Scene
 	}
 	p := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, locales.TabScenes()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
 		if kit.Button(c, kit.Plain, kit.Medium, assets.Plus, locales.NewScene()).Clicked() {
-			then = func() { e.scene, e.adding = k.AddScene(""), false }
+			s.afterFrame(func() { e.scene, e.adding = k.AddScene(""), false })
 		}
 	})
 	ui.Row(c).Gap(kit.CardGap).AlignItems(ui.Stretch).Children(func() {
@@ -47,11 +59,8 @@ func (s *Settings) scenes(c *ui.Context) {
 			list := k.SceneList()
 			items := make([]kit.ListItem, len(list))
 			for i, sc := range list {
-				src, tgt := sc.Src, sc.Tgt
+				src, tgt := k.SceneLangs(sc.ID)
 				inUse := sc.ID == k.Preferences().Scene
-				if inUse {
-					src, tgt = k.Preferences().Src, k.Preferences().Tgt
-				}
 				items[i] = kit.ListItem{Key: sc.ID, Shown: sc.ID == e.scene, Title: shared.SceneName(sc),
 					Meta: []string{shared.LangName(src) + " → " + shared.LangName(tgt), locales.TermCount(len(sc.Terms))}}
 				if inUse {
@@ -64,7 +73,7 @@ func (s *Settings) scenes(c *ui.Context) {
 			}
 			kit.OptionsCard(c).Grow(grow).Children(func() {
 				if i := kit.List(c, items); i >= 0 && list[i].ID != e.scene {
-					e.scene, e.adding, e.heardAt = list[i].ID, false, ""
+					e.scene, e.adding, e.heardDraft = list[i].ID, false, heardDraft{}
 				}
 			})
 			if len(list) == 1 {
@@ -73,16 +82,14 @@ func (s *Settings) scenes(c *ui.Context) {
 		})
 		sc, _ := k.SceneByID(e.scene)
 		kit.Card(c).Grow(2).Basis(0).MinWidth(0).Gap(kit.Space(4)).Children(func() {
-			if f := s.sceneDetail(c, sc); f != nil {
-				then = f
-			}
+			s.sceneDetail(c, sc)
 		})
 	})
 	s.learnDialog(c)
 	s.endpointDialog(c)
 }
 
-func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
+func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) {
 	k, e := s.core, &s.sceneEdit
 	p := kit.Colors(c)
 	id, inUse := sc.ID, sc.ID == k.Preferences().Scene
@@ -119,26 +126,18 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 			kit.IconButton(c, kit.Plain, kit.Small, assets.More, locales.MoreActions()).Menu(func(m *ui.Menu) {
 				if m.Item(locales.DeleteScene()).Chosen() {
 					name := shared.SceneName(*sc)
-					then = func() {
+					s.afterFrame(func() {
 						c.ToastAction(locales.DeletedItem(name), locales.Undo(), k.DeleteScene(id))
 						e.scene, e.adding = k.Preferences().Scene, false
-					}
+					})
 				}
 			})
 		}
 	})
 	section(c, locales.SceneLangs(), nil, func() {
-		src, tgt := sc.Src, sc.Tgt
-		setSrc := func(l string) {
-			k.UpdateScene(id, func(current *scene.Scene) { lang.Choose(&current.Src, &current.Tgt, l) })
-		}
-		setTgt := func(l string) {
-			k.UpdateScene(id, func(current *scene.Scene) { lang.Choose(&current.Tgt, &current.Src, l) })
-		}
-		if inUse {
-			current := k.Preferences()
-			src, tgt, setSrc, setTgt = current.Src, current.Tgt, k.SetSrc, k.SetTgt
-		}
+		src, tgt := k.SceneLangs(id)
+		setSrc := func(l string) { k.SetSceneSrc(id, l) }
+		setTgt := func(l string) { k.SetSceneTgt(id, l) }
 		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SourceLangs()), shared.LangName, setSrc)).Label(locales.SpokenLanguage()).Shrink(1)
 		ui.Icon(c, assets.Arrow).FontSize(kit.TextBody).TextColor(p.InkWarm)
 		kit.Picker(c, shared.LangName(tgt), kit.Choices(tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, setTgt)).Label(locales.TranslateInto()).Shrink(1)
@@ -150,10 +149,7 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) (then func()) {
 			kit.Caption(c, locales.SceneAboutHint())
 		})
 	}
-	if f := s.glossary(c, sc); f != nil {
-		then = f
-	}
-	return then
+	s.glossary(c, sc)
 }
 
 func section(c *ui.Context, label string, after, end func()) {
@@ -169,7 +165,7 @@ func section(c *ui.Context, label string, after, end func()) {
 	})
 }
 
-func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
+func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) {
 	k, e := s.core, &s.sceneEdit
 	p := kit.Colors(c)
 	id := sc.ID
@@ -196,7 +192,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 		} else {
 			kit.Empty(c, art, text, nil)
 		}
-		return then
+		return
 	}
 	general := id == ""
 	cells := func(src, tgt, heard func(), action func()) {
@@ -240,10 +236,10 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 					ok := strings.TrimSpace(e.src) != "" && strings.TrimSpace(e.tgt) != ""
 					if (kit.Off(c, kit.IconButton(c, kit.Plain, kit.Small, assets.Check, locales.AddTerm()), !ok).Clicked() || submitted) && ok {
 						t := scene.Term{Src: e.src, Tgt: e.tgt, Heard: splitHeard(e.heard)}
-						then = func() {
+						s.afterFrame(func() {
 							k.AddTerm(id, t)
 							e.src, e.tgt, e.heard, e.adding = "", "", "", false
-						}
+						})
 					}
 				})
 			})
@@ -266,35 +262,25 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 				}, func() {
 					if kit.DeleteButton(c.Key(key+"del"), kit.Small, locales.Delete()).Clicked() {
 						name := term.Src
-						then = func() {
+						s.afterFrame(func() {
 							c.ToastAction(locales.DeletedItem(name), locales.Undo(), k.DeleteTerm(id, i))
-							e.heardAt = ""
-						}
+							e.heardDraft = heardDraft{}
+						})
 					}
 				})
 			})
 		}
 	})
-	return then
 }
 
 func (s *Settings) heardCell(c *ui.Context, key string, term *scene.Term) {
-	e := &s.sceneEdit
-	text := strings.Join(term.Heard, locales.TermHeardSep())
-	v := &text
-	if e.heardAt == key {
-		v = &e.heardText
-	}
+	d := &s.sceneEdit.heardDraft
+	v := d.value(key, strings.Join(term.Heard, locales.TermHeardSep()))
 	in := kit.CellInput(c.Key(key+"heard"), v).Label(locales.TermHeard()).FontSize(kit.TextControl).TextColor(kit.Colors(c).InkMuted)
 	if in.Changed() {
 		term.Heard = splitHeard(*v)
 	}
-	switch focused := in.Focused(); {
-	case focused && e.heardAt != key:
-		e.heardAt, e.heardText = key, *v
-	case !focused && e.heardAt == key:
-		e.heardAt = ""
-	}
+	d.focus(key, in.Focused(), *v)
 }
 
 func splitHeard(s string) []string {

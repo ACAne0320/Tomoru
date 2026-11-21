@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"tomoru/internal/asr"
+	"tomoru/internal/lang"
 	"tomoru/internal/scene"
 )
 
@@ -102,3 +103,29 @@ func (c *Core) DeleteTerm(id string, i int) func() {
 }
 
 func (c *Core) useGlossary() { c.SceneService.activate(c.Prefs.Scene) }
+
+func (c *Core) SceneLangs(id string) (src, tgt string) {
+	if id == c.Prefs.Scene {
+		return c.Prefs.Src, c.Prefs.Tgt
+	}
+	if sc, ok := c.sceneByID(id); ok {
+		return sc.Src, sc.Tgt
+	}
+	return "", ""
+}
+
+func (c *Core) SetSceneSrc(id, l string) {
+	if id == c.Prefs.Scene {
+		c.SetSrc(l)
+		return
+	}
+	c.UpdateScene(id, func(sc *scene.Scene) { lang.Choose(&sc.Src, &sc.Tgt, l) })
+}
+
+func (c *Core) SetSceneTgt(id, l string) {
+	if id == c.Prefs.Scene {
+		c.SetTgt(l)
+		return
+	}
+	c.UpdateScene(id, func(sc *scene.Scene) { lang.Choose(&sc.Tgt, &sc.Src, l) })
+}

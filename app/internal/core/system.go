@@ -73,7 +73,7 @@ func (c *Core) setAccess(evs []engine.Event) {
 }
 
 func (c *Core) ListApps() {
-	if time.Since(c.listedAt) < ListEvery {
+	if time.Since(c.listedAt) < RefreshEvery {
 		return
 	}
 	c.listedAt = time.Now()
@@ -91,7 +91,7 @@ func (c *Core) ListApps() {
 	}, "apps")
 }
 
-const ListEvery = 3 * time.Second
+const RefreshEvery = 3 * time.Second
 
 func (c *Core) SetOpenAtLogin(on bool) {
 	if c.deps.Login == nil {

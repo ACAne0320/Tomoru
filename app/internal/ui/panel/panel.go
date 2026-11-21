@@ -118,7 +118,7 @@ func (p *Panel) body(c *ui.Context) {
 			kit.Off(c, kit.PickerField(c, shared.LangName(k.Preferences().Tgt), kit.Choices(k.Preferences().Tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, k.SetTgt)).Label(locales.TranslateInto()).Grow(1).Basis(0), off)
 		})
 		k.ListApps()
-		c.After(core.ListEvery)
+		c.After(core.RefreshEvery)
 		kit.MenuRow(c, 1, func() {
 			if k.Running && k.State.Phase == "listening" {
 				kit.MenuLevels(c, k.State.Voice)

@@ -160,7 +160,7 @@ func TestInactiveSceneLanguageMenuPersists(t *testing.T) {
 	id := k.AddScene("Review")
 	original := k.Preferences().Src
 	s := New(k, &coretest.Nav{})
-	s.Tab, s.sceneEdit.scene, s.sceneEdit.id = "scenes", id, true
+	s.Tab, s.sceneEdit.scene = "scenes", id
 	tt := ui.NewTester(s.View, Width, 1400)
 	if err := tt.Click(locales.SpokenLanguage()); err != nil {
 		t.Fatal(err)

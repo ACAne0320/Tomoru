@@ -41,7 +41,7 @@ func (g *Guide) picture(c *ui.Context) {
 		g.nav.Focus()
 	}
 	k.CheckScreen()
-	c.After(core.ListEvery)
+	c.After(core.RefreshEvery)
 	if k.CanSelect() {
 		g.pictureTry(c)
 		return

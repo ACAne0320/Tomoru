@@ -14,10 +14,10 @@ import (
 )
 
 type fontEdit struct {
-	open            bool
-	query, scrolled string
-	families        []string
-	list            ui.ListState
+	open     bool
+	query    string
+	families []string
+	list     ui.ListState
 }
 
 func subtitleFont(font prefs.Font) prefs.Font {
@@ -67,7 +67,7 @@ func (s *Settings) fontDialog(c *ui.Context) {
 	}
 	p := kit.Colors(c)
 	pr := s.core.Preferences()
-	line := subtitle.Sample(pr, 8)
+	line := subtitle.MixedSample(pr)
 	sample, lang := line.Src, line.Lang
 	if pr.Display == prefs.DisplayTgt || pr.Display == prefs.DisplayBoth && pr.TgtFirst {
 		sample, lang = line.Tgt, pr.Tgt
@@ -79,12 +79,10 @@ func (s *Settings) fontDialog(c *ui.Context) {
 			shown = append(shown, f)
 		}
 	}
-	if d.query != d.scrolled {
-		d.scrolled = d.query
-		d.list.ScrollTo(0, ui.Start)
-	}
 	kit.Dialog(c, &d.open, locales.FontLabel(), "", func() {
-		kit.TextField(c, &d.query).Placeholder(locales.FontSearch()).Label(locales.FontSearch()).AutoFocus().Shrink(0)
+		if kit.TextField(c, &d.query).Placeholder(locales.FontSearch()).Label(locales.FontSearch()).AutoFocus().Shrink(0).Changed() {
+			d.list.ScrollTo(0, ui.Start)
+		}
 		d.list.Key = func(i int) any { return shown[i] }
 		d.list.Label = func(i int) string { return shown[i] }
 		ui.List(c, &d.list, len(shown), func(i int) {

@@ -4,7 +4,6 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
-	"tomoru/internal/models"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
@@ -21,8 +20,6 @@ type Settings struct {
 	Tab              shared.Page
 	source           shared.SourceMenu
 	learnAPI         endpointEdit
-	models           map[string]models.State
-	modelsMoving     bool
 	startStopKeys    shared.ShortcutRecorder
 	imageKeys        shared.ShortcutRecorder
 	customColorsOpen bool
@@ -36,15 +33,19 @@ type Settings struct {
 	fonts                 fontEdit
 	confirmingDeleteModel string
 	statsEdit             statsEdit
+	later                 []func()
 }
 
 func New(k *core.Core, nav shared.Nav) *Settings {
-	return &Settings{core: k, nav: nav, Tab: shared.PageHome, models: map[string]models.State{}, enginesEdit: enginesEdit{shown: map[core.Kind]string{}},
+	k.TakeFinished()
+	return &Settings{core: k, nav: nav, Tab: shared.PageHome, enginesEdit: enginesEdit{shown: map[core.Kind]string{}}, sceneEdit: sceneEdit{scene: k.Preferences().Scene},
 		statsEdit: statsEdit{kind: kindTranslation, bar: kit.NoPick, latBar: kit.NoPick}}
 }
 
 func (s *Settings) View(c *ui.Context) {
 	k := s.core
+	defer s.runLater()
+	s.toastFinished(c)
 	top := []kit.NavEntry{
 		{ID: string(shared.PageHome), Icon: assets.Home, Label: locales.TabHome()},
 		{ID: string(shared.PageSubtitles), Icon: assets.Captions, Label: locales.TabSubtitles()},
@@ -85,7 +86,47 @@ func (s *Settings) View(c *ui.Context) {
 
 func (s *Settings) Open(page shared.Page) {
 	if page == shared.PageScenes {
-		s.sceneEdit.id = false
+		s.sceneEdit.scene = s.core.Preferences().Scene
 	}
 	s.Tab = page
+}
+
+func (s *Settings) toastFinished(c *ui.Context) {
+	k := s.core
+	for _, f := range k.TakeFinished() {
+		switch f.What {
+		case core.ModelReady:
+			e, ok := k.Engine(f.Kind, f.ID)
+			if !ok {
+				continue
+			}
+			name, kind, id := shared.EngineName(e), f.Kind, f.ID
+			switch {
+			case k.InUse(kind) == id:
+				c.Toast(locales.ModelReadyInUse(name))
+			case k.Usable(e):
+				c.ToastAction(locales.ModelDownloaded(name), locales.Use(), func() { k.Use(kind, id) })
+			default:
+				c.Toast(locales.ModelDownloaded(name))
+			}
+		case core.ModelsMoved:
+			c.Toast(locales.ModelsMoved())
+		case core.HistoryExported:
+			if f.Err != nil {
+				c.Toast(locales.ExportFailed(f.Err.Error()))
+			} else {
+				c.Toast(locales.Exported())
+			}
+		}
+	}
+}
+
+func (s *Settings) afterFrame(fn func()) { s.later = append(s.later, fn) }
+
+func (s *Settings) runLater() {
+	for len(s.later) > 0 {
+		fn := s.later[0]
+		s.later = s.later[1:]
+		fn()
+	}
 }

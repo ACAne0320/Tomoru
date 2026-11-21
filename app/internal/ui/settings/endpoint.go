@@ -23,6 +23,7 @@ type endpointEdit struct {
 	key     string
 	test    string
 	discard kit.DiscardGuard
+	saved   func(id string)
 }
 
 func (s *Settings) editAPI(d *endpointEdit, e prefs.Endpoint) {
@@ -176,6 +177,9 @@ func (s *Settings) endpointActions(c *ui.Context, d *endpointEdit, close func())
 		d.e.Name, d.e.URL, d.e.Model = strings.TrimSpace(d.e.Name), strings.TrimSpace(d.e.URL), strings.TrimSpace(d.e.Model)
 		id := k.SaveEndpoint(d.e, d.key)
 		c.Toast(locales.EndpointSaved(d.e.Name))
+		if d.saved != nil {
+			d.saved(id)
+		}
 		close()
 		s.shown[core.MT] = prefs.EndpointEngine(id)
 	}

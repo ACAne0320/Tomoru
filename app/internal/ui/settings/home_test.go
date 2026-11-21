@@ -13,6 +13,7 @@ import (
 	"tomoru/internal/core/coretest"
 	"tomoru/internal/history"
 	"tomoru/internal/live"
+	"tomoru/internal/prefs"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
@@ -121,13 +122,13 @@ func TestAppearance(t *testing.T) {
 	if err := tt.Click(locales.AppearanceDark()); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.Appearance != "dark" {
+	if k.Prefs.Appearance != prefs.AppearanceDark {
 		t.Errorf("appearance %q", k.Prefs.Appearance)
 	}
 	if err := tt.Click(locales.AppearanceSystem()); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.Appearance != "" {
+	if k.Prefs.Appearance != prefs.AppearanceSystem {
 		t.Errorf("appearance %q, following the system", k.Prefs.Appearance)
 	}
 }

@@ -114,6 +114,7 @@ type Core struct {
 	screenCheckedAt time.Time
 
 	*HistoryService
+	finished finishedLog
 
 	work     *tasks
 	closed   bool
@@ -166,7 +167,7 @@ func New(p prefs.Prefs, d Deps) *Core {
 	if d.ImageCloud != nil {
 		c.EngineService.imageCloud = d.ImageCloud
 	}
-	c.HistoryService = &HistoryService{work: c.work, changed: c.changed}
+	c.HistoryService = &HistoryService{work: c.work, changed: c.changed, finished: &c.finished}
 	c.ImageService = &ImageService{work: c.work, endpoint: d.ImageEndpoint, selectPicture: d.Select, changed: c.changed, translated: c.imageTranslated, release: c.releaseServer}
 	c.LearningService = &LearningService{work: c.work, changed: c.changed, rewritten: func() {
 		c.histChanged()
@@ -211,6 +212,7 @@ func (c *Core) Network() (online, metered bool) {
 
 func (c *Core) Changed() {
 	c.usePending()
+	c.noteFinished()
 	c.changed()
 }
 
@@ -255,7 +257,7 @@ func (c *Core) useProxy() {
 
 func (c *Core) RefreshSystemProxy() {
 	ask := c.deps.SystemProxy
-	if ask == nil || !c.proxyAsked.IsZero() && c.now().Sub(c.proxyAsked) < 3*time.Second {
+	if ask == nil || !c.proxyAsked.IsZero() && c.now().Sub(c.proxyAsked) < RefreshEvery {
 		return
 	}
 	c.proxyAsked = c.now()

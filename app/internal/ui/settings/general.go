@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"time"
+	"slices"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/i18n"
@@ -15,8 +15,6 @@ import (
 	"tomoru/locales"
 )
 
-var appearances = []string{"", "light", "dark"}
-
 func (s *Settings) general(c *ui.Context) {
 	k := s.core
 	before := k.Preferences()
@@ -28,14 +26,9 @@ func (s *Settings) general(c *ui.Context) {
 	kit.Groups(c, func() {
 		kit.Group(c, locales.PrefsLook(), nil, kit.RowsCard, func() {
 			kit.SettingRow(c, 0, locales.Appearance(), "", func() {
-				at := 0
-				for i, a := range appearances {
-					if a == draft.Appearance {
-						at = i
-					}
-				}
+				at := max(0, slices.Index(prefs.Appearances, draft.Appearance))
 				if kit.Segmented(c, &at, locales.AppearanceSystem(), locales.AppearanceLight(), locales.AppearanceDark()).Label(locales.Appearance()).Changed() {
-					draft.Appearance = appearances[at]
+					draft.Appearance = prefs.Appearances[at]
 					s.nav.SetAppearance(draft.Appearance)
 				}
 			})
@@ -67,7 +60,7 @@ func (s *Settings) general(c *ui.Context) {
 func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 	k := s.core
 	k.RefreshSystemProxy()
-	c.After(3 * time.Second)
+	c.After(core.RefreshEvery)
 	kit.Group(c, locales.PrefsNetwork(), nil, kit.RowsCard, func() {
 		kit.SettingRow(c, 0, locales.UseProxy(), locales.UseProxyDesc(), func() {
 			on := !draft.NoProxy
