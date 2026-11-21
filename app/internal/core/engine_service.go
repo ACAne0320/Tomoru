@@ -216,7 +216,7 @@ func (s *EngineService) translator(id string, endpoints []prefs.Endpoint, apis [
 		}, true, nil
 	}
 	stop := func() { s.freeServer(keepServer) }
-	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
+	if eid, ok := prefs.EndpointOf(id); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
 				return func(context.Context) (translate.Translator, error) { stop(); return s.endpoint(e, ""), nil }, false, nil
@@ -278,7 +278,7 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 			return e, nil
 		}, id
 	}
-	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
+	if eid, ok := prefs.EndpointOf(id); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
 				if !readsPictures(id, endpoints) {

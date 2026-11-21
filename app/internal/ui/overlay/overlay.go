@@ -311,7 +311,7 @@ func hoverShade(p prefs.Prefs) ui.Color {
 	if hasGlass() {
 		shade = .65
 	}
-	if p.Style == 1 {
+	if p.Style == prefs.StyleImmersive {
 		return ui.RGBA(10, 10, 14, .42*shade)
 	}
 	return ui.RGBA(0, 0, 0, max(.42, float32(p.BoxOpacity)/100)*shade)

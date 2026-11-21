@@ -62,10 +62,10 @@ func TestSystemFont(t *testing.T) {
 	if err := tt.Click(family); err != nil {
 		t.Fatalf("%s not listed: %q", family, tt.Texts())
 	}
-	if got := k.Preferences().Font; got != family {
+	if got := k.Preferences().Font; string(got) != family {
 		t.Fatalf("font %q, want %q", got, family)
 	}
-	if saved, _ := prefs.Load(path, "en"); saved.Font != family {
+	if saved, _ := prefs.Load(path, "en"); string(saved.Font) != family {
 		t.Fatalf("saved font %q", saved.Font)
 	}
 	if tt.HasText(locales.FontSearch()) {
@@ -100,7 +100,7 @@ func TestFontSampleLang(t *testing.T) {
 	s.Tab = "subtitles"
 	tt := ui.NewTester(s.View, Width, 1400)
 	for _, c := range []struct {
-		display  int
+		display  prefs.Display
 		tgtFirst bool
 		src      bool
 	}{{prefs.DisplayBoth, false, true}, {prefs.DisplayBoth, true, false}, {prefs.DisplayTgt, false, false}, {prefs.DisplaySrc, true, true}} {

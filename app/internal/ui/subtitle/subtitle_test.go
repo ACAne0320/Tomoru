@@ -224,7 +224,7 @@ func TestOpacity(t *testing.T) {
 func TestBalance(t *testing.T) {
 	const zh = "既然你已经决定独自去北方的雪原找她，那就带上这把剑吧，它一定会保护你的。"
 	width := float32(.62*1512 - 24)
-	draw := func(style int, e Entry) (lines [2]int, r ui.Rect, img *image.RGBA) {
+	draw := func(style prefs.Style, e Entry) (lines [2]int, r ui.Rect, img *image.RGBA) {
 		p := prefs.Default("zh-Hans")
 		p.Style = style
 		e.Key, e.Src = 1, "Take this sword."
@@ -249,7 +249,7 @@ func TestBalance(t *testing.T) {
 	}
 	similar := func(l [2]int) bool { return min(l[0], l[1])*10 >= max(l[0], l[1])*8 }
 
-	for _, style := range []int{1, 0} {
+	for _, style := range []prefs.Style{prefs.StyleImmersive, prefs.StyleBox} {
 		l, r, img := draw(style, Entry{Tgt: zh})
 		if !similar(l) {
 			t.Errorf("style %d: lines %v wide, want about the same", style, l)

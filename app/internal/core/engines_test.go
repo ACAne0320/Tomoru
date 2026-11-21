@@ -156,7 +156,7 @@ func TestEndpoints(t *testing.T) {
 		t.Errorf("test %+v, auth %q, path %q", r, auth, model)
 	}
 
-	c.SetEngine(prefs.CustomPrefix + id)
+	c.SetEngine(prefs.EndpointEngine(id))
 	c.Start()
 	f.flush(t, 1)
 	if ep := f.sessions[0].cfg.Translator.(*translate.Endpoint); ep.APIKey != "sk-1" || ep.Format != translate.Chat || ep.Llama {
@@ -164,7 +164,7 @@ func TestEndpoints(t *testing.T) {
 	}
 
 	undo := c.DeleteEndpoint(id)
-	if c.Prefs.MT != prefs.CustomPrefix+id || len(c.Prefs.Endpoints) != 0 || sec[keyName(id)] != nil {
+	if c.Prefs.MT != prefs.EndpointEngine(id) || len(c.Prefs.Endpoints) != 0 || sec[keyName(id)] != nil {
 		t.Errorf("after delete: engine %q, endpoints %v, key %q", c.Prefs.MT, c.Prefs.Endpoints, sec[keyName(id)])
 	}
 	if c.Running || !errors.Is(c.Err, ErrNoEndpoint) || len(f.sessions) != 1 {
@@ -173,7 +173,7 @@ func TestEndpoints(t *testing.T) {
 
 	undo()
 	f.flush(t, 1)
-	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.MT != prefs.CustomPrefix+id || string(sec[keyName(id)]) != "sk-1" {
+	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.MT != prefs.EndpointEngine(id) || string(sec[keyName(id)]) != "sk-1" {
 		t.Errorf("after undo: engine %q, endpoints %v, key %q", c.Prefs.MT, c.Prefs.Endpoints, sec[keyName(id)])
 	}
 	if !c.Running || len(f.sessions) != 2 {
@@ -225,10 +225,10 @@ func TestChoosePending(t *testing.T) {
 
 func TestRecognitionModel(t *testing.T) {
 	c, f, m, _, _ := engineCore(t)
-	c.Prefs.ASR = prefs.DefaultASR()
+	c.Prefs.ASR = prefs.SystemASR()
 	c.deps.ASRPath = func() (string, error) { return "/asr", nil }
 	c.Choose(ASR, "sensevoice-small")
-	if c.Prefs.ASR != prefs.DefaultASR() || c.Chosen(ASR) != "sensevoice-small" {
+	if c.Prefs.ASR != prefs.SystemASR() || c.Chosen(ASR) != "sensevoice-small" {
 		t.Fatalf("in use %q, chosen %q", c.Prefs.ASR, c.Chosen(ASR))
 	}
 	c.Download("sensevoice-small")
@@ -248,7 +248,7 @@ func TestRecognitionModel(t *testing.T) {
 	} else if c.Running || !errors.Is(c.Err, ErrNoASR) {
 		t.Errorf("after delete, no recognition: running %v, err %v", c.Running, c.Err)
 	}
-	if c.Prefs.ASR != prefs.DefaultASR() || m.ready["sensevoice-small"] {
+	if c.Prefs.ASR != prefs.SystemASR() || m.ready["sensevoice-small"] {
 		t.Errorf("after delete: in use %q", c.Prefs.ASR)
 	}
 	if prefs.SystemASR() != "" && f.sessions[len(f.sessions)-1].cfg.Recognize != nil {
@@ -265,12 +265,12 @@ func TestRecognitionModel(t *testing.T) {
 
 func TestCloudRecognition(t *testing.T) {
 	c, f, _, _, sec := engineCore(t)
-	c.Prefs.ASR = prefs.DefaultASR()
-	if c.Use(ASR, QwenCloud) || c.Prefs.ASR != prefs.DefaultASR() {
+	c.Prefs.ASR = prefs.SystemASR()
+	if c.Use(ASR, QwenCloud) || c.Prefs.ASR != prefs.SystemASR() {
 		t.Fatalf("used without a key: in use %q", c.Prefs.ASR)
 	}
 	c.SaveAPI(prefs.Service{ID: QwenCloud, URL: " ws-1.cn-beijing.maas.aliyuncs.com "}, "sk-1")
-	if a := c.API(QwenCloud); c.Prefs.ASR != prefs.DefaultASR() || !a.Key || string(sec["asr-key:qwen-cloud"]) != "sk-1" || a.URL != "ws-1.cn-beijing.maas.aliyuncs.com" {
+	if a := c.API(QwenCloud); c.Prefs.ASR != prefs.SystemASR() || !a.Key || string(sec["asr-key:qwen-cloud"]) != "sk-1" || a.URL != "ws-1.cn-beijing.maas.aliyuncs.com" {
 		t.Fatalf("saved: in use %q, prefs %+v", c.Prefs.ASR, c.Prefs.ASRAPIs)
 	}
 	if !c.Use(ASR, QwenCloud) || c.Prefs.ASR != QwenCloud {

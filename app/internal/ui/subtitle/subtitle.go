@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	presets = map[string]string{
-		"serif":   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang, Noto Serif CJK SC",
-		"rounded": "Yuanti SC, Hiragino Maru Gothic ProN",
+	presets = map[prefs.Font]string{
+		prefs.FontSerif:   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang, Noto Serif CJK SC",
+		prefs.FontRounded: "Yuanti SC, Hiragino Maru Gothic ProN",
 	}
 	TextColors = []string{"#ffffff", "#c8c8c8", "#ffec8c", "#f5a524", "#ffb3cf", "#7fdbff", "#a8f0a0"}
 	EdgeColors = []string{"#000000", "#1e2259", "#4a3200", "#4a1030", "#ffffff"}
@@ -166,14 +166,14 @@ func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 	case prefs.DisplaySrc:
 		h = float32(p.SrcSize*2) * lineHeight * k
 	}
-	if boxed && p.Style == 0 {
+	if boxed && p.Style == prefs.StyleBox {
 		h += 12 * k
 	}
 	return h
 }
 
 func Align(p prefs.Prefs) ui.Align {
-	if p.Align == 1 {
+	if p.Align == prefs.AlignCenter {
 		return ui.Center
 	}
 	return ui.Start
@@ -187,7 +187,7 @@ const NoBlock = 1e9
 
 func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow float32) (top float32) {
 	align := Align(p)
-	band := p.Style == 0
+	band := p.Style == prefs.StyleBox
 	opacity := float32(p.TextOpacity) / 100
 	for i, e := range entries {
 		srcLang := e.Lang
@@ -281,10 +281,10 @@ func family(p prefs.Prefs) string {
 	if f, ok := presets[p.Font]; ok {
 		return f
 	}
-	if p.Font == prefs.Fonts[0] {
+	if p.Font == prefs.FontSystem {
 		return ""
 	}
-	return p.Font
+	return string(p.Font)
 }
 
 func fitTail(c *ui.Context, p prefs.Prefs, s, code string, size, width float32) string {
@@ -319,12 +319,12 @@ func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Col
 		t = t.Font(f)
 	}
 	switch {
-	case balance && p.Style == 0:
+	case balance && p.Style == prefs.StyleBox:
 		t = t.MaxWidth(balanced(c, ui.Span{Text: s, Font: family(p), Size: size, Weight: 700, Lang: lang}, width, lines))
 	case balance:
 		t = t.Balance()
 	}
-	if p.Edge == 1 || p.Edge == 2 {
+	if p.Edge == prefs.EdgeOutline || p.Edge == prefs.EdgeShadow {
 		t = t.Effect(edgeFor(p, size))
 	}
 	return t
@@ -389,7 +389,7 @@ func LayerEffect(pos vec2) vec4 {
 func edgeFor(p prefs.Prefs, size float32) ui.Effect {
 	w := max(1.2, size*.06)
 	reach := w + 1
-	if p.Edge == 2 {
+	if p.Edge == prefs.EdgeShadow {
 		reach = 2*w + 2
 	}
 	return gpuOnly{edgeShader.Effect(shader.Options{

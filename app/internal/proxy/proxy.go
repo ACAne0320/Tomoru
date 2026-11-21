@@ -14,17 +14,32 @@ import (
 
 var ErrInvalid = errors.New("proxy: the address is invalid")
 
+type mode int
+
+const (
+	viaSystem mode = iota
+	direct
+	custom
+)
+
 type choice struct {
-	off bool
-	url *url.URL
-	err error
+	mode mode
+	url  *url.URL
+	err  error
 }
 
 var current atomic.Pointer[choice]
 
 func Set(off bool, addr string) {
 	u, err := Parse(addr)
-	current.Store(&choice{off: off, url: u, err: err})
+	c := choice{mode: viaSystem}
+	switch {
+	case off:
+		c.mode = direct
+	case err != nil || u != nil:
+		c = choice{mode: custom, url: u, err: err}
+	}
+	current.Store(&c)
 }
 
 func Parse(addr string) (*url.URL, error) {
@@ -50,15 +65,11 @@ func Parse(addr string) (*url.URL, error) {
 
 func For(req *http.Request) (*url.URL, error) {
 	c := current.Load()
-	switch {
-	case loopback(req.URL.Hostname()):
+	if loopback(req.URL.Hostname()) || c != nil && c.mode == direct {
 		return nil, nil
-	case c != nil && c.off:
-		return nil, nil
-	case c != nil && c.err != nil:
-		return nil, c.err
-	case c != nil && c.url != nil:
-		return c.url, nil
+	}
+	if c != nil && c.mode == custom {
+		return c.url, c.err
 	}
 	return netproxy.Proxy(req)
 }

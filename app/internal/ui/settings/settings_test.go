@@ -89,7 +89,7 @@ func TestScheme(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
 	s.Tab = "subtitles"
-	k.Prefs.Edge = 1
+	k.Prefs.Edge = prefs.EdgeOutline
 	tt := ui.NewTester(s.View, Width, 1400)
 	if err := tt.Click(locales.SchemeSakura()); err != nil {
 		t.Fatal(err)
@@ -459,7 +459,7 @@ func TestRecognitionCloud(t *testing.T) {
 	if err := tt.Click(locales.UseEngine(locales.EngineQwenAsr())); err != nil {
 		t.Fatal(err)
 	}
-	if k.Prefs.ASR != prefs.DefaultASR() {
+	if k.Prefs.ASR != prefs.SystemASR() {
 		t.Fatalf("not set up, used: %q", k.Prefs.ASR)
 	}
 	if err := tt.Click(locales.EndpointKey()); err != nil {
@@ -470,7 +470,7 @@ func TestRecognitionCloud(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if a := k.API(core.QwenCloud); k.Prefs.ASR != prefs.DefaultASR() || !a.Key || a.Model != "qwen-audio-3.1-asr-flash-streaming" {
+	if a := k.API(core.QwenCloud); k.Prefs.ASR != prefs.SystemASR() || !a.Key || a.Model != "qwen-audio-3.1-asr-flash-streaming" {
 		t.Errorf("after saving: in use %q, %+v", k.Prefs.ASR, a)
 	}
 	line := "qwen-audio-3.1-asr-flash-streaming · dashscope.aliyuncs.com · " + locales.KeySaved()

@@ -143,11 +143,11 @@ func TestImageEngineOnly(t *testing.T) {
 	c.SetImageEngine("cloud")
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "key")
-	c.SetImageEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.EndpointEngine(id))
 	asked := cloudAsked.Load()
 	c.TranslateImage(pic)
 	done()
-	if c.Image.Err == nil || c.Image.Via != prefs.CustomPrefix+id || cloudAsked.Load() != asked {
+	if c.Image.Err == nil || c.Image.Via != prefs.EndpointEngine(id) || cloudAsked.Load() != asked {
 		t.Errorf("the API failed: %+v; the cloud asked %d times more", c.Image, cloudAsked.Load()-asked)
 	}
 
@@ -193,16 +193,16 @@ func TestImageEngineDeleted(t *testing.T) {
 	}
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:1", Model: "m"}, "")
-	c.SetImageEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.EndpointEngine(id))
 	undo := c.DeleteEndpoint(id)
-	if c.Prefs.ImageMT != prefs.CustomPrefix+id {
+	if c.Prefs.ImageMT != prefs.EndpointEngine(id) {
 		t.Errorf("API deleted: pictures with %q", c.Prefs.ImageMT)
 	}
 	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoEndpoint) {
 		t.Errorf("API deleted: %+v", im)
 	}
 	undo()
-	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.ImageMT != prefs.CustomPrefix+id {
+	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.ImageMT != prefs.EndpointEngine(id) {
 		t.Errorf("deleting undone: pictures with %q", c.Prefs.ImageMT)
 	}
 }
@@ -231,7 +231,7 @@ func TestEndpointReadsPictures(t *testing.T) {
 	}
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "text"}, "")
-	c.SetImageEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.EndpointEngine(id))
 	saved, _ := c.Prefs.Endpoint(id)
 	e := *saved
 	if r := test(e); r.Err != nil || r.Vision != prefs.VisionNo {
@@ -240,7 +240,7 @@ func TestEndpointReadsPictures(t *testing.T) {
 	if body, _ := sent.Load().(string); !strings.Contains(body, "data:image/png;base64,") {
 		t.Errorf("no picture sent: %.200s", body)
 	}
-	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo || c.Prefs.ImageMT != prefs.CustomPrefix+id {
+	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo || c.Prefs.ImageMT != prefs.EndpointEngine(id) {
 		t.Errorf("found text only: kept %v, pictures with %q", e.Vision, c.Prefs.ImageMT)
 	}
 	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoVision) {
@@ -306,7 +306,7 @@ func TestEndpointNoPictures(t *testing.T) {
 	c, f, _, _, _ := engineCore(t)
 	c.Prefs.Onboarded = true
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "")
-	c.SetImageEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.EndpointEngine(id))
 	saved, _ := c.Prefs.Endpoint(id)
 	e := *saved
 	e.Format = "hy-mt"
@@ -320,7 +320,7 @@ func TestEndpointNoPictures(t *testing.T) {
 		t.Errorf("not asked as Hy-MT2: %.300s", body)
 	}
 	c.SaveEndpoint(e, "")
-	if c.Prefs.ImageMT != prefs.CustomPrefix+id {
+	if c.Prefs.ImageMT != prefs.EndpointEngine(id) {
 		t.Errorf("saved as Hy-MT2: pictures with %q", c.Prefs.ImageMT)
 	}
 	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoVision) || pictures.Load() != 0 {

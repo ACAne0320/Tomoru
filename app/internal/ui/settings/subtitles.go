@@ -54,22 +54,22 @@ func (s *Settings) subtitles(c *ui.Context) {
 func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.StyleLabel(), "", func() {
 		kit.Control(c, func() {
-			if kit.Segmented(c, &p.Style, locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() && p.Style == 1 && p.Edge == 0 {
-				p.Edge = 1
+			if kit.Segmented(c, (*int)(&p.Style), locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() && p.Style == prefs.StyleImmersive && p.Edge == prefs.EdgeNone {
+				p.Edge = prefs.EdgeOutline
 			}
 		})
 	})
-	kit.SettingRowOff(c, 1, locales.BoxOpacity(), "", p.Style == 1, func() {
+	kit.SettingRowOff(c, 1, locales.BoxOpacity(), "", p.Style == prefs.StyleImmersive, func() {
 		kit.Control(c, func() { kit.Slider(c, &p.BoxOpacity, 0, 100, "%", locales.BoxOpacity()).Grow(1) })
 	})
 	kit.SettingRow(c, 2, locales.EdgeLabel(), "", func() {
 		kit.Control(c, func() {
-			kit.Segmented(c, &p.Edge, locales.EdgeNone(), locales.EdgeOutline(), locales.EdgeShadow()).Grow(1).Label(locales.EdgeLabel())
+			kit.Segmented(c, (*int)(&p.Edge), locales.EdgeNone(), locales.EdgeOutline(), locales.EdgeShadow()).Grow(1).Label(locales.EdgeLabel())
 		})
 	})
 	kit.SettingRow(c, 3, locales.AlignLabel(), "", func() {
 		kit.Control(c, func() {
-			kit.Segmented(c, &p.Align, locales.AlignLeft(), locales.AlignCenter()).Grow(1).Label(locales.AlignLabel())
+			kit.Segmented(c, (*int)(&p.Align), locales.AlignLeft(), locales.AlignCenter()).Grow(1).Label(locales.AlignLabel())
 		})
 	})
 	kit.SettingRow(c, 4, locales.FontLabel(), "", func() {
@@ -122,14 +122,14 @@ func styleColors(c *ui.Context, p *prefs.Prefs) {
 	}
 	colors(0, locales.SrcColor(), &p.SrcColor, subtitle.TextColors)
 	colors(1, locales.TgtColor(), &p.TgtColor, subtitle.TextColors)
-	if p.Edge != 0 || p.Style == 0 {
+	if p.Edge != prefs.EdgeNone || p.Style == prefs.StyleBox {
 		colors(2, locales.EdgeColor(), &p.EdgeColor, subtitle.EdgeColors)
 	}
 }
 
 func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.DisplayLabel(), "", func() {
-		kit.Segmented(c, &p.Display, locales.DisplayBoth(), locales.DisplayTgt(), locales.DisplaySrc()).Label(locales.DisplayLabel())
+		kit.Segmented(c, (*int)(&p.Display), locales.DisplayBoth(), locales.DisplayTgt(), locales.DisplaySrc()).Label(locales.DisplayLabel())
 	})
 	kit.SettingRow(c, 1, locales.ShownLabel(), "", func() {
 		kit.Stepper(c, &p.Shown, 1, prefs.MaxShown, locales.ShownFewer(), locales.ShownMore())

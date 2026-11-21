@@ -154,7 +154,7 @@ func testResult(c *ui.Context, r core.TestResult) {
 func (s *Settings) deleteAPI(c *ui.Context, e prefs.Endpoint) {
 	k := s.core
 	deleted := locales.EndpointDeleted(e.Name)
-	if k.Preferences().MT == prefs.CustomPrefix+e.ID {
+	if k.Preferences().MT == prefs.EndpointEngine(e.ID) {
 		deleted = locales.EndpointDeletedInUse(e.Name)
 	}
 	if s.api.open && s.api.e.ID == e.ID {
@@ -179,6 +179,6 @@ func (s *Settings) endpointActions(c *ui.Context, d *endpointEdit, close func())
 		id := k.SaveEndpoint(d.e, d.key)
 		c.Toast(locales.EndpointSaved(d.e.Name))
 		close()
-		s.shown[core.MT] = prefs.CustomPrefix + id
+		s.shown[core.MT] = prefs.EndpointEngine(id)
 	}
 }

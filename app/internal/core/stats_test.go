@@ -82,7 +82,7 @@ func TestUsage(t *testing.T) {
 	c.deps.Now = func() time.Time { return now }
 	c.Prefs.Onboarded = true
 	c.Prefs.Endpoints = []prefs.Endpoint{{ID: "or", Name: "OpenRouter", URL: "https://openrouter.ai/api", Model: "qwen/qwen3"}}
-	c.Prefs.ASR, c.Prefs.MT = QwenCloud, prefs.CustomPrefix+"or"
+	c.Prefs.ASR, c.Prefs.MT = QwenCloud, prefs.EndpointEngine("or")
 	c.Prefs.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}}
 	c.Start()
 	f.flush(t, 1)

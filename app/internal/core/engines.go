@@ -63,7 +63,7 @@ func (c *Core) testTgt() string {
 
 func Successor(k Kind) string {
 	if k == ASR {
-		return prefs.DefaultASR()
+		return prefs.SystemASR()
 	}
 	return "cloud"
 }
@@ -107,7 +107,7 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if key != "" {
 		c.EngineService.saveKey(keyName(e.ID), []byte(key))
 	}
-	if c.Prefs.MT == prefs.CustomPrefix+e.ID {
+	if c.Prefs.MT == prefs.EndpointEngine(e.ID) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -119,7 +119,7 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 	if i < 0 {
 		return func() {}
 	}
-	e, mt := c.Prefs.Endpoints[i], prefs.CustomPrefix+id
+	e, mt := c.Prefs.Endpoints[i], prefs.EndpointEngine(id)
 	key := c.EngineService.readKey(keyName(id))
 	c.Prefs.Endpoints = slices.Delete(c.Prefs.Endpoints, i, i+1)
 	c.EngineService.deleteKey(keyName(id))
