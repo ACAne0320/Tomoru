@@ -20,7 +20,7 @@ see [ADR 001](adr/001-state-events-and-runtime-boundaries.md).
 | `app/internal/segment/`, `translate/` | The segmenting rules; the translator interface and its implementations |
 | `app/internal/lang/` | The languages, by BCP 47 code: which there are, their names (CLDR, from `golang.org/x/text`) and how each is written; what each engine recognizes is the engine's to say |
 | `app/internal/prefs/`, `scene/`, `history/`, `usage/` | User data, each with its file format; `atomicfile/` replaces files atomically |
-| `app/internal/proxy/` | How the cloud is reached, as Preferences says: through the system's proxy (MyGo's `netproxy`, with PAC files), one of the user's, or directly; Go's default transport asks it, so the cloud's recognition and translation, the user's APIs and model downloads all go its way, and loopback (the local models' servers) never through a proxy |
+| `app/internal/proxy/` | How the cloud is reached, as Preferences says: through the system's proxy (MyGo's `netproxy`, with PAC files), one of the user's, or directly; an address that is not one is an error and the cloud is not reached. Go's default transport asks it, so the cloud's recognition and translation, the user's APIs and model downloads all go its way, and loopback (the local models' servers) never through a proxy |
 | `app/internal/ui/kit/` | Generic controls, design tokens, theme, shortcut input; knows nothing of the app's state or domain types |
 | `app/internal/ui/shared/` | Showing errors and names, the audio source menu, binding shortcuts to the app, and the navigation interface |
 | `app/internal/ui/shell/` | Windows, navigation, global shortcuts and main-thread scheduling |

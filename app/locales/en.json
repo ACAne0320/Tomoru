@@ -169,9 +169,9 @@
   "@proxySystemNone": {
     "description": "Under the proxy address: empty, the system's proxy is used, and the system has none."
   },
-  "proxyInvalid": "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used.",
+  "proxyInvalid": "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080. The cloud isn't reached.",
   "@proxyInvalid": {
-    "description": "Under the proxy address, when what is typed is no address."
+    "description": "Under the proxy address, when what is typed is no address: the cloud is not reached."
   },
   "settingsTitle": "Tomoru Settings",
   "@settingsTitle": {

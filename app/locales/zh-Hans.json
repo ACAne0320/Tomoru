@@ -37,7 +37,7 @@
   "proxyAddress": "代理地址",
   "proxySystem": "留空则使用系统代理：{proxy}",
   "proxySystemNone": "留空则使用系统代理；系统目前没有设置代理。",
-  "proxyInvalid": "不是有效的代理地址（例如 127.0.0.1:7890 或 socks5://127.0.0.1:1080），目前使用系统代理。",
+  "proxyInvalid": "不是有效的代理地址（例如 127.0.0.1:7890 或 socks5://127.0.0.1:1080），无法连接云端。",
   "settingsTitle": "Tomoru 设置",
   "tabGeneral": "偏好设置",
   "tabSubtitles": "字幕样式",

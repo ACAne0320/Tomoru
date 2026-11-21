@@ -68,7 +68,7 @@ func (s *Settings) general(c *ui.Context) {
 }
 
 // network is how the app reaches the cloud: through a proxy, the user's or else the system's, or
-// directly.
+// directly. An address that is not one is said here, and the cloud is not reached.
 func (s *Settings) network(c *ui.Context, draft *prefs.Prefs) {
 	k := s.core
 	k.RefreshSystemProxy()

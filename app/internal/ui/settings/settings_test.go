@@ -1185,7 +1185,10 @@ func TestRerunGuide(t *testing.T) {
 func TestProxy(t *testing.T) {
 	var got []string
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.Proxy = func(off bool, addr string) { got = append(got, fmt.Sprint(off, " ", addr)) }
+		d.Proxy = func(off bool, addr string) error {
+			got = append(got, fmt.Sprint(off, " ", addr))
+			return nil
+		}
 	})
 	k.SystemProxy = "127.0.0.1:7897"
 	s := New(k, &coretest.Nav{})

@@ -51,9 +51,54 @@ func TestFor(t *testing.T) {
 	if u, _ := For(req("https://api.openai.com")); u != nil {
 		t.Errorf("off: %v", u)
 	}
-	// Not an address: the system's, as with none.
-	Set(false, "127.0")
-	if c := current.Load(); c.off || c.url != nil {
-		t.Errorf("%+v", c)
+	// Not an address: an error, and the cloud is not reached.
+	if err := Set(false, "127.0"); err == nil {
+		t.Fatal("Set: want an error")
+	}
+	if u, err := For(req("https://api.openai.com")); err == nil || u != nil {
+		t.Errorf("invalid: %v, %v", u, err)
+	}
+}
+
+// TestSetInvalid reports an address that is not one and does not reach the cloud through the
+// system's proxy instead. Loopback stays direct, an empty address is still the system's, and
+// turning the proxy off reaches the cloud directly.
+func TestSetInvalid(t *testing.T) {
+	defer current.Store(nil)
+	t.Setenv("HTTPS_PROXY", "http://10.1.2.3:8888")
+	req := func(raw string) *http.Request {
+		r, err := http.NewRequest(http.MethodGet, raw, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return r
+	}
+	cloud := req("https://api.openai.com/v1/models")
+	if err := Set(false, "127.0"); err == nil {
+		t.Fatal("Set: want an error")
+	}
+	if u, err := For(cloud); err == nil || u != nil {
+		t.Fatalf("cloud: %v, %v", u, err)
+	}
+	if u, err := For(req("http://127.0.0.1:8080/v1/chat/completions")); err != nil || u != nil {
+		t.Fatalf("loopback: %v, %v", u, err)
+	}
+	if err := Set(false, ""); err != nil {
+		t.Fatal(err)
+	}
+	if u, err := For(cloud); err != nil || u == nil || u.Host != "10.1.2.3:8888" {
+		t.Fatalf("empty: %v, %v", u, err)
+	}
+	if err := Set(false, "127.0.0.1:7890"); err != nil {
+		t.Fatal(err)
+	}
+	if u, err := For(cloud); err != nil || u == nil || u.Host != "127.0.0.1:7890" {
+		t.Fatalf("address: %v, %v", u, err)
+	}
+	if err := Set(true, "127.0"); err != nil {
+		t.Fatal(err)
+	}
+	if u, err := For(cloud); err != nil || u != nil {
+		t.Fatalf("off: %v, %v", u, err)
 	}
 }

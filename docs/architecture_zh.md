@@ -18,7 +18,7 @@
 | `app/internal/segment/`、`translate/` | 断句规则、翻译接口和各翻译实现 |
 | `app/internal/lang/` | 语言，用 BCP 47 代码：有哪些、它们的名字（CLDR，来自 `golang.org/x/text`）、各自怎么书写；每个引擎能识别哪些由引擎自己说 |
 | `app/internal/prefs/`、`scene/`、`history/`、`usage/` | 用户数据及各自文件格式；`atomicfile/` 提供原子文件替换 |
-| `app/internal/proxy/` | 按偏好设置连接云端：走系统代理（MyGo 的 `netproxy`，支持 PAC）、用户填的代理，或直连；Go 的默认 transport 都问它，所以云端识别和翻译、用户的 API、模型下载都按它走，本机回环地址（本地模型的服务）从不走代理 |
+| `app/internal/proxy/` | 按偏好设置连接云端：走系统代理（MyGo 的 `netproxy`，支持 PAC）、用户填的代理，或直连；填的不是代理地址则报错，不去云端。Go 的默认 transport 都问它，所以云端识别和翻译、用户的 API、模型下载都按它走，本机回环地址（本地模型的服务）从不走代理 |
 | `app/internal/ui/kit/` | 通用控件、设计 token、主题、快捷键输入；不认识应用状态或领域类型 |
 | `app/internal/ui/shared/` | 错误与名称展示、音源菜单、快捷键的应用绑定，以及导航接口 |
 | `app/internal/ui/shell/` | 窗口、导航、全局快捷键和主线程调度 |

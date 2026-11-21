@@ -85,9 +85,10 @@ type Deps struct {
 	// or not known yet. Without it, none. Memory is the computer's, 0 or nil where not known.
 	GPU, Memory func() uint64
 	// Proxy has the cloud reached as the settings say: directly with off, else through addr, or
-	// the system's proxy when "" (package proxy). SystemProxy is the system's, as Preferences
-	// shows it: "" for none. Without them, as Go's transport does.
-	Proxy       func(off bool, addr string)
+	// the system's proxy when "" (package proxy). An address that is not one is an error, and the
+	// cloud is not reached. SystemProxy is the system's, as Preferences shows it: "" for none.
+	// Without them, as Go's transport does.
+	Proxy       func(off bool, addr string) error
 	SystemProxy func() string
 	// Network tells whether the computer is online, and on a metered connection; without it, online
 	// and not metered.
@@ -293,10 +294,14 @@ func (c *Core) HideAfter() time.Duration {
 // Context is cancelled when the application shuts down. Platform UI workers use it too.
 func (c *Core) Context() context.Context { return c.work.ctx }
 
-// useProxy has the cloud reached as the settings say.
+// useProxy has the cloud reached as the settings say. An address that is not one is an error: the
+// cloud is not reached, and Preferences says so.
 func (c *Core) useProxy() {
-	if c.deps.Proxy != nil {
-		c.deps.Proxy(c.Prefs.NoProxy, c.Prefs.ProxyURL)
+	if c.deps.Proxy == nil {
+		return
+	}
+	if err := c.deps.Proxy(c.Prefs.NoProxy, c.Prefs.ProxyURL); err != nil {
+		log.Println("proxy:", err)
 	}
 }
 

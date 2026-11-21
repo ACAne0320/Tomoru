@@ -37,7 +37,7 @@
   "proxyAddress": "プロキシのアドレス",
   "proxySystem": "空欄ならシステムのプロキシ：{proxy}",
   "proxySystemNone": "空欄ならシステムのプロキシ。いまは設定されていません。",
-  "proxyInvalid": "プロキシのアドレスではありません（例：127.0.0.1:7890、socks5://127.0.0.1:1080）。いまはシステムのプロキシを使います。",
+  "proxyInvalid": "プロキシのアドレスではありません（例：127.0.0.1:7890、socks5://127.0.0.1:1080）。クラウドにはつながりません。",
   "settingsTitle": "Tomoru 設定",
   "tabGeneral": "環境設定",
   "tabSubtitles": "字幕スタイル",

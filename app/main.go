@@ -89,7 +89,9 @@ func main() {
 		// The cloud is reached as the settings say, from the first request: the models' downloads
 		// resume as the manager starts.
 		proxy.Install()
-		proxy.Set(p.NoProxy, p.ProxyURL)
+		if err := proxy.Set(p.NoProxy, p.ProxyURL); err != nil {
+			log.Println("proxy:", err)
+		}
 		deps := core.Deps{Context: ctx, Post: post, NoVoice: noVoice,
 			Proxy: proxy.Set, SystemProxy: func() string { return proxy.System("https://api.openai.com") },
 			EnginePath: func() (string, error) { return engine.Path(roots...) },

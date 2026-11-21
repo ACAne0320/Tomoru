@@ -1,7 +1,7 @@
 // Package proxy is how the app reaches the cloud, as the user chose in Preferences: through the
 // proxy the system sets, as browsers do (MyGo's netproxy, with its bypass list and PAC files),
-// through one of the user's own, or directly. Loopback, where the local models' servers are, is
-// always reached directly.
+// through one of the user's own, or directly. An address that is not one is an error, and the
+// cloud is not reached. Loopback, where the local models' servers are, is always reached directly.
 //
 // Install puts it in Go's default transport, which the app's clients use: the cloud's recognition
 // and translation, the user's APIs, model downloads.
@@ -20,16 +20,27 @@ import (
 
 type choice struct {
 	off bool
-	url *url.URL // the user's proxy; nil for the system's
+	url *url.URL // the user's proxy; nil with no error for the system's
+	err error    // the user's address is not one
 }
 
 var current atomic.Pointer[choice]
 
 // Set chooses how the cloud is reached from now on: with off, directly; else through addr, or the
-// system's proxy when addr is "" or no address. Requests under way keep their connections.
-func Set(off bool, addr string) {
-	u, _ := Parse(addr)
-	current.Store(&choice{off: off, url: u})
+// system's proxy when addr is "". An address that is not one is an error, and the cloud is not
+// reached. Requests under way keep their connections.
+func Set(off bool, addr string) error {
+	if off {
+		current.Store(&choice{off: true})
+		return nil
+	}
+	u, err := Parse(addr)
+	if err != nil {
+		current.Store(&choice{err: err})
+		return err
+	}
+	current.Store(&choice{url: u})
+	return nil
 }
 
 // Parse reads a proxy's address, "host:port" or a URL of http, https or socks5: nil for "".
@@ -55,7 +66,8 @@ func Parse(addr string) (*url.URL, error) {
 }
 
 // For is the proxy of req, or nil to connect directly: an http.Transport's Proxy, safe from any
-// goroutine. The system's may block while the system runs a PAC file.
+// goroutine. An address that is not one is an error. The system's may block while the system runs
+// a PAC file.
 func For(req *http.Request) (*url.URL, error) {
 	c := current.Load()
 	switch {
@@ -63,6 +75,8 @@ func For(req *http.Request) (*url.URL, error) {
 		return nil, nil
 	case c != nil && c.off:
 		return nil, nil
+	case c != nil && c.err != nil:
+		return nil, c.err
 	case c != nil && c.url != nil:
 		return c.url, nil
 	}

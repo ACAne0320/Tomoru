@@ -567,16 +567,18 @@ func (msgs Messages) ProxySystemNone() string {
 	return Catalog.Format(msgs.locale, "proxySystemNone", nil)
 }
 
-// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used."
+// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080. The cloud isn't reached."
 // in the language the app shows.
 //
-// Under the proxy address, when what is typed is no address.
+// Under the proxy address, when what is typed is no address: the cloud is
+// not reached.
 func ProxyInvalid() string { return In(i18n.Locale()).ProxyInvalid() }
 
-// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used."
+// ProxyInvalid says "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080. The cloud isn't reached."
 // in the language of msgs.
 //
-// Under the proxy address, when what is typed is no address.
+// Under the proxy address, when what is typed is no address: the cloud is
+// not reached.
 func (msgs Messages) ProxyInvalid() string {
 	return Catalog.Format(msgs.locale, "proxyInvalid", nil)
 }
