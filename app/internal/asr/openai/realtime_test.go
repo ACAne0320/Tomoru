@@ -97,7 +97,7 @@ func completed(item, text string) map[string]any {
 }
 
 func feedRT(r *Realtime, spans [][2]float64, seconds float64) {
-	chunk := base64.StdEncoding.EncodeToString(make([]byte, 2*rate/10))
+	chunk := base64.StdEncoding.EncodeToString(make([]byte, 2*engineRate/10))
 	r.Voice(engine.Event{Type: "voice", On: false, T: 0})
 	next := 0
 	on := false
@@ -132,7 +132,7 @@ func TestRealtimeSession(t *testing.T) {
 
 	var mu sync.Mutex
 	var evs []engine.Event
-	r := StartRealtime(Config{URL: srv.URL, Key: "k", Keywords: []string{"一心", "葦名"}, About: "只狼的对话"}, "ja", func(ev engine.Event) {
+	r := StartRealtime(RealtimeConfig{Config: Config{URL: srv.URL, Key: "k", Keywords: []string{"一心", "葦名"}}, About: "只狼的对话"}, "ja", func(ev engine.Event) {
 		mu.Lock()
 		evs = append(evs, ev)
 		mu.Unlock()
@@ -162,11 +162,11 @@ func TestRealtimeSession(t *testing.T) {
 	f.mu.Lock()
 	input := f.config["session"].(map[string]any)["audio"].(map[string]any)["input"].(map[string]any)
 	format, tr := input["format"].(map[string]any), input["transcription"].(map[string]any)
-	if format["rate"] != float64(rtRate) || tr["model"] != LiveModel || input["turn_detection"] != nil || tr["languages"].([]any)[0] != "ja" ||
+	if format["rate"] != float64(serviceRate) || tr["model"] != LiveModel || input["turn_detection"] != nil || tr["languages"].([]any)[0] != "ja" ||
 		len(tr["keywords"].([]any)) != 2 || tr["prompt"] != "只狼的对话" {
 		t.Errorf("configured %v", input)
 	}
-	if sec := float64(f.sent) / 2 / rtRate; sec < 3 || sec > 4.5 || f.commits != 2 {
+	if sec := float64(f.sent) / 2 / serviceRate; sec < 3 || sec > 4.5 || f.commits != 2 {
 		t.Errorf("sent %.2f s in %d turns", sec, f.commits)
 	}
 	f.mu.Unlock()
@@ -196,7 +196,7 @@ func TestRealtimeRefused(t *testing.T) {
 	f := &fakeRealtime{t: t, refuse: "Invalid 'session.audio.input.format.rate'"}
 	srv := httptest.NewServer(http.HandlerFunc(f.serve))
 	defer srv.Close()
-	r := StartRealtime(Config{URL: srv.URL, Key: "bad"}, "en", func(engine.Event) {})
+	r := StartRealtime(RealtimeConfig{Config: Config{URL: srv.URL, Key: "bad"}}, "en", func(engine.Event) {})
 	<-r.Done()
 	if !errors.Is(r.Err(), ErrAuth) {
 		t.Errorf("a refused key: %v", r.Err())
@@ -238,7 +238,7 @@ func TestRealtimeOrder(t *testing.T) {
 	defer srv.Close()
 	var mu sync.Mutex
 	var evs []engine.Event
-	r := StartRealtime(Config{URL: srv.URL, Key: "k"}, "ja", func(ev engine.Event) {
+	r := StartRealtime(RealtimeConfig{Config: Config{URL: srv.URL, Key: "k"}}, "ja", func(ev engine.Event) {
 		mu.Lock()
 		evs = append(evs, ev)
 		mu.Unlock()

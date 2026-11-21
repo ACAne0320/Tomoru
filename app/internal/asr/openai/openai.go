@@ -30,7 +30,6 @@ type Config struct {
 	Model    string
 	Key      string
 	Keywords []string
-	About    string
 }
 
 const (
@@ -99,7 +98,7 @@ func iso639(lang string) string {
 	return ""
 }
 
-const prompt = 120
+const promptRunes = 120
 
 func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error) {
 	ctx, cancel := context.WithCancel(ctx)
@@ -112,8 +111,7 @@ func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error)
 		}
 	}()
 	text, err := d.transcribe(ctx, pcm)
-	var e *Error
-	if err != nil && ctx.Err() == nil && !errors.Is(err, ErrAuth) && (!errors.As(err, &e) || e.Status >= 500 || e.Status == http.StatusTooManyRequests) {
+	if err != nil && ctx.Err() == nil && retryable(err) {
 		select {
 		case <-time.After(300 * time.Millisecond):
 			text, err = d.transcribe(ctx, pcm)
@@ -124,9 +122,14 @@ func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error)
 		return nil, err
 	}
 	if text != "" {
-		d.prev = tail(d.prev+" "+text, prompt)
+		d.prev = tail(d.prev+" "+text, promptRunes)
 	}
 	return batch.Pieces(text), nil
+}
+
+func retryable(err error) bool {
+	var e *Error
+	return !errors.Is(err, ErrAuth) && (!errors.As(err, &e) || e.Status >= 500 || e.Status == http.StatusTooManyRequests)
 }
 
 func tail(s string, n int) string {
@@ -220,7 +223,7 @@ func Test(ctx context.Context, cfg Config) (time.Duration, error) {
 	d := New(cfg, "")
 	defer d.Stop()
 	t := time.Now()
-	_, err := d.transcribe(ctx, make([]byte, 32000))
+	_, err := d.transcribe(ctx, make([]byte, batch.BytesPerSecond))
 	return time.Since(t), err
 }
 

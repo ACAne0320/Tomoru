@@ -144,10 +144,10 @@ func specs(goos string) []Spec {
 		URL: openai.DefaultURL, Models: append(slices.Clone(openai.RealtimeModels[:1]), openai.Models...),
 		New: func(env Env) (Factory, error) {
 			cfg := openAI(env.Service)
-			cfg.Keywords, cfg.About = env.Scene.Names, env.Scene.About
+			cfg.Keywords = env.Scene.Names
 			return func(lang string, on func(engine.Event)) (Recognizer, error) {
 				if openai.Realtimed(cfg.Model) {
-					return openai.StartRealtime(cfg, lang, on), nil
+					return openai.StartRealtime(openai.RealtimeConfig{Config: cfg, About: env.Scene.About}, lang, on), nil
 				}
 				return batch.Start(openai.New(cfg, lang), openai.Caps, on), nil
 			}, nil

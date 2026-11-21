@@ -243,7 +243,7 @@ func answer(s string) string {
 func Warm(ctx context.Context, url string) error {
 	d := New(url, "", "")
 	defer d.Stop()
-	_, _, err := d.transcribe(ctx, make([]byte, 32000))
+	_, _, err := d.transcribe(ctx, make([]byte, batch.BytesPerSecond))
 	return err
 }
 
