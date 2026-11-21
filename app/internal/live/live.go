@@ -399,7 +399,7 @@ func (s *Session) handle(ev engine.Event) {
 			if began {
 				s.warmLocked()
 			}
-			st.Voice, st.Stats.Speech = ev.On, st.Stats.Speech+spoke
+			st.Voice, st.Stats.SpeechSeconds = ev.On, st.Stats.SpeechSeconds+spoke
 			if spoke > 0 {
 				st.SpeechEnd = speechEnd
 			}
@@ -469,7 +469,7 @@ func (s *Session) handle(ev engine.Event) {
 	s.update(func(st *State) {
 		st.Stats.Latency.FirstText.Merge(lat.FirstText)
 		st.Stats.Latency.Final.Merge(lat.Final)
-		st.Stats.Audio = max(st.Stats.Audio, sent)
+		st.Stats.AudioSeconds = max(st.Stats.AudioSeconds, sent)
 		for _, q := range added {
 			s.next++
 			q.ID = s.next

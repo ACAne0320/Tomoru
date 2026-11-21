@@ -27,7 +27,9 @@ import (
 func TestCard(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.ImageEndpoint = &translate.Endpoint{URL: "http://127.0.0.1:1", Model: "m", Format: translate.Index}
-		d.Select = func(context.Context) ([]byte, image.Rectangle, error) { return nil, image.Rectangle{}, nil }
+		d.Select = func(context.Context) ([]byte, image.Rectangle, error) {
+			return nil, image.Rectangle{}, context.Canceled
+		}
 	})
 	closed, picked := false, 0
 	d := New(k, func() { closed = true }, func() { picked++ })

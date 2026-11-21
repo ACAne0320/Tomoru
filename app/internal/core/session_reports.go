@@ -37,8 +37,8 @@ func (r *sessionReports) store(st live.State, now func() time.Time) live.State {
 }
 
 func daily(session usage.Counts) (counts usage.Counts, speech float64) {
-	counts, speech = session, session.Speech
-	counts.Speech = 0
+	counts, speech = session, session.SpeechSeconds
+	counts.SpeechSeconds = 0
 	return counts, speech
 }
 

@@ -148,7 +148,7 @@ func (s *Settings) styleShow(c *ui.Context, p *prefs.Prefs) {
 	i := 4
 	if !p.KeepShown {
 		kit.SettingRow(c, i, locales.HideWait(), "", func() {
-			kit.Stepper(c, &p.HideAfter, 2, 10, locales.HideWaitLess(), locales.HideWaitMore())
+			kit.Stepper(c, &p.HideAfterSeconds, 2, 10, locales.HideWaitLess(), locales.HideWaitMore())
 		})
 		i++
 	}

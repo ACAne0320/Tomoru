@@ -166,7 +166,7 @@ func sameText(a, b live.State) bool {
 
 func sameShown(a, b live.State) bool {
 	return a.Phase == b.Phase && sameText(a, b) && a.PendingLang == b.PendingLang && a.Voice == b.Voice && a.Slow == b.Slow &&
-		a.Err == b.Err && a.Stats.Lines == b.Stats.Lines && a.Stats.Speech == b.Stats.Speech && a.Stats.Chars == b.Stats.Chars
+		a.Err == b.Err && a.Stats.Lines == b.Stats.Lines && a.Stats.SpeechSeconds == b.Stats.SpeechSeconds && a.Stats.Chars == b.Stats.Chars
 }
 
 func lastID(lines []live.Line) int {

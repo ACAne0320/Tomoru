@@ -289,7 +289,7 @@ func Size(n int64) string {
 
 func SceneName(s scene.Scene) string {
 	switch {
-	case s.ID == "":
+	case s.IsGeneral():
 		return locales.SceneGeneral()
 	case strings.TrimSpace(s.Name) == "":
 		return locales.NewScene()

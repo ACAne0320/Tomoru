@@ -255,7 +255,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) (then func()) {
 				cells(func() {
 					ui.Row(c).Gap(kit.Space(1)).AlignItems(ui.Center).MinWidth(0).Children(func() {
 						kit.CellInput(c.Key(key+"src"), &term.Src).Label(locales.TermSrc()).FontWeight(kit.WeightBold).Grow(1)
-						if term.Auto {
+						if term.Learned {
 							ui.Icon(c, assets.Sparkles).FontSize(kit.TextCaption).TextColor(p.Lantern).Tooltip(locales.TermLearned()).Label(locales.TermLearned())
 						}
 					})

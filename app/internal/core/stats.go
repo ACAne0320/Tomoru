@@ -39,7 +39,7 @@ func (c *Core) TodayStats() Today {
 	l := c.usageAt(now)
 	t := Today{Day: day, Counts: l.Day(day)}
 	for _, d := range l.Days {
-		if d.Day == day {
+		if d.Date == day {
 			t.Translated = d.TotalOf(func(u usage.Use) bool { return !u.Untranslated }).Lines
 		}
 	}
@@ -62,7 +62,7 @@ func (c *Core) addRunUsage(l *usage.Ledger, now time.Time) {
 	}
 	days, end := c.reports.usageSnapshot(now)
 	for _, d := range days.Days {
-		l.Add(d.Day, c.runEngines, d.Total())
+		l.Add(d.Date, c.runEngines, d.Total())
 	}
 	l.AddRun(c.runSince, end, c.runEngines)
 }

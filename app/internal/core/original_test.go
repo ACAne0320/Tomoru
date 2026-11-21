@@ -90,8 +90,8 @@ func TestRetranslateUntranslated(t *testing.T) {
 	c.AddTerm(id, scene.Term{Src: "纽北", Tgt: "Nürburgring", Heard: []string{"刘北"}})
 	start := time.Now()
 	w := history.NewWriter(c.deps.HistoryDir, history.Head{Scene: id, Src: "zh", Tgt: "en", Start: start, Untranslated: true})
-	w.Add(history.Entry{At: start, Src: "在刘北赛道上"})
-	w.Add(history.Entry{At: start.Add(time.Second), Src: "你好"})
+	w.Add(history.Entry{KeptAt: start, Src: "在刘北赛道上"})
+	w.Add(history.Entry{KeptAt: start.Add(time.Second), Src: "你好"})
 	rs, _ := history.List(c.deps.HistoryDir)
 	path := rs[0].Path
 	c.Retranslate([]string{path}, id)
@@ -100,7 +100,7 @@ func TestRetranslateUntranslated(t *testing.T) {
 		t.Fatalf("retranslating %+v", r)
 	}
 	es, _ := history.Read(path)
-	if es[0].Src != "在纽北赛道上" || es[0].Heard != "在刘北赛道上" || es[0].Tgt != "" || es[1].Src != "你好" {
+	if es[0].Src != "在纽北赛道上" || es[0].BeforeGlossary != "在刘北赛道上" || es[0].Tgt != "" || es[1].Src != "你好" {
 		t.Errorf("lines %+v", es)
 	}
 

@@ -284,7 +284,7 @@ func TestStats(t *testing.T) {
 	for _, l := range last.Lines {
 		want += utf8.RuneCountInString(strings.ReplaceAll(l.Tgt, " ", ""))
 	}
-	if st := last.Stats; st.Lines != 2 || st.Speech != 2.5 || st.Chars != want {
+	if st := last.Stats; st.Lines != 2 || st.SpeechSeconds != 2.5 || st.Chars != want {
 		t.Errorf("stats %+v, want 2 lines, 2.5 s, %d letters", st, want)
 	}
 }
@@ -321,13 +321,13 @@ func TestLatency(t *testing.T) {
 		mu.Unlock()
 		if st.Latency.Translation.N == 1 && st.InTokens > 0 {
 			l := st.Latency
-			if l.FirstText.N != 1 || l.FirstText.Sum < 50 || l.FirstText.Sum > 500 {
+			if l.FirstText.N != 1 || l.FirstText.SumMs < 50 || l.FirstText.SumMs > 500 {
 				t.Errorf("first text %+v", l.FirstText)
 			}
-			if l.Final.N != 1 || l.Final.Sum < 30 {
+			if l.Final.N != 1 || l.Final.SumMs < 30 {
 				t.Errorf("final %+v", l.Final)
 			}
-			if l.FirstTranslation.N != 1 || l.FirstTranslation.Sum < 30 || l.EndToEnd.N != 1 || l.EndToEnd.Sum < l.FirstTranslation.Sum+30 {
+			if l.FirstTranslation.N != 1 || l.FirstTranslation.SumMs < 30 || l.EndToEnd.N != 1 || l.EndToEnd.SumMs < l.FirstTranslation.SumMs+30 {
 				t.Errorf("translation %+v, end to end %+v", l.FirstTranslation, l.EndToEnd)
 			}
 			if st.InTokens != 32 || st.OutTokens != 2 || st.Lines != 1 || st.Chars != 4 || st.Failed != 0 {

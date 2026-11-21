@@ -659,7 +659,7 @@ func TestRecognitionHints(t *testing.T) {
 	c.Prefs.ASR = QwenCloud
 	id := c.AddScene("只狼")
 	c.AddTerm(id, scene.Term{Src: "一心", Tgt: "一心"})
-	c.AddTerm(id, scene.Term{Src: "葦名", Tgt: "苇名", Auto: true})
+	c.AddTerm(id, scene.Term{Src: "葦名", Tgt: "苇名", Learned: true})
 	c.AddTerm("", scene.Term{Src: "Claude", Tgt: "Claude"})
 	if h := c.hints(); h.Names != nil {
 		t.Fatalf("the general scene's names are hints: %+v", h)

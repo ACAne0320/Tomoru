@@ -13,16 +13,16 @@ import (
 )
 
 type Counts struct {
-	Run       float64 `json:"run"`
-	Lines     int     `json:"lines"`
-	Speech    float64 `json:"speech"`
-	Chars     int     `json:"chars"`
-	Audio     float64 `json:"audio,omitempty"`
-	Failed    int     `json:"failed,omitempty"`
-	InTokens  int     `json:"inTokens,omitempty"`
-	OutTokens int     `json:"outTokens,omitempty"`
-	Images    int     `json:"images,omitempty"`
-	Latency   Latency `json:"latency"`
+	RunSeconds    float64 `json:"run"`
+	Lines         int     `json:"lines"`
+	SpeechSeconds float64 `json:"speech"`
+	Chars         int     `json:"chars"`
+	AudioSeconds  float64 `json:"audio,omitempty"`
+	Failed        int     `json:"failed,omitempty"`
+	InTokens      int     `json:"inTokens,omitempty"`
+	OutTokens     int     `json:"outTokens,omitempty"`
+	Images        int     `json:"images,omitempty"`
+	Latency       Latency `json:"latency"`
 }
 
 type Latency struct {
@@ -35,11 +35,11 @@ type Latency struct {
 }
 
 func (c *Counts) Add(o Counts) {
-	c.Run += o.Run
+	c.RunSeconds += o.RunSeconds
 	c.Lines += o.Lines
-	c.Speech += o.Speech
+	c.SpeechSeconds += o.SpeechSeconds
 	c.Chars += o.Chars
-	c.Audio += o.Audio
+	c.AudioSeconds += o.AudioSeconds
 	c.Failed += o.Failed
 	c.InTokens += o.InTokens
 	c.OutTokens += o.OutTokens
@@ -55,15 +55,15 @@ func (c *Counts) Add(o Counts) {
 
 func (c Counts) Since(previous Counts) Counts {
 	return Counts{
-		Run:       c.Run - previous.Run,
-		Lines:     c.Lines - previous.Lines,
-		Speech:    c.Speech - previous.Speech,
-		Chars:     c.Chars - previous.Chars,
-		Audio:     c.Audio - previous.Audio,
-		Failed:    c.Failed - previous.Failed,
-		InTokens:  c.InTokens - previous.InTokens,
-		OutTokens: c.OutTokens - previous.OutTokens,
-		Images:    c.Images - previous.Images,
+		RunSeconds:    c.RunSeconds - previous.RunSeconds,
+		Lines:         c.Lines - previous.Lines,
+		SpeechSeconds: c.SpeechSeconds - previous.SpeechSeconds,
+		Chars:         c.Chars - previous.Chars,
+		AudioSeconds:  c.AudioSeconds - previous.AudioSeconds,
+		Failed:        c.Failed - previous.Failed,
+		InTokens:      c.InTokens - previous.InTokens,
+		OutTokens:     c.OutTokens - previous.OutTokens,
+		Images:        c.Images - previous.Images,
 		Latency: Latency{
 			FirstText:        histSince(c.Latency.FirstText, previous.Latency.FirstText),
 			Final:            histSince(c.Latency.Final, previous.Latency.Final),
@@ -77,7 +77,7 @@ func (c Counts) Since(previous Counts) Counts {
 
 func histSince(current, previous Hist) Hist {
 	current.N -= previous.N
-	current.Sum -= previous.Sum
+	current.SumMs -= previous.SumMs
 	for i := range current.B {
 		current.B[i] -= previous.B[i]
 	}
@@ -87,21 +87,21 @@ func histSince(current, previous Hist) Hist {
 var Bounds = [...]float64{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000, 2500, 3000, 4000, 5000, 7000, 10000}
 
 type Hist struct {
-	N   int                  `json:"n"`
-	Sum float64              `json:"sum"`
-	B   [len(Bounds) + 1]int `json:"b"`
+	N     int                  `json:"n"`
+	SumMs float64              `json:"sum"`
+	B     [len(Bounds) + 1]int `json:"b"`
 }
 
 func (h *Hist) Add(d time.Duration) {
 	ms := max(0, float64(d)/float64(time.Millisecond))
 	h.N++
-	h.Sum += ms
+	h.SumMs += ms
 	h.B[sort.SearchFloat64s(Bounds[:], ms)]++
 }
 
 func (h *Hist) Merge(o Hist) {
 	h.N += o.N
-	h.Sum += o.Sum
+	h.SumMs += o.SumMs
 	for i := range h.B {
 		h.B[i] += o.B[i]
 	}
@@ -146,7 +146,7 @@ type Use struct {
 }
 
 type Day struct {
-	Day  string `json:"day"`
+	Date string `json:"day"`
 	Uses []Use  `json:"uses"`
 }
 
@@ -169,9 +169,9 @@ type Ledger struct {
 func DayOf(t time.Time) string { return t.Format(time.DateOnly) }
 
 func (l *Ledger) Add(day string, e Engines, c Counts) {
-	i, found := slices.BinarySearchFunc(l.Days, day, func(d Day, day string) int { return strings.Compare(d.Day, day) })
+	i, found := slices.BinarySearchFunc(l.Days, day, func(d Day, day string) int { return strings.Compare(d.Date, day) })
 	if !found {
-		l.Days = slices.Insert(l.Days, i, Day{Day: day})
+		l.Days = slices.Insert(l.Days, i, Day{Date: day})
 	}
 	d := &l.Days[i]
 	for j := range d.Uses {
@@ -185,7 +185,7 @@ func (l *Ledger) Add(day string, e Engines, c Counts) {
 
 func (l *Ledger) AddRun(start, end time.Time, engines Engines) {
 	l.addInterval(start, end, engines, end.Sub(start).Seconds(), func(seconds float64) Counts {
-		return Counts{Run: seconds}
+		return Counts{RunSeconds: seconds}
 	})
 }
 
@@ -195,11 +195,11 @@ func (l *Ledger) AddSpeech(end time.Time, seconds float64, engines Engines) {
 	}
 	duration := time.Duration(seconds * float64(time.Second))
 	if duration == 0 {
-		l.Add(DayOf(end.Add(-time.Nanosecond)), engines, Counts{Speech: seconds})
+		l.Add(DayOf(end.Add(-time.Nanosecond)), engines, Counts{SpeechSeconds: seconds})
 		return
 	}
 	l.addInterval(end.Add(-duration), end, engines, seconds, func(seconds float64) Counts {
-		return Counts{Speech: seconds}
+		return Counts{SpeechSeconds: seconds}
 	})
 }
 
@@ -249,7 +249,7 @@ func nextLocalDay(start time.Time) time.Time {
 
 func (l Ledger) Day(day string) Counts {
 	for _, d := range l.Days {
-		if d.Day == day {
+		if d.Date == day {
 			return d.Total()
 		}
 	}
@@ -264,6 +264,18 @@ func (l Ledger) Clone() Ledger {
 	return Ledger{Days: days}
 }
 
+type oneDay struct {
+	Day          string `json:"Day"`
+	Run, Speech  float64
+	Lines, Chars int
+}
+
+func (d oneDay) migrate(l *Ledger) {
+	if d.Day != "" {
+		l.Add(d.Day, Engines{}, Counts{RunSeconds: d.Run, Lines: d.Lines, SpeechSeconds: d.Speech, Chars: d.Chars})
+	}
+}
+
 func Load(path string) (Ledger, error) {
 	b, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -272,20 +284,16 @@ func Load(path string) (Ledger, error) {
 	if err != nil {
 		return Ledger{}, err
 	}
-	var f struct {
-		Days         []Day  `json:"days"`
-		Day          string `json:"Day"`
-		Run, Speech  float64
-		Lines, Chars int
-	}
-	if err := json.Unmarshal(b, &f); err != nil {
+	var l Ledger
+	if err := json.Unmarshal(b, &l); err != nil {
 		return Ledger{}, err
 	}
-	l := Ledger{Days: f.Days}
-	if len(l.Days) == 0 && f.Day != "" {
-		l.Add(f.Day, Engines{}, Counts{Run: f.Run, Lines: f.Lines, Speech: f.Speech, Chars: f.Chars})
+	if len(l.Days) == 0 {
+		var old oneDay
+		json.Unmarshal(b, &old)
+		old.migrate(&l)
 	}
-	slices.SortFunc(l.Days, func(a, b Day) int { return strings.Compare(a.Day, b.Day) })
+	slices.SortFunc(l.Days, func(a, b Day) int { return strings.Compare(a.Date, b.Date) })
 	return l, nil
 }
 

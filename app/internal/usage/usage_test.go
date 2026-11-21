@@ -30,7 +30,7 @@ func TestHist(t *testing.T) {
 	var m Hist
 	m.Merge(h)
 	m.Merge(long)
-	if m.N != 7 || m.Sum != h.Sum+long.Sum {
+	if m.N != 7 || m.SumMs != h.SumMs+long.SumMs {
 		t.Errorf("merged %+v", m)
 	}
 }
@@ -38,17 +38,17 @@ func TestHist(t *testing.T) {
 func TestLedger(t *testing.T) {
 	asr := Engines{ASR: "apple", MT: "cloud"}
 	var l Ledger
-	l.Add("2026-10-21", asr, Counts{Run: 60, Lines: 3})
-	l.Add("2026-10-19", asr, Counts{Run: 10})
-	l.Add("2026-10-21", asr, Counts{Run: 30, Lines: 1})
+	l.Add("2026-10-21", asr, Counts{RunSeconds: 60, Lines: 3})
+	l.Add("2026-10-19", asr, Counts{RunSeconds: 10})
+	l.Add("2026-10-21", asr, Counts{RunSeconds: 30, Lines: 1})
 	l.Add("2026-10-21", Engines{ASR: "apple", MT: "custom:a", MTName: "OpenRouter"}, Counts{Lines: 5})
-	if len(l.Days) != 2 || l.Days[0].Day != "2026-10-19" {
+	if len(l.Days) != 2 || l.Days[0].Date != "2026-10-19" {
 		t.Fatalf("days %+v", l.Days)
 	}
-	if d := l.Days[1]; len(d.Uses) != 2 || d.Uses[0].Run != 90 || d.Uses[0].Lines != 4 {
+	if d := l.Days[1]; len(d.Uses) != 2 || d.Uses[0].RunSeconds != 90 || d.Uses[0].Lines != 4 {
 		t.Errorf("the day's uses %+v", d.Uses)
 	}
-	if c := l.Day("2026-10-21"); c.Run != 90 || c.Lines != 9 {
+	if c := l.Day("2026-10-21"); c.RunSeconds != 90 || c.Lines != 9 {
 		t.Errorf("the day %+v", c)
 	}
 
@@ -61,8 +61,8 @@ func TestLedger(t *testing.T) {
 		t.Errorf("loaded %+v, %v", got, err)
 	}
 	c := got.Clone()
-	c.Days[0].Uses[0].Run = 0
-	if got.Days[0].Uses[0].Run != 10 {
+	c.Days[0].Uses[0].RunSeconds = 0
+	if got.Days[0].Uses[0].RunSeconds != 10 {
 		t.Error("the clone shares its uses")
 	}
 	if l, err := Load(filepath.Join(t.TempDir(), "none.json")); err != nil || len(l.Days) != 0 {
@@ -77,7 +77,7 @@ func TestLoadDay(t *testing.T) {
 	if err != nil || len(l.Days) != 1 {
 		t.Fatalf("%+v, %v", l, err)
 	}
-	if u := l.Days[0].Uses[0]; u.Engines != (Engines{}) || u.Run != 29149 || u.Lines != 555 || u.Speech != 9000 || u.Chars != 12000 {
+	if u := l.Days[0].Uses[0]; u.Engines != (Engines{}) || u.RunSeconds != 29149 || u.Lines != 555 || u.SpeechSeconds != 9000 || u.Chars != 12000 {
 		t.Errorf("the day %+v", u)
 	}
 }

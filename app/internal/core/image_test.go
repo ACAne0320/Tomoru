@@ -142,7 +142,7 @@ func TestSelectImage(t *testing.T) {
 	}
 
 	var pic []byte
-	var err error
+	err := context.Canceled
 	at := image.Rect(100, 200, 400, 260)
 	c.ImageService.selectPicture = func(context.Context) ([]byte, image.Rectangle, error) { return pic, at, err }
 	shown := 0
@@ -154,7 +154,7 @@ func TestSelectImage(t *testing.T) {
 
 	var b bytes.Buffer
 	png.Encode(&b, image.NewRGBA(image.Rect(0, 0, 4, 4)))
-	pic = b.Bytes()
+	pic, err = b.Bytes(), nil
 	c.SelectImage(func() { shown++ })
 	f.flush(t, 1)
 	if shown != 1 || !c.Image.Running || c.Image.Area != at {

@@ -798,8 +798,8 @@ func TestHistory(t *testing.T) {
 	if hasTextContaining(tt, "Old") || k.History.Shown != "/h/ff7.jsonl" {
 		t.Errorf("shown %q, texts %q", k.History.Shown, tt.Texts())
 	}
-	k.History.Lines = []history.Entry{{At: start, Src: "まずはクラウドの武器", Heard: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"},
-		{At: start, Src: "スキップ", Err: "behind"}, {At: start, Src: "失敗", Err: "translate: 500 Internal Server Error: down"}}
+	k.History.Lines = []history.Entry{{KeptAt: start, Src: "まずはクラウドの武器", BeforeGlossary: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"},
+		{KeptAt: start, Src: "スキップ", Err: "behind"}, {KeptAt: start, Src: "失敗", Err: "translate: 500 Internal Server Error: down"}}
 	tt.Frame()
 	for _, want := range []string{"先看克劳德的武器", locales.TermFixed("黒ウド"), shared.OnWindows(locales.ShowInFinder(), locales.ShowInExplorer()),
 		locales.TranslationSkipped(), "translate: 500 Internal Server Error: down"} {

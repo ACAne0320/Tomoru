@@ -45,9 +45,9 @@ func TestGallery(t *testing.T) {
 		sc.About = "《最终幻想7 重制版》的游戏直播。主角是克劳德，同伴有蒂法、爱丽丝、巴雷特。"
 	})
 	for _, t := range []scene.Term{
-		{Src: "クラウド", Tgt: "克劳德", Heard: []string{"黒ウド", "クロウド"}, Auto: true},
+		{Src: "クラウド", Tgt: "克劳德", Heard: []string{"黒ウド", "クロウド"}, Learned: true},
 		{Src: "ティファ", Tgt: "蒂法"},
-		{Src: "エアリス", Tgt: "爱丽丝", Heard: []string{"エアリ"}, Auto: true},
+		{Src: "エアリス", Tgt: "爱丽丝", Heard: []string{"エアリ"}, Learned: true},
 		{Src: "ミッドガル", Tgt: "米德加", Heard: []string{"ミッドガール"}},
 	} {
 		k.AddTerm(ff7, t)
@@ -62,10 +62,10 @@ func TestGallery(t *testing.T) {
 	}}
 	k.History = records
 	lines := []history.Entry{
-		{At: start.Add(12 * time.Second), Src: "皆さん、こんばんは。", Tgt: "大家晚上好。"},
-		{At: start.Add(62 * time.Second), Src: "まずはクラウドの新しい武器を見ていきましょう。", Heard: "まずは黒ウドの新しい武器を見ていきましょう。", Tgt: "先来看看克劳德的新武器吧。"},
-		{At: start.Add(135 * time.Second), Src: "じゃあミッドガルに向かいます。", Heard: "じゃあミッドガールに向かいます。", Tgt: "那我们出发去米德加。"},
-		{At: start.Add(151 * time.Second), Src: "コメントありがとうございます！", Tgt: "谢谢大家的留言！"},
+		{KeptAt: start.Add(12 * time.Second), Src: "皆さん、こんばんは。", Tgt: "大家晚上好。"},
+		{KeptAt: start.Add(62 * time.Second), Src: "まずはクラウドの新しい武器を見ていきましょう。", BeforeGlossary: "まずは黒ウドの新しい武器を見ていきましょう。", Tgt: "先来看看克劳德的新武器吧。"},
+		{KeptAt: start.Add(135 * time.Second), Src: "じゃあミッドガルに向かいます。", BeforeGlossary: "じゃあミッドガールに向かいます。", Tgt: "那我们出发去米德加。"},
+		{KeptAt: start.Add(151 * time.Second), Src: "コメントありがとうございます！", Tgt: "谢谢大家的留言！"},
 	}
 	s := New(k, &coretest.Nav{})
 	tt := ui.NewTester(s.View, Width, Height)

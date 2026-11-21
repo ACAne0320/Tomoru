@@ -97,8 +97,8 @@ func TestSpeechEndPreservesCrossMidnightAudioInterval(t *testing.T) {
 			var previous float64
 			increments := 0
 			for _, st := range got {
-				delta := st.Stats.Speech - previous
-				previous = st.Stats.Speech
+				delta := st.Stats.SpeechSeconds - previous
+				previous = st.Stats.SpeechSeconds
 				if delta > 0 {
 					increments++
 					if delta != 4 || !st.SpeechEnd.Equal(end) || !st.StatsAt.Equal(reported) {
@@ -108,7 +108,7 @@ func TestSpeechEndPreservesCrossMidnightAudioInterval(t *testing.T) {
 						t.Errorf("speech started %v; want %v", inferred, start)
 					}
 				}
-				if st.Stats.Speech > 0 && !st.SpeechEnd.Equal(end) {
+				if st.Stats.SpeechSeconds > 0 && !st.SpeechEnd.Equal(end) {
 					t.Errorf("later report changed speech endpoint: %v", st.SpeechEnd)
 				}
 			}

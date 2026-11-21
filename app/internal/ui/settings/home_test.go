@@ -35,7 +35,7 @@ func TestHome(t *testing.T) {
 
 	k.Err, k.Running = nil, true
 	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "皆さん、こんばんは。", Tgt: "大家晚上好。", Outcome: live.Translated}},
-		Stats: live.Stats{Lines: 12, Speech: 90, Chars: 345}}
+		Stats: live.Stats{Lines: 12, SpeechSeconds: 90, Chars: 345}}
 	tt.Frame()
 	for _, want := range []string{locales.HomeTranslating(), locales.Pause(), locales.StatRunning(), "12", "1.5", "345"} {
 		if !tt.HasText(want) {

@@ -157,8 +157,8 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 		terms = sc.Terms
 	}
 	hours := r.Head.Start.Format("15:04")
-	if n := len(lines); n > 0 && !lines[n-1].At.IsZero() {
-		hours += " – " + lines[n-1].At.Format("15:04")
+	if n := len(lines); n > 0 && !lines[n-1].KeptAt.IsZero() {
+		hours += " – " + lines[n-1].KeptAt.Format("15:04")
 	}
 	from := ""
 	if r.Head.App != "" {
@@ -204,7 +204,7 @@ func (s *Settings) record(c *ui.Context, r history.Record) {
 		for i, l := range lines {
 			said := l.Start
 			if said.IsZero() {
-				said = l.At
+				said = l.KeptAt
 			}
 			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Padding(kit.Space(3), 0).BorderWidth(1, 0, 0).BorderColor(p.LineSoft).Children(func() {
 				ui.Text(c, said.Format("15:04:05")).FontSize(kit.TextCaption).FontFeatures(kit.Tabular).TextColor(p.InkWarm).Width(56).Shrink(0)
@@ -253,16 +253,16 @@ func recordLangs(r history.Record) string {
 }
 
 func line(c *ui.Context, l history.Entry, terms []scene.Term, untranslated bool) {
-	untranslated = untranslated || l.Said
+	untranslated = untranslated || l.InTargetLang
 	p := kit.Colors(c)
 	src := ui.Span{Size: kit.TextControl, Color: p.InkMuted}
 	if untranslated {
 		src = ui.Span{Size: kit.TextBody, Weight: kit.WeightMedium, Color: p.Ink}
 	}
 	var was []string
-	if l.Heard != "" && l.Heard != l.Src {
+	if l.BeforeGlossary != "" && l.BeforeGlossary != l.Src {
 		var marks []mark
-		marks, was = corrections(l.Src, l.Heard, terms)
+		marks, was = corrections(l.Src, l.BeforeGlossary, terms)
 		spans := make([]ui.Span, len(marks))
 		for i, m := range marks {
 			spans[i] = src

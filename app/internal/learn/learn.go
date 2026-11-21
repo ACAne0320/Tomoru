@@ -158,7 +158,7 @@ func rejected(c Context, h string) bool {
 }
 
 func mine(c Context, src string) bool {
-	return slices.ContainsFunc(c.Terms, func(t scene.Term) bool { return !t.Auto && scene.Same(t.Src, src) })
+	return slices.ContainsFunc(c.Terms, func(t scene.Term) bool { return !t.Learned && scene.Same(t.Src, src) })
 }
 
 func have(c Context, src, tgt, h string) bool {

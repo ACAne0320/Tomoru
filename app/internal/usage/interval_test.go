@@ -8,13 +8,13 @@ import (
 )
 
 func TestCountsSinceAllFields(t *testing.T) {
-	previous := Counts{Run: 10.25, Lines: 11, Speech: 12.5, Chars: 13, Audio: 14.75, Failed: 15, InTokens: 16, OutTokens: 17, Images: 18}
-	increment := Counts{Run: 1.25, Lines: 2, Speech: 3.5, Chars: 4, Audio: 5.75, Failed: 6, InTokens: 7, OutTokens: 8, Images: 9}
+	previous := Counts{RunSeconds: 10.25, Lines: 11, SpeechSeconds: 12.5, Chars: 13, AudioSeconds: 14.75, Failed: 15, InTokens: 16, OutTokens: 17, Images: 18}
+	increment := Counts{RunSeconds: 1.25, Lines: 2, SpeechSeconds: 3.5, Chars: 4, AudioSeconds: 5.75, Failed: 6, InTokens: 7, OutTokens: 8, Images: 9}
 	oldHist := []*Hist{&previous.Latency.FirstText, &previous.Latency.Final, &previous.Latency.FirstTranslation, &previous.Latency.Translation, &previous.Latency.Queue, &previous.Latency.EndToEnd}
 	newHist := []*Hist{&increment.Latency.FirstText, &increment.Latency.Final, &increment.Latency.FirstTranslation, &increment.Latency.Translation, &increment.Latency.Queue, &increment.Latency.EndToEnd}
 	for i, h := range oldHist {
-		h.Sum = float64(1000+i) + 0.5
-		newHist[i].Sum = float64(100+i) + 0.25
+		h.SumMs = float64(1000+i) + 0.5
+		newHist[i].SumMs = float64(100+i) + 0.25
 		for bucket := range h.B {
 			h.B[bucket] = bucket + i + 1
 			newHist[i].B[bucket] = bucket + i + 2
@@ -35,7 +35,7 @@ func TestCountsSinceAllFields(t *testing.T) {
 		t.Errorf("same snapshot produced delta: %+v", got)
 	}
 	reverse := previous.Since(current)
-	if reverse.Run != -increment.Run || reverse.Speech != -increment.Speech || reverse.Audio != -increment.Audio || reverse.Failed != -increment.Failed || reverse.Latency.Translation.N != -increment.Latency.Translation.N || reverse.Latency.EndToEnd.Sum != -increment.Latency.EndToEnd.Sum {
+	if reverse.RunSeconds != -increment.RunSeconds || reverse.SpeechSeconds != -increment.SpeechSeconds || reverse.AudioSeconds != -increment.AudioSeconds || reverse.Failed != -increment.Failed || reverse.Latency.Translation.N != -increment.Latency.Translation.N || reverse.Latency.EndToEnd.SumMs != -increment.Latency.EndToEnd.SumMs {
 		t.Errorf("Since clamped a raw difference: %+v", reverse)
 	}
 	for i, n := range reverse.Latency.FirstText.B {
@@ -94,26 +94,26 @@ func verifyInterval(t *testing.T, l Ledger, engines Engines, want map[string]flo
 	}
 	var sum float64
 	for i, day := range l.Days {
-		if i > 0 && l.Days[i-1].Day >= day.Day {
+		if i > 0 && l.Days[i-1].Date >= day.Date {
 			t.Fatal("calendar days are not in order")
 		}
 		if len(day.Uses) != 1 || day.Uses[0].Engines != engines {
 			t.Fatalf("engine identity lost: %+v", day)
 		}
 		count := day.Uses[0].Counts
-		value := count.Run
+		value := count.RunSeconds
 		if field == "speech" {
-			value = count.Speech
-			count.Speech = 0
+			value = count.SpeechSeconds
+			count.SpeechSeconds = 0
 		} else {
-			count.Run = 0
+			count.RunSeconds = 0
 		}
 		if count != (Counts{}) {
 			t.Errorf("interval changed unrelated counts: %+v", count)
 		}
-		expected, ok := want[day.Day]
+		expected, ok := want[day.Date]
 		if !ok || math.Abs(value-expected) > 1e-8 {
-			t.Errorf("%s %s = %.12f; want %.12f", day.Day, field, value, expected)
+			t.Errorf("%s %s = %.12f; want %.12f", day.Date, field, value, expected)
 		}
 		sum += value
 	}
@@ -164,10 +164,10 @@ func TestLedgerIntervalsAccumulateWithoutChangingOtherCounts(t *testing.T) {
 	ledger.AddRun(start, end, engines)
 	ledger.AddRun(start, end, engines)
 	ledger.AddSpeech(end, 2, engines)
-	if got := ledger.Day("2026-10-21"); got != (Counts{Run: 2, Speech: 1, Lines: 2, Chars: 4}) {
+	if got := ledger.Day("2026-10-21"); got != (Counts{RunSeconds: 2, SpeechSeconds: 1, Lines: 2, Chars: 4}) {
 		t.Errorf("first day's accumulated counts: %+v", got)
 	}
-	if got := ledger.Day("2026-10-22"); got != (Counts{Run: 2, Speech: 1}) {
+	if got := ledger.Day("2026-10-22"); got != (Counts{RunSeconds: 2, SpeechSeconds: 1}) {
 		t.Errorf("next day's accumulated counts: %+v", got)
 	}
 }
@@ -177,7 +177,7 @@ func TestLedgerSpeechPreservesFractionalSeconds(t *testing.T) {
 	for _, seconds := range []float64{1.1234567895, 0.0000000005} {
 		var ledger Ledger
 		ledger.AddSpeech(end, seconds, Engines{})
-		if len(ledger.Days) != 1 || ledger.Days[0].Day != "2026-10-21" || ledger.Days[0].Total().Speech != seconds {
+		if len(ledger.Days) != 1 || ledger.Days[0].Date != "2026-10-21" || ledger.Days[0].Total().SpeechSeconds != seconds {
 			t.Errorf("fractional audio seconds lost or moved past exclusive midnight: %+v; want %.12f", ledger, seconds)
 		}
 	}

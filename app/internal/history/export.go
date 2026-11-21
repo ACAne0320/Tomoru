@@ -13,7 +13,7 @@ func Text(title string, head Head, es []Entry) string {
 	b.WriteString(title)
 	b.WriteString("\n")
 	for _, e := range es {
-		start, _ := e.said()
+		start := e.Start
 		fmt.Fprintf(&b, "\n%s %s\n", start.Format("15:04:05"), e.Src)
 		if t := e.translation(head); t != "" {
 			b.WriteString(t)
@@ -26,18 +26,18 @@ func Text(title string, head Head, es []Entry) string {
 func SRT(head Head, es []Entry) string {
 	zero := head.Start
 	for _, e := range es {
-		if start, _ := e.said(); start.Before(zero) {
+		if start := e.Start; start.Before(zero) {
 			zero = start
 		}
 	}
 	var b strings.Builder
 	for i, e := range es {
-		start, end := e.said()
+		start, end := e.Start, e.End
 		if least := start.Add(minShown); end.Before(least) {
 			end = least
 		}
 		if i+1 < len(es) {
-			if next, _ := es[i+1].said(); next.After(start) && next.Before(end) {
+			if next := es[i+1].Start; next.After(start) && next.Before(end) {
 				end = next
 			}
 		}
@@ -53,19 +53,8 @@ func SRT(head Head, es []Entry) string {
 	return b.String()
 }
 
-func (e Entry) said() (start, end time.Time) {
-	start, end = e.Start, e.End
-	if start.IsZero() {
-		start = e.At
-	}
-	if end.Before(start) {
-		end = start
-	}
-	return start, end
-}
-
 func (e Entry) translation(head Head) string {
-	if head.Untranslated || e.Said {
+	if head.Untranslated || e.InTargetLang {
 		return ""
 	}
 	return e.Tgt

@@ -149,8 +149,8 @@ func TestHideAfter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if saved.HideAfter != 6 || !saved.KeepShown || k.HideAfter() != 0 {
-		t.Fatalf("saved %v s, kept %v; hides after %v", saved.HideAfter, saved.KeepShown, k.HideAfter())
+	if saved.HideAfterSeconds != 6 || !saved.KeepShown || k.HideAfter() != 0 {
+		t.Fatalf("saved %v s, kept %v; hides after %v", saved.HideAfterSeconds, saved.KeepShown, k.HideAfter())
 	}
 }
 
