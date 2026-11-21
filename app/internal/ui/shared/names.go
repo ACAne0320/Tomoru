@@ -70,16 +70,16 @@ func LangChoices(codes []string) [][]string {
 	return groups
 }
 
-func FontName(font string) string {
+func FontName(font prefs.Font) string {
 	switch font {
-	case "system":
+	case prefs.FontSystem:
 		return locales.FontSystem()
-	case "serif":
+	case prefs.FontSerif:
 		return locales.FontSerif()
-	case "rounded":
+	case prefs.FontRounded:
 		return locales.FontRounded()
 	}
-	return font
+	return string(font)
 }
 
 const CloudName = "Index-Translate 35B"
@@ -146,7 +146,7 @@ func EngineName(e core.Engine) string {
 		return locales.EngineNone()
 	case e.Endpoint != nil:
 		return e.Endpoint.Name
-	case strings.HasPrefix(e.ID, prefs.CustomPrefix):
+	case prefs.IsEndpoint(e.ID):
 		return locales.EngineDeleted()
 	case e.ID == "apple":
 		return locales.EngineApple()

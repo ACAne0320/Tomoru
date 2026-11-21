@@ -127,7 +127,7 @@ func TestEngineServiceOwnsDeferredSelection(t *testing.T) {
 	if s.chosen(MT, "cloud") != "cloud" {
 		t.Fatal("consumed pending choice remained")
 	}
-	s.pending[MT] = prefs.CustomPrefix + "removed"
+	s.pending[MT] = prefs.EndpointEngine("removed")
 	s.readyPending(nil, nil)
 	if len(s.pending) != 0 {
 		t.Fatal("deleted provider remained pending")

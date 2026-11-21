@@ -4,7 +4,6 @@ import (
 	"context"
 	"image"
 	"log"
-	"strings"
 	"time"
 
 	"tomoru/internal/engine"
@@ -19,7 +18,7 @@ func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
 		return !m.ASR && m.Vision != ""
 	}
-	if eid, ok := strings.CutPrefix(id, prefs.CustomPrefix); ok {
+	if eid, ok := prefs.EndpointOf(id); ok {
 		for _, e := range endpoints {
 			if e.ID == eid {
 				return e.Vision != prefs.VisionNo && formatOf(e).ReadsPictures()

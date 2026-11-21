@@ -45,7 +45,7 @@ func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 		es = append(es, Engine{ID: s.ID, Kind: MT, Cloud: true})
 	}
 	for _, e := range endpoints {
-		es = append(es, Engine{ID: prefs.CustomPrefix + e.ID, Kind: MT, Cloud: true, Endpoint: &e})
+		es = append(es, Engine{ID: prefs.EndpointEngine(e.ID), Kind: MT, Cloud: true, Endpoint: &e})
 	}
 	return es
 }

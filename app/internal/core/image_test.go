@@ -232,10 +232,10 @@ func TestImageEngines(t *testing.T) {
 	}
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: api.URL, Model: "m"}, "key")
-	c.SetImageEngine(prefs.CustomPrefix + id)
+	c.SetImageEngine(prefs.EndpointEngine(id))
 	c.TranslateImage(b.Bytes())
 	translated("接口")
-	if c.Image.Via != prefs.CustomPrefix+id || string(sec[keyName(id)]) != "key" {
+	if c.Image.Via != prefs.EndpointEngine(id) || string(sec[keyName(id)]) != "key" {
 		t.Errorf("the API: via %q", c.Image.Via)
 	}
 	e, _ := c.Prefs.Endpoint(id)
@@ -248,7 +248,7 @@ func TestImageEngines(t *testing.T) {
 		}
 		f.flush(t, 1)
 	}
-	if c.Image.Err == nil || c.Image.Text != "" || c.Image.Via != prefs.CustomPrefix+id {
+	if c.Image.Err == nil || c.Image.Text != "" || c.Image.Via != prefs.EndpointEngine(id) {
 		t.Errorf("the API failed: %+v", c.Image)
 	}
 }

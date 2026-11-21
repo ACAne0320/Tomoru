@@ -20,21 +20,26 @@ type fontEdit struct {
 	list            ui.ListState
 }
 
-func subtitleFont(font string) string {
-	if slices.Contains(prefs.Fonts, font) || slices.ContainsFunc(ui.FontFamilies(), func(f ui.FontFamily) bool { return f.Name == font }) {
+func subtitleFont(font prefs.Font) prefs.Font {
+	if font.Builtin() || slices.ContainsFunc(ui.FontFamilies(), func(f ui.FontFamily) bool { return f.Name == string(font) }) {
 		return font
 	}
-	return prefs.Fonts[0]
+	return prefs.FontSystem
 }
 
-func (s *Settings) fontMenu(font string) func(m *ui.Menu) {
-	fonts := prefs.Fonts
-	if !slices.Contains(fonts, font) {
-		fonts = append(slices.Clone(fonts), font)
+func (s *Settings) fontMenu(font prefs.Font) func(m *ui.Menu) {
+	fonts := slices.Clone(prefs.Fonts)
+	if !font.Builtin() {
+		fonts = append(fonts, font)
 	}
-	choose := func(f string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f }) }
+	keys := make([]string, len(fonts))
+	for i, f := range fonts {
+		keys[i] = string(f)
+	}
+	name := func(key string) string { return shared.FontName(prefs.Font(key)) }
+	choose := func(key string) { s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = prefs.Font(key) }) }
 	return func(m *ui.Menu) {
-		kit.Choices(font, [][]string{fonts}, shared.FontName, choose)(m)
+		kit.Choices(string(font), [][]string{keys}, name, choose)(m)
 		m.Separator()
 		if m.Item(locales.FontMore() + "…").Chosen() {
 			s.openFonts()
@@ -50,7 +55,7 @@ func (s *Settings) openFonts() {
 		}
 	}
 	s.fonts = fontEdit{open: true, families: names}
-	if i := slices.Index(names, s.core.Preferences().Font); i >= 0 {
+	if i := slices.Index(names, string(s.core.Preferences().Font)); i >= 0 {
 		s.fonts.list.ScrollTo(i, ui.Center)
 	}
 }
@@ -83,8 +88,8 @@ func (s *Settings) fontDialog(c *ui.Context) {
 		d.list.Key = func(i int) any { return shown[i] }
 		d.list.Label = func(i int) string { return shown[i] }
 		ui.List(c, &d.list, len(shown), func(i int) {
-			if fontRow(c, shown[i], sample, lang, shown[i] == pr.Font).Clicked() {
-				f := shown[i]
+			if fontRow(c, shown[i], sample, lang, prefs.Font(shown[i]) == pr.Font).Clicked() {
+				f := prefs.Font(shown[i])
 				s.core.UpdatePrefs(func(p *prefs.Prefs) { p.Font = f })
 				d.open = false
 			}

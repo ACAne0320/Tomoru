@@ -147,7 +147,7 @@ the menu, which shows the panel, as AppIndicator tells no clicks); on Linux the 
 the overlay's pointer (`overlay/window_linux.go`: under Wayland the app hears it only over its own
 windows); and a little platform wording
 (`ui/shared.OnWindows` and `OnEach`). Windows and Linux have no system recognizer, so at first no
-recognition is chosen (`prefs.DefaultASR` is empty and starting
+recognition is chosen (`prefs.SystemASR` is empty and starting
 reports `core.ErrNoASR`); the user picks a local model (downloaded only once chosen) or cloud
 recognition in the guide or Settings, and the guide skips the permission step (`core.AsksAccess`).
 

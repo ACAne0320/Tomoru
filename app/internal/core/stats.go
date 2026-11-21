@@ -2,7 +2,6 @@ package core
 
 import (
 	"log"
-	"strings"
 	"time"
 
 	"tomoru/internal/asr"
@@ -78,7 +77,7 @@ func engines(p prefs.Prefs) usage.Engines {
 			e.ASRModel = s.Models[0]
 		}
 	}
-	if id, ok := strings.CutPrefix(p.MT, prefs.CustomPrefix); ok {
+	if id, ok := prefs.EndpointOf(p.MT); ok {
 		if ep, ok := p.Endpoint(id); ok {
 			e.MTName, e.MTModel = ep.Name, ep.Model
 		}

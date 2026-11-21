@@ -81,7 +81,7 @@ func TestEndpointFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 	for id, want := range map[string]string{"a": "index", "b": "chat", "c": "chat", "d": "hy-mt"} {
-		if e, ok := p.Endpoint(id); !ok || e.Format != want || e.Index {
+		if e, ok := p.Endpoint(id); !ok || e.Format != want {
 			t.Errorf("%s: %+v, want %q", id, e, want)
 		}
 	}
@@ -101,7 +101,7 @@ func TestASRCloud(t *testing.T) {
 	os.WriteFile(path, []byte(`{"ASR": "qwen-cloud", "ASRCloud": {"Host": "dashscope-intl.aliyuncs.com", "Model": "", "Key": true}}`), 0o644)
 	p, err := Load(path, "zh-Hans")
 	a, ok := p.API("qwen-cloud")
-	if err != nil || !ok || len(p.ASRAPIs) != 1 || !a.Key || a.URL != "dashscope-intl.aliyuncs.com" || p.ASRCloud != nil || p.ASR != "qwen-cloud" {
+	if err != nil || !ok || len(p.ASRAPIs) != 1 || !a.Key || a.URL != "dashscope-intl.aliyuncs.com" || p.ASR != "qwen-cloud" {
 		t.Fatalf("%+v %v", p.ASRAPIs, err)
 	}
 	if err := Save(path, p); err != nil {
@@ -111,13 +111,13 @@ func TestASRCloud(t *testing.T) {
 		t.Error("saved the old field")
 	}
 	os.WriteFile(path, []byte(`{"ASRCloud": {"Host": "", "Model": "", "Key": false}}`), 0o644)
-	if p, _ := Load(path, "zh-Hans"); len(p.ASRAPIs) != 0 || p.ASRCloud != nil {
+	if p, _ := Load(path, "zh-Hans"); len(p.ASRAPIs) != 0 {
 		t.Errorf("%+v", p.ASRAPIs)
 	}
 }
 
 func TestDisplay(t *testing.T) {
-	for in, want := range map[string]int{`{"Display":2}`: DisplaySrc, `{"Display":1}`: DisplayTgt, `{"Display":7}`: DisplayBoth, `{"Display":-1}`: DisplayBoth} {
+	for in, want := range map[string]Display{`{"Display":2}`: DisplaySrc, `{"Display":1}`: DisplayTgt, `{"Display":7}`: DisplayBoth, `{"Display":-1}`: DisplayBoth} {
 		path := filepath.Join(t.TempDir(), "settings.json")
 		os.WriteFile(path, []byte(in), 0o644)
 		p, err := Load(path, "en")

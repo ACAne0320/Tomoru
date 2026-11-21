@@ -13,7 +13,17 @@ import (
 	"tomoru/internal/lang"
 )
 
-var Fonts = []string{"system", "serif", "rounded"}
+type Font string
+
+const (
+	FontSystem  Font = "system"
+	FontSerif   Font = "serif"
+	FontRounded Font = "rounded"
+)
+
+var Fonts = []Font{FontSystem, FontSerif, FontRounded}
+
+func (f Font) Builtin() bool { return slices.Contains(Fonts, f) }
 
 const MaxShown = 10
 
@@ -26,10 +36,34 @@ const DefaultShortcut = "Alt+Shift+T"
 
 const DefaultImageShortcut = "Alt+Shift+S"
 
+type Display int
+
 const (
-	DisplayBoth = iota
+	DisplayBoth Display = iota
 	DisplayTgt
 	DisplaySrc
+)
+
+type Style int
+
+const (
+	StyleBox Style = iota
+	StyleImmersive
+)
+
+type Align int
+
+const (
+	AlignLeft Align = iota
+	AlignCenter
+)
+
+type Edge int
+
+const (
+	EdgeNone Edge = iota
+	EdgeOutline
+	EdgeShadow
 )
 
 type Prefs struct {
@@ -38,14 +72,14 @@ type Prefs struct {
 	Src, Tgt         string
 	Source           string
 	SourceName       string
-	Display          int
+	Display          Display
 	TgtFirst         bool
 	Shown            float64
-	Style            int
-	Align            int
-	Edge             int
+	Style            Style
+	Align            Align
+	Edge             Edge
 	EdgeColor        string
-	Font             string
+	Font             Font
 	SrcSize, TgtSize float64
 	SrcColor         string
 	TgtColor         string
@@ -67,7 +101,6 @@ type Prefs struct {
 	ImageW, ImageH   int
 	ASR              string
 	ASRAPIs          []Service
-	ASRCloud         *ASRCloud `json:",omitempty"`
 	MT               string
 	MTAPIs           []Service
 	Endpoints        []Endpoint
@@ -88,7 +121,6 @@ type Endpoint struct {
 	URL    string
 	Model  string
 	Format string
-	Index  bool   `json:",omitempty"`
 	Vision Vision `json:",omitempty"`
 }
 
@@ -107,11 +139,34 @@ type Service struct {
 	Key   bool
 }
 
-type ASRCloud struct {
-	Host  string
-	Model string
-	Key   bool
+type legacy struct {
+	ASRCloud *struct {
+		Host  string
+		Model string
+		Key   bool
+	}
+	Endpoints []struct{ Index bool }
 }
+
+func (p *Prefs) migrate(old legacy) {
+	if a := old.ASRCloud; a != nil {
+		if _, ok := p.API("qwen-cloud"); !ok && (a.Key || a.Host != "" || a.Model != "") {
+			p.ASRAPIs = append(p.ASRAPIs, Service{ID: "qwen-cloud", URL: a.Host, Model: a.Model, Key: a.Key})
+		}
+	}
+	for i := range p.Endpoints {
+		e := &p.Endpoints[i]
+		if e.Format != "" {
+			continue
+		}
+		e.Format = "chat"
+		if i < len(old.Endpoints) && old.Endpoints[i].Index {
+			e.Format = "index"
+		}
+	}
+}
+
+func (p Prefs) HearsAll() bool { return p.Source == "" }
 
 func (p Prefs) Translates() bool { return p.Display != DisplaySrc }
 
@@ -128,7 +183,13 @@ func (p *Prefs) API(id string) (*Service, bool) {
 	return nil, false
 }
 
-const CustomPrefix = "custom:"
+const endpointPrefix = "custom:"
+
+func EndpointEngine(id string) string { return endpointPrefix + id }
+
+func EndpointOf(engine string) (id string, ok bool) { return strings.CutPrefix(engine, endpointPrefix) }
+
+func IsEndpoint(engine string) bool { return strings.HasPrefix(engine, endpointPrefix) }
 
 func (p *Prefs) Endpoint(id string) (*Endpoint, bool) {
 	for i := range p.Endpoints {
@@ -142,7 +203,6 @@ func (p *Prefs) Endpoint(id string) (*Endpoint, bool) {
 func (p Prefs) Clone() Prefs {
 	p.Endpoints = slices.Clone(p.Endpoints)
 	p.ASRAPIs, p.MTAPIs = slices.Clone(p.ASRAPIs), slices.Clone(p.MTAPIs)
-	p.ASRCloud = nil
 	return p
 }
 
@@ -156,7 +216,7 @@ func Default(locale string) Prefs {
 		src = "ja"
 	}
 	p := Prefs{Src: src, Tgt: tgt, Shown: 2, AreaX: .5, AreaW: .62, Draft: true, AutoStart: true, Shortcut: DefaultShortcut, ImageShortcut: DefaultImageShortcut,
-		ASR: DefaultASR(), MT: "cloud"}
+		ASR: SystemASR(), MT: "cloud"}
 	p.ResetStyle()
 	return p
 }
@@ -168,11 +228,9 @@ func SystemASR() string {
 	return ""
 }
 
-func DefaultASR() string { return SystemASR() }
-
 func (p *Prefs) ResetStyle() {
-	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = 1, 1, "#1e2259", false
-	p.Font, p.SrcSize, p.TgtSize = Fonts[0], 20, 28
+	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = StyleImmersive, EdgeOutline, "#1e2259", false
+	p.Font, p.SrcSize, p.TgtSize = FontSystem, 20, 28
 	p.SrcColor, p.TgtColor, p.HideAfter, p.KeepShown = "#ffffff", "#7fdbff", 5, false
 	p.TextOpacity, p.BoxOpacity, p.OlderOpacity = 100, 62, 54
 }
@@ -181,7 +239,11 @@ func Load(path, locale string) (Prefs, error) {
 	p := Default(locale)
 	var err error
 	if b, rerr := os.ReadFile(path); rerr == nil {
-		err = json.Unmarshal(b, &p)
+		var old legacy
+		if err = json.Unmarshal(b, &p); err == nil {
+			json.Unmarshal(b, &old)
+			p.migrate(old)
+		}
 	} else if !errors.Is(rerr, fs.ErrNotExist) {
 		err = rerr
 	}
@@ -205,8 +267,8 @@ func (p *Prefs) fix(d Prefs) {
 	if !lang.Known(p.ImageTgt) || p.ImageTgt == p.Tgt {
 		p.ImageTgt = ""
 	}
-	if strings.TrimSpace(p.Font) == "" {
-		p.Font = Fonts[0]
+	if strings.TrimSpace(string(p.Font)) == "" {
+		p.Font = FontSystem
 	}
 	for _, c := range []struct {
 		v *string
@@ -216,7 +278,7 @@ func (p *Prefs) fix(d Prefs) {
 			*c.v = c.d
 		}
 	}
-	if p.Source != "" && p.SourceName == "" {
+	if !p.HearsAll() && p.SourceName == "" {
 		p.SourceName = p.Source
 	}
 	if p.MT == "" {
@@ -224,22 +286,6 @@ func (p *Prefs) fix(d Prefs) {
 	}
 	if p.ASR == "" {
 		p.ASR = d.ASR
-	}
-	if a := p.ASRCloud; a != nil {
-		if _, ok := p.API("qwen-cloud"); !ok && (a.Key || a.Host != "" || a.Model != "") {
-			p.ASRAPIs = append(p.ASRAPIs, Service{ID: "qwen-cloud", URL: a.Host, Model: a.Model, Key: a.Key})
-		}
-		p.ASRCloud = nil
-	}
-	for i := range p.Endpoints {
-		e := &p.Endpoints[i]
-		if e.Format == "" {
-			e.Format = "chat"
-			if e.Index {
-				e.Format = "index"
-			}
-		}
-		e.Index = false
 	}
 	if p.Shortcut == "" {
 		p.Shortcut = d.Shortcut

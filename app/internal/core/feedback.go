@@ -68,7 +68,7 @@ func (c *Core) Feedback(kind FeedbackKind, what string) string {
 	line("- Engines: %s", engines)
 	line("- Pictures: %s", mtName(p, p.ImageMT))
 	line("- App language: %s", or(p.UILang, "the system's"))
-	line("- Listening to: %s", choose(p.Source == "", "all the computer's sound", "one app"))
+	line("- Listening to: %s", choose(p.HearsAll(), "all the computer's sound", "one app"))
 	line("- Scene: %s", choose(p.Scene == "", "general", "one of my own"))
 	line("- Translate while spoken: %s; history: %s", onOff(p.Draft), onOff(p.History))
 	line("- Network: %s", proxyName(p))
@@ -143,8 +143,10 @@ func asrName(p *prefs.Prefs) string {
 }
 
 func mtName(p *prefs.Prefs, id string) string {
-	if e, ok := p.Endpoint(strings.TrimPrefix(id, prefs.CustomPrefix)); ok && strings.HasPrefix(id, prefs.CustomPrefix) {
-		return fmt.Sprintf("own API (%s format, model %s, %s)", or(e.Format, "chat"), or(e.Model, "none"), bareURL(e.URL))
+	if eid, ok := prefs.EndpointOf(id); ok {
+		if e, ok := p.Endpoint(eid); ok {
+			return fmt.Sprintf("own API (%s format, model %s, %s)", or(e.Format, "chat"), or(e.Model, "none"), bareURL(e.URL))
+		}
 	}
 	for _, s := range p.MTAPIs {
 		if s.ID == id {

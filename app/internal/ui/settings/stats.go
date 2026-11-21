@@ -595,8 +595,9 @@ func mtName(u usage.Use) (name, model string) {
 	switch {
 	case u.MT == "":
 		return locales.EngineUnknown(), ""
-	case strings.HasPrefix(u.MT, prefs.CustomPrefix):
-		return cmp.Or(u.MTName, strings.TrimPrefix(u.MT, prefs.CustomPrefix)), u.MTModel
+	}
+	if id, ok := prefs.EndpointOf(u.MT); ok {
+		return cmp.Or(u.MTName, id), u.MTModel
 	}
 	return shared.EngineName(core.Engine{ID: u.MT}), u.MTModel
 }

@@ -14,7 +14,7 @@ import (
 
 func SourceName(k *core.Core) string {
 	p := k.Preferences()
-	if p.Source == "" {
+	if p.HearsAll() {
 		return locales.SourceAll()
 	}
 	return p.SourceName
@@ -32,7 +32,7 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 			m.apps = slices.Clone(k.Apps)
 		}
 		m.at = time.Now()
-		if menu.Item(locales.SourceAll()).Checked(p.Source == "").Chosen() {
+		if menu.Item(locales.SourceAll()).Checked(p.HearsAll()).Chosen() {
 			k.SetSource("", "")
 		}
 		running := false
@@ -55,7 +55,7 @@ func (m *SourceMenu) Build(k *core.Core) func(menu *ui.Menu) {
 		}
 		section(locales.SourcePlaying(), true)
 		section(locales.SourceOtherApps(), false)
-		if !running && p.Source != "" {
+		if !running && !p.HearsAll() {
 			menu.Separator()
 			menu.Item(locales.SourceNotRunning(p.SourceName)).Checked(true)
 		}

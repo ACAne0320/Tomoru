@@ -96,7 +96,7 @@ func TestGallery(t *testing.T) {
 		{"engines-service-set", 1900, func() { k.SaveAPI(prefs.Service{ID: core.HyMTCloud}, "sk"); s.svc[core.MT] = serviceEdit{} }},
 		{"engines-api", 1900, func() {
 			id := k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com/compatible-mode", Model: "qwen-vl-max"}, "sk")
-			s.show(core.MT, prefs.CustomPrefix+id)
+			s.show(core.MT, prefs.EndpointEngine(id))
 			p := k.Preferences()
 			ep, _ := p.Endpoint(id)
 			s.editAPI(&s.api, *ep)
