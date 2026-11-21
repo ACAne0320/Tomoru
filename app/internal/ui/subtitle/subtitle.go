@@ -243,9 +243,6 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 		boxed := b.H > 0 && b.Y < bareBelow || bareBelow == NoBlock
 		sentence.Children(func() {
 			lines := ui.Column(c).AlignSelf(align).AlignItems(align).Gap(2 * k)
-			if !band {
-				lines = ui.Column(c).AlignSelf(ui.Stretch).AlignItems(ui.Stretch).Gap(2 * k)
-			}
 			if band {
 				bg := ui.RGBA(0, 0, 0, 0)
 				if boxed {
