@@ -133,7 +133,7 @@ func TestGallery(t *testing.T) {
 		{"home-error", 1000, func() { s.Tab, k.Err = "home", core.ErrMTCloudKey }},
 		{"home-running", 1000, func() {
 			s.Tab, k.Err, k.Running = "home", nil, true
-			k.State = live.State{Phase: "listening", Stats: live.Stats{Lines: 412}}
+			k.State = live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 412}}
 		}},
 	} {
 		shot.show()

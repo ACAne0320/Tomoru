@@ -81,7 +81,7 @@ func TestLineEventsBacklogAndOverflow(t *testing.T) {
 			})
 			var got lifecycleLog
 			s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr, OnLine: got.onLine}, got.onState)
-			t.Cleanup(func() { s.Stop(); s.Wait() })
+			t.Cleanup(func() { s.Stop(); s.wait() })
 			commitSentence(s, 1)
 			waitSignal(t, started)
 			for id := 2; id <= count; id++ {
@@ -102,7 +102,7 @@ func TestLineEventsBacklogAndOverflow(t *testing.T) {
 			close(release)
 			waitFor(t, &got.mu, func() bool { return got.completed() == count })
 			s.Stop()
-			s.Wait()
+			s.wait()
 			checkLifecycle(t, got.events, count)
 			for _, e := range got.events {
 				if e.Kind == LineCompleted && e.Line.Err == nil && e.Line.Tgt != "translated "+e.Line.Src {
@@ -123,16 +123,16 @@ func checkLifecycle(t *testing.T, events []LineEvent, count int) {
 		}
 		switch e.Kind {
 		case LineCommitted:
-			if committed[id] || e.Line.Done {
+			if committed[id] || e.Line.Done() {
 				t.Errorf("duplicate or already final commit: %+v", e)
 			}
 			committed[id] = true
 		case LineProgress:
-			if !committed[id] || completed[id] || e.Line.Done {
+			if !committed[id] || completed[id] || e.Line.Done() {
 				t.Errorf("progress outside line lifetime: %+v", e)
 			}
 		case LineCompleted:
-			if !committed[id] || completed[id] || !e.Line.Done {
+			if !committed[id] || completed[id] || !e.Line.Done() {
 				t.Errorf("missing commit or duplicate completion: %+v", e)
 			}
 			completed[id] = true
@@ -165,7 +165,7 @@ func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 	s.Stop()
 	waitFor(t, &got.mu, func() bool { return got.completed() == 12 })
 	waited := make(chan struct{})
-	go func() { s.Wait(); close(waited) }()
+	go func() { s.wait(); close(waited) }()
 	select {
 	case <-waited:
 		t.Fatal("Wait returned before the translator finished")
@@ -189,7 +189,7 @@ func TestStopPreservesPartialAndWaitsForWorker(t *testing.T) {
 			t.Errorf("queued line translated after stop: %+v", e)
 		}
 	}
-	if got.state.Phase != "stopped" {
+	if got.state.Phase != PhaseStopped {
 		t.Errorf("phase = %q", got.state.Phase)
 	}
 }
@@ -212,9 +212,9 @@ func TestParentCancellationJoinsDraftAndRejectsLateResult(t *testing.T) {
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	waitSignal(t, started)
 	cancel()
-	waitFor(t, &got.mu, func() bool { return got.state.Phase == "stopped" })
+	waitFor(t, &got.mu, func() bool { return got.state.Phase == PhaseStopped })
 	waited := make(chan struct{})
-	go func() { s.Wait(); close(waited) }()
+	go func() { s.wait(); close(waited) }()
 	select {
 	case <-waited:
 		t.Fatal("Wait returned before the draft finished")
@@ -240,7 +240,7 @@ func TestCallbackCanStopWithoutDeadlock(t *testing.T) {
 	}}, nil)
 	commitSentence(s, 1)
 	waitSignal(t, stopped)
-	s.Wait()
+	s.wait()
 	checkLifecycle(t, events, 1)
 }
 
@@ -258,7 +258,7 @@ func TestCanceledLineRetainsDraft(t *testing.T) {
 	waitFor(t, &got.mu, func() bool { return got.state.Draft == "available draft" })
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
 	s.Stop()
-	s.Wait()
+	s.wait()
 	checkLifecycle(t, got.events, 1)
 	last := got.events[len(got.events)-1]
 	if last.Line.Draft != "available draft" || last.Line.Tgt != "" || last.Line.Err != context.Canceled {
@@ -287,9 +287,9 @@ func TestCommittedSentenceDiscardsStaleDraft(t *testing.T) {
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
 	close(release)
 	waitFor(t, &got.mu, func() bool { return got.completed() == 1 })
-	waitFor(t, &s.mu, func() bool { return !s.draftBusy })
+	waitFor(t, &s.mu, func() bool { return !s.draft.running })
 	s.Stop()
-	s.Wait()
+	s.wait()
 	if got.state.Draft != "" || got.state.Lines[0].Draft != "" {
 		t.Errorf("stale draft displayed: %+v", got.state)
 	}
@@ -317,7 +317,7 @@ func TestCancellationDuringProcessStartup(t *testing.T) {
 	waitSignal(t, child.requested)
 	waitSignal(t, s.workersDone)
 	waited := make(chan struct{})
-	go func() { s.Wait(); close(waited) }()
+	go func() { s.wait(); close(waited) }()
 	select {
 	case <-waited:
 		t.Fatal("Wait returned before the child exited")
@@ -343,7 +343,7 @@ func TestLineMetadataCapturedBeforeDelayedDispatch(t *testing.T) {
 		captures.Add(1)
 		return source.Load()
 	}, OnLine: func(ev LineEvent) { events = append(events, ev) }}, func(st State) {
-		if st.Phase == "listening" && st.Stats.Lines == 0 {
+		if st.Phase == PhaseListening && st.Stats.Lines == 0 {
 			close(started)
 			<-release
 		}
@@ -356,7 +356,7 @@ func TestLineMetadataCapturedBeforeDelayedDispatch(t *testing.T) {
 	waitFor(t, &s.mu, func() bool { return len(s.active) == 0 })
 	s.Stop()
 	close(release)
-	s.Wait()
+	s.wait()
 	checkLifecycle(t, events, 2)
 	if captures.Load() != 2 {
 		t.Fatalf("metadata capture count = %d; want once per commit", captures.Load())
@@ -397,7 +397,7 @@ func TestFailedStartDrainsSynchronousRecognizerEvents(t *testing.T) {
 		s, err := Start(cfg, nil)
 		if s != nil {
 			s.Stop()
-			s.Wait()
+			s.wait()
 		}
 		returned <- err
 	}()

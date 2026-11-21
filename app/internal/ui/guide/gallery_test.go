@@ -36,7 +36,7 @@ func TestGallery(t *testing.T) {
 			switch step {
 			case stepTry:
 				k.Err, k.Running = nil, true
-				k.State = live.State{Phase: "listening", Voice: true}
+				k.State = live.State{Phase: live.PhaseListening, Voice: true}
 			case stepPicture:
 				k.Image = core.ImageView{PNG: []byte{0}, Text: "艾露娜\n克劳德，塔顶上那个发光的东西……该不会就是「星之碎片」吧？"}
 			}

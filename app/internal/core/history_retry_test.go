@@ -20,7 +20,7 @@ func TestHistoryRetriesFailedWritesAcrossSessionRestart(t *testing.T) {
 	first := s.begin()
 	policy := s.policy.Load()
 	for id, text := range []string{"first", "second"} {
-		first.accept(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: id + 1, Src: text, Tgt: "translated", Done: true}}, policy)
+		first.accept(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: id + 1, Src: text, Tgt: "translated", Outcome: live.Translated}}, policy)
 	}
 	s.drain()
 	if s.History.Err == nil || first.next != 1 || len(first.lines) != 2 {
@@ -32,7 +32,7 @@ func TestHistoryRetriesFailedWritesAcrossSessionRestart(t *testing.T) {
 	}
 
 	second := s.begin()
-	second.accept(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "new session", Done: true}}, policy)
+	second.accept(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "new session", Outcome: live.Translated}}, policy)
 	if err := os.Remove(blocked); err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestHistoryRetryStillHonorsRevokedConsent(t *testing.T) {
 	s := &HistoryService{}
 	s.configure(blocked, true, history.Head{})
 	r := s.begin()
-	r.accept(live.LineEvent{Line: live.Line{ID: 1, Src: "revoked", Done: true}}, s.policy.Load())
+	r.accept(live.LineEvent{Line: live.Line{ID: 1, Src: "revoked", Outcome: live.Translated}}, s.policy.Load())
 	s.drain()
 	s.configure(blocked, false, history.Head{})
 	s.configure(blocked, true, history.Head{})

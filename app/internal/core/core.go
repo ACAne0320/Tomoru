@@ -16,8 +16,7 @@ import (
 )
 
 type Session interface {
-	Stop()
-	Wait()
+	Close()
 }
 
 type LoginItem interface {
@@ -156,7 +155,7 @@ func New(p prefs.Prefs, d Deps) *Core {
 	c.SessionController = &SessionController{work: c.work, startSession: d.StartSession, changed: c.changed, hideAfter: c.HideAfter, now: c.now,
 		onState: func(st live.State) {
 			c.HistoryService.drain()
-			if st.Phase == "listening" {
+			if st.Phase == live.PhaseListening {
 				c.ASR[c.Prefs.Src] = "ready"
 			}
 		},

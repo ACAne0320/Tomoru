@@ -43,6 +43,8 @@ type Record struct {
 	Lines int
 }
 
+const Skipped = "behind"
+
 const deleted = ".deleted"
 
 const general = "general"

@@ -91,7 +91,7 @@ func TestPanelCount(t *testing.T) {
 	k := coretest.New()
 	k.Err, k.Running = nil, true
 	for _, n := range []int{1, 1234} {
-		k.State = live.State{Phase: "listening", Stats: live.Stats{Lines: n}}
+		k.State = live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: n}}
 		tt := ui.NewTester(New(k, &coretest.Nav{}).View, Width, Height)
 		tt.Frame()
 		if !tt.HasText(locales.HistoryLines(n)) {
@@ -103,7 +103,7 @@ func TestPanelCount(t *testing.T) {
 func TestPanelRunning(t *testing.T) {
 	k := coretest.New()
 	k.Err, k.Running = nil, true
-	k.State = live.State{Phase: "listening", Stats: live.Stats{Lines: 412}}
+	k.State = live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 412}}
 	tt := ui.NewTester(New(k, &coretest.Nav{}).View, Width, Height)
 	tt.SetScale(2)
 	tt.Advance(1e9)
@@ -135,7 +135,7 @@ func TestPanelClock(t *testing.T) {
 	if !k.Running {
 		t.Fatalf("not running: %v", k.Err)
 	}
-	k.State = live.State{Phase: "listening"}
+	k.State = live.State{Phase: live.PhaseListening}
 	tt.Advance(300 * time.Millisecond)
 	tt.Frame()
 	tt.Advance(700 * time.Millisecond)

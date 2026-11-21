@@ -44,7 +44,7 @@ func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 		s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: i, Src: fmt.Sprint(i)}})
 	}
 	for i := 20; i >= 1; i-- {
-		s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: i, Src: fmt.Sprint(i), Tgt: "translated", Done: true}})
+		s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: i, Src: fmt.Sprint(i), Tgt: "translated", Outcome: live.Translated}})
 	}
 	c.Stop()
 	es := recordedEntries(t, c)
@@ -57,7 +57,7 @@ func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 		}
 	}
 	c.Start()
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 21, Src: "stale", Done: true}})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 21, Src: "stale", Outcome: live.Translated}})
 	c.HistoryService.drain()
 	if len(recordedEntries(t, c)) != 20 {
 		t.Fatal("stale completion was kept")
@@ -68,7 +68,7 @@ func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 func TestHistorySessionStartsWhenItsFirstLineWasSaid(t *testing.T) {
 	c, _, s := recordingCore(t)
 	said := time.Now().Add(-time.Minute).Round(0)
-	l := live.Line{ID: 1, Src: "said a minute ago", Tgt: "translated", Done: true, Start: said, End: said.Add(3 * time.Second)}
+	l := live.Line{ID: 1, Src: "said a minute ago", Tgt: "translated", Outcome: live.Translated, Start: said, End: said.Add(3 * time.Second)}
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: l})
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: l})
 	c.Stop()
@@ -98,14 +98,14 @@ func TestHistorySceneAttributionAndConsentEpoch(t *testing.T) {
 	id := c.AddScene("second")
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 1, Src: "first scene"}})
 	c.SetScene(id)
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "first scene", Done: true}})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "first scene", Outcome: live.Translated}})
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 2, Src: "second scene"}})
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 2, Src: "second scene", Done: true}})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 2, Src: "second scene", Outcome: live.Translated}})
 	c.HistoryService.drain()
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 3, Src: "discarded pending"}})
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = false })
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = true })
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 3, Src: "discarded pending", Done: true, Err: context.Canceled}})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 3, Src: "discarded pending", Outcome: live.Canceled, Err: context.Canceled}})
 	c.Stop()
 	rs, err := history.List(c.deps.HistoryDir)
 	if err != nil {
@@ -135,7 +135,7 @@ func TestHistoryPolicyUsesCommitMetadataBeforeDelayedDelivery(t *testing.T) {
 	id := c.AddScene("after commitment")
 	c.SetScene(id)
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: 1, Src: "old scene"}, Metadata: metadata})
-	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "old scene", Done: true}, Metadata: metadata})
+	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "old scene", Outcome: live.Translated}, Metadata: metadata})
 	c.Stop()
 	rs, err := history.List(c.deps.HistoryDir)
 	if err != nil || len(rs) != 1 || rs[0].Head.Scene != "" {

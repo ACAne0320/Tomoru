@@ -15,7 +15,7 @@ func TestFailedStartupRejectsItsQueuedStopCallback(t *testing.T) {
 	c, f := newCore(t)
 	want := errors.New("capture could not start")
 	c.SessionController.startSession = func(_ live.Config, report func(live.State)) (Session, error) {
-		report(live.State{Phase: "stopped"})
+		report(live.State{Phase: live.PhaseStopped})
 		return nil, want
 	}
 	c.Start()
@@ -34,7 +34,7 @@ func TestStopAccountsForRuntimeReportsStillQueuedForUI(t *testing.T) {
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Onboarded = true })
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: "listening", Stats: live.Stats{Lines: 5, Chars: 30}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 5, Chars: 30}})
 	c.Stop()
 	if got := c.TodayStats(); got.Lines != 5 || got.Chars != 30 {
 		t.Fatalf("queued usage lost: %+v", got)
@@ -47,16 +47,18 @@ func TestStopAccountsForRuntimeReportsStillQueuedForUI(t *testing.T) {
 
 type reportingStopSession struct{ stop, wait func() }
 
-func (s reportingStopSession) Stop() { s.stop() }
-func (s reportingStopSession) Wait() { s.wait() }
+func (s reportingStopSession) Close() {
+	s.stop()
+	s.wait()
+}
 
 func TestStopAccountsForFinalReportBeforeWaitReturns(t *testing.T) {
 	c, f := newCore(t)
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Onboarded = true })
 	c.SessionController.startSession = func(_ live.Config, report func(live.State)) (Session, error) {
 		return reportingStopSession{
-			stop: func() { report(live.State{Phase: "stopped", Stats: live.Stats{Lines: 3}}) },
-			wait: func() { report(live.State{Phase: "stopped", Stats: live.Stats{Lines: 3, Chars: 15}}) },
+			stop: func() { report(live.State{Phase: live.PhaseStopped, Stats: live.Stats{Lines: 3}}) },
+			wait: func() { report(live.State{Phase: live.PhaseStopped, Stats: live.Stats{Lines: 3, Chars: 15}}) },
 		}, nil
 	}
 	c.Start()

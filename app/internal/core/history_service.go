@@ -1,8 +1,6 @@
 package core
 
 import (
-	"context"
-	"errors"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -111,7 +109,7 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 	for {
 		r.mu.Lock()
 		entry, ok := r.lines[r.next]
-		if !ok || !entry.line.Done {
+		if !ok || !entry.line.Done() {
 			r.mu.Unlock()
 			return true
 		}
@@ -133,19 +131,21 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 				s.writing, s.writingRun = p, r
 			}
 			tgt, errText := l.Tgt, ""
-			switch {
-			case errors.Is(l.Err, context.Canceled):
+			switch l.Outcome {
+			case live.Canceled:
 				if tgt == "" {
 					tgt = l.Draft
 				}
-			case l.Err != nil:
+			case live.Skipped:
+				errText = history.Skipped
+			case live.Failed:
 				errText = l.Err.Error()
 			}
 			heard := l.Lang
 			if heard == p.head.Src {
 				heard = ""
 			}
-			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.Heard, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
+			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.BeforeGlossary, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err
 				log.Println("history:", err)
 				s.closeHistory()

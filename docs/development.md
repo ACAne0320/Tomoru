@@ -155,6 +155,16 @@ Variables such as `TOMORU_E2E` turn on real end-to-end tests, and `TOMORU_DOWNLO
 tests; ordinary checks leave them unset, so nothing downloads or calls the cloud. UI galleries
 write screenshots with `TOMORU_GALLERY`, to review layouts by eye.
 
+`live`'s `TestEndToEnd` runs the real engine and translator while a recording plays out loud, so
+the terminal needs System Audio Recording (or Screen Recording):
+
+| Variable | What it does |
+| --- | --- |
+| `TOMORU_E2E` | The recording and its language, `ja:/path/to/ja.wav`; unset, the test skips |
+| `TOMORU_E2E_LOCAL` | A local model's file translates instead of the cloud |
+| `TOMORU_E2E_ASR` | A recognition model's directory: tomoru-asr recognizes instead of the engine |
+| `TOMORU_E2E_CLOUD` | A Qwen cloud model recognizes, with `DASHSCOPE_API_KEY` and `DASHSCOPE_API_HOST` |
+
 ## Where changes go
 
 - UI controls edit copies; persisting, updating the glossary and switching sessions belong in app

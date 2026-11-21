@@ -27,6 +27,10 @@ type Recognizer interface {
 	Err() error
 }
 
+type VoiceHearer interface {
+	Voice(engine.Event)
+}
+
 type Factory func(lang string, on func(engine.Event)) (Recognizer, error)
 
 const (

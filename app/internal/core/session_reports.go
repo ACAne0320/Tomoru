@@ -49,7 +49,7 @@ func (r *sessionReports) endAt(now time.Time) time.Time {
 }
 
 func (r *sessionReports) endLocked(now time.Time) time.Time {
-	if r.received && r.latest.Phase == "stopped" && r.latest.StatsAt.Before(now) {
+	if r.received && r.latest.Phase == live.PhaseStopped && r.latest.StatsAt.Before(now) {
 		return r.latest.StatsAt
 	}
 	return now

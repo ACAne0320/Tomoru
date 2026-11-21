@@ -3,6 +3,7 @@ package live
 import (
 	"context"
 	"slices"
+	"sync"
 )
 
 type LineEventKind string
@@ -29,7 +30,7 @@ type notification struct {
 	state *State
 }
 
-func (s *Session) emitLine(kind LineEventKind, line Line, metadata any) {
+func (s *Session) emitLineLocked(kind LineEventKind, line Line, metadata any) {
 	if s.cfg.OnLine == nil {
 		return
 	}
@@ -38,7 +39,7 @@ func (s *Session) emitLine(kind LineEventKind, line Line, metadata any) {
 	s.signalReports()
 }
 
-func (s *Session) emitState() {
+func (s *Session) emitStateLocked() {
 	s.state.StatsAt = s.cfg.Now()
 	if s.onChange == nil {
 		return
@@ -82,14 +83,27 @@ func (s *Session) reportLoop() {
 	}
 }
 
+type child struct {
+	stopper
+	once sync.Once
+}
+
+func (c *child) Stop() { c.once.Do(c.stopper.Stop) }
+
 func (s *Session) installProcesses(fin finalizer, procs ...stopper) {
 	s.procMu.Lock()
-	s.proc = fin
-	s.procs = append(s.procs, procs...)
+	if fin != nil {
+		s.proc = fin
+	}
+	var installed []*child
+	for _, p := range procs {
+		installed = append(installed, &child{stopper: p})
+	}
+	s.procs = append(s.procs, installed...)
 	s.procMu.Unlock()
 	if s.ctx.Err() != nil {
-		for _, p := range procs {
-			p.Stop()
+		for _, c := range installed {
+			c.Stop()
 		}
 	}
 }
@@ -108,13 +122,13 @@ func (s *Session) stop(err error) {
 		slices.Sort(ids)
 		for _, id := range ids {
 			line := s.active[id]
-			line.Done, line.Err = true, context.Canceled
+			line.Outcome, line.Err = Canceled, context.Canceled
 			lineOf(&s.state, id, func(display *Line) { *display = line.Line })
-			s.emitLine(LineCompleted, line.Line, line.metadata)
+			s.emitLineLocked(LineCompleted, line.Line, line.metadata)
 			delete(s.active, id)
 		}
-		s.state.Phase, s.state.Err, s.state.Voice = "stopped", err, false
-		s.emitState()
+		s.state.Phase, s.state.Err, s.state.Voice = PhaseStopped, err, false
+		s.emitStateLocked()
 	}
 	s.mu.Unlock()
 
@@ -126,7 +140,12 @@ func (s *Session) stop(err error) {
 	}
 }
 
-func (s *Session) Wait() {
+func (s *Session) Close() {
+	s.Stop()
+	s.wait()
+}
+
+func (s *Session) wait() {
 	<-s.workersDone
 	s.procMu.Lock()
 	procs := slices.Clone(s.procs)

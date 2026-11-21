@@ -18,14 +18,14 @@ func TestKeep(t *testing.T) {
 	f.flush(t, 1)
 	s := f.sessions[0]
 	report := func(lines ...live.Line) {
-		s.report(live.State{Phase: "listening", Lines: lines})
+		s.report(live.State{Phase: live.PhaseListening, Lines: lines})
 		f.flush(t, 1)
 	}
-	one := live.Line{ID: 1, Src: "メテオ", Heard: "メデオ", Tgt: "陨石", Done: true}
+	one := live.Line{ID: 1, Src: "メテオ", BeforeGlossary: "メデオ", Tgt: "陨石", Outcome: live.Translated}
 	report(one)
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = true })
 	two := live.Line{ID: 2, Src: "クラウド", Draft: "克劳"}
-	three := live.Line{ID: 3, Src: "さらに", Tgt: "还有", Done: true}
+	three := live.Line{ID: 3, Src: "さらに", Tgt: "还有", Outcome: live.Translated}
 	report(one, two, three)
 	rs, _ := history.List(c.deps.HistoryDir)
 	if len(rs) != 1 || rs[0].Lines != 1 || rs[0].Head.Scene != id || rs[0].Head.Name != "FF7" || rs[0].Head.Src != "en" {
@@ -65,7 +65,7 @@ func TestKeepNothingUnasked(t *testing.T) {
 	c.Prefs.History = false
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "Hi", Tgt: "嗨", Done: true}}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hi", Tgt: "嗨", Outcome: live.Translated}}})
 	f.flush(t, 1)
 	c.Stop()
 	if rs, _ := history.List(c.deps.HistoryDir); len(rs) != 0 {

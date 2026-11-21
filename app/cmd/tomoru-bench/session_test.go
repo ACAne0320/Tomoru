@@ -18,9 +18,9 @@ func TestRecorderRetainsBacklogAndPartialCompletions(t *testing.T) {
 		line := lines[id]
 		line.Tgt = "partial"
 		recordLine(&result, lines, 1, line)
-		line.Done = true
+		line.Outcome = live.Translated
 		if id == 12 {
-			line.Err = context.Canceled
+			line.Outcome, line.Err = live.Canceled, context.Canceled
 		}
 		recordLine(&result, lines, 2, line)
 		recordLine(&result, lines, 2, line)

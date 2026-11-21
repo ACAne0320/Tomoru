@@ -41,7 +41,7 @@ func TestStatsTimestampSurvivesQueuedReports(t *testing.T) {
 	t.Cleanup(func() {
 		once.Do(func() { close(release) })
 		s.Stop()
-		s.Wait()
+		s.wait()
 	})
 	s.handle(engine.Event{Type: "state", State: "listening"})
 	waitSignal(t, entered)
@@ -53,7 +53,7 @@ func TestStatsTimestampSurvivesQueuedReports(t *testing.T) {
 	s.Stop()
 	clock.set(before.Add(48 * time.Hour))
 	once.Do(func() { close(release) })
-	s.Wait()
+	s.wait()
 	if len(got) != 4 {
 		t.Fatalf("received %d reports; want 4", len(got))
 	}
@@ -62,7 +62,7 @@ func TestStatsTimestampSurvivesQueuedReports(t *testing.T) {
 			t.Errorf("report %d timestamp = %v; want %v", i, got[i].StatsAt, want)
 		}
 	}
-	if got[1].Stats.Lines != 1 || got[1].Stats.Chars != 0 || got[2].Stats.Chars != 7 || got[3].Phase != "stopped" {
+	if got[1].Stats.Lines != 1 || got[1].Stats.Chars != 0 || got[2].Stats.Chars != 7 || got[3].Phase != PhaseStopped {
 		t.Fatalf("queued snapshots changed: %+v", got)
 	}
 }
@@ -78,7 +78,7 @@ func TestSpeechEndPreservesCrossMidnightAudioInterval(t *testing.T) {
 			clock := &statsClock{at: start}
 			var got []State
 			s := newSession(Config{Now: clock.now}, func(st State) { got = append(got, st) })
-			t.Cleanup(func() { s.Stop(); s.Wait() })
+			t.Cleanup(func() { s.Stop(); s.wait() })
 			if withClock {
 				s.handle(engine.Event{Type: "clock", T: 100})
 			}
@@ -93,7 +93,7 @@ func TestSpeechEndPreservesCrossMidnightAudioInterval(t *testing.T) {
 			clock.set(reported.Add(time.Second))
 			s.handle(engine.Event{Type: "voice", On: false, T: 105})
 			s.Stop()
-			s.Wait()
+			s.wait()
 			var previous float64
 			increments := 0
 			for _, st := range got {
@@ -124,7 +124,7 @@ func TestStatsTimestampDefaultsToWallClock(t *testing.T) {
 	var last State
 	s := newSession(Config{}, func(st State) { last = st })
 	s.Stop()
-	s.Wait()
+	s.wait()
 	if last.StatsAt.Before(before) || last.StatsAt.After(time.Now()) {
 		t.Errorf("default stats timestamp = %v", last.StatsAt)
 	}
@@ -140,7 +140,7 @@ func TestLineSaid(t *testing.T) {
 		lines = st.Lines
 		mu.Unlock()
 	})
-	t.Cleanup(func() { s.Stop(); s.Wait() })
+	t.Cleanup(func() { s.Stop(); s.wait() })
 	at := func(v float64) *float64 { return &v }
 	sec := func(v float64) time.Time { return start.Add(time.Duration(v * float64(time.Second))) }
 
@@ -152,7 +152,7 @@ func TestLineSaid(t *testing.T) {
 	clock.set(sec(5))
 	s.handle(engine.Event{Type: "result", Start: 102, End: 104, Tokens: []engine.Token{{Text: "Weird. Wait, what? No. And"}}})
 	s.Stop()
-	s.Wait()
+	s.wait()
 
 	mu.Lock()
 	defer mu.Unlock()

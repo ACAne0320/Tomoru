@@ -23,9 +23,9 @@ import (
 func TestVisible(t *testing.T) {
 	p := prefs.Default("zh-Hans")
 	st := live.State{Pending: "コメントも", Draft: "评论也", Lines: []live.Line{
-		{ID: 1, Src: "a", Tgt: "A", Done: true},
-		{ID: 2, Src: "b", Tgt: "B", Draft: "B draft", Done: false},
-		{ID: 3, Src: "c", Err: errors.New("x"), Done: true},
+		{ID: 1, Src: "a", Tgt: "A", Outcome: live.Translated},
+		{ID: 2, Src: "b", Tgt: "B", Draft: "B draft"},
+		{ID: 3, Src: "c", Err: errors.New("x"), Outcome: live.Failed},
 	}}
 	p.Shown = 3
 	got := Visible(st, 0, p)
@@ -45,7 +45,7 @@ func TestVisible(t *testing.T) {
 		t.Errorf("the pending sentence: %+v", got[2])
 	}
 
-	if got := Visible(live.State{Lines: []live.Line{{ID: 1, Src: "a", Tgt: "A"}, {ID: 2, Src: "b", Tgt: "B", Done: true}}}, 0, p); !got[0].Grows || got[1].Grows {
+	if got := Visible(live.State{Lines: []live.Line{{ID: 1, Src: "a", Tgt: "A"}, {ID: 2, Src: "b", Tgt: "B", Outcome: live.Translated}}}, 0, p); !got[0].Grows || got[1].Grows {
 		t.Errorf("only a translation still streaming in grows: %+v", got)
 	}
 
@@ -101,8 +101,8 @@ func TestAsSaid(t *testing.T) {
 	p := prefs.Default("zh-Hans")
 	p.Src, p.Shown = "auto", 3
 	st := live.State{Pending: "我们BLG", PendingLang: "zh", Lines: []live.Line{
-		{ID: 1, Src: "Hello.", Lang: "en", Tgt: "你好。", Done: true},
-		{ID: 2, Src: "我们BLG就是最强的。", Lang: "zh", AsSaid: true, Done: true},
+		{ID: 1, Src: "Hello.", Lang: "en", Tgt: "你好。", Outcome: live.Translated},
+		{ID: 2, Src: "我们BLG就是最强的。", Lang: "zh", AsSaid: true, Outcome: live.Untranslated},
 	}}
 	got := Visible(st, 0, p)
 	if len(got) != 3 || got[0].Src != "Hello." || got[0].Lang != "en" {

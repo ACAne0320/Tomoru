@@ -105,6 +105,15 @@ go test ./...
 
 真实评测的输入、参数及评分见 [benchmark 指南](../bench/README_zh.md)。`TOMORU_E2E` 等变量启用真实端到端测试；`TOMORU_DOWNLOAD` 启用下载测试；普通检查保持这些变量未设置，避免自动下载或云端调用。UI gallery 通过 `TOMORU_GALLERY` 输出截图，是人工布局验收的补充。
 
+`live` 的 `TestEndToEnd` 在外放一段录音时运行真实的引擎和翻译器，所以终端需要「系统录音」（或「屏幕录制」）权限：
+
+| 变量 | 作用 |
+| --- | --- |
+| `TOMORU_E2E` | 录音和它的语言，`ja:/path/to/ja.wav`；不设置时跳过这个测试 |
+| `TOMORU_E2E_LOCAL` | 改用一个本机模型文件翻译，而不是云端 |
+| `TOMORU_E2E_ASR` | 一个识别模型的目录：由 tomoru-asr 而不是引擎识别 |
+| `TOMORU_E2E_CLOUD` | 由千问云端的一个模型识别，需要 `DASHSCOPE_API_KEY` 和 `DASHSCOPE_API_HOST` |
+
 ## 修改的落点
 
 - UI 控件编辑副本；持久化、词表更新、会话切换放到应用命令。新增菜单需验证回调在绘制结束后仍能提交。
