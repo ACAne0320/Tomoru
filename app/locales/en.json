@@ -169,7 +169,7 @@
   "@proxySystemNone": {
     "description": "Under the proxy address: empty, the system's proxy is used, and the system has none."
   },
-  "proxyInvalid": "Not a proxy address, such as 127.0.0.1:7890 or socks5://127.0.0.1:1080: the system's proxy is used.",
+  "proxyInvalid": "Not a proxy address, so the cloud can't be reached: try one like 127.0.0.1:7890 or socks5://127.0.0.1:1080.",
   "@proxyInvalid": {
     "description": "Under the proxy address, when what is typed is no address."
   },
@@ -384,6 +384,10 @@
   "engineApple": "Apple Speech",
   "@engineApple": {
     "description": "The name of Apple's speech recognition."
+  },
+  "engineDeleted": "Deleted API",
+  "@engineDeleted": {
+    "description": "An engine's name, where the user's API chosen is one they deleted."
   },
   "tagLocal": "On device",
   "@tagLocal": {
@@ -687,6 +691,14 @@
   "@errNoEndpoint": {
     "description": "Why translating could not start."
   },
+  "errNoVision": "The API chosen for pictures can't read them.",
+  "@errNoVision": {
+    "description": "Why a picture was not translated: the user's API chosen for pictures was found to read none."
+  },
+  "errProxyInvalid": "The proxy address in Preferences is invalid.",
+  "@errProxyInvalid": {
+    "description": "Why the cloud could not be reached: the proxy address typed in Preferences is no address."
+  },
   "needsMemory": "Needs {gb} GB of memory",
   "@needsMemory": {
     "description": "After a translation model's size, on a Mac: the memory it needs to run.",
@@ -872,16 +884,6 @@
   "readsNoPictures": "Can't read pictures",
   "@readsNoPictures": {
     "description": "Under a translation API's test result: the API refused a picture sent with the sample, so it is not offered for pictures."
-  },
-  "picturesToCloud": "Pictures now go to {name}",
-  "@picturesToCloud": {
-    "description": "Under a translation API's test result, when the test found that the API chosen for pictures can't read them: pictures are now translated by the cloud engine, name.",
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "Index-Translate 35B"
-      }
-    }
   },
   "testFailed": "Failed · {ms} ms",
   "@testFailed": {
@@ -1191,7 +1193,7 @@
   },
   "errAsrBehind": "Speech recognition couldn't keep up with what's playing. Choose a lighter model in Settings › Speech & translation, or check the network.",
   "@errAsrBehind": {
-    "description": "Why translating stopped: on-device recognition, or a transcription API, decoded slower than the audio played until about 25 seconds piled up (a model too heavy for the computer, a hung model server, or a slow network)."
+    "description": "Why translating stopped: on-device recognition, or a transcription API, decoded slower than the audio played until about 25 seconds piled up (a model too heavy for the computer, a hung model server, or a slow network); or a minute of audio waited to be sent to the cloud's recognition."
   },
   "errAsrCloud": "Cloud recognition stopped: {reason}",
   "@errAsrCloud": {

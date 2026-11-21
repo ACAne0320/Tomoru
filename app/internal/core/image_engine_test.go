@@ -167,24 +167,42 @@ func TestImageEngineOnly(t *testing.T) {
 	}
 }
 
+func translatePicture(t *testing.T, c *Core, f *fake) ImageView {
+	t.Helper()
+	c.TranslateImage(picture())
+	for deadline := time.Now().Add(2 * time.Second); c.Image.Running; {
+		if time.Now().After(deadline) {
+			t.Fatalf("still translating: %+v", c.Image)
+		}
+		f.flush(t, 1)
+	}
+	return c.Image
+}
+
 func TestImageEngineDeleted(t *testing.T) {
-	c, _, m, _, _ := engineCore(t)
+	c, f, m, _, _ := engineCore(t)
 	c.Prefs.Onboarded = true
 	m.ready["local-2b"] = true
 	c.SetImageEngine("local-2b")
 	c.DeleteModel("local-2b")
-	if c.Prefs.ImageMT != "cloud" {
+	if c.Prefs.ImageMT != "local-2b" {
 		t.Errorf("model deleted: pictures with %q", c.Prefs.ImageMT)
+	}
+	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrModelMissing) || im.Via != "local-2b" {
+		t.Errorf("model deleted: %+v", im)
 	}
 
 	id := c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:1", Model: "m"}, "")
 	c.SetImageEngine(prefs.CustomPrefix + id)
 	undo := c.DeleteEndpoint(id)
-	if c.Prefs.ImageMT != "cloud" {
+	if c.Prefs.ImageMT != prefs.CustomPrefix+id {
 		t.Errorf("API deleted: pictures with %q", c.Prefs.ImageMT)
 	}
+	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoEndpoint) {
+		t.Errorf("API deleted: %+v", im)
+	}
 	undo()
-	if c.Prefs.ImageMT != prefs.CustomPrefix+id {
+	if _, ok := c.Prefs.Endpoint(id); !ok || c.Prefs.ImageMT != prefs.CustomPrefix+id {
 		t.Errorf("deleting undone: pictures with %q", c.Prefs.ImageMT)
 	}
 }
@@ -216,22 +234,21 @@ func TestEndpointReadsPictures(t *testing.T) {
 	c.SetImageEngine(prefs.CustomPrefix + id)
 	saved, _ := c.Prefs.Endpoint(id)
 	e := *saved
-	if r := test(e); r.Err != nil || r.Vision != prefs.VisionNo || !r.ToCloud {
+	if r := test(e); r.Err != nil || r.Vision != prefs.VisionNo {
 		t.Fatalf("text only: %+v", r)
 	}
 	if body, _ := sent.Load().(string); !strings.Contains(body, "data:image/png;base64,") {
 		t.Errorf("no picture sent: %.200s", body)
 	}
-	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo || c.Prefs.ImageMT != "cloud" {
+	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo || c.Prefs.ImageMT != prefs.CustomPrefix+id {
 		t.Errorf("found text only: kept %v, pictures with %q", e.Vision, c.Prefs.ImageMT)
 	}
-
-	if r := test(e); r.ToCloud {
-		t.Error("tested again: says the cloud took over again")
+	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoVision) {
+		t.Errorf("found text only, a picture: %+v", im)
 	}
 
 	e.Model = "sees"
-	if r := test(e); r.Vision != prefs.VisionYes || r.ToCloud {
+	if r := test(e); r.Vision != prefs.VisionYes {
 		t.Fatalf("reads pictures: %+v", r)
 	}
 	if e, _ := c.Prefs.Endpoint(id); e.Vision != prefs.VisionNo {
@@ -303,8 +320,11 @@ func TestEndpointNoPictures(t *testing.T) {
 		t.Errorf("not asked as Hy-MT2: %.300s", body)
 	}
 	c.SaveEndpoint(e, "")
-	if c.Prefs.ImageMT != "cloud" {
+	if c.Prefs.ImageMT != prefs.CustomPrefix+id {
 		t.Errorf("saved as Hy-MT2: pictures with %q", c.Prefs.ImageMT)
+	}
+	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoVision) || pictures.Load() != 0 {
+		t.Errorf("saved as Hy-MT2, a picture: %+v, %d sent", im, pictures.Load())
 	}
 }
 

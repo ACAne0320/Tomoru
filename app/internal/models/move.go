@@ -148,10 +148,14 @@ func (m *Manager) moveFiles(ctx context.Context, from, to string) error {
 				continue
 			}
 			if !copying {
-				if m.rename(f.from, f.to) == nil {
+				err := m.rename(f.from, f.to)
+				if err == nil {
 					f.how = renamed
 					progress(f.size)
 					continue
+				}
+				if !errors.Is(err, errOtherDisk) {
+					return err
 				}
 				copying = true
 				if err := enoughSpace(to, total-done); err != nil {

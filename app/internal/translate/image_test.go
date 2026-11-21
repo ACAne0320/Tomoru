@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httptrace"
 	"slices"
 	"strings"
 	"sync"
@@ -254,5 +255,43 @@ func TestImageSlow(t *testing.T) {
 	out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil)
 	if err != nil || out != "慢" || asked.Load() != 2 {
 		t.Errorf("%q %v, asked %d times", out, err, asked.Load())
+	}
+}
+
+func TestImageStalledKeepsOthers(t *testing.T) {
+	var asked atomic.Int32
+	pictures := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body)
+		if asked.Add(1) == 1 {
+			<-r.Context().Done()
+			return
+		}
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"完\"}}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer pictures.Close()
+	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer other.Close()
+	get := func() bool {
+		t.Helper()
+		reused := false
+		ctx := httptrace.WithClientTrace(context.Background(), &httptrace.ClientTrace{
+			GotConn: func(info httptrace.GotConnInfo) { reused = info.Reused },
+		})
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, other.URL, nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+		return reused
+	}
+	get()
+	e := &Endpoint{URL: pictures.URL, Model: "m", Format: Index, ImageWait: 50 * time.Millisecond}
+	if out, err := e.TranslateImage(context.Background(), picture(t, 1200, 300), "zh", nil, nil); err != nil || out != "完" || asked.Load() != 2 {
+		t.Fatalf("%q %v, asked %d times", out, err, asked.Load())
+	}
+	if !get() {
+		t.Error("a stalled picture closed another request's idle connection")
 	}
 }

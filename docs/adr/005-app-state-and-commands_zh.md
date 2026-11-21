@@ -12,7 +12,7 @@
 
 1. `Core.Shortfall`（`app/internal/core/catalog.go`）以整 GB（`gb` 四舍五入）比较内存、显存与模型的需求，与电脑标称的容量一致：8 GB 的显卡算作 8，尽管驱动会占用一部分。
 2. `apiKey`（`app/internal/core/cloud.go`）在凭据存储中把翻译服务的密钥命名为 `mt-key:<id>`，与识别服务的 `asr-key:<id>` 并列。
-3. `Core.DeleteEndpoint`（`app/internal/core/engines.go`）删除 API 后，字幕仍选着它：翻译以 `ErrNoEndpoint` 停止，而不是换用另一个引擎继续；`prefs.Load`（`app/internal/prefs/prefs.go`）也不会重置指向已不存在的 API 的 `MT`。原先发往它的图片回到最初为图片选定的云端。撤销会恢复该 API、它的密钥和图片的选择，并在删除使翻译停止时重新开始翻译。
+3. `Core.DeleteEndpoint`（`app/internal/core/engines.go`）删除 API 后，字幕仍选着它：翻译以 `ErrNoEndpoint` 停止，而不是换用另一个引擎继续；`prefs.Load`（`app/internal/prefs/prefs.go`）也不会重置指向已不存在的 API 的 `MT`。图片也仍选着它：之后的图片以 `ErrNoEndpoint` 失败，发给测出不能读图片的 API 的图片以 `ErrNoVision` 失败，都不会改发云端（#128）。撤销会恢复该 API 和它的密钥，并在删除使翻译停止时重新开始翻译。
 4. `Core.Start`（`app/internal/core/session.go`）在会话的后台 `Prepare` 中、与翻译器一起读取云端识别的密钥，而不在主线程：凭据存储可能阻塞。
 5. `Core.freeModels`（`session.go`）：停止时停掉本地模型的 llama-server，归还内存（Qwen3-ASR 1.7B 与 Index-Translate 9B 合计 8.6 GB），但图片翻译正在使用的那个除外；再次开始时从系统文件缓存加载只需 1 到 3 秒。重启（例如切换语言时）保留它们。
 6. `SessionController.apply`（`app/internal/core/session_controller.go`）把没有错误就结束、或以 `*exec.ExitError` 结束（崩溃、被系统杀掉）的引擎报告为"引擎已退出"（`IsExited`）：退出码对用户没有意义。

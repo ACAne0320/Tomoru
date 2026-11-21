@@ -21,9 +21,9 @@ general rules; this records only what they leave out.
 3. `Core.DeleteEndpoint` (`app/internal/core/engines.go`) leaves the deleted API chosen for the
    subtitles: translating stops with `ErrNoEndpoint` rather than going on with another engine, and
    `prefs.Load` (`app/internal/prefs/prefs.go`) doesn't reset an `MT` that names a missing API
-   either. Pictures that went to it go back to the cloud, chosen for them at first. Undo puts back
-   the API, its key and the pictures' choice, and starts translating again where deleting stopped
-   it.
+   either. It stays chosen for pictures too: a picture then fails with `ErrNoEndpoint`, and one
+   sent to an API found to read none with `ErrNoVision`, never going to the cloud instead (#128).
+   Undo puts back the API and its key, and starts translating again where deleting stopped it.
 4. `Core.Start` (`app/internal/core/session.go`) reads the cloud recognizer's key in the session's
    background `Prepare`, with the translator's, not on the main thread: the credential store may
    block.

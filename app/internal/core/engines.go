@@ -21,6 +21,8 @@ var ErrASRMissing = errors.New("the recognition model is not downloaded")
 
 var ErrNoEndpoint = errors.New("the translation API is gone")
 
+var ErrNoVision = errors.New("the API chosen for pictures reads none")
+
 var ErrModelBusy = errors.New("another on-device model is translating the subtitles")
 
 type LocalError struct{ Err error }
@@ -73,9 +75,6 @@ func (c *Core) DeleteModel(id string) {
 	if c.Prefs.MT == id {
 		c.SetEngine(Successor(MT))
 	}
-	if c.Prefs.ImageMT == id {
-		c.Prefs.ImageMT = "cloud"
-	}
 	if c.Prefs.ASR == id {
 		c.Prefs.ASR = Successor(ASR)
 		c.fitLangs()
@@ -111,7 +110,6 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if c.Prefs.MT == prefs.CustomPrefix+e.ID {
 		c.RestartIfRunning()
 	}
-	c.fitImageEngine()
 	c.settingsChanged()
 	return e.ID
 }
@@ -124,8 +122,6 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 	e, mt := c.Prefs.Endpoints[i], prefs.CustomPrefix+id
 	key := c.EngineService.readKey(keyName(id))
 	c.Prefs.Endpoints = slices.Delete(c.Prefs.Endpoints, i, i+1)
-	pictures := c.Prefs.ImageMT == mt
-	c.fitImageEngine()
 	c.EngineService.deleteKey(keyName(id))
 	c.EngineService.forgetTest(id)
 	if c.Prefs.MT == mt {
@@ -140,9 +136,6 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 		if key != nil {
 			c.EngineService.saveKey(keyName(id), key)
 		}
-		if pictures && c.Prefs.ImageMT == "cloud" {
-			c.Prefs.ImageMT = mt
-		}
 		if c.Prefs.MT == mt && !c.Running && errors.Is(c.Err, ErrNoEndpoint) {
 			c.Start()
 		}
@@ -151,15 +144,12 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 }
 
 func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
-	c.EngineService.testEndpoint(test, e, key, c.testTgt(), func(v prefs.Vision) bool {
+	c.EngineService.testEndpoint(test, e, key, c.testTgt(), func(v prefs.Vision) {
 		saved, ok := c.Prefs.Endpoint(e.ID)
 		if !ok || apiOf(*saved) != apiOf(e) || saved.Vision == v {
-			return false
+			return
 		}
 		saved.Vision = v
-		was := c.Prefs.ImageMT
-		c.fitImageEngine()
 		c.settingsChanged()
-		return was != c.Prefs.ImageMT
 	})
 }
