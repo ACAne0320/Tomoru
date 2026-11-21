@@ -86,7 +86,7 @@ func TestDownload(t *testing.T) {
 	dir := t.TempDir()
 	srv, _ := server(data, 1)
 	defer srv.Close()
-	m := NewManager(dir, false, nil)
+	m := NewManager(dir, HuggingFaceFirst, nil)
 	redirect(m, srv)
 
 	os.WriteFile(dir+"/m.gguf.part", data[:len(data)/2], 0o644)
@@ -122,7 +122,7 @@ func TestFiles(t *testing.T) {
 	}))
 	defer srv.Close()
 	dir := t.TempDir()
-	m := NewManager(dir, false, nil)
+	m := NewManager(dir, HuggingFaceFirst, nil)
 	redirect(m, srv)
 	os.MkdirAll(dir+"/asr-1", 0o755)
 	os.WriteFile(dir+"/asr-1/model.onnx", a, 0o644)
@@ -178,8 +178,8 @@ func TestSlowSource(t *testing.T) {
 		}
 	}))
 	defer srv.Close()
-	m := NewManager(t.TempDir(), false, nil)
-	m.window = 300 * time.Millisecond
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
+	m.sampleInterval = 300 * time.Millisecond
 	redirect(m, srv)
 	m.Download("m")
 	if st := wait(t, m, "m", Ready); st.Done != int64(len(data)) {
@@ -221,9 +221,9 @@ func TestStalledSource(t *testing.T) {
 				w.Write(data[have+tc.bytes:])
 			}))
 			defer srv.Close()
-			m := NewManager(t.TempDir(), false, nil)
+			m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
 			defer m.Close()
-			m.window, m.slow = 100*time.Millisecond, tc.slow
+			m.sampleInterval, m.minMirrorSpeed = 100*time.Millisecond, tc.slow
 			redirect(m, srv)
 			if err := os.WriteFile(m.Path("m")+".part", data[:have], 0o644); err != nil {
 				t.Fatal(err)
@@ -266,9 +266,9 @@ func TestLastSourceKeepsSlowProgress(t *testing.T) {
 		}
 	}))
 	defer srv.Close()
-	m := NewManager(t.TempDir(), false, nil)
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
 	defer m.Close()
-	m.window = 100 * time.Millisecond
+	m.sampleInterval = 100 * time.Millisecond
 	redirect(m, srv)
 	m.Download("m")
 	wait(t, m, "m", Ready)
@@ -279,7 +279,7 @@ func TestChecksum(t *testing.T) {
 	withModel(t, data, sha([]byte("the model")))
 	srv, _ := server(data, 0)
 	defer srv.Close()
-	m := NewManager(t.TempDir(), false, nil)
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
 	redirect(m, srv)
 	m.Download("m")
 	if st := wait(t, m, "m", Missing); st.Err != ErrChecksum || st.Done != 0 {
@@ -321,7 +321,11 @@ func TestRealDownload(t *testing.T) {
 	if src == "" {
 		t.Skip(`set TOMORU_DOWNLOAD=hf or china to download from the real sources`)
 	}
-	m := NewManager(t.TempDir(), src == "china", nil)
+	mirrors := HuggingFaceFirst
+	if src == "china" {
+		mirrors = ModelScopeFirst
+	}
+	m := NewManager(t.TempDir(), mirrors, nil)
 	part := func() int64 { return m.Status("local-2b").Done }
 	m.Download("local-2b")
 	time.Sleep(4 * time.Second)
@@ -344,15 +348,15 @@ func TestRealDownload(t *testing.T) {
 
 func TestVisions(t *testing.T) {
 	for _, m := range All {
-		if m.ASR && (m.Vision != "") != m.Served() || m.Vision != "" && !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == m.Vision }) {
-			t.Errorf("%s: vision %q", m.ID, m.Vision)
+		if m.ASR && (m.Projector != "") != m.Served() || m.Projector != "" && !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == m.Projector }) {
+			t.Errorf("%s: vision %q", m.ID, m.Projector)
 		}
 	}
 	dir := t.TempDir()
-	m := NewManager(dir, false, nil)
+	m := NewManager(dir, HuggingFaceFirst, nil)
 	mod, _ := ByID("local-2b")
 	for i, f := range mod.Files {
-		if m.VisionOf(m.Path("local-2b")) != "" {
+		if m.ProjectorOf(m.Path("local-2b")) != "" {
 			t.Fatalf("%d files: vision found", i)
 		}
 		w, err := os.Create(filepath.Join(dir, f.Name))
@@ -362,10 +366,10 @@ func TestVisions(t *testing.T) {
 		w.Truncate(f.Size)
 		w.Close()
 	}
-	if got := m.VisionOf(m.Path("local-2b")); got != filepath.Join(dir, mod.Vision) {
+	if got := m.ProjectorOf(m.Path("local-2b")); got != filepath.Join(dir, mod.Projector) {
 		t.Errorf("downloaded: %q", got)
 	}
-	if got := m.VisionOf(m.Path("local-9b")); got != "" {
+	if got := m.ProjectorOf(m.Path("local-9b")); got != "" {
 		t.Errorf("another model's: %q", got)
 	}
 }
@@ -379,7 +383,7 @@ func TestServerVision(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	m := NewManager(dir, false, nil)
+	m := NewManager(dir, HuggingFaceFirst, nil)
 	if m.Status("local-2b").State != Ready {
 		t.Skip("the 2B model is not downloaded")
 	}
@@ -390,7 +394,7 @@ func TestServerVision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s.Vision = m.VisionOf
+	s.projectorOf = m.ProjectorOf
 	if slices.Contains(s.cur.cmd.Args, "--mmproj") {
 		t.Errorf("translating only: args %q", s.cur.cmd.Args)
 	}
@@ -399,7 +403,7 @@ func TestServerVision(t *testing.T) {
 		t.Fatalf("with vision: %s, %v; was %s", again, err, url)
 	}
 	p := s.cur
-	if p.vision != m.VisionOf(model) || !slices.Contains(p.cmd.Args, "--mmproj") {
+	if p.vision != m.ProjectorOf(model) || !slices.Contains(p.cmd.Args, "--mmproj") {
 		t.Errorf("args %q", p.cmd.Args)
 	}
 	if again, err := s.Ensure(context.Background(), model); err != nil || again != url || s.cur != p {

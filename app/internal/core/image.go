@@ -15,7 +15,7 @@ import (
 
 func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
-		return !m.ASR && m.Vision != ""
+		return !m.ASR && m.Projector != ""
 	}
 	if eid, ok := prefs.EndpointOf(id); ok {
 		for _, e := range endpoints {

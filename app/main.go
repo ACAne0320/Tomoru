@@ -85,18 +85,22 @@ func main() {
 			dir, err = p.ModelsDir, nil
 		}
 		if err == nil {
-			china := strings.HasPrefix(mygo.App.Locale(), "zh")
-			manager = models.NewManagerContext(ctx, dir, china, func() { post(func() { k.Changed() }) })
+			mirrors := models.HuggingFaceFirst
+			if strings.HasPrefix(mygo.App.Locale(), "zh") {
+				mirrors = models.ModelScopeFirst
+			}
+			manager = models.NewManagerContext(ctx, dir, mirrors, func() { post(func() { k.Changed() }) })
 			deps.Models = manager
 		} else {
 			log.Println("models:", err)
 		}
 		if bin, err := resource.Bin("llama-server", roots...); err == nil {
-			server, hearing := models.NewServer(bin, llamaLog), models.NewServer(bin, llamaLog)
-			hearing.Warm = llama.Warm
+			var projectors []models.ServerOption
 			if manager != nil {
-				server.Vision, hearing.Vision = manager.VisionOf, manager.VisionOf
+				projectors = append(projectors, models.WithProjectors(manager.ProjectorOf))
 			}
+			server := models.NewServer(bin, llamaLog, projectors...)
+			hearing := models.NewServer(bin, llamaLog, append(projectors, models.WithWarm(llama.Warm))...)
 			deps.Server, deps.ASRServer = server, hearing
 			var gpu atomic.Uint64
 			var gpuKnown atomic.Bool
@@ -108,7 +112,7 @@ func main() {
 					log.Println("models: devices:", err)
 				}
 				for _, d := range ds {
-					gpu.Store(max(gpu.Load(), d.Memory))
+					gpu.Store(max(gpu.Load(), d.Budget))
 				}
 				gpuKnown.Store(err == nil)
 				post(func() { k.Changed() })

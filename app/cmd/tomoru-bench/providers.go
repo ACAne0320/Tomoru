@@ -59,7 +59,7 @@ func translator(mt, url, model string, roots ...string) (translate.Translator, f
 	if err != nil {
 		return nil, nil, err
 	}
-	path := models.NewManager(dir, false, nil).Path(mt)
+	path := models.NewManager(dir, models.HuggingFaceFirst, nil).Path(mt)
 	if _, err := os.Stat(path); err != nil {
 		return nil, nil, fmt.Errorf("-mt %s: %w", mt, err)
 	}
@@ -94,7 +94,7 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 		if err != nil {
 			return spec, env, nil, err
 		}
-		manager := models.NewManager(dir, false, nil)
+		manager := models.NewManager(dir, models.HuggingFaceFirst, nil)
 		if manager.Status(id).State != models.Ready {
 			return spec, env, nil, fmt.Errorf("-asr %s: not downloaded to %s", id, dir)
 		}
@@ -104,8 +104,7 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 			if err != nil {
 				return spec, env, nil, err
 			}
-			srv := models.NewServer(bin, nil)
-			srv.Vision, srv.Warm = manager.VisionOf, llama.Warm
+			srv := models.NewServer(bin, nil, models.WithProjectors(manager.ProjectorOf), models.WithWarm(llama.Warm))
 			env.Server, stop = srv, srv.Stop
 		} else if env.ASR, err = engine.ASRPath(roots...); err != nil {
 			return spec, env, nil, err

@@ -11,7 +11,7 @@ func enoughSpace(dir string, need int64) error {
 	if windows.GetDiskFreeSpaceEx(p, &free, &total, &all) != nil {
 		return nil
 	}
-	if int64(free) < need+256<<20 {
+	if int64(free) < need+spaceHeadroom {
 		return ErrNoSpace{Need: need, Free: int64(free)}
 	}
 	return nil

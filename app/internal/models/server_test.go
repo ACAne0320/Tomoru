@@ -183,7 +183,7 @@ func TestWarm(t *testing.T) {
 			w.Write([]byte(`{"choices":[]}`))
 		}))
 		p := &process{url: srv.URL, vision: vision, done: make(chan struct{})}
-		if err := p.warm(nil); err != nil {
+		if err := p.warm(warmChat); err != nil {
 			t.Fatal(err)
 		}
 		srv.Close()
@@ -207,7 +207,7 @@ func TestWarmExit(t *testing.T) {
 	exited := make(chan struct{})
 	p := &process{url: srv.URL, done: exited}
 	done := make(chan error, 1)
-	go func() { done <- p.warm(nil) }()
+	go func() { done <- p.warm(warmChat) }()
 	time.Sleep(50 * time.Millisecond)
 	close(exited)
 	select {

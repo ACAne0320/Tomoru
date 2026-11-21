@@ -69,14 +69,14 @@ func (m *Manager) Move(to string, done func(error)) {
 			<-j.exited
 		}
 		m.mu.Lock()
-		m.held = map[string]Status{}
+		m.statusDuringMove = map[string]Status{}
 		for _, mod := range All {
-			m.held[mod.ID] = onDisk(from, mod)
+			m.statusDuringMove[mod.ID] = onDisk(from, mod)
 		}
 		m.mu.Unlock()
 		err := m.moveFiles(m.ctx, from, to)
 		m.mu.Lock()
-		m.move.Active, m.move.Err, m.held = false, err, nil
+		m.move.Active, m.move.Err, m.statusDuringMove = false, err, nil
 		m.mu.Unlock()
 		m.changed()
 		done(err)
