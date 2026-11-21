@@ -16,9 +16,9 @@ func (g *Guide) permission(c *ui.Context) {
 	k := g.core
 	granted := k.Access == core.PermissionGranted
 	if k.Asking {
-		g.asked = true
-	} else if g.asked {
-		g.asked = false
+		g.awaitingPrompt = true
+	} else if g.awaitingPrompt {
+		g.awaitingPrompt = false
 		g.nav.Focus()
 	}
 	if !k.Asking && !granted {

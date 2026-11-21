@@ -20,7 +20,7 @@ func (g *Guide) shortcuts(c *ui.Context) {
 	g.part(c, 1, func() {
 		ui.Column(c).Margin(6, 0, 0, 0).Children(func() {
 			shortcutRow(c, assets.Keyboard, locales.Shortcut(), func() {
-				shared.ShortcutField(c, g.core, g.nav, core.StartStop, locales.Shortcut(), &g.keys)
+				shared.ShortcutField(c, g.core, g.nav, core.StartStop, locales.Shortcut(), &g.startStopRecorder)
 				worked(c, g.works(core.StartStop))
 			})
 		})
@@ -41,7 +41,7 @@ func worked(c *ui.Context, ok bool) {
 func shortcutRow(c *ui.Context, icon *ui.SVG, name string, field func()) {
 	pal := kit.Colors(c)
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Start).Children(func() {
-		tint(c, 32, func() { ui.Icon(c, icon).FontSize(kit.IconSizeMenu).TextColor(pal.LanternText) })
+		tint(c, tintSize, func() { ui.Icon(c, icon).FontSize(kit.IconSizeMenu).TextColor(pal.LanternText) })
 		ui.Column(c).Grow(1).Gap(kit.Space(2)).Children(func() {
 			ui.Text(c, name).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(pal.Ink)
 			field()

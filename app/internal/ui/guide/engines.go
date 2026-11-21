@@ -140,12 +140,9 @@ func (g *Guide) modelOption(c *ui.Context, f []core.Engine) (kit.Option, func())
 		o.Below = func() { kit.Warning(c, why).MaxLines(1).Tooltip(why) }
 	case st.State == models.Downloading || st.State == models.Missing && st.Done > 0:
 		total := cmp.Or(st.Total, m.Size)
-		end := float32(0)
-		if st.State == models.Downloading {
-			end = kit.QuietInset
-		}
 		o.Below = func() {
-			kit.OptionProgress(c, float64(st.Done)/float64(max(total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(total))).Padding(0, end, 0, 0)
+			kit.OptionProgress(c, float64(st.Done)/float64(max(total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(total))).
+				Padding(0, kit.ProgressEnd(st.State == models.Downloading), 0, 0)
 		}
 	case st.State == models.Verifying:
 		o.Below = func() { kit.Caption(c, locales.Verifying()).MaxLines(1) }
@@ -164,8 +161,7 @@ func (g *Guide) modelOption(c *ui.Context, f []core.Engine) (kit.Option, func())
 	case models.Downloading:
 		o.Action = func() {
 			if kit.CancelButton(c, locales.Cancel()).Clicked() {
-				k.CancelDownload(m.ID)
-				k.Choose(kind, k.InUse(kind))
+				k.CancelChoice(kind, m.ID)
 			}
 		}
 	}
@@ -178,8 +174,9 @@ const (
 	srcAt     = 420 * time.Millisecond
 	toMT      = 720 * time.Millisecond
 	tgtAt     = 1140 * time.Millisecond
-	leave     = 120 * time.Millisecond
 )
+
+var leave = kit.FadeQuick.Duration
 
 func pipeline(now time.Time) (src, tgt int64, t time.Duration) {
 	ms := now.UnixMilli()
@@ -280,9 +277,13 @@ func (g *Guide) flash(c *ui.Context, kind core.Kind) float32 {
 	return k * k
 }
 
+var nodePadX = kit.Space(4)
+
+const tintSize = 32
+
 func node(c *ui.Context, key string, lit bool, flash float32, icon *ui.SVG, name, tag string, fn func(lit bool)) {
 	pal := kit.Colors(c)
-	row := ui.Row(c.Key(key)).Gap(kit.Space(3)).Padding(kit.Space(3), kit.Space(4)).AlignItems(ui.Start).
+	row := ui.Row(c.Key(key)).Gap(kit.Space(3)).Padding(kit.Space(3), nodePadX).AlignItems(ui.Start).
 		Radius(kit.RadiusField).Clip().Transition(kit.Grow())
 	bg, edge, label, mark := pal.Glass, pal.GlassLine, pal.Starlight.Alpha(.4), pal.Lantern.Alpha(.5)
 	if lit {
@@ -296,7 +297,7 @@ func node(c *ui.Context, key string, lit bool, flash float32, icon *ui.SVG, name
 	row.Background(row.AnimateColor("bg", bg, kit.Fade)).Border(1, edge)
 	label, mark = row.AnimateColor("label", label, kit.Fade), row.AnimateColor("mark", mark, kit.Fade)
 	row.Children(func() {
-		tint(c, 32, func() { ui.Icon(c, icon).FontSize(kit.IconSizeNav).TextColor(mark) })
+		tint(c, tintSize, func() { ui.Icon(c, icon).FontSize(kit.IconSizeNav).TextColor(mark) })
 		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
 			ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
 				ui.Text(c.Key(name), name).NoWrap().FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(label).Transition(kit.Rise(0))
@@ -318,50 +319,62 @@ func sentence(c *ui.Context, key any, s string, size float32, ink ui.Color, goes
 	return e.TextColor(e.AnimateColor("ink", ink, kit.Fade)).Opacity(e.AnimateTo("going", o, kit.FadeQuick))
 }
 
-type light func(now time.Time) (k float32, wait time.Duration)
+type light func(now time.Time) lightAt
+
+type lightAt struct {
+	shining  bool
+	progress float32
+	next     bool
+	in       time.Duration
+}
+
+func shine(progress float32) lightAt { return lightAt{shining: true, progress: progress} }
+
+func dark(in time.Duration) lightAt { return lightAt{next: true, in: in} }
 
 func inTurn(from, to time.Duration) light {
-	return func(now time.Time) (float32, time.Duration) {
+	return func(now time.Time) lightAt {
 		_, _, t := pipeline(now)
 		switch {
 		case t < from:
-			return -1, from - t
+			return dark(from - t)
 		case t >= to:
-			return -1, pipeCycle - t + from
+			return dark(pipeCycle - t + from)
 		}
-		return float32(t-from) / float32(to-from), 0
+		return shine(float32(t-from) / float32(to-from))
 	}
 }
 
 func leaving(at time.Time) light {
-	return func(now time.Time) (float32, time.Duration) {
+	return func(now time.Time) lightAt {
 		d := now.Sub(at)
 		switch {
 		case at.IsZero() || d >= travel:
-			return -1, 0
+			return lightAt{}
 		case d < 0:
-			return -1, -d
+			return dark(-d)
 		}
-		return float32(d) / float32(travel), 0
+		return shine(float32(d) / float32(travel))
 	}
 }
 
 func flow(c *ui.Context, key string, at light) {
 	still := c.Preferences().ReduceMotion
 	pal := kit.Colors(c)
-	x := kit.Space(4) + 16
+	x := nodePadX + tintSize/2
 	ui.Box(c.Key(key)).Height(26).Width(2).Margin(0, 0, 0, x).AlignSelf(ui.Start).Background(pal.Starlight.Alpha(.16)).Transition(kit.Grow()).
 		Draw(func(p *ui.Painter, r ui.Rect) {
 			if still {
 				return
 			}
-			k, wait := at(p.Now())
-			if k < 0 {
-				if wait > 0 {
-					p.After(wait)
+			l := at(p.Now())
+			if !l.shining {
+				if l.next {
+					p.After(l.in)
 				}
 				return
 			}
+			k := l.progress
 			k = k * k * (3 - 2*k)
 			const d = 6
 			head := r.Y + (r.H-d)*k

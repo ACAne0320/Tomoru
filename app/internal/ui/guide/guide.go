@@ -14,7 +14,7 @@ import (
 	"tomoru/locales"
 )
 
-const Width, Height = 800, 580
+const ContentWidth, ContentHeight = 800, 580
 
 const TitleBar = 36
 
@@ -40,22 +40,21 @@ var phases = []struct {
 }
 
 type Guide struct {
-	core      *core.Core
-	nav       shared.Nav
-	Step      int
-	next      int
-	try       try
-	keys      shared.ShortcutRecorder
-	imageKeys shared.ShortcutRecorder
-	asked     bool
-	sample    sample
-	selected  string
-	swaps     int
-	picks     map[core.Kind]pick
-	scroll    ui.ScrollState
-	keysStep  int
-	keysSince time.Time
-	shownAt   time.Time
+	core              *core.Core
+	nav               shared.Nav
+	Step              int
+	pendingStep       int
+	try               try
+	startStopRecorder shared.ShortcutRecorder
+	pictureRecorder   shared.ShortcutRecorder
+	awaitingPrompt    bool
+	sample            sample
+	sampleTranslation string
+	swaps             int
+	picks             map[core.Kind]pick
+	scroll            ui.ScrollState
+	keysShown         keysShown
+	shownAt           time.Time
 }
 
 func New(k *core.Core, nav shared.Nav) *Guide {
@@ -63,7 +62,7 @@ func New(k *core.Core, nav shared.Nav) *Guide {
 	if skipped(s) {
 		s = after(s, 1)
 	}
-	return &Guide{core: k, nav: nav, Step: s, next: s}
+	return &Guide{core: k, nav: nav, Step: s, pendingStep: s}
 }
 
 func (g *Guide) View(c *ui.Context) {
@@ -71,8 +70,7 @@ func (g *Guide) View(c *ui.Context) {
 	c.Root().Background(kit.Colors(c).Paper)
 	k := g.core
 	if g.Step > stepWelcome {
-		k.PrepareASR(k.Preferences().Src)
-		k.PrepareASR(k.Preferences().Tgt)
+		k.PrepareLanguages()
 	}
 	if g.shownAt.IsZero() {
 		g.shownAt = c.Now()
@@ -88,8 +86,12 @@ func (g *Guide) View(c *ui.Context) {
 		}
 		g.steps(c, top)
 	})
-	if g.next != g.Step {
-		g.Step, g.shownAt = g.next, c.Now()
+	g.commitStep(c)
+}
+
+func (g *Guide) commitStep(c *ui.Context) {
+	if g.pendingStep != g.Step {
+		g.Step, g.shownAt = g.pendingStep, c.Now()
 		g.scroll.Y = 0
 		c.AnimationFrame()
 	}
@@ -144,14 +146,19 @@ func (g *Guide) steps(c *ui.Context, top float32) {
 
 func (g *Guide) holdKeys() {
 	k := g.core
-	if g.Step != g.keysStep || g.keysSince.IsZero() {
-		g.keysStep, g.keysSince = g.Step, time.Now()
+	if g.Step != g.keysShown.step || g.keysShown.since.IsZero() {
+		g.keysShown = keysShown{g.Step, time.Now()}
 	}
 	k.HoldShortcut(core.StartStop, g.Step == stepShortcuts)
 	k.HoldShortcut(core.PictureShortcut, g.Step == stepPicture && k.CanSelect() && !g.works(core.PictureShortcut))
 }
 
-func (g *Guide) works(s core.Shortcut) bool { return g.core.PressedSince(s, g.keysSince) }
+type keysShown struct {
+	step  int
+	since time.Time
+}
+
+func (g *Guide) works(s core.Shortcut) bool { return g.core.PressedSince(s, g.keysShown.since) }
 
 func skipped(s int) bool { return s == stepPermission && !core.AsksAccess() }
 
@@ -164,7 +171,7 @@ func after(s, dir int) int {
 }
 
 func (g *Guide) goTo(c *ui.Context, s int) {
-	g.next = s
+	g.pendingStep = s
 	if !g.core.Preferences().Onboarded {
 		g.core.UpdatePrefs(func(p *prefs.Prefs) { p.GuideStep = s })
 	}
@@ -175,7 +182,7 @@ func (g *Guide) progress(c *ui.Context) {
 	p := kit.Colors(c)
 	phase := 0
 	for i, ph := range phases {
-		if g.next >= ph.first {
+		if g.pendingStep >= ph.first {
 			phase = i
 		}
 	}
@@ -197,7 +204,7 @@ func (g *Guide) progress(c *ui.Context) {
 		const h = 4
 		track := ui.Box(c).Height(h).Radius(kit.Pill(h)).Background(p.LineStrong).Clip()
 		track.Children(func() {
-			done := float32(g.next+1) / steps
+			done := float32(g.pendingStep+1) / steps
 			bar := ui.Box(c).Height(h).Radius(kit.Pill(h)).Background(p.Lantern)
 			bar.Width(bar.AnimateTo("w", done*progressWidth, kit.Spring))
 		})

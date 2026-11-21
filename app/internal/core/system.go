@@ -148,3 +148,8 @@ func (c *Core) StopSpeaking() {
 	c.Speaking, c.speak = false, nil
 	c.changed()
 }
+
+func (c *Core) PrepareLanguages() {
+	c.PrepareASR(c.Prefs.Src)
+	c.PrepareASR(c.Prefs.Tgt)
+}

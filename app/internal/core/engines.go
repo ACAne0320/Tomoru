@@ -153,3 +153,8 @@ func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
 		c.settingsChanged()
 	})
 }
+
+func (c *Core) CancelChoice(k Kind, id string) {
+	c.CancelDownload(id)
+	c.Choose(k, c.InUse(k))
+}
