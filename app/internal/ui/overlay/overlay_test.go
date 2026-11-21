@@ -317,7 +317,6 @@ func TestUnlock(t *testing.T) {
 	k.Running, k.Updated = true, time.Now()
 	k.State = live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "Hello there.", Tgt: "你好。", Outcome: live.Translated}}}
 	k.Prefs.Locked = true
-	k.Prefs.KeepShown = true
 	tt := ui.NewTester(o.View, 1000, 600)
 	o.hover = true
 	tt.Frame()
@@ -325,7 +324,7 @@ func TestUnlock(t *testing.T) {
 	if _, ok := tt.Find(locales.UnlockSubtitles()); ok || tt.HasText(locales.DragHint()) || o.lock.W != 0 {
 		t.Fatalf("locked, not rested on: %q, lock %v", tt.Texts(), o.lock)
 	}
-	o.peek = true
+	o.showingUnlock = true
 	tt.Frame()
 	tt.Advance(time.Second)
 	r, ok := tt.Find(locales.UnlockSubtitles())
