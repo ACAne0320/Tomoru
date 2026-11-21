@@ -136,27 +136,29 @@ what to expect with `Env.Scene` (see "Hints").
 
 `Finalize` left the interface: the segmenter no longer asks for a final, and the recognizers end
 results themselves. The session still sends `finalize` to the macOS engine, when Apple's
-recognition runs in it, as `Spec.Hint` says (below).
+recognition runs in it, as `Spec.Finalizer` says (below).
 
 ### The entries
 
 ```go
 // Spec is a recognizer to choose. asr.Specs lists them; the catalog and the settings read it.
 type Spec struct {
-	ID                string        // as prefs.ASR names it
-	Cloud             bool          // what is heard leaves the computer
-	Billed            bool          // the service bills the audio sent: hang up while nobody speaks
-	URL               string        // a cloud's address unless the user gives one
-	Models            []string      // a cloud's models, the default first
-	Langs             []string      // what it recognizes, in the order of lang.All; nil: the system's
-	Model             *models.Model // to download first, or nil
-	Key               bool          // needs an API key
-	Hints             bool          // is told what to expect (Env.Scene)
-	VolatileSentences bool          // the sentences its volatile text ends hold
-	FinalsEnd         bool          // its final results end utterances
-	Hint              func(lang string) func(engine.Event) (through float64, ok bool) // Apple's, in the engine
-	New               func(env Env) (Factory, error) // nil factory: the engine recognizes
-	Test              func(ctx context.Context, svc Service) (time.Duration, error) // a cloud's connection
+	ID                      string        // as prefs.ASR names it
+	Cloud                   bool          // what is heard leaves the computer
+	Billed                  bool          // the service bills the audio sent: hang up while nobody speaks
+	URL                     string        // a cloud's address unless the user gives one
+	Models                  []string      // a cloud's models, the default first
+	Langs                   []string      // what it recognizes, in the order of lang.All
+	SystemLangs             bool          // it recognizes what the system says instead
+	Model                   *models.Model // to download first, or nil
+	Key                     bool          // needs an API key
+	TakesScene              bool          // is told what to expect (Env.Scene)
+	InEngine                bool          // the capture engine recognizes: no New
+	CommitVolatileSentences bool          // the sentences its volatile text ends hold
+	FinalsEndUtterances     bool          // its final results end utterances
+	Finalizer               func(lang string) func(engine.Event) (through float64, ok bool) // Apple's, in the engine
+	New                     func(env Env) (Factory, error)
+	Test                    func(ctx context.Context, svc Service) (time.Duration, error) // a cloud's connection
 }
 ```
 
@@ -235,7 +237,7 @@ Measured when step 3 was done (2026-10-31, the quick set, 2 minutes a language; 
 | SenseVoice | 13.1 → 15.0 | 0 → 0 | 6 → 7 | 1.86 → 1.66 / 3.57 → 3.50 s | 23.1 → 23.4 |
 
 - SenseVoice ends every decode with a full stop, wherever its stretch ends; it is left out of
-  final results (`batch.Caps.Stops`), or a pause mid-sentence ended a line. Its errors rose with
+  final results (`batch.Caps.TrailingFullStop`), or a pause mid-sentence ended a line. Its errors rose with
   step 2's detector (14.7 there).
 - Qwen cloud waits for whole sentences where commas cut it every 3–4 s before: its translations
   are better and its slowest come 2 s later, which was accepted.
@@ -259,7 +261,7 @@ slow each other):
 | RTX 5060, Qwen3-ASR | 12.7 | 4.2 | 1.46 s | 2.64 / 5.89 s | 23.4 |
 
 - It times no word: the sentences it ends while a stretch goes on commit from its volatile text
-  (`VolatileSentences`), and once it has ended one, the stretch ends at the speaker's next pause
+  (`CommitVolatileSentences`), and once it has ended one, the stretch ends at the speaker's next pause
   however short (`batch.Caps.Untimed`), which keeps stretches short and decodes quick. Without
   that, stretches ran to 15 s and showed text 0.8 s later.
 - Volatile decodes still need two that agree: shown as each was decoded, it put full stops at
@@ -348,7 +350,7 @@ Step 6, OpenAI Realtime, done 2026-10-31 (the quick set on the M5, 4 cases at on
   before, a pause of 0.5 s, or the first pause once the model ended a sentence or past 8 s); only
   they are sent, resampled to 24 kHz, and each is committed at its pause.
 - Its text streams as it hears, word by word, about a second behind the audio: volatile results,
-  whose sentence ends hold (`VolatileSentences`), so sentences commit before their turn ends. A
+  whose sentence ends hold (`CommitVolatileSentences`), so sentences commit before their turn ends. A
   turn's final text comes about half a second after its commit; completions may come out of
   order, and are given in the order of the commits, by item ID.
 - The fastest recognizer to a translation at p90 (3.0 s), and more accurate than Qwen3-ASR and
@@ -409,7 +411,7 @@ mentions right, and 10 without them. Names in its context can still be copied: o
 mid-word had it go on with the rest of the list.
 
 A session takes the scene as it starts: switching to a scene of other names starts a new one for
-a recognizer that takes hints (`Spec.Hints`); a name learned meanwhile is heard from the next.
+a recognizer that takes hints (`Spec.TakesScene`); a name learned meanwhile is heard from the next.
 
 ### The language heard
 
@@ -461,7 +463,7 @@ Qwen3-ASR decodes a stretch whole; a slow GPU, decoding less often, sees it more
 
 | Adapter | Ending | Notes |
 |---|---|---|
-| `apple` | Stream | In the engine. `asr/apple`'s `Hint` tells the session when to have the engine `finalize`: once the hypothesis has stood 1.3 s, and in Chinese, whose clauses it ends late, at 0.2 s pauses too (what the segmenter's `VoiceCuts` did) |
+| `apple` | Stream | In the engine. `asr/apple`'s `Finalizer` tells the session when to have the engine `finalize`: once the hypothesis has stood 1.3 s, and in Chinese, whose clauses it ends late, at 0.2 s pauses too (what the segmenter's `VoiceCuts` did) |
 | `qwen-cloud` | Stream | `cloudasr` moved to `asr/qwencloud`; the hang-up on silence moves to `asr` for every billed adapter |
 | `sensevoice-small` | Batch | `tomoru-asr serve`, `--lang auto` for Auto-detect; Timed; Volatile 0.4 s; Gap and Longest by measurement (now 0.5 s, 12 s; 0.25 s before the engine's detector, see local-asr.md) |
 | `qwen3-asr-0.6b`, `qwen3-asr-1.7b` | Batch | llama-server with the model's audio projector, chat API with the stretch as `input_audio` WAV; the reply is `language Japanese<asr_text>…`; the model tells the language, kept when it is sure that is not the session's (see Another language), else decoded again with a grammar limiting the language to the session's or `None`, no speech; for Auto-detect, see The language heard; a system message always, as the model was trained, with the scene's names or empty; `max_tokens` by the stretch's length (12 a second and 16), and an answer that uses them all is dropped; untimed. GPU only: on the CPU it falls behind |

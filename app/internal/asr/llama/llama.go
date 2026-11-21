@@ -36,19 +36,22 @@ const sure = -15
 const topLogprobs = 10
 
 type Decoder struct {
-	url                      string
-	lang, code, grammar, any string
-	context                  string
-	client                   *http.Client
-	done                     chan struct{}
-	stop                     sync.Once
+	url     string
+	current spoken
+	auto    bool
+	context string
+	client  *http.Client
+	done    chan struct{}
+	stop    sync.Once
+}
+
+type spoken struct {
+	name, code, grammar string
 }
 
 func New(url, code, context string) *Decoder {
-	d := &Decoder{url: url, context: context, client: &http.Client{}, done: make(chan struct{})}
-	if code == lang.Auto {
-		d.any = grammar(code)
-	} else {
+	d := &Decoder{url: url, context: context, client: &http.Client{}, done: make(chan struct{}), auto: code == lang.Auto}
+	if !d.auto {
 		d.follow(code)
 	}
 	return d
@@ -56,9 +59,11 @@ func New(url, code, context string) *Decoder {
 
 func (d *Decoder) follow(code string) {
 	if g := grammar(code); g != "" && code != lang.Auto {
-		d.lang, d.code, d.grammar = name(code), code, g
+		d.current = spoken{name(code), code, g}
 	}
 }
+
+var autoGrammar = sync.OnceValue(func() string { return grammar(lang.Auto) })
 
 func name(code string) string { return display.English.Tags().Name(language.Make(code)) }
 
@@ -101,10 +106,14 @@ func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error)
 }
 
 func (d *Decoder) transcribe(ctx context.Context, pcm []byte) (string, string, error) {
-	if d.lang == "" {
-		a, err := d.ask(ctx, pcm, d.any)
+	if d.current.code == "" {
+		any := ""
+		if d.auto {
+			any = autoGrammar()
+		}
+		a, err := d.ask(ctx, pcm, any)
 		heard := codes()[a.label]
-		if d.any != "" {
+		if d.auto {
 			d.follow(heard)
 		}
 		return a.text, heard, err
@@ -112,26 +121,26 @@ func (d *Decoder) transcribe(ctx context.Context, pcm []byte) (string, string, e
 	a, err := d.ask(ctx, pcm, "")
 	heard := codes()[a.label]
 	switch {
-	case err != nil || a.label == d.lang || a.label == "None":
-		return a.text, d.code, err
-	case heard != "" && d.any != "" && len(pcm) >= 2*rate*brief:
+	case err != nil || a.label == d.current.name || a.label == "None":
+		return a.text, d.current.code, err
+	case heard != "" && d.auto && len(pcm) >= 2*rate*brief:
 		d.follow(heard)
 		return a.text, heard, nil
-	case a.session < sure:
-		if d.any != "" {
+	case a.sessionLogprobAtMost < sure:
+		if d.auto {
 			d.follow(heard)
 		}
 		return a.text, heard, nil
 	}
-	a, err = d.ask(ctx, pcm, d.grammar)
-	return a.text, d.code, err
+	a, err = d.ask(ctx, pcm, d.current.grammar)
+	return a.text, d.current.code, err
 }
 
 const brief = 1.5
 
 type reply struct {
-	text, label string
-	session     float64
+	text, label          string
+	sessionLogprobAtMost float64
 }
 
 func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, error) {
@@ -142,7 +151,7 @@ func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, e
 	request := map[string]any{"messages": messages, "temperature": 0, "max_tokens": limit, "cache_prompt": false}
 	if grammar != "" {
 		request["grammar"] = grammar
-	} else if d.lang != "" {
+	} else if d.current.code != "" {
 		request["logprobs"], request["top_logprobs"] = true, topLogprobs
 	}
 	body, err := json.Marshal(request)
@@ -187,7 +196,7 @@ func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, e
 	}
 	c := out.Choices[0]
 	head, _, _ := strings.Cut(c.Message.Content, "<asr_text>")
-	a := reply{label: strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(head), "language")), session: d.likelihood(c.Logprobs.Content)}
+	a := reply{label: strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(head), "language")), sessionLogprobAtMost: d.sessionLogprobAtMost(c.Logprobs.Content)}
 	if c.FinishReason != "length" {
 		a.text = answer(c.Message.Content)
 	}
@@ -202,7 +211,7 @@ type step struct {
 	} `json:"top_logprobs"`
 }
 
-func (d *Decoder) likelihood(steps []step) float64 {
+func (d *Decoder) sessionLogprobAtMost(steps []step) float64 {
 	said := ""
 	for _, s := range steps {
 		if strings.TrimSpace(said) != "language" || strings.TrimSpace(s.Token) == "" {
@@ -211,7 +220,7 @@ func (d *Decoder) likelihood(steps []step) float64 {
 		}
 		least := 0.0
 		for i, t := range s.TopLogprobs {
-			if word := strings.TrimSpace(t.Token); len(word) >= 3 && strings.HasPrefix(d.lang, word) {
+			if word := strings.TrimSpace(t.Token); len(word) >= 3 && strings.HasPrefix(d.current.name, word) {
 				return t.Logprob
 			}
 			if i == 0 || t.Logprob < least {

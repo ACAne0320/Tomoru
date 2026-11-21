@@ -33,7 +33,7 @@ func (c *Core) SetScene(id string) {
 	c.Prefs.Scene, c.Prefs.Src, c.Prefs.Tgt = id, src, tgt
 	c.fitLangs()
 	spec, _ := asr.ByID(c.Prefs.ASR)
-	if before != [2]string{c.Prefs.Src, c.Prefs.Tgt} || spec.Hints && !slices.Equal(names, c.hints().Names) {
+	if before != [2]string{c.Prefs.Src, c.Prefs.Tgt} || spec.TakesScene && !slices.Equal(names, c.hints().Names) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()

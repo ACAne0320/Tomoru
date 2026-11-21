@@ -11,7 +11,7 @@ import (
 	"tomoru/internal/engine"
 )
 
-var Caps = batch.Caps{Volatile: .4, Gap: .5, Longest: 12, Stops: true}
+var Caps = batch.Caps{Volatile: .4, Gap: .5, Longest: 12, TrailingFullStop: true}
 
 type Decoder struct {
 	p *engine.Process

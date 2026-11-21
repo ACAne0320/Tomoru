@@ -50,7 +50,7 @@ func (s *Server) Ensure(ctx context.Context, path string) (string, error) {
 	return s.ensure(ctx, path, false)
 }
 
-func (s *Server) EnsureVision(ctx context.Context, path string) (string, error) {
+func (s *Server) EnsureProjector(ctx context.Context, path string) (string, error) {
 	return s.ensure(ctx, path, true)
 }
 

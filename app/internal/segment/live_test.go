@@ -26,7 +26,7 @@ func TestLive(t *testing.T) {
 	}
 	useVoice := os.Getenv("TOMORU_LIVE_VOICE") != "0"
 	var mu sync.Mutex
-	s := New(Config{VolatileSentences: true})
+	s := New(Config{CommitVolatileSentences: true})
 	lastOff, listening := 0.0, make(chan struct{})
 	var log []string
 	act := func(acts []Action) {

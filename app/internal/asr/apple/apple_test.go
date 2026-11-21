@@ -14,7 +14,7 @@ func vol(text string, start, end float64) engine.Event {
 func clock(t float64) engine.Event { return engine.Event{Type: "clock", T: t} }
 
 func TestStill(t *testing.T) {
-	h := Hint("ja")
+	h := Finalizer("ja")
 	for _, ev := range []engine.Event{vol("先看看", 10, 11), vol("先看看角色创建界面吧", 10, 12), clock(12.5), clock(13.2)} {
 		if _, ok := h(ev); ok {
 			t.Fatalf("finalized while speech may go on, at %+v", ev)
@@ -34,7 +34,7 @@ func TestStill(t *testing.T) {
 }
 
 func TestClausePause(t *testing.T) {
-	h := Hint("zh-CN")
+	h := Finalizer("zh-CN")
 	h(engine.Event{Type: "voice", On: true, T: 0})
 	h(vol("大家好欢迎", 0, 1.0))
 	if _, ok := h(engine.Event{Type: "voice", On: false, T: 1.1}); ok {
@@ -53,7 +53,7 @@ func TestClausePause(t *testing.T) {
 		t.Fatal("finalized a pause with nothing said")
 	}
 
-	j := Hint("ja")
+	j := Finalizer("ja")
 	j(engine.Event{Type: "voice", On: true, T: 0})
 	j(vol("みなさん", 0, 1))
 	j(engine.Event{Type: "voice", On: false, T: 1.1})

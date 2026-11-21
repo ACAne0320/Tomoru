@@ -51,7 +51,7 @@ func replayWith(t *testing.T, path, lang string, emit func(*Segmenter, []Action)
 		t.Fatal(err)
 	}
 	defer f.Close()
-	s := New(Config{VolatileSentences: true, FinalsEnd: true})
+	s := New(Config{CommitVolatileSentences: true, FinalsEndUtterances: true})
 	sc := bufio.NewScanner(f)
 	sc.Buffer(nil, 1<<20)
 	for sc.Scan() {

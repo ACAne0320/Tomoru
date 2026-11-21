@@ -13,7 +13,7 @@ const (
 	clausePause = 0.2
 )
 
-func Hint(lang string) func(engine.Event) (through float64, ok bool) {
+func Finalizer(lang string) func(engine.Event) (through float64, ok bool) {
 	h := &hint{clauses: chinese(lang), lastFinalize: -1}
 	return h.event
 }

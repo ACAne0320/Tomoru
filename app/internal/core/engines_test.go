@@ -64,7 +64,7 @@ func (s *fakeServer) Ensure(_ context.Context, path string) (string, error) {
 	return cmp.Or(s.url, "http://127.0.0.1:1234"), nil
 }
 
-func (s *fakeServer) EnsureVision(ctx context.Context, path string) (string, error) {
+func (s *fakeServer) EnsureProjector(ctx context.Context, path string) (string, error) {
 	return s.Ensure(ctx, path)
 }
 
@@ -381,7 +381,7 @@ func TestOpenAIRecognition(t *testing.T) {
 	}
 	c.Start()
 	f.flush(t, 1)
-	if len(f.sessions) == 0 || f.sessions[0].cfg.Recognize == nil || f.sessions[0].cfg.FinalsEnd {
+	if len(f.sessions) == 0 || f.sessions[0].cfg.Recognize == nil || f.sessions[0].cfg.FinalsEndUtterances {
 		t.Fatal("no recognizer, or one whose finals end utterances")
 	}
 	if e := engines(c.Prefs); e.ASRModel != "whisper-large-v3" {
@@ -407,7 +407,7 @@ func TestServedModel(t *testing.T) {
 	c.Choose(ASR, "qwen3-asr-1.7b")
 	c.Start()
 	f.flush(t, 1)
-	if f.sessions[0].cfg.Recognize == nil || !f.sessions[0].cfg.VolatileSentences || f.sessions[0].cfg.FinalsEnd {
+	if f.sessions[0].cfg.Recognize == nil || !f.sessions[0].cfg.CommitVolatileSentences || f.sessions[0].cfg.FinalsEndUtterances {
 		t.Fatalf("the session: %+v", f.sessions[0].cfg)
 	}
 	if !slices.Equal(asrSrv.ensured, []string{"/models/qwen3-asr-1.7b.gguf"}) {

@@ -51,9 +51,9 @@ func (c *Core) Start() {
 	record := c.HistoryService.begin()
 	cfg := live.Config{Now: c.now, Engine: bin, Recognize: recognize, Src: p.Src, Tgt: p.Tgt, App: p.Source, Draft: p.Draft && p.Translates(), Terms: c.applyTerms}
 	if spec, ok := asr.ByID(p.ASR); ok {
-		cfg.VolatileSentences, cfg.FinalsEnd = spec.VolatileSentences, spec.FinalsEnd
-		if spec.Hint != nil {
-			cfg.Hint = spec.Hint(p.Src)
+		cfg.CommitVolatileSentences, cfg.FinalsEndUtterances = spec.CommitVolatileSentences, spec.FinalsEndUtterances
+		if spec.Finalizer != nil {
+			cfg.Finalizer = spec.Finalizer(p.Src)
 		}
 	}
 	if m, local := models.ByID(c.Prefs.MT); !local || !m.NoAbout {
@@ -106,7 +106,7 @@ func (c *Core) Start() {
 
 func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 	s, ok := asr.ByID(id)
-	if !ok || s.Cloud {
+	if !ok || s.Cloud || s.InEngine {
 		return nil, nil
 	}
 	var env asr.Env

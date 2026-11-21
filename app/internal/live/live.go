@@ -74,23 +74,23 @@ type Stats = usage.Counts
 const MaxLines = 10
 
 type Config struct {
-	Context           context.Context
-	Now               func() time.Time
-	OnLine            func(LineEvent)
-	LineMetadata      func() any
-	Engine            string
-	Recognize         asr.Factory
-	VolatileSentences bool
-	FinalsEnd         bool
-	Hint              func(engine.Event) (through float64, ok bool)
-	Src, Tgt          string
-	App               string
-	File              string
-	Translator        translate.Translator
-	Parallel          int
-	Draft             bool
-	Terms             func(text string) (string, []translate.Term)
-	About             func() string
+	Context                 context.Context
+	Now                     func() time.Time
+	OnLine                  func(LineEvent)
+	LineMetadata            func() any
+	Engine                  string
+	Recognize               asr.Factory
+	CommitVolatileSentences bool
+	FinalsEndUtterances     bool
+	Finalizer               func(engine.Event) (through float64, ok bool)
+	Src, Tgt                string
+	App                     string
+	File                    string
+	Translator              translate.Translator
+	Parallel                int
+	Draft                   bool
+	Terms                   func(text string) (string, []translate.Term)
+	About                   func() string
 }
 
 type stopper interface {
@@ -302,7 +302,7 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 	s := &Session{
 		cfg:         cfg,
 		onChange:    onChange,
-		seg:         segment.New(segment.Config{VolatileSentences: cfg.VolatileSentences, FinalsEnd: cfg.FinalsEnd}),
+		seg:         segment.New(segment.Config{CommitVolatileSentences: cfg.CommitVolatileSentences, FinalsEndUtterances: cfg.FinalsEndUtterances}),
 		queue:       make(chan queued, 64),
 		ends:        map[int]endPair{},
 		state:       State{Phase: PhaseStarting},
@@ -351,8 +351,8 @@ func (s *Session) handle(ev engine.Event) {
 	if s.ctx.Err() != nil {
 		return
 	}
-	if s.cfg.Hint != nil {
-		if through, ok := s.cfg.Hint(ev); ok {
+	if s.cfg.Finalizer != nil {
+		if through, ok := s.cfg.Finalizer(ev); ok {
 			s.procMu.Lock()
 			proc := s.proc
 			s.procMu.Unlock()

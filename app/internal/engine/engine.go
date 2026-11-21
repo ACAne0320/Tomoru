@@ -36,6 +36,7 @@ const (
 	EventDecoded EventType = "decoded"
 	EventSlow    EventType = "slow"
 	EventLag     EventType = "lag"
+	EventStall   EventType = "stall"
 )
 
 type State string

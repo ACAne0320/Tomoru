@@ -394,7 +394,7 @@ func TestServerVision(t *testing.T) {
 	if slices.Contains(s.cur.cmd.Args, "--mmproj") {
 		t.Errorf("translating only: args %q", s.cur.cmd.Args)
 	}
-	again, err := s.EnsureVision(context.Background(), model)
+	again, err := s.EnsureProjector(context.Background(), model)
 	if err != nil || again != url {
 		t.Fatalf("with vision: %s, %v; was %s", again, err, url)
 	}

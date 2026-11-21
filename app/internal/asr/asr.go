@@ -39,21 +39,23 @@ const (
 )
 
 type Spec struct {
-	ID                string
-	Cloud             bool
-	Billed            bool
-	URL               string
-	Models            []string
-	Langs             []string
-	Auto              bool
-	Model             *models.Model
-	Key               bool
-	Hints             bool
-	VolatileSentences bool
-	FinalsEnd         bool
-	Hint              func(lang string) func(engine.Event) (through float64, ok bool)
-	New               func(env Env) (Factory, error)
-	Test              func(ctx context.Context, svc Service) (time.Duration, error)
+	ID                      string
+	Cloud                   bool
+	Billed                  bool
+	URL                     string
+	Models                  []string
+	Langs                   []string
+	SystemLangs             bool
+	Auto                    bool
+	Model                   *models.Model
+	Key                     bool
+	TakesScene              bool
+	InEngine                bool
+	CommitVolatileSentences bool
+	FinalsEndUtterances     bool
+	Finalizer               func(lang string) func(engine.Event) (through float64, ok bool)
+	New                     func(env Env) (Factory, error)
+	Test                    func(ctx context.Context, svc Service) (time.Duration, error)
 }
 
 type Env struct {
@@ -91,7 +93,7 @@ func (s Scene) Hints(sep string, max int) string {
 }
 
 type Server interface {
-	EnsureVision(ctx context.Context, path string) (url string, err error)
+	EnsureProjector(ctx context.Context, path string) (url string, err error)
 }
 
 type Service struct {
@@ -116,20 +118,19 @@ var specsOnce = sync.OnceValue(func() []Spec { return specs(runtime.GOOS) })
 func specs(goos string) []Spec {
 	var ss []Spec
 	if goos == "darwin" {
-		ss = append(ss, Spec{ID: "apple", VolatileSentences: true, FinalsEnd: true, Hint: apple.Hint,
-			New: func(Env) (Factory, error) { return nil, nil }})
+		ss = append(ss, Spec{ID: "apple", InEngine: true, SystemLangs: true, CommitVolatileSentences: true, FinalsEndUtterances: true, Finalizer: apple.Finalizer})
 	}
 	for i := range models.All {
 		m := &models.All[i]
 		switch {
 		case !m.ASR:
 		case m.Served():
-			ss = append(ss, Spec{ID: m.ID, Langs: m.Langs, Auto: true, Model: m, VolatileSentences: true, Hints: true, New: served})
+			ss = append(ss, Spec{ID: m.ID, Langs: m.Langs, Auto: true, Model: m, CommitVolatileSentences: true, TakesScene: true, New: served})
 		default:
 			ss = append(ss, Spec{ID: m.ID, Langs: m.Langs, Auto: true, Model: m, New: local})
 		}
 	}
-	ss = append(ss, Spec{ID: QwenCloud, Cloud: true, Billed: true, Langs: qwencloud.Langs, Key: true, Hints: true, VolatileSentences: true, FinalsEnd: true,
+	ss = append(ss, Spec{ID: QwenCloud, Cloud: true, Billed: true, Langs: qwencloud.Langs, Key: true, TakesScene: true, CommitVolatileSentences: true, FinalsEndUtterances: true,
 		URL: qwencloud.DefaultHost, Models: qwencloud.Models,
 		New: func(env Env) (Factory, error) {
 			cfg := qwen(env.Service)
@@ -139,7 +140,7 @@ func specs(goos string) []Spec {
 			}, nil
 		},
 		Test: func(ctx context.Context, svc Service) (time.Duration, error) { return qwencloud.Test(ctx, qwen(svc)) }})
-	ss = append(ss, Spec{ID: OpenAI, Cloud: true, Billed: true, Langs: lang.Spoken(), Key: true, Hints: true, VolatileSentences: true,
+	ss = append(ss, Spec{ID: OpenAI, Cloud: true, Billed: true, Langs: lang.Spoken(), Key: true, TakesScene: true, CommitVolatileSentences: true,
 		URL: openai.DefaultURL, Models: append(slices.Clone(openai.RealtimeModels[:1]), openai.Models...),
 		New: func(env Env) (Factory, error) {
 			cfg := openAI(env.Service)
@@ -181,7 +182,7 @@ func served(env Env) (Factory, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	url, err := env.Server.EnsureVision(ctx, env.ModelPath)
+	url, err := env.Server.EnsureProjector(ctx, env.ModelPath)
 	if err != nil {
 		return nil, err
 	}

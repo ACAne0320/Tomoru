@@ -17,7 +17,7 @@ type Server interface {
 const LocalImageSide = 1280
 
 type VisionServer interface {
-	EnsureVision(context.Context, string) (string, error)
+	EnsureProjector(context.Context, string) (string, error)
 }
 
 func Local(ctx context.Context, server Server, modelPath string, format *translate.Format) (*translate.Endpoint, error) {
@@ -26,7 +26,7 @@ func Local(ctx context.Context, server Server, modelPath string, format *transla
 }
 
 func LocalVision(ctx context.Context, server VisionServer, modelPath string, format *translate.Format) (*translate.Endpoint, error) {
-	url, err := server.EnsureVision(ctx, modelPath)
+	url, err := server.EnsureProjector(ctx, modelPath)
 	return local(url, modelPath, format, err)
 }
 

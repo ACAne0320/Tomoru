@@ -102,27 +102,29 @@ type Caps struct {
 
 识别器还接收引擎的 `voice` 事件（`Voice(engine.Event)`）：会话转给有这个方法的识别器，三个都有。语言随工厂函数给出，要留意的内容在 `Env.Scene` 里（见“提示”）。
 
-`Finalize` 已从接口里去掉：断句器不再要求定稿，识别器自己决定结果在哪里定稿。Apple 识别在 macOS 引擎里运行时，会话仍按 `Spec.Hint` 向引擎发 `finalize`（见下）。
+`Finalize` 已从接口里去掉：断句器不再要求定稿，识别器自己决定结果在哪里定稿。Apple 识别在 macOS 引擎里运行时，会话仍按 `Spec.Finalizer` 向引擎发 `finalize`（见下）。
 
 ### 条目
 
 ```go
 // Spec is a recognizer to choose. asr.Specs lists them; the catalog and the settings read it.
 type Spec struct {
-	ID                string        // as prefs.ASR names it
-	Cloud             bool          // what is heard leaves the computer
-	Billed            bool          // the service bills the audio sent: hang up while nobody speaks
-	URL               string        // a cloud's address unless the user gives one
-	Models            []string      // a cloud's models, the default first
-	Langs             []string      // what it recognizes, in the order of lang.All; nil: the system's
-	Model             *models.Model // to download first, or nil
-	Key               bool          // needs an API key
-	Hints             bool          // is told what to expect (Env.Scene)
-	VolatileSentences bool          // the sentences its volatile text ends hold
-	FinalsEnd         bool          // its final results end utterances
-	Hint              func(lang string) func(engine.Event) (through float64, ok bool) // Apple's, in the engine
-	New               func(env Env) (Factory, error) // nil factory: the engine recognizes
-	Test              func(ctx context.Context, svc Service) (time.Duration, error) // a cloud's connection
+	ID                      string        // as prefs.ASR names it
+	Cloud                   bool          // what is heard leaves the computer
+	Billed                  bool          // the service bills the audio sent: hang up while nobody speaks
+	URL                     string        // a cloud's address unless the user gives one
+	Models                  []string      // a cloud's models, the default first
+	Langs                   []string      // what it recognizes, in the order of lang.All
+	SystemLangs             bool          // it recognizes what the system says instead
+	Model                   *models.Model // to download first, or nil
+	Key                     bool          // needs an API key
+	TakesScene              bool          // is told what to expect (Env.Scene)
+	InEngine                bool          // the capture engine recognizes: no New
+	CommitVolatileSentences bool          // the sentences its volatile text ends hold
+	FinalsEndUtterances     bool          // its final results end utterances
+	Finalizer               func(lang string) func(engine.Event) (through float64, ok bool) // Apple's, in the engine
+	New                     func(env Env) (Factory, error)
+	Test                    func(ctx context.Context, svc Service) (time.Duration, error) // a cloud's connection
 }
 ```
 
@@ -162,7 +164,7 @@ type Spec struct {
 | Qwen 云端 | 16.7 → 14.3 | 1 → 1 | 8 → 4 | 2.72 → 3.16 / 5.38 → 7.43 s | 21.8 → 24.3 |
 | SenseVoice | 13.1 → 15.0 | 0 → 0 | 6 → 7 | 1.86 → 1.66 / 3.57 → 3.50 s | 23.1 → 23.4 |
 
-- SenseVoice 每次解码末尾都补句号，不管这段在哪里结束；定稿时去掉它（`batch.Caps.Stops`），否则句中的停顿会结束一行。它的错误率是第 2 步换检测器时升上去的（那时 14.7）。
+- SenseVoice 每次解码末尾都补句号，不管这段在哪里结束；定稿时去掉它（`batch.Caps.TrailingFullStop`），否则句中的停顿会结束一行。它的错误率是第 2 步换检测器时升上去的（那时 14.7）。
 - Qwen 云端改为等整句，之前每三四秒就在逗号处切开：译文更好，最慢的晚了 2 秒，这一点已接受。
 - `TailWait`：1.0 s 能让慢节奏的游戏对白连成一句（只狼：「ほら、昔聞かせてくれたであろう」），但在快速集上译文 p50 晚 0.25 s，韩语最慢的晚 4 s，过长行 4%（中文 10%）：连续讲话里把前后两句拼到了一起。停顿长度分不开这两种情况（TED 演讲中位数 0.6 s，只狼 0.7 s），音源也分不开，而且不该让用户来选。所以用 0.6 s；更好的答案交给识别引擎：对标点好的解码器（Qwen3-ASR，第 4 步），语音段越过短停顿继续，由听到前后两边的模型来结束句子，提前出句保证不慢。SenseVoice 的标点撑不起这个做法（只狼那段它把几句连在一起没有标点）。
 
@@ -247,7 +249,7 @@ Qwen3-ASR 0.6B，2026-11-07 加入，给显存不够跑 1.7B 的 GPU：适配器
 
 2026-11-15 重测，起因是 Qwen3-ASR 在一场比赛颁奖的欢呼声里，把场景里的名字当字幕写了出来（一台电脑上 5 次会话 8 次）。当时回答的开头由我们替它写好了语言，它没法说“没有人声”，只好写出 system 消息，或用里面的名字造句；现在它可以回答 `None`（见适配器）。带着另一个视频的 23 个名字，在 13 段评测录音的 257 个 4 秒窗口上，改之前有 7 个窗口写出没说过的名字，改之后没有。带着对的 18 个名字，在任天堂直面会那段上，26 处名字对了 14 处，不带是 10 处。放在上下文里的名字仍然可能被照抄：有一次，窗口切在一个词中间，它把名单剩下的部分接着写了出来。
 
-会话开始时读取场景：识别引擎接收提示时（`Spec.Hints`），切换到名字不同的场景会重新开始会话；会话中途学到的名字从下一次会话开始生效。
+会话开始时读取场景：识别引擎接收提示时（`Spec.TakesScene`），切换到名字不同的场景会重新开始会话；会话中途学到的名字从下一次会话开始生效。
 
 ### 听到的语言
 
@@ -277,7 +279,7 @@ Qwen3-ASR 0.6B，2026-11-07 加入，给显存不够跑 1.7B 的 GPU：适配器
 
 | 适配器 | 类别 | 说明 |
 |---|---|---|
-| `apple` | 流式 | 在引擎里。`asr/apple` 的 `Hint` 告诉会话何时让引擎 `finalize`：临时结果 1.3 s 不变时；中文的分句结束得晚，在 0.2 s 的停顿处也定稿（原来断句器 `VoiceCuts` 做的事） |
+| `apple` | 流式 | 在引擎里。`asr/apple` 的 `Finalizer` 告诉会话何时让引擎 `finalize`：临时结果 1.3 s 不变时；中文的分句结束得晚，在 0.2 s 的停顿处也定稿（原来断句器 `VoiceCuts` 做的事） |
 | `qwen-cloud` | 流式 | `cloudasr` 挪到 `asr/qwencloud`；静音挂断挪到 `asr`，所有计费的适配器共用 |
 | `sensevoice-small` | 整段 | `tomoru-asr serve`，自动检测时 `--lang auto`；有时间；临时解码间隔 0.4 s；Gap 和 Longest 按实测（现在 0.5 s、12 s；改用引擎的检测器前是 0.25 s，见 local-asr_zh.md） |
 | `qwen3-asr-0.6b`、`qwen3-asr-1.7b` | 整段 | llama-server 加载模型的音频投影器，用 chat 接口把这段作为 `input_audio` WAV 发过去；回复是 `language Japanese<asr_text>…`；语言由模型自己说，它确定不是会话的语言时照用（见“别的语言”），否则用语法把语言限定为会话的语言或 `None`（没有人声）再解一次；自动检测见“听到的语言”；始终带 system 消息（模型训练时的格式），放场景里的名字，没有就留空；`max_tokens` 按这一段的时长给（每秒 12 个，另加 16 个），用完的回答丢掉；没有时间。只用 GPU：CPU 跟不上 |
