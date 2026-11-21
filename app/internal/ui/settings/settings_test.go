@@ -25,7 +25,7 @@ import (
 )
 
 func TestPages(t *testing.T) {
-	for tab, want := range map[string]string{
+	for tab, want := range map[shared.Page]string{
 		"general":   locales.AutoStart(),
 		"subtitles": locales.ColorScheme(),
 		"engines":   locales.DraftLabel(),
@@ -412,7 +412,7 @@ func TestDiscardChanges(t *testing.T) {
 	tt := ui.NewTester(s.View, Width, 1400)
 	open := func() {
 		t.Helper()
-		s.editAPI(&s.edit, prefs.Endpoint{})
+		s.editAPI(&s.learnAPI, prefs.Endpoint{})
 		tt.Frame()
 	}
 	open()

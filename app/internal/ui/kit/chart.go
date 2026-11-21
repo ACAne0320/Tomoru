@@ -23,6 +23,8 @@ const chartHeight = 180
 
 const maxAxisLabels = 8
 
+const NoPick = -1
+
 func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) string, chosen *int) ui.Element {
 	p := Colors(c)
 	labels := make([]string, len(bars))
@@ -62,7 +64,7 @@ func BarChart(c *ui.Context, label string, bars []Bar, format func(float64) stri
 		chart.Select(c, area, chosen, xs, func(i int) string { return bars[i].Tip })
 		for i, b := range bars {
 			dim := func(col ui.Color) ui.Color {
-				if *chosen >= 0 && *chosen != i {
+				if *chosen != NoPick && *chosen != i {
 					return p.Dim(col)
 				}
 				return col

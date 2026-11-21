@@ -228,6 +228,13 @@ func SystemASR() string {
 	return ""
 }
 
+func (p *Prefs) SetStyle(s Style) {
+	p.Style = s
+	if s == StyleImmersive && p.Edge == EdgeNone {
+		p.Edge = EdgeOutline
+	}
+}
+
 func (p *Prefs) ResetStyle() {
 	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = StyleImmersive, EdgeOutline, "#1e2259", false
 	p.Font, p.SrcSize, p.TgtSize = FontSystem, 20, 28

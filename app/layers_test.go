@@ -20,7 +20,7 @@ var packageDependencies = map[string][]string{
 	"live":          {"asr", "engine", "lang", "segment", "translate", "usage"},
 	"provider":      {"translate"},
 	"core":          {"asr", "engine", "history", "lang", "learn", "live", "models", "prefs", "provider", "samples", "scene", "translate", "usage"},
-	"core/coretest": {"core", "engine", "live", "models", "prefs"},
+	"core/coretest": {"core", "engine", "live", "models", "prefs", "ui/shared"},
 	"ui/assets":     {},
 	"ui/kit":        {"ui/assets"},
 	"ui/shared":     {"core", "asr", "engine", "lang", "models", "prefs", "proxy", "scene", "ui/assets", "ui/kit"},

@@ -145,6 +145,8 @@ type Use struct {
 	Counts
 }
 
+func (u Use) Listened() bool { return u.ASR != "" || u.RunSeconds > 0 }
+
 type Day struct {
 	Date string `json:"day"`
 	Uses []Use  `json:"uses"`

@@ -103,7 +103,7 @@ func (p *Panel) body(c *ui.Context) {
 		ui.Column(c).Gap(kit.Space(2)).Children(func() {
 			ui.Text(c, err).FontSize(kit.TextCaption).TextColor(kit.Colors(c).Danger).MaxLines(3)
 			ui.Row(c).Children(func() {
-				shared.FixButton(c, k, k.Err, func() { p.nav.ShowSettingsPage("engines") })
+				shared.FixButton(c, k, k.Err, func() { p.nav.ShowSettingsPage(shared.PageEngines) })
 			})
 		})
 	}
@@ -139,7 +139,7 @@ func (p *Panel) scene(c *ui.Context) {
 		if terms > 0 {
 			kit.CountBadge(c, terms)
 		}
-	}, shared.SceneMenu(k, false, func() { p.nav.ShowSettingsPage("scenes") }))
+	}, shared.SceneMenu(k, false, func() { p.nav.ShowSettingsPage(shared.PageScenes) }))
 }
 
 func (p *Panel) foot(c *ui.Context) {

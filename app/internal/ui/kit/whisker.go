@@ -56,7 +56,7 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 				continue
 			}
 			dot, line := p.Lantern, p.Amber[3]
-			if *chosen >= 0 && *chosen != i {
+			if *chosen != NoPick && *chosen != i {
 				dot, line = p.Dim(dot), p.Dim(line)
 			}
 			chart.Rect(c.Key([2]int{i, 0}), x.Band(i), y.Span(w.Mid, w.Hi)).Children(func() {

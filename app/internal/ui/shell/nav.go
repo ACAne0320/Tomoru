@@ -74,9 +74,11 @@ func (s *Shell) closePanel() {
 	}
 }
 
-func (s *Shell) ShowSettings() { s.ShowSettingsPage("") }
+func (s *Shell) ShowSettings() { s.openSettings(nil) }
 
-func (s *Shell) ShowSettingsPage(page string) {
+func (s *Shell) ShowSettingsPage(page shared.Page) { s.openSettings(&page) }
+
+func (s *Shell) openSettings(page *shared.Page) {
 	s.closePanel()
 	if s.guide != nil {
 		s.guide.Show()
@@ -102,8 +104,8 @@ func (s *Shell) ShowSettingsPage(page string) {
 			s.syncDock()
 		})
 	}
-	if page != "" {
-		pages := s.pages
+	if page != nil {
+		pages, page := s.pages, *page
 		s.settings.Update(func() { pages.Open(page) })
 	}
 	s.syncDock()

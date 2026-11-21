@@ -26,7 +26,7 @@ func (s *Settings) subtitles(c *ui.Context) {
 		}
 		if kit.IconButton(c, kit.Plain, kit.Medium, assets.Reset, locales.ResetStyle()).Clicked() {
 			p.ResetStyle()
-			s.customColors = false
+			s.customColorsOpen = false
 		}
 	})
 	samples, next := subtitle.Rolling(*p, c.Now())
@@ -37,7 +37,7 @@ func (s *Settings) subtitles(c *ui.Context) {
 			subtitle.Draw(c, samples, *p, .8, max(320, w-s.navWidth-kit.Space(44)), subtitle.NoBlock)
 		})
 	})
-	custom := s.customColors || schemeOf(p) == ""
+	custom := s.customColorsOpen || schemeOf(p) == ""
 	basis := kit.ControlCardWidth(c, locales.StyleLabel(), locales.BoxOpacity(), locales.EdgeLabel(), locales.AlignLabel(), locales.FontLabel(),
 		locales.SrcSize(), locales.TgtSize(), locales.TextOpacity(), locales.OrderLabel(), locales.ColorScheme())
 	kit.Groups(c, func() {
@@ -54,8 +54,9 @@ func (s *Settings) subtitles(c *ui.Context) {
 func (s *Settings) styleLook(c *ui.Context, p *prefs.Prefs) {
 	kit.SettingRow(c, 0, locales.StyleLabel(), "", func() {
 		kit.Control(c, func() {
-			if kit.Segmented(c, (*int)(&p.Style), locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() && p.Style == prefs.StyleImmersive && p.Edge == prefs.EdgeNone {
-				p.Edge = prefs.EdgeOutline
+			style := int(p.Style)
+			if kit.Segmented(c, &style, locales.StyleBox(), locales.StyleImmersive()).Grow(1).Label(locales.StyleLabel()).Changed() {
+				p.SetStyle(prefs.Style(style))
 			}
 		})
 	})
@@ -106,11 +107,11 @@ func (s *Settings) styleText(c *ui.Context, p *prefs.Prefs, custom bool) {
 			for _, sc := range subtitle.Schemes {
 				if kit.SchemeSwatch(c.Key(sc.ID), schemeName(sc.ID), ui.Hex(sc.Edge), ui.Hex(sc.Src), ui.Hex(sc.Tgt), !custom && schemeOf(p) == sc.ID).Clicked() {
 					p.SrcColor, p.TgtColor, p.EdgeColor = sc.Src, sc.Tgt, sc.Edge
-					s.customColors = false
+					s.customColorsOpen = false
 				}
 			}
 			if kit.CustomSwatch(c.Key("custom"), locales.SchemeCustom(), custom).Clicked() {
-				s.customColors = true
+				s.customColorsOpen = true
 			}
 		}).Justify(ui.SpaceBetween)
 	})

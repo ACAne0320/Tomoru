@@ -43,7 +43,7 @@ func (s *Settings) home(c *ui.Context) {
 		if err := shared.ErrorText(k.Err); err != "" {
 			ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 				ui.Text(c, err).FontSize(kit.TextControl).TextColor(p.Danger).MaxLines(3).Grow(1)
-				shared.FixButton(c, k, k.Err, func() { s.Tab = "engines" })
+				shared.FixButton(c, k, k.Err, func() { s.Tab = shared.PageEngines })
 			})
 		}
 	})
@@ -120,7 +120,7 @@ func homeActivity(c *ui.Context, s *Settings) {
 	kit.Group(c, locales.StatsActivity(), func() {
 		kit.Caption(c, locales.HistoryLines(total)).SingleLine()
 		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.HomeOpenStats()).Clicked() {
-			s.Tab = "stats"
+			s.Tab = shared.PageStats
 		}
 	}, kit.Card, func() {
 		kit.Heatmap(c, locales.StatsActivity(), days, heads, weekdays, locales.StatsLess(), locales.StatsMore(), func(i int) {
@@ -185,7 +185,7 @@ func homeRecent(c *ui.Context, s *Settings) {
 	}
 	kit.Group(c, locales.HomeRecent(), func() {
 		if kit.IconButton(c, kit.Plain, kit.Small, assets.Arrow, locales.AllRecords()).Clicked() {
-			s.Tab = "history"
+			s.Tab = shared.PageHistory
 		}
 	}, kit.OptionsCard, func() {
 		items := make([]kit.ListItem, len(recs))
@@ -204,7 +204,7 @@ func homeRecent(c *ui.Context, s *Settings) {
 		if i := kit.List(c, items); i >= 0 {
 			e := &s.historyEdit
 			e.scene, e.chosen, e.record = allScenes, true, recs[i].Path
-			s.Tab = "history"
+			s.Tab = shared.PageHistory
 		}
 	})
 }
