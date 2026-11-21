@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"image"
 	"log"
 	"time"
@@ -258,11 +259,12 @@ const (
 func (c *Core) SelectImage(shown func()) {
 	c.ImageService.selectImage(func(pic []byte, at image.Rectangle, err error) {
 		switch {
+		case errors.Is(err, context.Canceled):
 		case err != nil:
 			log.Println(err)
 			c.screenCheckedAt = time.Time{}
 			c.CheckScreen()
-		case pic != nil:
+		default:
 			c.TranslateImage(pic)
 			c.Image.Area = at
 			shown()

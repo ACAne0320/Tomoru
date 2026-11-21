@@ -26,15 +26,24 @@ type Head struct {
 }
 
 type Entry struct {
-	At    time.Time `json:"at"`
-	Start time.Time `json:"start,omitzero"`
-	End   time.Time `json:"end,omitzero"`
-	Src   string    `json:"src"`
-	Heard string    `json:"heard,omitempty"`
-	Lang  string    `json:"lang,omitempty"`
-	Said  bool      `json:"said,omitempty"`
-	Tgt   string    `json:"tgt"`
-	Err   string    `json:"err,omitempty"`
+	KeptAt         time.Time `json:"at"`
+	Start          time.Time `json:"start,omitzero"`
+	End            time.Time `json:"end,omitzero"`
+	Src            string    `json:"src"`
+	BeforeGlossary string    `json:"heard,omitempty"`
+	HeardLang      string    `json:"lang,omitempty"`
+	InTargetLang   bool      `json:"said,omitempty"`
+	Tgt            string    `json:"tgt"`
+	Err            string    `json:"err,omitempty"`
+}
+
+func (e *Entry) fillTimes() {
+	if e.Start.IsZero() {
+		e.Start = e.KeptAt
+	}
+	if e.End.Before(e.Start) {
+		e.End = e.Start
+	}
 }
 
 type Record struct {
@@ -145,8 +154,6 @@ func line(v any) []byte {
 	return append(b, '\n')
 }
 
-func (w *Writer) Close() error { return nil }
-
 func pathDeleted(path string) bool {
 	_, err := os.Stat(path + deleted)
 	return err == nil
@@ -232,6 +239,7 @@ func scanLocked(path string, each func(Entry)) (Head, error) {
 		if json.Unmarshal(sc.Bytes(), &e) != nil {
 			continue
 		}
+		e.fillTimes()
 		if each != nil {
 			each(e)
 		}

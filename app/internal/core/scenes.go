@@ -53,7 +53,7 @@ func (c *Core) DeleteScene(id string) func() {
 	}
 	inUse := c.Prefs.Scene == id
 	if inUse {
-		c.SetScene("")
+		c.SetScene(scene.GeneralID)
 	}
 	undo, removed := c.SceneService.deleteScene(id)
 	if removed {

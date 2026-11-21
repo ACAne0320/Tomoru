@@ -35,10 +35,3 @@ func Spoken(lang string) []string {
 	}
 	return out
 }
-
-var Dialogue = map[string][2]string{
-	"zh": {"艾露娜", "克劳德，塔顶上那个发光的东西……该不会就是「星之碎片」吧？"},
-	"ja": {"エルナ", "クロード、あの塔のてっぺんで光ってるもの……まさか「星の欠片」じゃないよね？"},
-	"en": {"Erna", "Claude, that light on top of the tower… it can't be the Star Fragment, can it?"},
-	"ko": {"에르나", "클로드, 저 탑 꼭대기에서 빛나는 거… 설마 ‘별의 조각’은 아니겠지?"},
-}

@@ -86,7 +86,7 @@ type Prefs struct {
 	TextOpacity      float64
 	BoxOpacity       float64
 	OlderOpacity     float64
-	HideAfter        float64
+	HideAfterSeconds float64 `json:"HideAfter"`
 	KeepShown        bool
 	Locked           bool
 	AreaX, AreaW     float64
@@ -231,7 +231,7 @@ func SystemASR() string {
 func (p *Prefs) ResetStyle() {
 	p.Style, p.Edge, p.EdgeColor, p.TgtFirst = StyleImmersive, EdgeOutline, "#1e2259", false
 	p.Font, p.SrcSize, p.TgtSize = FontSystem, 20, 28
-	p.SrcColor, p.TgtColor, p.HideAfter, p.KeepShown = "#ffffff", "#7fdbff", 5, false
+	p.SrcColor, p.TgtColor, p.HideAfterSeconds, p.KeepShown = "#ffffff", "#7fdbff", 5, false
 	p.TextOpacity, p.BoxOpacity, p.OlderOpacity = 100, 62, 54
 }
 

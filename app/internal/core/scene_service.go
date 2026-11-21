@@ -203,10 +203,10 @@ func (s *SceneService) takeLearned(id string, suggestions []learn.Suggestion, ta
 	n := 0
 	for i, sg := range suggestions {
 		if i < len(taken) && taken[i] {
-			if slices.ContainsFunc(sc.Terms, func(t scene.Term) bool { return !t.Auto && scene.Same(t.Src, sg.Src) }) {
+			if slices.ContainsFunc(sc.Terms, func(t scene.Term) bool { return !t.Learned && scene.Same(t.Src, sg.Src) }) {
 				continue
 			}
-			if s.addTerm(id, scene.Term{Src: sg.Src, Tgt: sg.Tgt, Heard: sg.Heard, Auto: true}) {
+			if s.addTerm(id, scene.Term{Src: sg.Src, Tgt: sg.Tgt, Heard: sg.Heard, Learned: true}) {
 				n++
 			}
 			continue
@@ -236,7 +236,7 @@ func (s *SceneService) activate(id string) { s.activeID = id; s.refresh() }
 func (s *SceneService) refresh() {
 	sc := s.current(s.activeID)
 	about := strings.TrimSpace(sc.About)
-	s.glossary.Store(scene.NewGlossary(sc.Terms, sc.ID == ""))
+	s.glossary.Store(scene.NewGlossary(sc.Terms, sc.IsGeneral()))
 	s.about.Store(&about)
 }
 

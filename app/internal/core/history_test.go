@@ -33,7 +33,7 @@ func TestKeep(t *testing.T) {
 	}
 	c.Stop()
 	es, err := history.Read(rs[0].Path)
-	if err != nil || len(es) != 3 || es[0].Heard != "メデオ" || es[1].Tgt != "克劳" || es[2].Tgt != "还有" {
+	if err != nil || len(es) != 3 || es[0].BeforeGlossary != "メデオ" || es[1].Tgt != "克劳" || es[2].Tgt != "还有" {
 		t.Errorf("lines %+v %v", es, err)
 	}
 

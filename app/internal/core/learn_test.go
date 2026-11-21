@@ -37,9 +37,8 @@ func keepSession(t *testing.T, dir, id string, start time.Time, lines ...string)
 	t.Helper()
 	w := history.NewWriter(dir, history.Head{Scene: id, Src: "zh", Tgt: "en", Start: start})
 	for i, l := range lines {
-		w.Add(history.Entry{At: start.Add(time.Duration(i) * 70 * time.Second), Src: l, Tgt: "t"})
+		w.Add(history.Entry{KeptAt: start.Add(time.Duration(i) * 70 * time.Second), Src: l, Tgt: "t"})
 	}
-	w.Close()
 	rs, _ := history.List(dir)
 	for _, r := range rs {
 		if r.Head.Start.Equal(start) {
@@ -83,7 +82,7 @@ func TestLearnFrom(t *testing.T) {
 
 	n, undo := c.TakeLearned(id, []bool{true, false})
 	s, _ := c.SceneByID(id)
-	if n != 1 || len(s.Terms) != 1 || s.Terms[0].Src != "SU7" || !s.Terms[0].Auto || !slices.Equal(s.Rejected, []string{"刘北"}) {
+	if n != 1 || len(s.Terms) != 1 || s.Terms[0].Src != "SU7" || !s.Terms[0].Learned || !slices.Equal(s.Rejected, []string{"刘北"}) {
 		t.Errorf("took %d: %+v", n, s)
 	}
 	undo()
@@ -116,7 +115,7 @@ func TestRetranslate(t *testing.T) {
 		t.Fatalf("retranslating %+v", r)
 	}
 	es, _ := history.Read(path)
-	if es[0].Src != "在纽北赛道上" || es[0].Heard != "在刘北赛道上" || es[0].Tgt != "在纽北赛道上 [{纽北 Nürburgring}]" || es[1].Tgt != "t" {
+	if es[0].Src != "在纽北赛道上" || es[0].BeforeGlossary != "在刘北赛道上" || es[0].Tgt != "在纽北赛道上 [{纽北 Nürburgring}]" || es[1].Tgt != "t" {
 		t.Errorf("lines %+v", es)
 	}
 }

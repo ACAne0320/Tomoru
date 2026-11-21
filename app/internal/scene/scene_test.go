@@ -11,7 +11,7 @@ import (
 
 func TestApply(t *testing.T) {
 	g := NewGlossary([]Term{
-		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Auto: true},
+		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Learned: true},
 		{Src: "クラウド", Tgt: "克劳德"},
 		{Src: "ファイナルファンタジーVII", Tgt: "最终幻想7"},
 		{Src: "Eva", Tgt: "爱娃", Heard: []string{"Ava", "F", "A."}},
@@ -74,7 +74,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestNames(t *testing.T) {
-	g := NewGlossary([]Term{{Src: "葦名", Tgt: "苇名", Auto: true}, {Src: "一心", Tgt: "一心"}, {Src: "一心", Tgt: "一心", Auto: true}, {Src: "九郎"}}, false)
+	g := NewGlossary([]Term{{Src: "葦名", Tgt: "苇名", Learned: true}, {Src: "一心", Tgt: "一心"}, {Src: "一心", Tgt: "一心", Learned: true}, {Src: "九郎"}}, false)
 	if got := g.Names(); !slices.Equal(got, []string{"一心", "葦名"}) {
 		t.Errorf("%q", got)
 	}

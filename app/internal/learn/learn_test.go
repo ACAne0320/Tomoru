@@ -85,7 +85,7 @@ func TestFilter(t *testing.T) {
 		{"F, the season", "F，这一季"},
 	}
 	c := Context{Terms: []scene.Term{
-		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Auto: true},
+		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Learned: true},
 		{Src: "ニンフィア", Tgt: "仙子伊布"},
 	}, Rejected: []string{"개미"}}
 	for _, tc := range []struct {

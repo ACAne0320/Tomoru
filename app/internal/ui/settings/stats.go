@@ -47,9 +47,9 @@ type statsKind struct {
 
 var statsKinds = [...]statsKind{
 	{
-		has:      func(u usage.Use) bool { return u.ASR != "" || u.Run > 0 },
+		has:      func(u usage.Use) bool { return u.ASR != "" || u.RunSeconds > 0 },
 		id:       func(u usage.Use) string { return u.ASR },
-		value:    func(n usage.Counts) float64 { return n.Run / 3600 },
+		value:    func(n usage.Counts) float64 { return n.RunSeconds / 3600 },
 		tick:     func(v float64) string { return locales.Hours(kit.Number(v)) },
 		tip:      func(v float64) string { return listened(v * 3600) },
 		describe: asrUse,
@@ -212,13 +212,13 @@ func (s *Settings) statsDay(day, now time.Time) {
 
 func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usage.Counts, span int) ui.Element {
 	p := kit.Colors(c)
-	label, value, unit := locales.StatRun(), hours(total.Run), locales.UnitHours()
-	now, then := total.Run, 0.0
+	label, value, unit := locales.StatRun(), hours(total.RunSeconds), locales.UnitHours()
+	now, then := total.RunSeconds, 0.0
 	if was != nil {
-		then = was.Run
+		then = was.RunSeconds
 	}
-	note := locales.StatsPerDay(locales.Hours(hours(total.Run/float64(days)))) + " · " +
-		locales.StatSpeech() + " " + locales.Minutes(kit.Count(int(total.Speech/60)))
+	note := locales.StatsPerDay(locales.Hours(hours(total.RunSeconds/float64(days)))) + " · " +
+		locales.StatSpeech() + " " + locales.Minutes(kit.Count(int(total.SpeechSeconds/60)))
 	if kind == 1 {
 		label, value, unit = locales.StatLines(), kit.Count(total.Lines), locales.UnitLines()
 		now, then = float64(total.Lines), 0
@@ -259,7 +259,7 @@ func statsBefore(l usage.Ledger, span int, now time.Time, has func(usage.Use) bo
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from, to := today.AddDate(0, 0, -2*span+1), today.AddDate(0, 0, -span)
 	for _, d := range l.Days {
-		t, err := time.ParseInLocation(time.DateOnly, d.Day, now.Location())
+		t, err := time.ParseInLocation(time.DateOnly, d.Date, now.Location())
 		if err != nil || t.Before(from) || t.After(to) {
 			continue
 		}
@@ -297,7 +297,7 @@ func statsDays(l usage.Ledger, span int, now time.Time) int {
 		return span
 	}
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Day, now.Location())
+	first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Date, now.Location())
 	if err != nil || !first.Before(today) {
 		return 1
 	}
@@ -362,7 +362,7 @@ func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth
 	from := today.AddDate(0, 0, 1-span)
 	if span == 0 {
 		from = today
-		if first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Day, now.Location()); err == nil && first.Before(today) {
+		if first, err := time.ParseInLocation(time.DateOnly, l.Days[0].Date, now.Location()); err == nil && first.Before(today) {
 			from = first
 		}
 		byMonth = today.Sub(from) > monthly*24*time.Hour
@@ -378,7 +378,7 @@ func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth
 		}
 	}
 	for _, d := range l.Days {
-		t, err := time.ParseInLocation(time.DateOnly, d.Day, now.Location())
+		t, err := time.ParseInLocation(time.DateOnly, d.Date, now.Location())
 		if err != nil || t.Before(from) || t.After(today) {
 			continue
 		}
@@ -550,12 +550,12 @@ type engineUse struct {
 func asrUse(u usage.Use) engineUse {
 	e := engineUse{known: u.ASR != ""}
 	e.name, e.sub = asrName(u)
-	e.figure, e.unit = listening(u.Run)
-	if n := int(u.Speech / 60); n > 0 {
+	e.figure, e.unit = listening(u.RunSeconds)
+	if n := int(u.SpeechSeconds / 60); n > 0 {
 		e.facts = append(e.facts, kit.Fact{Label: locales.StatSpeech(), Value: locales.Minutes(kit.Count(n))})
 	}
-	if u.Audio > 0 {
-		e.facts = append(e.facts, kit.Fact{Label: locales.FactAudio(), Value: locales.Minutes(kit.Count(int(math.Ceil(u.Audio / 60))))})
+	if u.AudioSeconds > 0 {
+		e.facts = append(e.facts, kit.Fact{Label: locales.FactAudio(), Value: locales.Minutes(kit.Count(int(math.Ceil(u.AudioSeconds / 60))))})
 	}
 	e.facts = append(e.facts, latencies(
 		[]string{locales.LatFirstText(), locales.LatFinal()}, u.Latency.FirstText, u.Latency.Final)...)

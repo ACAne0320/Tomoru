@@ -77,12 +77,12 @@ func homeStats(c *ui.Context, s *Settings) {
 	}
 	if !k.Running {
 		today := k.TodayStats()
-		run, st, label, lines = time.Duration(today.Run*float64(time.Second)), today.Counts, locales.StatToday(), today.Translated
+		run, st, label, lines = time.Duration(today.RunSeconds*float64(time.Second)), today.Counts, locales.StatToday(), today.Translated
 	}
 	kit.StatStrip(c, locales.HomeStats(), []kit.Stat{
 		{Label: label, Value: kit.Clock(run)},
 		{Label: linesLabel, Value: strconv.Itoa(lines), Unit: locales.UnitLines()},
-		{Label: locales.StatSpeech(), Value: fmt.Sprintf("%.1f", st.Speech/60), Unit: locales.UnitMinutes()},
+		{Label: locales.StatSpeech(), Value: fmt.Sprintf("%.1f", st.SpeechSeconds/60), Unit: locales.UnitMinutes()},
 		{Label: locales.StatChars(), Value: strconv.Itoa(st.Chars), Unit: locales.UnitChars()},
 	})
 }
@@ -139,7 +139,7 @@ func activityDays(l usage.Ledger, weeks int, now time.Time) (from time.Time, lin
 	from = monday(now).AddDate(0, 0, -7*(weeks-1))
 	lines = make([]float64, int((today.Sub(from)+12*time.Hour)/(24*time.Hour))+1)
 	for _, d := range l.Days {
-		t, err := time.ParseInLocation(time.DateOnly, d.Day, now.Location())
+		t, err := time.ParseInLocation(time.DateOnly, d.Date, now.Location())
 		if err != nil || t.Before(from) || t.After(today) {
 			continue
 		}

@@ -13,11 +13,11 @@ import (
 const MaxSize = 5 << 20
 
 type File struct {
-	mu   sync.Mutex
-	path string
-	f    *os.File
-	size int64
-	buf  []byte
+	mu          sync.Mutex
+	path        string
+	f           *os.File
+	size        int64
+	partialLine []byte
 }
 
 func Open(dir, name string) (*File, error) {
@@ -47,14 +47,14 @@ func (l *File) Path() string { return l.path }
 func (l *File) Write(p []byte) (int, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	l.buf = append(l.buf, p...)
+	l.partialLine = append(l.partialLine, p...)
 	for {
-		i := bytes.IndexByte(l.buf, '\n')
+		i := bytes.IndexByte(l.partialLine, '\n')
 		if i < 0 {
 			break
 		}
-		line := fmt.Sprintf("%s %s\n", time.Now().Format("2006-01-02 15:04:05.000"), l.buf[:i])
-		l.buf = l.buf[i+1:]
+		line := fmt.Sprintf("%s %s\n", time.Now().Format("2006-01-02 15:04:05.000"), l.partialLine[:i])
+		l.partialLine = l.partialLine[i+1:]
 		if l.size+int64(len(line)) > MaxSize {
 			l.rotate()
 		}

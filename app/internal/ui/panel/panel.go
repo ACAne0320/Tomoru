@@ -92,7 +92,7 @@ func (p *Panel) state() []string {
 	run, lines, label := k.RunFor(), k.State.Stats.Lines, locales.StatRunning()
 	if !k.Running {
 		today := k.TodayStats()
-		run, lines, label = time.Duration(today.Run*float64(time.Second)), today.Lines, locales.StatToday()
+		run, lines, label = time.Duration(today.RunSeconds*float64(time.Second)), today.Lines, locales.StatToday()
 	}
 	return []string{label + " " + kit.Clock(run) + " ·", locales.HistoryLines(lines)}
 }

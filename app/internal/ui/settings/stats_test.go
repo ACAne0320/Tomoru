@@ -30,9 +30,9 @@ func sampleLedger(now time.Time) usage.Ledger {
 		}
 		hours := 1 + 2.5*math.Abs(math.Sin(float64(i)))
 		var c usage.Counts
-		c.Run = hours * 3600
+		c.RunSeconds = hours * 3600
 		c.Lines = int(hours * 70)
-		c.Speech = c.Run * .55
+		c.SpeechSeconds = c.RunSeconds * .55
 		c.Chars = c.Lines * 14
 		for j := range c.Lines {
 			wait := time.Duration(900+300*math.Sin(float64(i+j))) * time.Millisecond
@@ -45,13 +45,13 @@ func sampleLedger(now time.Time) usage.Ledger {
 		e := apple
 		if i < 4 {
 			e = cloud
-			c.Audio = c.Run * .7
+			c.AudioSeconds = c.RunSeconds * .7
 			c.InTokens, c.OutTokens, c.Failed = c.Lines*96, c.Lines*18, 2
 		}
 		l.Add(usage.DayOf(now.AddDate(0, 0, -i)), e, c)
 	}
-	l.Add(usage.DayOf(now.AddDate(0, 0, -2)), usage.Engines{}, usage.Counts{Run: 5400, Lines: 210, Chars: 2900})
-	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "local-2b"}, usage.Counts{Run: 18})
+	l.Add(usage.DayOf(now.AddDate(0, 0, -2)), usage.Engines{}, usage.Counts{RunSeconds: 5400, Lines: 210, Chars: 2900})
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "local-2b"}, usage.Counts{RunSeconds: 18})
 	return l
 }
 
@@ -248,7 +248,7 @@ func TestStatsGallery(t *testing.T) {
 func TestStatsImages(t *testing.T) {
 	now := time.Now()
 	var l usage.Ledger
-	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "cloud"}, usage.Counts{Run: 3600, Lines: 120, Chars: 1500})
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "cloud"}, usage.Counts{RunSeconds: 3600, Lines: 120, Chars: 1500})
 	l.Add(usage.DayOf(now), usage.Engines{MT: "cloud"}, usage.Counts{Images: 4})
 	s := New(statsCore(t, l), &coretest.Nav{})
 	s.Tab = "stats"
@@ -268,8 +268,8 @@ func TestStatsImages(t *testing.T) {
 func TestStatsUntranslated(t *testing.T) {
 	now := time.Now()
 	var l usage.Ledger
-	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "cloud"}, usage.Counts{Run: 3600, Lines: 120, Chars: 1500})
-	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", Untranslated: true}, usage.Counts{Run: 1800, Lines: 50})
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", MT: "cloud"}, usage.Counts{RunSeconds: 3600, Lines: 120, Chars: 1500})
+	l.Add(usage.DayOf(now), usage.Engines{ASR: "apple", Untranslated: true}, usage.Counts{RunSeconds: 1800, Lines: 50})
 	s := New(statsCore(t, l), &coretest.Nav{})
 	s.Tab = "stats"
 	tt := ui.NewTester(s.View, Width, 1400)

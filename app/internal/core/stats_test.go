@@ -21,13 +21,13 @@ func TestToday(t *testing.T) {
 
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 3, Speech: 20, Chars: 40}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 3, SpeechSeconds: 20, Chars: 40}})
 	f.flush(t, 1)
 	now = now.Add(90 * time.Second)
 	if c.RunFor() != 90*time.Second {
 		t.Errorf("ran for %v", c.RunFor())
 	}
-	if got := c.TodayStats(); got.Run != 90 || got.Lines != 3 || got.Chars != 40 {
+	if got := c.TodayStats(); got.RunSeconds != 90 || got.Lines != 3 || got.Chars != 40 {
 		t.Errorf("today while running %+v", got)
 	}
 	c.Stop()
@@ -38,9 +38,9 @@ func TestToday(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	now = now.Add(30 * time.Second)
-	f.sessions[1].report(live.State{Phase: live.PhaseStopped, Stats: live.Stats{Lines: 1, Speech: 5, Chars: 10}})
+	f.sessions[1].report(live.State{Phase: live.PhaseStopped, Stats: live.Stats{Lines: 1, SpeechSeconds: 5, Chars: 10}})
 	f.flush(t, 1)
-	want := Today{Day: "2026-10-20", Counts: usage.Counts{Run: 120, Lines: 4, Speech: 25, Chars: 50}, Translated: 4}
+	want := Today{Day: "2026-10-20", Counts: usage.Counts{RunSeconds: 120, Lines: 4, SpeechSeconds: 25, Chars: 50}, Translated: 4}
 	if got := c.TodayStats(); got != want {
 		t.Errorf("today %+v, want %+v", got, want)
 	}
@@ -68,7 +68,7 @@ func TestGuideKeepsNothing(t *testing.T) {
 	f.sessions[0].report(live.State{Phase: live.PhaseStopped, Stats: live.Stats{Lines: 1, Chars: 10},
 		Lines: []live.Line{{ID: 1, Src: "Good evening", Tgt: "晚上好", Outcome: live.Translated}}})
 	f.flush(t, 1)
-	if got := c.TodayStats(); got.Lines != 0 || got.Run != 0 {
+	if got := c.TodayStats(); got.Lines != 0 || got.RunSeconds != 0 {
 		t.Errorf("today %+v", got)
 	}
 	if rs, _ := history.List(c.deps.HistoryDir); len(rs) != 0 {
@@ -86,7 +86,7 @@ func TestUsage(t *testing.T) {
 	c.Prefs.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}}
 	c.Start()
 	f.flush(t, 1)
-	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 2, Audio: 12, InTokens: 64}})
+	f.sessions[0].report(live.State{Phase: live.PhaseListening, Stats: live.Stats{Lines: 2, AudioSeconds: 12, InTokens: 64}})
 	f.flush(t, 1)
 	now = now.Add(time.Minute)
 	l := c.Usage()
@@ -95,12 +95,12 @@ func TestUsage(t *testing.T) {
 	}
 	u := l.Days[0].Uses[0]
 	want := usage.Engines{ASR: QwenCloud, ASRModel: qwencloud.Models[0], MT: "custom:or", MTName: "OpenRouter", MTModel: "qwen/qwen3"}
-	if u.Engines != want || u.Run != 60 || u.Lines != 2 || u.Audio != 12 || u.InTokens != 64 {
+	if u.Engines != want || u.RunSeconds != 60 || u.Lines != 2 || u.AudioSeconds != 12 || u.InTokens != 64 {
 		t.Errorf("use %+v", u)
 	}
 	c.Prefs.Endpoints[0].Name = "Mine"
 	c.Stop()
-	if u := c.Usage().Days[0].Uses[0]; u.MTName != "OpenRouter" || u.Run != 60 {
+	if u := c.Usage().Days[0].Uses[0]; u.MTName != "OpenRouter" || u.RunSeconds != 60 {
 		t.Errorf("ended %+v", u)
 	}
 }

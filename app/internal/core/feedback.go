@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"tomoru/internal/prefs"
+	"tomoru/internal/scene"
 )
 
 const Repo = "https://github.com/ACAne0320/Tomoru"
@@ -69,7 +70,7 @@ func (c *Core) Feedback(kind FeedbackKind, what string) string {
 	line("- Pictures: %s", mtName(p, p.ImageMT))
 	line("- App language: %s", or(p.UILang, "the system's"))
 	line("- Listening to: %s", choose(p.HearsAll(), "all the computer's sound", "one app"))
-	line("- Scene: %s", choose(p.Scene == "", "general", "one of my own"))
+	line("- Scene: %s", choose(p.Scene == scene.GeneralID, "general", "one of my own"))
 	line("- Translate while spoken: %s; history: %s", onOff(p.Draft), onOff(p.History))
 	line("- Network: %s", proxyName(p))
 	steps := ideaSteps

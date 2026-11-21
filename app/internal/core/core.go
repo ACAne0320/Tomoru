@@ -242,7 +242,7 @@ func (c *Core) HideAfter() time.Duration {
 	if c.Prefs.KeepShown {
 		return 0
 	}
-	return time.Duration(c.Prefs.HideAfter * float64(time.Second))
+	return time.Duration(c.Prefs.HideAfterSeconds * float64(time.Second))
 }
 
 func (c *Core) Context() context.Context { return c.work.ctx }

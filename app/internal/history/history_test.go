@@ -12,21 +12,15 @@ func TestHistory(t *testing.T) {
 	dir := t.TempDir()
 	start := time.Date(2026, 10, 19, 15, 30, 0, 0, time.Local)
 	w := NewWriter(dir, Head{Scene: "ff7", Name: "FF7", Src: "ja", Tgt: "zh", Start: start})
-	if err := w.Close(); err != nil {
-		t.Fatal(err)
-	}
 	if rs, _ := List(dir); len(rs) != 0 {
 		t.Fatalf("a session with no lines kept: %+v", rs)
 	}
-	w.Add(Entry{At: start.Add(time.Second), Src: "メテオの脅威", Heard: "メデオの脅威", Tgt: "陨石的威胁"})
-	w.Add(Entry{At: start.Add(2 * time.Second), Src: "クラウド", Err: "behind"})
-	w.Close()
+	w.Add(Entry{KeptAt: start.Add(time.Second), Src: "メテオの脅威", BeforeGlossary: "メデオの脅威", Tgt: "陨石的威胁"})
+	w.Add(Entry{KeptAt: start.Add(2 * time.Second), Src: "クラウド", Err: "behind"})
 	g := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: start})
 	g.Add(Entry{Src: "Hi", Tgt: "嗨"})
-	g.Close()
 	g2 := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: start.Add(time.Minute)})
 	g2.Add(Entry{Src: "Bye", Tgt: "拜"})
-	g2.Close()
 	os.WriteFile(filepath.Join(dir, "general", "notes.jsonl"), []byte("hello\n"), 0o644)
 	if f, err := os.OpenFile(w.path, os.O_WRONLY|os.O_APPEND, 0); err == nil {
 		f.WriteString(`{"at":"2026-10-19T15:30:03+08:00","src":"ティ`)
@@ -47,7 +41,7 @@ func TestHistory(t *testing.T) {
 		t.Errorf("ff7 %+v", ff7)
 	}
 	es, err := Read(ff7.Path)
-	if err != nil || len(es) != 2 || es[0].Heard != "メデオの脅威" || es[1].Err != "behind" {
+	if err != nil || len(es) != 2 || es[0].BeforeGlossary != "メデオの脅威" || es[1].Err != "behind" {
 		t.Errorf("%+v %v", es, err)
 	}
 
@@ -63,7 +57,6 @@ func TestUndo(t *testing.T) {
 	dir := t.TempDir()
 	w := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: time.Now()})
 	w.Add(Entry{Src: "Hi", Tgt: "嗨"})
-	w.Close()
 	rs, _ := List(dir)
 	undo, err := Delete([]string{rs[0].Path})
 	if err != nil {
@@ -88,9 +81,8 @@ func TestRewrite(t *testing.T) {
 	start := time.Now()
 	w := NewWriter(dir, Head{Scene: "ff7", Src: "ja", Tgt: "zh", Start: start})
 	w.Add(Entry{Src: "メデオ", Tgt: "梅朵"})
-	w.Close()
 	rs, _ := List(dir)
-	if err := Rewrite(rs[0].Path, []Entry{{Src: "メテオ", Heard: "メデオ", Tgt: "陨石"}}); err != nil {
+	if err := Rewrite(rs[0].Path, []Entry{{Src: "メテオ", BeforeGlossary: "メデオ", Tgt: "陨石"}}); err != nil {
 		t.Fatal(err)
 	}
 	head, err := ReadHead(rs[0].Path)
@@ -112,7 +104,7 @@ func TestRewriteWhileRecording(t *testing.T) {
 	path := rs[0].Path
 	es, _ := Read(path)
 	w.Add(Entry{Src: "ティファ", Tgt: "蒂法"})
-	es[0].Heard, es[0].Src = es[0].Src, "メテオ"
+	es[0].BeforeGlossary, es[0].Src = es[0].Src, "メテオ"
 	if err := Rewrite(path, es); err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +112,7 @@ func TestRewriteWhileRecording(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, err := Read(path)
-	if err != nil || len(got) != 4 || got[0].Src != "メテオ" || got[0].Heard != "メデオ" || got[2].Src != "ティファ" || got[3].Src != "エアリス" {
+	if err != nil || len(got) != 4 || got[0].Src != "メテオ" || got[0].BeforeGlossary != "メデオ" || got[2].Src != "ティファ" || got[3].Src != "エアリス" {
 		t.Errorf("%+v, %v", got, err)
 	}
 	if rs, _ := List(dir); len(rs) != 1 {
@@ -175,10 +167,10 @@ func TestExport(t *testing.T) {
 	at := func(s float64) time.Time { return start.Add(time.Duration(s * float64(time.Second))) }
 	head := Head{Src: "en", Tgt: "zh", Start: at(1)}
 	es := []Entry{
-		{At: at(3), Start: at(0.5), End: at(2), Src: "What is wrong?", Tgt: "出啥事了？"},
-		{At: at(4), Start: at(2.4), End: at(2.8), Src: "Weird.", Tgt: "怪怪的。"},
-		{At: at(9), Start: at(5), End: at(7), Src: "Cloud", Err: "behind"},
-		{At: at(3725.25), Src: "Hi", Tgt: "Hi", Said: true},
+		{KeptAt: at(3), Start: at(0.5), End: at(2), Src: "What is wrong?", Tgt: "出啥事了？"},
+		{KeptAt: at(4), Start: at(2.4), End: at(2.8), Src: "Weird.", Tgt: "怪怪的。"},
+		{KeptAt: at(9), Start: at(5), End: at(7), Src: "Cloud", Err: "behind"},
+		{KeptAt: at(3725.25), Start: at(3725.25), End: at(3725.25), Src: "Hi", Tgt: "Hi", InTargetLang: true},
 	}
 	if got, want := Text("General", head, es), `General
 

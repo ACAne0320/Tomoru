@@ -275,7 +275,7 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 				src, terms := glossary.Apply(raw)
 				var out string
 				var err error
-				untranslated := session.head.Untranslated || entry.Said
+				untranslated := session.head.Untranslated || entry.InTargetLang
 				if !untranslated {
 					out, err = tr.Translate(op.ctx, translate.Request{Src: spokenIn(entry, session.head), Tgt: session.head.Tgt, Text: src, Terms: terms}, nil)
 				}
@@ -284,9 +284,9 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 				}
 				if err == nil && (out != "" || untranslated) {
 					x := &session.entries[i]
-					x.Src, x.Tgt, x.Err, x.Heard = src, out, "", ""
+					x.Src, x.Tgt, x.Err, x.BeforeGlossary = src, out, "", ""
 					if src != raw {
-						x.Heard = raw
+						x.BeforeGlossary = raw
 					}
 					changed = true
 				} else if err != nil {
@@ -340,11 +340,11 @@ func chunk(entries []history.Entry) [][]learn.Line {
 	var current []learn.Line
 	var start time.Time
 	for _, entry := range entries {
-		if len(current) > 0 && (entry.At.Sub(start) >= learn.Chunk || len(current) == 60) {
+		if len(current) > 0 && (entry.KeptAt.Sub(start) >= learn.Chunk || len(current) == 60) {
 			out, current = append(out, current), nil
 		}
 		if len(current) == 0 {
-			start = entry.At
+			start = entry.KeptAt
 		}
 		if strings.TrimSpace(entry.Src) != "" {
 			current = append(current, learn.Line{Src: entry.Src, Tgt: entry.Tgt})
@@ -365,15 +365,15 @@ func fix(g *scene.Glossary, entry history.Entry, head history.Head) bool {
 }
 
 func heard(entry history.Entry) string {
-	if entry.Heard != "" {
-		return entry.Heard
+	if entry.BeforeGlossary != "" {
+		return entry.BeforeGlossary
 	}
 	return entry.Src
 }
 
 func spokenIn(e history.Entry, h history.Head) string {
-	if e.Lang != "" || h.Src == lang.Auto {
-		return e.Lang
+	if e.HeardLang != "" || h.Src == lang.Auto {
+		return e.HeardLang
 	}
 	return h.Src
 }

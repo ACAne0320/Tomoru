@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 )
 
+var ErrCancelled = fmt.Errorf("capture: the selection was cancelled: %w", context.Canceled)
+
 func Selector(engine func() (string, error)) func(context.Context) ([]byte, image.Rectangle, error) {
 	return func(ctx context.Context) ([]byte, image.Rectangle, error) {
 		dir, err := os.MkdirTemp("", "tomoru-capture-")
@@ -29,7 +31,7 @@ func Selector(engine func() (string, error)) func(context.Context) ([]byte, imag
 		case err != nil:
 			return nil, image.Rectangle{}, fmt.Errorf("capture: %v: %s", err, out)
 		case errors.Is(readErr, fs.ErrNotExist):
-			return nil, image.Rectangle{}, nil
+			return nil, image.Rectangle{}, ErrCancelled
 		}
 		return nil, image.Rectangle{}, readErr
 	}

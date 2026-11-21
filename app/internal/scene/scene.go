@@ -29,12 +29,16 @@ type Scene struct {
 }
 
 type Term struct {
-	Src   string
-	Tgt   string
-	Heard []string `json:",omitempty"`
-	Auto  bool     `json:",omitempty"`
-	Added time.Time
+	Src     string
+	Tgt     string
+	Heard   []string `json:",omitempty"`
+	Learned bool     `json:"Auto,omitempty"`
+	Added   time.Time
 }
+
+const GeneralID = ""
+
+func (s Scene) IsGeneral() bool { return s.ID == GeneralID }
 
 func Load(path string) ([]Scene, error) {
 	var ss []Scene
@@ -44,7 +48,7 @@ func Load(path string) ([]Scene, error) {
 	} else if !errors.Is(rerr, fs.ErrNotExist) {
 		err = rerr
 	}
-	if i := slices.IndexFunc(ss, func(s Scene) bool { return s.ID == "" }); i > 0 {
+	if i := slices.IndexFunc(ss, Scene.IsGeneral); i > 0 {
 		g := ss[i]
 		ss = slices.Insert(slices.Delete(ss, i, i+1), 0, g)
 	} else if i < 0 {
@@ -86,30 +90,41 @@ type entry struct {
 	heard []form
 }
 
-type form struct {
+type form interface {
+	name() string
+	in(text, normalized string) bool
+	replace(text, to string) string
+}
+
+type wordForm struct {
 	text string
 	word *regexp.Regexp
-	norm string
+}
+
+type runForm struct {
+	text, norm string
 }
 
 func newForm(s string) form {
-	f := form{text: s}
 	if latin(s) {
-		f.word = regexp.MustCompile(`(?i)` + regexp.QuoteMeta(s))
-	} else {
-		f.norm = normalize(s)
+		return wordForm{s, regexp.MustCompile(`(?i)` + regexp.QuoteMeta(s))}
 	}
-	return f
+	return runForm{s, normalize(s)}
 }
 
-func (f form) in(text, n string) bool {
-	if f.word != nil {
-		return len(f.words(text)) > 0
-	}
-	return f.norm != "" && strings.Contains(n, f.norm)
+func (f wordForm) name() string { return f.text }
+
+func (f runForm) name() string { return f.text }
+
+func (f wordForm) in(text, _ string) bool { return len(f.words(text)) > 0 }
+
+func (f runForm) in(_, normalized string) bool {
+	return f.norm != "" && strings.Contains(normalized, f.norm)
 }
 
-func (f form) words(text string) [][]int {
+func (f runForm) replace(text, to string) string { return strings.ReplaceAll(text, f.text, to) }
+
+func (f wordForm) words(text string) [][]int {
 	var out [][]int
 	for _, m := range f.word.FindAllStringIndex(text, -1) {
 		before, _ := utf8.DecodeLastRuneInString(text[:m[0]])
@@ -167,7 +182,7 @@ func NewGlossary(terms []Term, general bool) *Glossary {
 	for _, own := range []bool{true, false} {
 		for _, t := range terms {
 			src, tgt := strings.TrimSpace(t.Src), strings.TrimSpace(t.Tgt)
-			if t.Auto == own || src == "" || tgt == "" {
+			if t.Learned == own || src == "" || tgt == "" {
 				continue
 			}
 			e := entry{tgt: tgt, src: newForm(src)}
@@ -188,8 +203,8 @@ func (g *Glossary) Names() []string {
 	}
 	names := make([]string, 0, len(g.entries))
 	for _, e := range g.entries {
-		if !slices.Contains(names, e.src.text) {
-			names = append(names, e.src.text)
+		if !slices.Contains(names, e.src.name()) {
+			names = append(names, e.src.name())
 		}
 	}
 	return names
@@ -201,7 +216,7 @@ func (g *Glossary) Apply(text string) (string, []translate.Term) {
 	}
 	for _, e := range g.entries {
 		for _, h := range e.heard {
-			text = h.replace(text, e.src.text)
+			text = h.replace(text, e.src.name())
 		}
 	}
 	n := normalize(text)
@@ -211,16 +226,13 @@ func (g *Glossary) Apply(text string) (string, []translate.Term) {
 			break
 		}
 		if e.src.in(text, n) {
-			terms = append(terms, translate.Term{Src: e.src.text, Tgt: e.tgt})
+			terms = append(terms, translate.Term{Src: e.src.name(), Tgt: e.tgt})
 		}
 	}
 	return text, terms
 }
 
-func (f form) replace(text, to string) string {
-	if f.word == nil {
-		return strings.ReplaceAll(text, f.text, to)
-	}
+func (f wordForm) replace(text, to string) string {
 	var b strings.Builder
 	last := 0
 	for _, m := range f.words(text) {

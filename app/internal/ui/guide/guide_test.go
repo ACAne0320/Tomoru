@@ -131,7 +131,9 @@ func TestShortcuts(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
-		d.Select = func(context.Context) ([]byte, image.Rectangle, error) { return nil, image.Rectangle{}, nil }
+		d.Select = func(context.Context) ([]byte, image.Rectangle, error) {
+			return nil, image.Rectangle{}, context.Canceled
+		}
 	})
 	k.Prefs.GuideStep = stepPicture
 	k.Screen = "unknown"

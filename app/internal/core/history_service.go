@@ -138,7 +138,7 @@ func (s *HistoryService) drainRun(r *historyRun) bool {
 			if heard == p.head.Src {
 				heard = ""
 			}
-			if err := s.hist.Add(history.Entry{At: time.Now(), Start: l.Start, End: l.End, Src: l.Src, Heard: l.BeforeGlossary, Lang: heard, Said: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
+			if err := s.hist.Add(history.Entry{KeptAt: time.Now(), Start: l.Start, End: l.End, Src: l.Src, BeforeGlossary: l.BeforeGlossary, HeardLang: heard, InTargetLang: l.AsSaid, Tgt: tgt, Err: errText}); err != nil {
 				s.History.Err = err
 				log.Println("history:", err)
 				return false
@@ -169,10 +169,6 @@ func (s *HistoryService) replaceWriter(p *historyPolicy, r *historyRun, said tim
 func (s *HistoryService) closeHistory() {
 	if s.hist == nil {
 		return
-	}
-	if err := s.hist.Close(); err != nil {
-		s.History.Err = err
-		log.Println("history:", err)
 	}
 	s.hist, s.writing, s.writingRun = nil, nil, nil
 	s.histChanged()

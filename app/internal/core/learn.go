@@ -63,7 +63,7 @@ func (c *Core) TakeLearned(id string, taken []bool) (int, func()) {
 func (c *Core) Retranslate(paths []string, id string) {
 	r := retranslationRequest{Paths: paths}
 	if s, ok := c.sceneByID(id); ok {
-		r.Terms, r.General = s.Terms, s.ID == ""
+		r.Terms, r.General = s.Terms, s.IsGeneral()
 		r.Ready, _, r.Err = c.translator(c.Prefs.MT)
 	}
 	c.LearningService.startRetranslating(r)

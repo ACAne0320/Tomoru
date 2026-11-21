@@ -304,7 +304,7 @@ func TestVoiceKeepsSubtitles(t *testing.T) {
 }
 
 func TestClockRedrawsNothing(t *testing.T) {
-	base := live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Outcome: live.Translated}}, Stats: live.Stats{Lines: 1, Speech: 2, Chars: 1}}
+	base := live.State{Phase: live.PhaseListening, Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Outcome: live.Translated}}, Stats: live.Stats{Lines: 1, SpeechSeconds: 2, Chars: 1}}
 	listening := func(t *testing.T) (report func(live.State), changes *int) {
 		c, f := newCore(t)
 		c.Start()
@@ -321,7 +321,7 @@ func TestClockRedrawsNothing(t *testing.T) {
 	for i := range 3 {
 		tick := base
 		tick.StatsAt, tick.SpeechEnd = time.Now(), time.Now()
-		tick.Stats.Audio, tick.Stats.InTokens, tick.Stats.OutTokens = float64(i+1), 40*i, 50*i
+		tick.Stats.AudioSeconds, tick.Stats.InTokens, tick.Stats.OutTokens = float64(i+1), 40*i, 50*i
 		tick.Stats.Latency.Final.Add(time.Duration(i+1) * 300 * time.Millisecond)
 		report(tick)
 	}
@@ -339,7 +339,7 @@ func TestClockRedrawsNothing(t *testing.T) {
 		"slow":     func(st *live.State) { st.Slow = true },
 		"error":    func(st *live.State) { st.Err = errors.New("lost") },
 		"lines":    func(st *live.State) { st.Stats.Lines++ },
-		"speech":   func(st *live.State) { st.Stats.Speech++ },
+		"speech":   func(st *live.State) { st.Stats.SpeechSeconds++ },
 		"chars":    func(st *live.State) { st.Stats.Chars++ },
 	} {
 		t.Run(name, func(t *testing.T) {
