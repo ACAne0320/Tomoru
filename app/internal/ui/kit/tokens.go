@@ -12,10 +12,12 @@ import (
 
 // Palette is the colors, named for what they are for.
 type Palette struct {
-	// The night: the frame of the window, its sidebar, the panel's head.
-	Night, NightLine, NightText, NightTitle ui.Color
-	// NavOn is the ground of the sidebar's page shown: the paper it opens.
+	// The night: the panel's head.
+	Night, NightText, NightTitle ui.Color
+	// NavOn is the ground of the sidebar's page shown, on its card: a piece of the night.
 	NavOn ui.Color
+	// NavLine is the outline of the sidebar's card, quieter than Line in dark.
+	NavLine ui.Color
 	// Stage is the night sky that subtitles are previewed on.
 	Stage ui.Color
 	// The guide's sky, deeper at the top: what it shows is on it, in panes of glass, in starlight.
@@ -97,8 +99,8 @@ func (s Shadow) Cast(e ui.Element) ui.Element { return e.Shadow(s.X, s.Y, s.Blur
 
 // Light is the palette of a light appearance.
 var Light = Palette{
-	Night: ui.Hex("#1b1949"), NightLine: ui.Hex("#2c2970"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn:  ui.Hex("#fbf6ec"),
+	Night: ui.Hex("#1b1949"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
+	NavOn: ui.Hex("#232057"), NavLine: ui.Hex("#efe4cc"),
 	Stage:  ui.Hex("#15133d"),
 	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
@@ -137,8 +139,8 @@ var Light = Palette{
 // Dark is the palette of a dark appearance: the night deepens, sand sinks below the paper and a
 // card stands above it, each a step of lightness apart; nothing is the light palette turned over.
 var Dark = Palette{
-	Night: ui.Hex("#0e0a2f"), NightLine: ui.Hex("#2a2766"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn:  ui.Hex("#222049"),
+	Night: ui.Hex("#0e0a2f"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
+	NavOn: ui.Hex("#312f61"), NavLine: ui.Hex("#2a2766"),
 	Stage:  ui.Hex("#0d0b2a"),
 	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
@@ -235,13 +237,13 @@ const (
 // Corners. One inside another is the outer less the padding between them: a segment (10) in its
 // track (14) 4 in, a row (14) in a list's card (20) 6 in.
 const (
-	RadiusFrame = 18 // the window's frame
-	RadiusCard  = 20 // cards, the stage, dialogs
-	RadiusTile  = 16 // tiles, list items
-	RadiusField = 14 // fields, tracks, pickers; the rows in a list's card
-	RadiusPaper = 14 // the paper inside the frame
-	RadiusInner = 10 // a segment, a stepper's button, a small icon's ground, a table's cell
-	RadiusMark  = 4  // a chart's bar and its tip, a mark in a line of text
+	RadiusFrame   = 18 // the menu bar panel
+	RadiusCard    = 20 // cards, the stage, dialogs
+	RadiusTile    = 16 // tiles, list items
+	RadiusField   = 14 // fields, tracks, pickers; the rows in a list's card
+	RadiusSidebar = 14 // the sidebar's card
+	RadiusInner   = 10 // a segment, a stepper's button, a small icon's ground, a table's cell
+	RadiusMark    = 4  // a chart's bar and its tip, a mark in a line of text
 )
 
 // Pill rounds a box of height h into a pill, or a circle if it is as wide.
