@@ -51,7 +51,6 @@ type Caps struct {
 	Longest  float64
 	Stops    bool
 	Untimed  bool
-	Steady   bool
 	Remote   bool
 }
 
@@ -383,9 +382,6 @@ func unstopped(pieces []Piece) []Piece {
 }
 
 func (r *Runner) settle(cur []Piece) []Piece {
-	if r.caps.Steady {
-		return cur
-	}
 	if len(cur) > 0 && len(r.agreed) > 0 && cur[0].Lang != r.agreed[0].Lang {
 		r.last, r.agreed = nil, nil
 	}
