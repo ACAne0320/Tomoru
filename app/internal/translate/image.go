@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -50,35 +49,36 @@ func (e *Endpoint) TranslateImage(ctx context.Context, pic []byte, tgt string, t
 	return Dedupe(s), err
 }
 
-func (e *Endpoint) readImage(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
+func (e *Endpoint) readImage(ctx context.Context, body chatRequest, onDelta func(string)) (string, error) {
 	if e.ImageWait <= 0 {
-		return e.readOne(ctx, body, onDelta)
+		return e.readOne(ctx, body, nil, onDelta)
 	}
-	body2 := maps.Clone(body)
-	first := e.Client
-	if first == nil {
-		first = pictureClient()
+	reused := e.Client
+	if reused == nil {
+		reused = pictureClient()
 	}
 	var fresh *http.Client
 	defer func() {
 		if fresh != nil {
 			fresh.CloseIdleConnections()
-			first.CloseIdleConnections()
+			reused.CloseIdleConnections()
 		}
 	}()
-	return hedge(ctx, e.ImageWait, 6*e.ImageWait, false, onDelta, func(ctx context.Context, n int32, onDelta func(string)) (string, error) {
-		if n == 1 {
-			return e.readOne(context.WithValue(ctx, clientKey{}, first), body, onDelta)
+	stalled := time.NewTimer(6 * e.ImageWait)
+	defer stalled.Stop()
+	return hedge(ctx, e.ImageWait, stalled.C, onDelta, func(ctx context.Context, n attempt, onDelta func(string)) (string, error) {
+		if n == first {
+			return e.readOne(ctx, body, reused, onDelta)
 		}
 		fresh = e.anew(imageTimeout)
-		return e.readOne(context.WithValue(ctx, clientKey{}, fresh), body2, onDelta)
+		return e.readOne(ctx, body, fresh, onDelta)
 	})
 }
 
-func (e *Endpoint) readOne(ctx context.Context, body map[string]any, onDelta func(string)) (string, error) {
+func (e *Endpoint) readOne(ctx context.Context, body chatRequest, client *http.Client, onDelta func(string)) (string, error) {
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
-	s, _, err := e.complete(ctx, body, imageTimeout, func(s string) {
+	s, _, err := e.complete(ctx, body, client, imageTimeout, func(s string) {
 		if looping(s) {
 			cancel(errLooping)
 		} else if onDelta != nil {

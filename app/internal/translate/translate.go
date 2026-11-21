@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -35,12 +36,12 @@ type Translator interface {
 }
 
 type Format struct {
-	ID          string
-	Name        string
-	prompt      func(Request) []message
-	image       func(tgt string, terms []Term) string
-	temperature float64
-	chat        bool
+	ID            string
+	Name          string
+	prompt        func(Request) []message
+	image         func(tgt string, terms []Term) string
+	temperature   float64
+	askNoThinking bool
 }
 
 var (
@@ -50,11 +51,11 @@ var (
 		image:  indexImagePrompt,
 	}
 	Chat = &Format{
-		ID:          "chat",
-		prompt:      func(r Request) []message { return []message{{"system", chatSystem(r)}, {"user", r.Text}} },
-		image:       chatImagePrompt,
-		temperature: 0.2,
-		chat:        true,
+		ID:            "chat",
+		prompt:        func(r Request) []message { return []message{{"system", chatSystem(r)}, {"user", r.Text}} },
+		image:         chatImagePrompt,
+		temperature:   0.2,
+		askNoThinking: true,
 	}
 	HyMT = &Format{
 		ID: "hy-mt", Name: "Hy-MT2",
@@ -87,9 +88,9 @@ type Endpoint struct {
 	ImageSide               int
 	ImageWait               time.Duration
 
-	plain   atomic.Bool
-	used    atomic.Int64
-	limited atomic.Int64
+	refusedOptional atomic.Bool
+	used            atomic.Int64
+	limited         atomic.Int64
 }
 
 type Usage struct{ In, Out int }
@@ -196,36 +197,53 @@ type message struct {
 	Content any    `json:"content"`
 }
 
-func (e *Endpoint) body(r Request) map[string]any {
+func (e *Endpoint) body(r Request) chatRequest {
 	f := e.format()
 	return e.request(f.prompt(r), f.temperature, 128+utf8.RuneCountInString(r.Text))
 }
 
-func (e *Endpoint) format() *Format { return cmp.Or(e.Format, Chat) }
-
-func (e *Endpoint) request(msgs []message, temp float64, maxTokens int) map[string]any {
-	b := map[string]any{"model": e.Model, "messages": msgs, "stream": true, "temperature": temp, "max_tokens": maxTokens}
-	if !e.plain.Load() {
-		b["stream_options"] = map[string]any{"include_usage": true}
-	}
-	if e.Llama {
-		b["cache_prompt"] = true
-		b["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
-	} else if e.quiet() {
-		b["thinking"] = map[string]any{"type": "disabled"}
-		b["reasoning_effort"] = "none"
-		b["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
-		b["enable_thinking"] = false
-	}
-	return b
+type chatRequest struct {
+	body     map[string]any
+	optional []string
 }
 
-func (e *Endpoint) quiet() bool { return e.format().chat && !e.Llama && !e.plain.Load() }
+func (r chatRequest) without(keys []string) chatRequest {
+	body := maps.Clone(r.body)
+	for _, k := range keys {
+		delete(body, k)
+	}
+	return chatRequest{body: body}
+}
 
-var optional = []string{"stream_options", "thinking", "reasoning_effort", "enable_thinking"}
+func (e *Endpoint) format() *Format { return cmp.Or(e.Format, Chat) }
+
+func (e *Endpoint) request(msgs []message, temp float64, maxTokens int) chatRequest {
+	r := chatRequest{body: map[string]any{"model": e.Model, "messages": msgs, "stream": true, "temperature": temp, "max_tokens": maxTokens}}
+	optional := func(key string, v any) {
+		r.body[key] = v
+		r.optional = append(r.optional, key)
+	}
+	if !e.refusedOptional.Load() {
+		optional("stream_options", map[string]any{"include_usage": true})
+	}
+	if e.Llama {
+		r.body["cache_prompt"] = true
+		r.body["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
+	} else if e.disablesThinking() {
+		optional("thinking", map[string]any{"type": "disabled"})
+		optional("reasoning_effort", "none")
+		optional("chat_template_kwargs", map[string]any{"enable_thinking": false})
+		optional("enable_thinking", false)
+	}
+	return r
+}
+
+func (e *Endpoint) disablesThinking() bool {
+	return e.format().askNoThinking && !e.Llama && !e.refusedOptional.Load()
+}
 
 func (e *Endpoint) Chat(ctx context.Context, system, user string, maxTokens int) (string, error) {
-	out, _, err := e.complete(ctx, e.request([]message{{"system", system}, {"user", user}}, 0, maxTokens), 2*time.Minute, nil)
+	out, _, err := e.complete(ctx, e.request([]message{{"system", system}, {"user", user}}, 0, maxTokens), nil, 2*time.Minute, nil)
 	return out, err
 }
 
@@ -251,69 +269,111 @@ var ErrDraftPaused = errors.New("translate: drafts pause while the service limit
 var ErrStalled = errors.New("translate: the reply stalled")
 
 func (e *Endpoint) hedged(ctx context.Context, r Request, onDelta func(string)) (string, error) {
-	return hedge(ctx, e.FirstWait, 0, r.Draft, onDelta, func(ctx context.Context, _ int32, onDelta func(string)) (string, error) {
+	ask := func(ctx context.Context, _ attempt, onDelta func(string)) (string, error) {
 		return e.attempt(ctx, r, onDelta)
-	})
+	}
+	if r.Draft {
+		return wordsWithin(ctx, e.FirstWait, onDelta, ask)
+	}
+	return hedge(ctx, e.FirstWait, nil, onDelta, ask)
 }
 
-func hedge(ctx context.Context, wait, giveUp time.Duration, drop bool, onDelta func(string),
-	ask func(ctx context.Context, n int32, onDelta func(string)) (string, error)) (string, error) {
+type attempt int32
+
+const (
+	noneRead attempt = 0
+	first    attempt = 1
+	second   attempt = 2
+	gaveUp   attempt = -1
+)
+
+type asker func(ctx context.Context, n attempt, onDelta func(string)) (string, error)
+
+type answer struct {
+	n   attempt
+	out string
+	err error
+}
+
+type race struct {
+	read    atomic.Int32
+	results chan answer
+	pending int
+}
+
+func (h *race) start(ctx context.Context, n attempt, onDelta func(string), ask asker) {
+	h.pending++
+	go func() {
+		out, err := ask(ctx, n, func(s string) {
+			if (h.read.CompareAndSwap(int32(noneRead), int32(n)) || attempt(h.read.Load()) == n) && onDelta != nil {
+				onDelta(s)
+			}
+		})
+		h.results <- answer{n, out, err}
+	}()
+}
+
+func (h *race) giveUp() bool { return h.read.CompareAndSwap(int32(noneRead), int32(gaveUp)) }
+
+func (h *race) settles(a answer) bool {
+	read := attempt(h.read.Load())
+	return read == a.n || read == noneRead && h.pending == 0
+}
+
+func (h *race) drain() {
+	for ; h.pending > 0; h.pending-- {
+		<-h.results
+	}
+}
+
+func wordsWithin(ctx context.Context, wait time.Duration, onDelta func(string), ask asker) (string, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	type result struct {
-		n   int32
-		out string
-		err error
-	}
-	var read atomic.Int32
-	results := make(chan result, 2)
-	pending := 0
-	start := func(n int32) {
-		pending++
-		go func() {
-			out, err := ask(ctx, n, func(s string) {
-				if (read.CompareAndSwap(0, n) || read.Load() == n) && onDelta != nil {
-					onDelta(s)
-				}
-			})
-			results <- result{n, out, err}
-		}()
-	}
+	h := &race{results: make(chan answer, 1)}
 	defer func() {
 		cancel()
-		for ; pending > 0; pending-- {
-			<-results
-		}
+		h.drain()
 	}()
-	start(1)
+	h.start(ctx, first, onDelta, ask)
+	timer := time.NewTimer(wait)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			if ctx.Err() == nil && h.giveUp() {
+				return "", ErrStalled
+			}
+		case a := <-h.results:
+			h.pending--
+			return a.out, a.err
+		}
+	}
+}
+
+func hedge(ctx context.Context, wait time.Duration, stalled <-chan time.Time, onDelta func(string), ask asker) (string, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	h := &race{results: make(chan answer, 2)}
+	defer func() {
+		cancel()
+		h.drain()
+	}()
+	h.start(ctx, first, onDelta, ask)
 	again := time.NewTimer(wait)
 	defer again.Stop()
-	var stalled <-chan time.Time
-	if giveUp > 0 {
-		t := time.NewTimer(giveUp)
-		defer t.Stop()
-		stalled = t.C
-	}
 	for {
 		select {
 		case <-again.C:
-			switch {
-			case ctx.Err() != nil:
-			case drop:
-				if read.CompareAndSwap(0, -1) {
-					return "", ErrStalled
-				}
-			case read.Load() == 0:
+			if ctx.Err() == nil && attempt(h.read.Load()) == noneRead {
 				log.Printf("translate: no words in %v, asking again", wait)
-				start(2)
+				h.start(ctx, second, onDelta, ask)
 			}
 		case <-stalled:
-			if read.CompareAndSwap(0, -1) {
+			if h.giveUp() {
 				return "", ErrStalled
 			}
-		case res := <-results:
-			pending--
-			if n := read.Load(); n == res.n || n == 0 && pending == 0 {
-				return res.out, res.err
+		case a := <-h.results:
+			h.pending--
+			if h.settles(a) {
+				return a.out, a.err
 			}
 		}
 	}
@@ -322,13 +382,13 @@ func hedge(ctx context.Context, wait, giveUp time.Duration, drop bool, onDelta f
 func (e *Endpoint) attempt(ctx context.Context, r Request, onDelta func(string)) (string, error) {
 	timeout := cmp.Or(e.Timeout, 30*time.Second)
 	if e.Gap <= 0 {
-		return unfinished(e.complete(ctx, e.body(r), timeout, onDelta))
+		return unfinished(e.complete(ctx, e.body(r), nil, timeout, onDelta))
 	}
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 	gap := time.AfterFunc(e.Gap, func() { cancel(ErrStalled) })
 	gap.Stop()
-	out, cut, err := e.complete(ctx, e.body(r), timeout, func(s string) {
+	out, cut, err := e.complete(ctx, e.body(r), nil, timeout, func(s string) {
 		gap.Reset(e.Gap)
 		if onDelta != nil {
 			onDelta(s)
@@ -357,7 +417,7 @@ func (e *Endpoint) Warm(ctx context.Context) {
 	if err != nil {
 		return
 	}
-	resp, err := e.do(req, 5*time.Second)
+	resp, err := e.do(req, nil, 5*time.Second)
 	if err == nil {
 		io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
@@ -373,20 +433,12 @@ func (e *StatusError) Error() string {
 	return fmt.Sprintf("translate: %d %s: %s", e.Status, http.StatusText(e.Status), e.Body)
 }
 
-func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout time.Duration, onDelta func(string)) (out string, cut bool, err error) {
-	quiet := e.quiet()
-	_, asked := body["stream_options"]
-	resp, err := e.post(ctx, body, timeout)
-	if err == nil && (quiet || asked) && resp.StatusCode == http.StatusBadRequest {
+func (e *Endpoint) complete(ctx context.Context, r chatRequest, client *http.Client, timeout time.Duration, onDelta func(string)) (out string, cut bool, err error) {
+	resp, err := e.post(ctx, r.body, client, timeout)
+	if err == nil && len(r.optional) > 0 && resp.StatusCode == http.StatusBadRequest {
 		resp.Body.Close()
-		e.plain.Store(true)
-		for _, k := range optional {
-			delete(body, k)
-		}
-		if quiet {
-			delete(body, "chat_template_kwargs")
-		}
-		resp, err = e.post(ctx, body, timeout)
+		e.refusedOptional.Store(true)
+		resp, err = e.post(ctx, r.without(r.optional).body, client, timeout)
 	}
 	if err != nil {
 		return "", false, err
@@ -403,26 +455,23 @@ func (e *Endpoint) complete(ctx context.Context, body map[string]any, timeout ti
 	return out, cut, err
 }
 
-func (e *Endpoint) post(ctx context.Context, body map[string]any, timeout time.Duration) (*http.Response, error) {
+func (e *Endpoint) post(ctx context.Context, body map[string]any, client *http.Client, timeout time.Duration) (*http.Response, error) {
 	b, _ := json.Marshal(body)
 	req, err := http.NewRequestWithContext(ctx, "POST", strings.TrimRight(e.URL, "/")+"/v1/chat/completions", bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	return e.do(req, timeout)
+	return e.do(req, client, timeout)
 }
 
-type clientKey struct{}
-
-func (e *Endpoint) do(req *http.Request, timeout time.Duration) (*http.Response, error) {
+func (e *Endpoint) do(req *http.Request, client *http.Client, timeout time.Duration) (*http.Response, error) {
 	req.Header.Set("User-Agent", "Index-Translate-Client/1.0")
 	if e.APIKey != "" {
 		req.Header.Set("Authorization", "Bearer "+e.APIKey)
 	}
-	client := e.Client
-	if c, ok := req.Context().Value(clientKey{}).(*http.Client); ok {
-		client = c
+	if client == nil {
+		client = e.Client
 	}
 	if client == nil {
 		client = &http.Client{Timeout: timeout}
