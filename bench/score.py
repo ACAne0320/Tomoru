@@ -17,7 +17,7 @@ import re
 import statistics
 import sys
 import unicodedata
-from collections import Counter
+from collections import Counter, namedtuple
 
 import opencc
 
@@ -87,35 +87,38 @@ def read_srt(path):
     return cues
 
 
+SAME, SUB, DEL, INS = range(4)
+
+
 def align(ref, hyp):
     """The edit operations from ref to hyp, in order: (op, i, j), op one of "=", "s", "d", "i"."""
     n, m = len(ref), len(hyp)
     prev = list(range(m + 1))
     back = [bytearray(m + 1) for _ in range(n + 1)]
     for j in range(1, m + 1):
-        back[0][j] = 3
+        back[0][j] = INS
     for i in range(1, n + 1):
         cur = [i] + [0] * m
         bi, r = back[i], ref[i - 1]
-        bi[0] = 2
+        bi[0] = DEL
         for j in range(1, m + 1):
             if r == hyp[j - 1]:
-                best, op = prev[j - 1], 0
+                best, op = prev[j - 1], SAME
             else:
-                best, op = prev[j - 1] + 1, 1
+                best, op = prev[j - 1] + 1, SUB
             if prev[j] + 1 < best:
-                best, op = prev[j] + 1, 2
+                best, op = prev[j] + 1, DEL
             if cur[j - 1] + 1 < best:
-                best, op = cur[j - 1] + 1, 3
+                best, op = cur[j - 1] + 1, INS
             cur[j], bi[j] = best, op
         prev = cur
     ops, i, j = [], n, m
     while i > 0 or j > 0:
         op = back[i][j]
-        if op in (0, 1):
-            ops.append(("=s"[op], i - 1, j - 1))
+        if op in (SAME, SUB):
+            ops.append(("=" if op == SAME else "s", i - 1, j - 1))
             i, j = i - 1, j - 1
-        elif op == 2:
+        elif op == DEL:
             ops.append(("d", i - 1, None))
             i -= 1
         else:
@@ -156,6 +159,20 @@ def chrf(hyp, ref, beta=2.0, order=6):
     return 0.0 if p + rr == 0 else 100 * (1 + beta**2) * p * rr / (beta**2 * p + rr)
 
 
+LONG_LINE_WIDTH = 90
+QUIET_WINDOW = 4
+
+Screen = namedtuple("Screen", "t committed pending")
+Voice = namedtuple("Voice", "t on")
+Col = namedtuple("Col", "key head fmt")
+
+
+def changes(events):
+    """Each event, and whether it is the last at its time: the screen shows only the last."""
+    for n, e in enumerate(events):
+        yield e, n + 1 == len(events) or events[n + 1]["t"] != e["t"]
+
+
 def score_case(case, run):
     """A case's numbers, and the samples its latencies pool."""
     lang, out = case["lang"], {"id": case["id"], "lang": case["lang"], "scene": case["scene"], "audio": case["audio"]}
@@ -185,9 +202,9 @@ def score_case(case, run):
     snaps = []
     committed = []
     voice = []
-    for n, e in enumerate(events):
+    for e, last_at_t in changes(events):
         if "voice" in e:
-            voice.append((e["t"], e["voice"]))
+            voice.append(Voice(e["t"], e["voice"]))
         if "src" in e:
             lid = e["line"]
             toks = tokens(e["src"], lang)
@@ -205,8 +222,8 @@ def score_case(case, run):
                     l["done"], l["err"] = e["t"], e.get("err", "")
         if "pending" in e:
             pending = e["pending"]
-        if n + 1 == len(events) or events[n + 1]["t"] != e["t"]:
-            snaps.append((e["t"], committed, tokens(pending, lang)))
+        if last_at_t:
+            snaps.append(Screen(e["t"], committed, tokens(pending, lang)))
     final = committed + tokens(pending, lang)
 
     shown = [None] * len(final)
@@ -234,7 +251,7 @@ def score_case(case, run):
     out.update(lines=len(order), erased=erased, finalTokens=len(final))
     out["lineErrors"] = sum(1 for l in lines.values() if l["err"])
     out["untranslated"] = sum(1 for l in lines.values() if l["done"] is None)
-    out["longLines"] = sum(1 for l in lines.values() if width(l["src"]) > 90)
+    out["longLines"] = sum(1 for l in lines.values() if width(l["src"]) > LONG_LINE_WIDTH)
     out["shortLines"] = sum(1 for l in lines.values() if len(l["toks"]) < (2 if lang == "en" else 3))
     samples = {"shown": [], "commit": [], "trFirst": [], "trDone": []}
 
@@ -259,15 +276,15 @@ def score_case(case, run):
     def spoke(t):
         if not voice:
             return any(a - 0.5 <= t <= b + 2.5 for a, b in speech)
-        before, began = False, False
-        for vt, v in voice:
-            if vt > t:
+        speaking_before, began_since = False, False
+        for at, on in voice:
+            if at > t:
                 break
-            if vt <= t - 4:
-                before = v
+            if at <= t - QUIET_WINDOW:
+                speaking_before = on
             else:
-                began = began or v
-        return before or began
+                began_since = began_since or on
+        return speaking_before or began_since
     out["quietIns"] = sum(1 for op, i, j in ops if op == "i" and not spoke(shown[j]))
     line_said = {}
     for op, i, j in ops:
@@ -337,23 +354,23 @@ def summary(cases, samples, run):
 
 
 COLS = [
-    ("er", "错误率%", "{:.1f}"),
-    ("del", "漏%", "{:.1f}"),
-    ("ins", "多%", "{:.1f}"),
-    ("quietInsMin", "静处乱字/分", "{:.1f}"),
-    ("shown50", "上屏 p50", "{:.2f}"),
-    ("shown90", "上屏 p90", "{:.2f}"),
-    ("commit50", "定稿 p50", "{:.2f}"),
-    ("trFirst50", "见译文 p50", "{:.2f}"),
-    ("trFirst90", "见译文 p90", "{:.2f}"),
-    ("trDone50", "全译文 p50", "{:.2f}"),
-    ("chrf", "chrF", "{:.1f}"),
-    ("rewrite", "改写%", "{:.0f}"),
-    ("long", "长行%", "{:.0f}"),
-    ("short", "碎行%", "{:.0f}"),
-    ("cpuMin", "CPU s/分", "{:.1f}"),
+    Col("er", "错误率%", "{:.1f}"),
+    Col("del", "漏%", "{:.1f}"),
+    Col("ins", "多%", "{:.1f}"),
+    Col("quietInsMin", "静处乱字/分", "{:.1f}"),
+    Col("shown50", "上屏 p50", "{:.2f}"),
+    Col("shown90", "上屏 p90", "{:.2f}"),
+    Col("commit50", "定稿 p50", "{:.2f}"),
+    Col("trFirst50", "见译文 p50", "{:.2f}"),
+    Col("trFirst90", "见译文 p90", "{:.2f}"),
+    Col("trDone50", "全译文 p50", "{:.2f}"),
+    Col("chrf", "chrF", "{:.1f}"),
+    Col("rewrite", "改写%", "{:.0f}"),
+    Col("long", "长行%", "{:.0f}"),
+    Col("short", "碎行%", "{:.0f}"),
+    Col("cpuMin", "CPU s/分", "{:.1f}"),
 ]
-MT_COLS = [("chrf", "chrF", "{:.1f}"), ("mtSec", "每句秒", "{:.2f}")]
+MT_COLS = [Col("chrf", "chrF", "{:.1f}"), Col("mtSec", "每句秒", "{:.2f}")]
 
 
 def table(rows, cols, first):

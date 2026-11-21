@@ -174,46 +174,57 @@ func main() {
 				log.Fatal(err)
 			}
 			mu.Lock()
-			run.Audio += r.Audio
 			run.Cases = append(run.Cases, c.ID)
 			mu.Unlock()
 			status := "ok"
 			if r.Err != "" {
 				status = "FAILED: " + r.Err
 			}
-			log.Printf("%-24s %5.0fs audio in %5.0fs: %s", c.ID, r.Audio, time.Since(t0).Seconds(), status)
+			log.Printf("%-24s %5.0fs audio in %5.0fs: %s", c.ID, r.AudioSec, time.Since(t0).Seconds(), status)
 		}()
 	}
 	wg.Wait()
 	stopMT()
-	run.Wall = time.Since(run.Started).Seconds()
-	run.CPUChild, run.CPUSelf = cpuTimes()
-	if b, err := os.ReadFile(filepath.Join(out, "run.json")); err == nil {
-		var before Run
-		if json.Unmarshal(b, &before) == nil && before.ASR == run.ASR && before.MT == run.MT && before.Draft == run.Draft {
-			for _, id := range before.Cases {
-				if !slices.Contains(run.Cases, id) {
-					run.Cases = append(run.Cases, id)
-				}
-			}
-			run.Started = before.Started
-			run.Wall += before.Wall
-			run.CPUChild += before.CPUChild
-			run.CPUSelf += before.CPUSelf
-			run.Jobs = max(run.Jobs, before.Jobs)
-		}
-	}
+	run.WallSec = time.Since(run.Started).Seconds()
+	run.CPUChildSec, run.CPUSelfSec = cpuTimes()
+	mergeRun(&run, filepath.Join(out, "run.json"))
 	slices.Sort(run.Cases)
-	run.Audio = 0
-	for _, id := range run.Cases {
-		var r Result
-		if b, err := os.ReadFile(filepath.Join(out, id+".json")); err == nil && json.Unmarshal(b, &r) == nil {
-			run.Audio += r.Audio
-		}
-	}
+	run.AudioSec = runAudio(out, run.Cases)
 	b, _ := json.MarshalIndent(run, "", " ")
 	if err := os.WriteFile(filepath.Join(out, "run.json"), b, 0o644); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("%s: %d cases, %.0f s of audio in %.0f s; score with: uv run bench/score.py %s", run.Name, len(run.Cases), run.Audio, run.Wall, run.Name)
+	log.Printf("%s: %d cases, %.0f s of audio in %.0f s; score with: uv run bench/score.py %s", run.Name, len(run.Cases), run.AudioSec, run.WallSec, run.Name)
+}
+
+func mergeRun(run *Run, path string) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	var before Run
+	if json.Unmarshal(b, &before) != nil || before.ASR != run.ASR || before.MT != run.MT || before.Draft != run.Draft {
+		return
+	}
+	for _, id := range before.Cases {
+		if !slices.Contains(run.Cases, id) {
+			run.Cases = append(run.Cases, id)
+		}
+	}
+	run.Started = before.Started
+	run.WallSec += before.WallSec
+	run.CPUChildSec += before.CPUChildSec
+	run.CPUSelfSec += before.CPUSelfSec
+	run.Jobs = max(run.Jobs, before.Jobs)
+}
+
+func runAudio(out string, cases []string) float64 {
+	total := 0.0
+	for _, id := range cases {
+		var r Result
+		if b, err := os.ReadFile(filepath.Join(out, id+".json")); err == nil && json.Unmarshal(b, &r) == nil {
+			total += r.AudioSec
+		}
+	}
+	return total
 }

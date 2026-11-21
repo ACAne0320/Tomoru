@@ -11,15 +11,16 @@ import (
 func TestRecorderRetainsBacklogAndPartialCompletions(t *testing.T) {
 	var result Result
 	lines := map[int]live.Line{}
-	for id := 1; id <= 12; id++ {
+	n := live.MaxLines + 2
+	for id := 1; id <= n; id++ {
 		recordLine(&result, lines, 0, live.Line{ID: id, Src: fmt.Sprint(id)})
 	}
-	for id := 1; id <= 12; id++ {
+	for id := 1; id <= n; id++ {
 		line := lines[id]
 		line.Tgt = "partial"
 		recordLine(&result, lines, 1, line)
 		line.Outcome = live.Translated
-		if id == 12 {
+		if id == n {
 			line.Outcome, line.Err = live.Canceled, context.Canceled
 		}
 		recordLine(&result, lines, 2, line)
@@ -37,7 +38,7 @@ func TestRecorderRetainsBacklogAndPartialCompletions(t *testing.T) {
 			}
 		}
 	}
-	if commits != 12 || finals != 12 {
+	if commits != n || finals != n {
 		t.Fatalf("got %d commits and %d completions", commits, finals)
 	}
 }

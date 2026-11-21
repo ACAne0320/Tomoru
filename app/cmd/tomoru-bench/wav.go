@@ -15,7 +15,7 @@ func wavSeconds(path string) (float64, error) {
 		return 0, err
 	}
 	defer f.Close()
-	bytesPerSec, size, _, err := wavData(f)
+	bytesPerSec, size, _, err := seekWavData(f)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", path, err)
 	}
@@ -28,7 +28,7 @@ func trimWav(src, dst string, sec float64) error {
 		return err
 	}
 	defer f.Close()
-	bytesPerSec, size, header, err := wavData(f)
+	bytesPerSec, size, header, err := seekWavData(f)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func trimWav(src, dst string, sec float64) error {
 	return err
 }
 
-func wavData(f *os.File) (bytesPerSec uint32, size int64, header []byte, err error) {
+func seekWavData(f *os.File) (bytesPerSec uint32, size int64, header []byte, err error) {
 	h := make([]byte, 12)
 	if _, err = io.ReadFull(f, h); err != nil || string(h[:4]) != "RIFF" || string(h[8:]) != "WAVE" {
 		return 0, 0, nil, errors.New("not a WAV file")

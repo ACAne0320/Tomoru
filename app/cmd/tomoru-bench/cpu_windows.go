@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const filetimeTick = 100 * time.Nanosecond
+
 func cpuTimes() (children, self float64) {
 	var c, e, k, u syscall.Filetime
 	h, err := syscall.GetCurrentProcess()
@@ -12,7 +14,7 @@ func cpuTimes() (children, self float64) {
 		return 0, 0
 	}
 	d := func(f syscall.Filetime) time.Duration {
-		return time.Duration(int64(f.HighDateTime)<<32|int64(f.LowDateTime)) * 100
+		return time.Duration(int64(f.HighDateTime)<<32|int64(f.LowDateTime)) * filetimeTick
 	}
 	return 0, (d(k) + d(u)).Seconds()
 }

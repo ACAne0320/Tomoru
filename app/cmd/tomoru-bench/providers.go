@@ -124,9 +124,14 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 	if spec.InEngine {
 		return spec, env, stop, nil
 	}
-	if _, err := spec.New(env); err != nil {
+	if err := preload(spec, env); err != nil {
 		stop()
 		return spec, env, nil, err
 	}
 	return spec, env, stop, nil
+}
+
+func preload(spec asr.Spec, env asr.Env) error {
+	_, err := spec.New(env)
+	return err
 }
