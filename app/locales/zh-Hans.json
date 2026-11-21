@@ -180,6 +180,7 @@
   "edit": "编辑",
   "save": "保存",
   "addEndpoint": "添加翻译接口…",
+  "addEndpointTitle": "添加翻译接口",
   "endpointIntro": "支持 OpenAI 兼容接口，如 DeepSeek、Ollama。",
   "endpointName": "名称",
   "endpointUrl": "接口地址",

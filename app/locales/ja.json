@@ -180,6 +180,7 @@
   "edit": "編集",
   "save": "保存",
   "addEndpoint": "翻訳 API を追加…",
+  "addEndpointTitle": "翻訳 API を追加",
   "endpointIntro": "OpenAI 互換 API（DeepSeek、Ollama など）に対応しています。",
   "endpointName": "名前",
   "endpointUrl": "API のアドレス",

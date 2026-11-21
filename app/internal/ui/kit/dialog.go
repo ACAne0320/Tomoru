@@ -95,17 +95,17 @@ func confirmActions(c *ui.Context, open, chosen *bool, action string) {
 	})
 }
 
-type DiscardGuard struct{ Asking bool }
+type DiscardGuard struct{ Confirming bool }
 
 func (g *DiscardGuard) Guard(dialog ui.Element, open *bool, changed bool) {
 	if !dialog.Dismissed() {
 		return
 	}
 	switch {
-	case g.Asking:
-		g.Asking = false
+	case g.Confirming:
+		g.Confirming = false
 	case changed:
-		g.Asking = true
+		g.Confirming = true
 	default:
 		return
 	}
@@ -116,10 +116,10 @@ func (g *DiscardGuard) Actions(c *ui.Context, open *bool) {
 	DialogActions(c, func() {
 		ui.Text(c, locales.AskDiscard()).FontSize(TextControl).FontWeight(WeightBold).TextColor(Colors(c).Ink).Grow(1).MaxLines(2)
 		if Button(c, Plain, Small, nil, locales.KeepEditing()).AutoFocus().Clicked() {
-			g.Asking = false
+			g.Confirming = false
 		}
 		if Button(c, Danger, Small, nil, locales.Discard()).Clicked() {
-			*open, g.Asking = false, false
+			*open, g.Confirming = false, false
 		}
 	})
 }

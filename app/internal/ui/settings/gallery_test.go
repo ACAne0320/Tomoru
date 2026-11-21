@@ -93,7 +93,7 @@ func TestGallery(t *testing.T) {
 			k.SetImageEngine("cloud")
 		}},
 		{"engines-service", 1900, func() { s.shown[core.MT] = core.HyMTCloud }},
-		{"engines-service-set", 1900, func() { k.SaveAPI(prefs.Service{ID: core.HyMTCloud}, "sk"); s.svc[core.MT] = serviceEdit{} }},
+		{"engines-service-set", 1900, func() { k.SaveAPI(prefs.Service{ID: core.HyMTCloud}, "sk"); *s.serviceEdit(core.MT) = serviceEdit{} }},
 		{"engines-api", 1900, func() {
 			id := k.SaveEndpoint(prefs.Endpoint{Name: "Qwen-VL", URL: "https://dashscope.aliyuncs.com/compatible-mode", Model: "qwen-vl-max"}, "sk")
 			s.show(core.MT, prefs.EndpointEngine(id))
@@ -118,11 +118,11 @@ func TestGallery(t *testing.T) {
 		{"about", Height, func() { s.Tab = "about" }},
 		{"report", Height, func() { s.feedback = feedbackEdit{open: true} }},
 		{"report-open", MinHeight, func() {
-			s.feedback = feedbackEdit{open: true, shown: true, what: "Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"}
+			s.feedback = feedbackEdit{open: true, textUnfolded: true, what: "Watching Frieren on Crunchyroll, the subtitles stopped after ten minutes"}
 		}},
 		{"report-idea", Height, func() { s.feedback = feedbackEdit{open: true, kind: 1} }},
 		{"report-narrow", Height, func() {
-			s.feedback.shown, mt = false, k.Prefs.MT
+			s.feedback.textUnfolded, mt = false, k.Prefs.MT
 			k.Prefs.Endpoints = append(k.Prefs.Endpoints, prefs.Endpoint{ID: "long", Name: "OpenRouter", Model: "qwen/qwen3-235b-a22b-instruct-2507:free-tier-preview-build-20261109"})
 			k.Prefs.MT = "custom:long"
 		}},

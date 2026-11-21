@@ -825,7 +825,11 @@
   },
   "addEndpoint": "Add a translation API…",
   "@addEndpoint": {
-    "description": "Button that adds a translation API, and that dialog's title."
+    "description": "Button that adds a translation API."
+  },
+  "addEndpointTitle": "Add a translation API",
+  "@addEndpointTitle": {
+    "description": "The title of the dialog that adds a translation API."
   },
   "endpointIntro": "Works with OpenAI-compatible APIs, such as DeepSeek or Ollama.",
   "@endpointIntro": {

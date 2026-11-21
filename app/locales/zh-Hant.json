@@ -180,6 +180,7 @@
   "edit": "編輯",
   "save": "儲存",
   "addEndpoint": "新增翻譯介面…",
+  "addEndpointTitle": "新增翻譯介面",
   "endpointIntro": "支援 OpenAI 相容介面，如 DeepSeek、Ollama。",
   "endpointName": "名稱",
   "endpointUrl": "介面位址",

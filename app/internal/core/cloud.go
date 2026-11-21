@@ -73,12 +73,40 @@ func apiKey(id string) string {
 	return "asr-key:" + id
 }
 
-func ServiceOf(id string) (url string, models []string) {
+type ServiceInfo struct {
+	URL    string
+	Models []ServiceModel
+}
+
+type ServiceModel struct{ ID, Label string }
+
+func (s ServiceInfo) Default() string { return s.Models[0].ID }
+
+func (s ServiceInfo) Labeled() bool { return s.Models[0].Label != "" }
+
+var modelLabels = map[string][]string{
+	QwenCloud: {"3.1", "3.0"},
+	HyMTCloud: {"Plus", "Pro", "Lite"},
+}
+
+func ServiceOf(id string) ServiceInfo {
+	url, ids := "", []string(nil)
 	if s, ok := MTServiceByID(id); ok {
-		return s.URL, s.Models
+		url, ids = s.URL, s.Models
+	} else {
+		s, _ := asr.ByID(id)
+		url, ids = s.URL, s.Models
 	}
-	s, _ := asr.ByID(id)
-	return s.URL, s.Models
+	info := ServiceInfo{URL: url}
+	labels := modelLabels[id]
+	for i, m := range ids {
+		sm := ServiceModel{ID: m}
+		if i < len(labels) {
+			sm.Label = labels[i]
+		}
+		info.Models = append(info.Models, sm)
+	}
+	return info
 }
 
 func (c *Core) API(id string) prefs.Service {

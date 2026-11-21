@@ -23,6 +23,30 @@ type Engine struct {
 	Endpoint *prefs.Endpoint
 }
 
+type Source int
+
+const (
+	SourceSystem Source = iota
+	SourceLocal
+	SourceIndexCloud
+	SourceService
+	SourceUserAPI
+)
+
+func (e Engine) Source() Source {
+	switch {
+	case e.Model != nil:
+		return SourceLocal
+	case e.Endpoint != nil:
+		return SourceUserAPI
+	case e.Family() == "cloud":
+		return SourceIndexCloud
+	case e.Cloud:
+		return SourceService
+	}
+	return SourceSystem
+}
+
 func (c *Core) Engines(k Kind) []Engine { return engineCatalog(k, c.Prefs.Endpoints) }
 
 func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {

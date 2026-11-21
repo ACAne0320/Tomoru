@@ -21,7 +21,6 @@ type Settings struct {
 	Tab          string
 	source       shared.SourceMenu
 	edit         endpointEdit
-	edits        int
 	models       map[string]models.State
 	modelsMoving bool
 	keys         shared.ShortcutRecorder

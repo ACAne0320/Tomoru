@@ -47,8 +47,27 @@ type enginesEdit struct {
 	shown     map[core.Kind]string
 	addingAPI bool
 	api       endpointEdit
-	svc       [2]serviceEdit
+	svc       map[core.Kind]*serviceEdit
 }
+
+func (s *Settings) serviceEdit(kind core.Kind) *serviceEdit {
+	if s.svc == nil {
+		s.svc = map[core.Kind]*serviceEdit{}
+	}
+	if s.svc[kind] == nil {
+		s.svc[kind] = &serviceEdit{}
+	}
+	return s.svc[kind]
+}
+
+func (s *Settings) shownFamily(kind core.Kind, fams [][]core.Engine) int {
+	if i := slices.IndexFunc(fams, func(f []core.Engine) bool { return f[0].Family() == s.shown[kind] }); i >= 0 {
+		return i
+	}
+	return max(0, slices.IndexFunc(fams, func(f []core.Engine) bool { return s.inUse(f) }))
+}
+
+const progressRedraw = 250 * time.Millisecond
 
 func (s *Settings) show(kind core.Kind, family string) {
 	s.shown[kind] = family
@@ -56,7 +75,7 @@ func (s *Settings) show(kind core.Kind, family string) {
 		s.addingAPI = false
 		s.closeAPI()
 	}
-	if d := &s.svc[kind]; d.open {
+	if d := s.serviceEdit(kind); d.open {
 		s.core.ForgetTest(d.test)
 		*d = serviceEdit{}
 	}
@@ -120,7 +139,7 @@ func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 	var under func()
 	switch {
 	case mv.Active:
-		c.After(250 * time.Millisecond)
+		c.After(progressRedraw)
 		under = func() {
 			kit.OptionProgress(c, float64(mv.Done)/float64(max(mv.Total, 1)), locales.ModelsMoving(shared.Size(mv.Done), shared.Size(mv.Total)))
 		}
@@ -162,10 +181,7 @@ func (s *Settings) kind(c *ui.Context, kind core.Kind) {
 		title = locales.EnginesMt()
 	}
 	fams := k.Families(kind)
-	shown := slices.IndexFunc(fams, func(f []core.Engine) bool { return f[0].Family() == s.shown[kind] })
-	if shown < 0 {
-		shown = max(0, slices.IndexFunc(fams, func(f []core.Engine) bool { return s.inUse(f) }))
-	}
+	shown := s.shownFamily(kind, fams)
 	adding := kind == core.MT && s.addingAPI
 	rows := make([]kit.Choice, len(fams))
 	for i, f := range fams {
@@ -276,7 +292,7 @@ func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice
 		r.Meta = cmp.Or(summary(k, f[0]), shared.FamilyNote(f))
 	}
 	if loading != nil && !shown {
-		c.After(250 * time.Millisecond)
+		c.After(progressRedraw)
 		r.Downloading, r.Progress = true, float64(st.Done)/float64(max(st.Total, 1))
 	}
 	return r
@@ -300,11 +316,8 @@ func summary(k *core.Core, e core.Engine) string {
 		return e.Endpoint.Model + " · " + host(e.Endpoint.URL)
 	case e.Cloud && k.API(e.ID).Key:
 		a := k.API(e.ID)
-		url, models := core.ServiceOf(e.ID)
-		u, model := cmp.Or(a.URL, url), a.Model
-		if model == "" && len(models) > 0 {
-			model = models[0]
-		}
+		info := core.ServiceOf(e.ID)
+		u, model := cmp.Or(a.URL, info.URL), cmp.Or(a.Model, info.Default())
 		return model + " · " + host(u) + " · " + locales.KeySaved()
 	}
 	return ""
@@ -338,20 +351,20 @@ func (s *Settings) detail(c *ui.Context, kind core.Kind, f []core.Engine) {
 			kit.Warning(c, locales.DoesntHearSwitch(shared.LangName(src), shared.LangName(then)))
 		}
 	}
-	switch e := f[0]; {
-	case e.Model != nil:
+	switch e := f[0]; e.Source() {
+	case core.SourceLocal:
 		label := locales.ModelSizes()
 		if len(f) == 1 {
 			label = locales.EndpointModel()
 		}
 		head(c, label)
 		s.sizes(c, kind, f)
-	case e.Family() == "cloud":
+	case core.SourceIndexCloud:
 		head(c, locales.ModelSizes())
 		s.cloudSizes(c, kind, f)
-	case e.Cloud:
+	case core.SourceService, core.SourceUserAPI:
 		s.service(c, e)
-	default:
+	case core.SourceSystem:
 		head(c, locales.EndpointModel())
 		ui.Column(c).Children(func() {
 			if kit.Options(c, []kit.Option{{Key: e.ID, On: inUse, Title: locales.TagBuiltIn()}}) == 0 && !inUse {
@@ -400,7 +413,7 @@ func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 		o.Action = func() { s.download(c, e, st, short == core.Shortfall{}) }
 		var below []func()
 		if st.State == models.Downloading && !moving {
-			c.After(250 * time.Millisecond)
+			c.After(progressRedraw)
 			below = append(below, func() {
 				kit.OptionProgress(c, float64(st.Done)/float64(max(st.Total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(st.Total))).Padding(0, kit.QuietInset, 0, 0)
 			})
@@ -526,22 +539,22 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 	usable := k.Usable(e)
 	var editing bool
 	var edit func()
-	switch {
-	case e.Endpoint != nil:
+	d := s.serviceEdit(e.Kind)
+	switch e.Source() {
+	case core.SourceUserAPI:
 		editing = s.api.open && s.api.e.ID == e.Endpoint.ID
 		ep := *e.Endpoint
 		edit = func() { s.editAPI(&s.api, ep) }
-	default:
-		d := &s.svc[e.Kind]
-		if !usable && !(d.open && d.a.ID == e.ID) {
-			d.Open(k, e.ID, s.next())
+	case core.SourceService:
+		if !usable && !(d.open && d.service.ID == e.ID) {
+			d.Open(k, e.ID)
 		}
-		editing = d.open && d.a.ID == e.ID
-		edit = func() { d.Open(k, e.ID, s.next()) }
+		editing = d.open && d.service.ID == e.ID
+		edit = func() { d.Open(k, e.ID) }
 	}
 	switch {
 	case !usable:
-		s.serviceForm(c, &s.svc[e.Kind], false)
+		s.serviceForm(c, d, false)
 	case !editing:
 		head(c, locales.Service())
 		ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
@@ -553,12 +566,12 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 				edit()
 			}
 		})
-	case e.Endpoint != nil:
+	case e.Source() == core.SourceUserAPI:
 		head(c, locales.Service())
 		s.apiForm(c, &s.api, func() { s.closeAPI() })
 	default:
 		head(c, locales.Service())
-		s.serviceForm(c, &s.svc[e.Kind], true)
+		s.serviceForm(c, d, true)
 	}
 }
 

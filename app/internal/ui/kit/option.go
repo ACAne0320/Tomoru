@@ -186,3 +186,7 @@ func Waiting(c *ui.Context, s string) ui.Element {
 func Warning(c *ui.Context, s string) ui.Element {
 	return ui.Text(c, s).FontSize(TextCaption).TextColor(Colors(c).LanternText)
 }
+
+func FieldNote(c *ui.Context, note, link, url string) ui.Element {
+	return Linked(c, note, link, url, TextCaption, Colors(c).Faint)
+}

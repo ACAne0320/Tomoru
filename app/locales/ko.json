@@ -180,6 +180,7 @@
   "edit": "편집",
   "save": "저장",
   "addEndpoint": "번역 API 추가…",
+  "addEndpointTitle": "번역 API 추가",
   "endpointIntro": "OpenAI 호환 API(DeepSeek, Ollama 등)를 지원해요.",
   "endpointName": "이름",
   "endpointUrl": "API 주소",

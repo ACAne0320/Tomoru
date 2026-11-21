@@ -202,7 +202,7 @@ func (s *Settings) learnFound(c *ui.Context) {
 	kit.SettingRow(c, 0, locales.LearnAddTo(), "", func() {
 		kit.Picker(c, name(d.target), kit.Choices(d.target, [][]string{ids}, name, func(id string) { d.target = id })).Label(locales.LearnAddTo())
 	})
-	if d.discard.Asking {
+	if d.discard.Confirming {
 		d.discard.Actions(c, &d.open)
 		return
 	}

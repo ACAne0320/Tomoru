@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -46,6 +47,7 @@ type EngineService struct {
 	changed    func()
 	visions    map[api]prefs.Vision
 	imageCloud func() *translate.Endpoint
+	lastTest   int
 }
 
 type api struct{ url, model, format string }
@@ -118,6 +120,11 @@ func (s *EngineService) forgetTest(test string) {
 }
 
 func (s *EngineService) ForgetTest(test string) { s.forgetTest(test); s.notify() }
+
+func (s *EngineService) NewTest() string {
+	s.lastTest++
+	return fmt.Sprintf("test-%d", s.lastTest)
+}
 
 func (s *EngineService) stopTests() {
 	for id, op := range s.tests {
