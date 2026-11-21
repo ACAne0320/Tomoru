@@ -1,20 +1,3 @@
-// Command tomoru-bench runs the benchmark's cases (bench/cases.tsv, bench/README.md) through Tomoru
-// as the app runs them: the engine hears each recording at its pace (listen --file), and the
-// session recognizes, segments, drafts and translates it. It records when each change of the
-// subtitles came, for bench/score.py to score against the references.
-//
-//	go run ./cmd/tomoru-bench -asr apple -mt cloud [-j 10] [-max 120] [-case id,...] [-lang ja] [-scene talk] [-all]
-//	go run ./cmd/tomoru-bench -mt cloud -mt-only    translate the references' sentences only
-//
-// -asr is apple, a recognition model's ID (sensevoice, qwen3-asr-0.6b…), qwen-cloud[:model] with
-// DASHSCOPE_API_KEY and DASHSCOPE_API_HOST, or openai[:model] (live transcription, or the
-// transcription API for another model than gpt-live-transcribe) with OPENAI_API_KEY and
-// OPENAI_BASE_URL;
-// -mt is cloud[:model], a translation model's ID (local-2b, hy-mt2-1.8b…), hy-mt-cloud[:model] with
-// TOKENHUB_API_KEY and TOKENHUB_BASE_URL, or chat with -mt-url, -mt-model and the key in
-// $MT_API_KEY.
-// A run goes to bench/runs/<name>/: run.json, and <case>.json for each case. Another run of the same
-// name and engines adds its cases to it: a long run goes in batches.
 package main
 
 import (
@@ -160,8 +143,6 @@ func main() {
 			if *mtOnly {
 				r = translateRefs(c, media, tr, desc)
 			} else {
-				// The case's scene: its glossary's names and its description, which recognition is
-				// told to expect, and translation is given.
 				var g *scene.Glossary
 				if *glossary != "" {
 					if g, err = readGlossary(filepath.Join(*glossary, c.ID+".json")); err != nil {
@@ -205,7 +186,6 @@ func main() {
 	stopMT()
 	run.Wall = time.Since(run.Started).Seconds()
 	run.CPUChild, run.CPUSelf = cpuTimes()
-	// A run of that name already there gets these cases too, as a run in batches does.
 	if b, err := os.ReadFile(filepath.Join(out, "run.json")); err == nil {
 		var before Run
 		if json.Unmarshal(b, &before) == nil && before.ASR == run.ASR && before.MT == run.MT && before.Draft == run.Draft {
@@ -222,7 +202,6 @@ func main() {
 		}
 	}
 	slices.Sort(run.Cases)
-	// The audio of the cases as they are now: a case run again counts once.
 	run.Audio = 0
 	for _, id := range run.Cases {
 		var r Result

@@ -1,6 +1,3 @@
-// Package shell puts the UI together: the menu bar icon, the subtitle overlay, and the panel,
-// settings and guide windows, which it opens and closes. It implements shared.Nav, by which the
-// surfaces go to each other, and redraws them as the core changes.
 package shell
 
 import (
@@ -16,26 +13,24 @@ import (
 	"tomoru/locales"
 )
 
-// Shell is the UI. It is used on the main thread.
 type Shell struct {
 	core      *core.Core
 	tray      *mygo.Tray
 	trayOn    bool
-	trayItems string // what the menu setTrayMenu last set shows, where the icon only has its menu
+	trayItems string
 	overlay   *overlay.Overlay
 
-	shortcut      string // the global shortcut registered, "" for none
-	imageShortcut string // the picture's
+	shortcut      string
+	imageShortcut string
 
-	panel    *mygo.Window       // the panel's flyout, while it shows
-	image    *mygo.Window       // the picture's translation card, while it shows
-	picture  *mygo.Window       // the card's picture, whole, while it shows
-	settings *mygo.Window       // the settings window, while it shows
-	pages    *settings.Settings // its content, whose page ShowSettingsPage turns to
-	guide    *mygo.Window       // the first-run guide, while it shows
+	panel    *mygo.Window
+	image    *mygo.Window
+	picture  *mygo.Window
+	settings *mygo.Window
+	pages    *settings.Settings
+	guide    *mygo.Window
 }
 
-// New makes the menu bar icon, the overlay and the global shortcut.
 func New(k *core.Core) *Shell {
 	s := &Shell{core: k}
 	s.overlay = overlay.New(k, s)
@@ -45,9 +40,6 @@ func New(k *core.Core) *Shell {
 		log.Fatal("tray: ", err)
 	}
 	s.tray = tray
-	// A click opens the panel, Tomoru's own, what one changes while watching; the right button the
-	// system's menu, as the icons of the menu bar and of Windows' taskbar have it. On Linux a click
-	// opens the menu, which shows the panel.
 	if menuOnly {
 		s.setTrayMenu()
 	} else {
@@ -60,16 +52,13 @@ func New(k *core.Core) *Shell {
 	if err := s.SetImageShortcut(k.Preferences().ImageShortcut); err != nil {
 		log.Println("picture's shortcut:", err)
 	}
-	k.CheckScreen() // whether the picture's shortcut selects a part of the screen
-	k.ListLangs()   // the languages the system's recognition hears
+	k.CheckScreen()
+	k.ListLangs()
 	k.OnChange(s.redraw)
 	mygo.App.OnLocaleChanged(func(string) { s.relabel() })
 	return s
 }
 
-// Launch does what launching the app asks: the first-run guide on a first launch, else translating
-// when the settings or start say so, else saying it is ready where the subtitles go. Opened at
-// login, it waits: the user did not ask for subtitles yet.
 func (s *Shell) Launch(start bool) {
 	k := s.core
 	switch {
@@ -83,7 +72,6 @@ func (s *Shell) Launch(start bool) {
 	}
 }
 
-// redraw redraws the windows, which show the core's state, and sets the menu bar icon.
 func (s *Shell) redraw() {
 	if on := s.core.Running; on != s.trayOn {
 		s.trayOn = on
@@ -104,7 +92,6 @@ func (s *Shell) redraw() {
 	s.overlay.Redraw()
 }
 
-// relabel sets again what windows took once, in the language the app now shows.
 func (s *Shell) relabel() {
 	if s.settings != nil {
 		s.settings.SetTitle(locales.SettingsTitle())
@@ -115,13 +102,9 @@ func (s *Shell) relabel() {
 	s.redraw()
 }
 
-// syncDock shows the Dock icon while the settings window or the guide is open, as menu bar apps
-// do, and brings the app to the front for them.
 func (s *Shell) syncDock() {
 	if s.settings != nil || s.guide != nil {
 		mygo.App.SetActivationPolicy(mygo.ActivationPolicyRegular)
-		// A run without an app bundle has no icon of its own. AppKit sets the new tile's icon after
-		// the policy changes, over one set at once or 300 ms later; 1.5 s later it holds.
 		time.AfterFunc(1500*time.Millisecond, func() {
 			if s.core.Context().Err() == nil {
 				mygo.App.Dock.SetIcon(assets.AppIconPNG)

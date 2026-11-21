@@ -1,7 +1,5 @@
 name: Checks
 
-# Static checks (scripts/check.sh), no tests or builds, for what changed (.github/paths.yml).
-
 on:
   push:
     branches: [main]
@@ -9,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read # the files a pull request changed
+  pull-requests: read
 
 concurrency:
   group: checks-${{ github.ref }}
@@ -20,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      go: ${{ steps.paths.outputs.go == 'true' || steps.paths.outputs.licenses == 'true' || steps.paths.outputs.ci == 'true' }}
+      go: ${{ steps.paths.outputs.go == 'true' || steps.paths.outputs.comments == 'true' || steps.paths.outputs.licenses == 'true' || steps.paths.outputs.ci == 'true' }}
       swift: ${{ steps.paths.outputs.swift == 'true' || steps.paths.outputs.ci == 'true' }}
     steps:
       - uses: actions/checkout@v4

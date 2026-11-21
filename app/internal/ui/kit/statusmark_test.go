@@ -7,8 +7,6 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// TestStatusMarkRests draws no frame while nothing moves: the eyes once they have looked around,
-// and with Reduce Motion every state, a voice heard included.
 func TestStatusMarkRests(t *testing.T) {
 	loud := func(time.Time) float32 { return .8 }
 	s, since := MarkReady, time.Now()

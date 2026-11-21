@@ -18,22 +18,16 @@ import (
 	"tomoru-engine-shared"
 )
 
-// systemSource hears the default playback device, or app alone, a program's file name, with
-// its helpers (a browser's audio process is a child of the browser). An
-// app that is not running yet is heard once it starts, and again once it starts again.
 func systemSource(app string) shared.Source { return &loopback{app: strings.ToLower(app)} }
 
 type loopback struct{ app string }
 
-// The formats to capture, in order: the one sent, else one the audio engine surely gives, which is
-// made it here.
 var formats = []struct{ rate, channels int }{{shared.Rate, 1}, {48000, 2}}
 
 func (l *loopback) Start(feed func([]int16)) error {
 	if l.app == "" {
 		opened := make(chan error, 1)
 		go func(opened chan error) {
-			// Should capture stop, as when the audio service restarts, it starts again.
 			for {
 				l.run(0, feed, opened, nil)
 				time.Sleep(time.Second)
@@ -64,10 +58,8 @@ func (l *loopback) Start(feed func([]int16)) error {
 	return nil
 }
 
-// run captures the default playback device (pid 0) or a process tree until it changes or ends,
-// telling opened whether it started.
 func (l *loopback) run(pid uint32, feed func([]int16), opened chan<- error, ended func() bool) {
-	runtime.LockOSThread() // COM's objects, on the thread that made them
+	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 	var c *C.tc_capture
 	var hr C.long = -1
@@ -108,7 +100,6 @@ func (l *loopback) run(pid uint32, feed func([]int16), opened chan<- error, ende
 			frames += len(got)
 			feed(got)
 		}
-		// What arrives, logged every 30 s: silence, as much as sound, says capture works.
 		if time.Since(report) >= 30*time.Second {
 			log.Printf("capture: %.1f s of audio, peak %.4f", float64(frames)/shared.Rate, float64(peak)/32768)
 			frames, peak, report = 0, 0, time.Now()
@@ -133,8 +124,6 @@ func (l *loopback) run(pid uint32, feed func([]int16), opened chan<- error, ende
 	}
 }
 
-// converter makes interleaved 16-bit audio of rate and channels 16 kHz mono, when it is a whole
-// multiple of it, averaging.
 type converter struct {
 	channels, factor int
 	sum, n           int
@@ -162,8 +151,6 @@ func (c *converter) convert(in []int16) []int16 {
 	return out
 }
 
-// findApp finds the process of a program, by its file name: the first that no other of it started,
-// and a handle to wait for it to end. 0 when none runs.
 func findApp(exe string) (uint32, windows.Handle) {
 	procs := processes()
 	for pid, p := range procs {
@@ -171,7 +158,7 @@ func findApp(exe string) (uint32, windows.Handle) {
 			continue
 		}
 		if parent, ok := procs[p.parent]; ok && strings.EqualFold(parent.exe, exe) {
-			continue // a helper: its tree is the root's
+			continue
 		}
 		h, err := windows.OpenProcess(windows.SYNCHRONIZE, false, pid)
 		if err != nil {
@@ -187,7 +174,6 @@ type process struct {
 	parent uint32
 }
 
-// processes are the processes running, by ID.
 func processes() map[uint32]process {
 	out := map[uint32]process{}
 	snap, err := windows.CreateToolhelp32Snapshot(windows.TH32CS_SNAPPROCESS, 0)
@@ -202,5 +188,4 @@ func processes() map[uint32]process {
 	return out
 }
 
-// hresult is an HRESULT, as an error that says it.
 func hresult(hr C.long) error { return fmt.Errorf("%#08x: %v", uint32(hr), windows.Errno(uint32(hr))) }

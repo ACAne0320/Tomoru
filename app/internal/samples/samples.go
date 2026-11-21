@@ -1,10 +1,5 @@
-// Package samples is a made-up stream, as a streamer would say it, in the languages most watched:
-// what the subtitles show to show their look, and what the first-run guide says aloud to try
-// translating.
 package samples
 
-// Lines are the sentences, in the order they are said, by language: Chinese, in both scripts,
-// English, Japanese and Korean.
 var Lines = []map[string]string{
 	{"zh": "大家晚上好。", "ja": "皆さん、こんばんは。", "en": "Good evening, everyone.", "ko": "여러분, 안녕하세요.", "zh-Hant": "大家晚上好。"},
 	{"zh": "今天的直播会比平时长一点。", "ja": "今日の配信はいつもより少し長くなります。", "en": "Today's stream will run a bit longer than usual.", "ko": "오늘 방송은 평소보다 조금 길어질 거예요.", "zh-Hant": "今天的直播會比平常長一點。"},
@@ -18,14 +13,11 @@ var Lines = []map[string]string{
 	{"zh": "这个 Boss 的第二阶段超强的。", "ja": "このボスの第二形態がめっちゃ強いんだよね。", "en": "This boss's second phase is really tough.", "ko": "이 보스 2페이즈가 진짜 강해요.", "zh-Hant": "這個 Boss 的第二階段超強的。"},
 }
 
-// Has tells whether there are samples in lang.
 func Has(lang string) bool {
 	_, ok := Lines[0][lang]
 	return ok
 }
 
-// In is the sample s in lang, or where there is none, in the language nearest it that has one:
-// Traditional Chinese for Cantonese, which is written so, and English for the others.
 func In(s map[string]string, lang string) string {
 	if t, ok := s[lang]; ok {
 		return t
@@ -36,7 +28,6 @@ func In(s map[string]string, lang string) string {
 	return s["en"]
 }
 
-// Spoken are the sentences the guide says aloud, in lang, of those Has: the first few.
 func Spoken(lang string) []string {
 	var out []string
 	for _, l := range Lines[:4] {
@@ -45,8 +36,6 @@ func Spoken(lang string) []string {
 	return out
 }
 
-// Dialogue is a game's dialogue box, by language: who speaks and what they say. The guide has it
-// translated as a picture (assets.SamplePicture).
 var Dialogue = map[string][2]string{
 	"zh": {"艾露娜", "克劳德，塔顶上那个发光的东西……该不会就是「星之碎片」吧？"},
 	"ja": {"エルナ", "クロード、あの塔のてっぺんで光ってるもの……まさか「星の欠片」じゃないよね？"},

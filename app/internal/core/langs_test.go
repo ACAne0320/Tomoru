@@ -16,8 +16,8 @@ func TestSourceLangs(t *testing.T) {
 		asr  string
 		want []string
 	}{
-		{"apple", lang.Spoken()}, // until the system says
-		{"sensevoice-small", []string{"auto", "zh", "en", "ja", "ko", "yue"}}, // it tells which it hears
+		{"apple", lang.Spoken()},
+		{"sensevoice-small", []string{"auto", "zh", "en", "ja", "ko", "yue"}},
 		{QwenCloud, qwencloud.Langs},
 		{"", lang.Spoken()},
 	} {
@@ -47,7 +47,7 @@ func TestListLangs(t *testing.T) {
 	if c.Prefs.Src != "en" {
 		t.Errorf("Thai, unheard, became %q", c.Prefs.Src)
 	}
-	c.ListLangs() // once
+	c.ListLangs()
 	if slices.Index(f.ran, "locales") != len(f.ran)-1 {
 		t.Errorf("ran %v", f.ran)
 	}
@@ -57,7 +57,6 @@ func TestFitLangs(t *testing.T) {
 	c, _ := newCore(t)
 	model := Engine{ID: "sensevoice-small", Kind: ASR}
 
-	// Recognition that does not hear the spoken language: English instead, else Japanese.
 	c.Prefs.Src, c.Prefs.Tgt = "fr", "zh"
 	c.use(model)
 	if c.Prefs.Src != "en" || c.Prefs.Tgt != "zh" {
@@ -70,7 +69,6 @@ func TestFitLangs(t *testing.T) {
 		t.Errorf("fr → en became %s → %s", c.Prefs.Src, c.Prefs.Tgt)
 	}
 
-	// A target recognition does not hear does not swap into the spoken language.
 	c.Prefs.Src, c.Prefs.Tgt = "ja", "fr"
 	if c.CanSwap() {
 		t.Error("can swap into French")
@@ -92,14 +90,12 @@ func TestFitLangs(t *testing.T) {
 
 func TestPrepareOnlyHeard(t *testing.T) {
 	c, f := newCore(t)
-	c.PrepareASR("zh-Hant") // written, not spoken
+	c.PrepareASR("zh-Hant")
 	if len(f.ran) != 0 || c.ASR["zh-Hant"] != "" {
 		t.Errorf("prepared Traditional Chinese: ran %v", f.ran)
 	}
 }
 
-// TestAuto has a recognition that tells the language it hears offer lang.Auto, which swaps with
-// nothing, and becomes a language heard with one that does not tell it.
 func TestAuto(t *testing.T) {
 	c, _ := newCore(t)
 	c.Prefs.ASR, c.Prefs.Src, c.Prefs.Tgt = "sensevoice-small", "ja", "zh"
@@ -111,7 +107,6 @@ func TestAuto(t *testing.T) {
 	if c.Prefs.Src != lang.Auto {
 		t.Errorf("swapped to %s → %s", c.Prefs.Src, c.Prefs.Tgt)
 	}
-	// Speaking the target: it takes the other's place, which is no language to translate into.
 	c.SetSrc("zh")
 	if c.Prefs.Src != "zh" || c.Prefs.Tgt != "en" {
 		t.Errorf("zh, the target, spoken: %s → %s", c.Prefs.Src, c.Prefs.Tgt)

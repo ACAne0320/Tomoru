@@ -11,8 +11,6 @@ import (
 	"tomoru/locales"
 )
 
-// TestTrayMenu has the menu bar icon's menu start translating, or stop it, with its shortcut shown,
-// translate a part of the screen, open the app or say what it is, and quit, apart.
 func TestTrayMenu(t *testing.T) {
 	k := coretest.New()
 	s := &Shell{core: k}
@@ -38,7 +36,6 @@ func TestTrayMenu(t *testing.T) {
 	if got := s.trayMenu().Items()[0].Label; got != locales.Pause() {
 		t.Errorf("translating: %q", got)
 	}
-	// With the original only, it starts and pauses subtitles.
 	k.Prefs.Display = prefs.DisplaySrc
 	if got := s.trayMenu().Items()[0].Label; got != locales.PauseSubtitles() {
 		t.Errorf("subtitles: %q", got)
@@ -49,7 +46,6 @@ func TestTrayMenu(t *testing.T) {
 	}
 }
 
-// TestTrayMenuOnly has the menu of an icon that only has its menu, Linux's, show the panel first.
 func TestTrayMenuOnly(t *testing.T) {
 	defer func(was bool) { menuOnly = was }(menuOnly)
 	menuOnly = true

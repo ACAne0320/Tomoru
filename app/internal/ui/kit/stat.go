@@ -13,10 +13,8 @@ import (
 	"tomoru/locales"
 )
 
-// Stat is a number of the strip: what it counts, the number, its unit and a note under it, if any.
 type Stat struct{ Label, Value, Unit, Note string }
 
-// StatStrip shows numbers side by side on a white card, a line between each.
 func StatStrip(c *ui.Context, label string, stats []Stat) ui.Element {
 	p := Colors(c)
 	return p.CardShadow.Cast(ui.Row(c).Wrap().AlignItems(ui.Stretch).Radius(RadiusCard).Background(p.Card).Border(1, p.Line)).Role(ui.RoleGroup).Label(label).Children(func() {
@@ -41,11 +39,8 @@ func StatStrip(c *ui.Context, label string, stats []Stat) ui.Element {
 	})
 }
 
-// Fact is a small figure of Facts: what it counts, and the figure with its unit.
 type Fact struct{ Label, Value string }
 
-// Facts shows small figures side by side, each under what it counts, wrapping when the room runs
-// out: what an item of a list did.
 func Facts(c *ui.Context, facts []Fact) ui.Element {
 	p := Colors(c)
 	return ui.Row(c).Wrap().GapX(Space(6)).GapY(Space(2)).Children(func() {
@@ -58,8 +53,6 @@ func Facts(c *ui.Context, facts []Fact) ui.Element {
 	})
 }
 
-// Number is a value on a chart's axis: a whole number with its thousands apart, else as short as it
-// is, 0.25.
 func Number(v float64) string {
 	v = math.Round(v*1e6) / 1e6
 	if v == math.Trunc(v) && math.Abs(v) < 1e15 {
@@ -68,8 +61,6 @@ func Number(v float64) string {
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-// unitLast labels ticks, as Number says their values, but the last, of the highest value, which
-// format says with its unit: an axis names its unit once.
 func unitLast(ticks []chart.Tick, format func(float64) string) {
 	for i := range ticks {
 		ticks[i].Label = Number(ticks[i].Value)
@@ -79,7 +70,6 @@ func unitLast(ticks []chart.Tick, format func(float64) string) {
 	}
 }
 
-// Clock is a duration as a clock shows it: 42:18, or 1:12:06 past an hour.
 func Clock(d time.Duration) string {
 	s := int(d.Seconds())
 	if s >= 3600 {
@@ -88,7 +78,6 @@ func Clock(d time.Duration) string {
 	return fmt.Sprintf("%d:%02d", s/60, s%60)
 }
 
-// Count is a whole number with its thousands apart: 12,345.
 func Count(n int) string {
 	s := strconv.Itoa(n)
 	neg := strings.HasPrefix(s, "-")
@@ -102,8 +91,6 @@ func Count(n int) string {
 	return s
 }
 
-// SecondsValue is a short duration in seconds, the number alone: 0.62 under a second, 1.3 past
-// it, as a latency is told.
 func SecondsValue(d time.Duration) string {
 	if d < time.Second {
 		return fmt.Sprintf("%.2f", d.Seconds())
@@ -111,5 +98,4 @@ func SecondsValue(d time.Duration) string {
 	return fmt.Sprintf("%.1f", d.Seconds())
 }
 
-// Seconds is a short duration with its unit: 0.62 s.
 func Seconds(d time.Duration) string { return locales.Seconds(SecondsValue(d)) }

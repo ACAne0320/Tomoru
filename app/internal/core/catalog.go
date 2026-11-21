@@ -8,31 +8,21 @@ import (
 	"tomoru/internal/prefs"
 )
 
-// The engines to choose, of recognition and of translation, on this computer and in the cloud;
-// which of them to recommend and to use, and what this computer runs; and choosing one that is not
-// downloaded yet, as the guide does, which is used once it is.
-
-// Kind is what an engine does.
 type Kind int
 
 const (
-	ASR Kind = iota // recognizes speech
-	MT              // translates
+	ASR Kind = iota
+	MT
 )
 
-// Engine is an engine to choose.
 type Engine struct {
-	ID    string // as Prefs.ASR or Prefs.MT names it
-	Kind  Kind
-	Cloud bool // it runs on a server, which gets what is heard or recognized; else on this computer
-	// Model is the model to download before it can be used, or nil.
-	Model *models.Model
-	// Endpoint is the API the user added that it is, or nil.
+	ID       string
+	Kind     Kind
+	Cloud    bool
+	Model    *models.Model
 	Endpoint *prefs.Endpoint
 }
 
-// Engines are the engines of kind k this computer can use: those on it first, the system's and
-// then the models to download, then the cloud's, then the APIs the user added.
 func (c *Core) Engines(k Kind) []Engine { return engineCatalog(k, c.Prefs.Endpoints) }
 
 func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
@@ -60,8 +50,6 @@ func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 	return es
 }
 
-// Family is what e is listed with: its model's family, the model's sizes together; Index-
-// Translate's cloud, its sizes together, as "cloud"; else its own ID, an engine of its own.
 func (e Engine) Family() string {
 	if e.Model != nil {
 		return e.Model.Family
@@ -72,8 +60,6 @@ func (e Engine) Family() string {
 	return e.ID
 }
 
-// Families are the engines of kind k by family, in the order of Engines: each the sizes of a
-// model, or an engine of its own.
 func (c *Core) Families(k Kind) [][]Engine {
 	var fs [][]Engine
 	for _, e := range c.Engines(k) {
@@ -86,9 +72,6 @@ func (c *Core) Families(k Kind) [][]Engine {
 	return fs
 }
 
-// Recommended tells whether e is the one engine of its kind to recommend here: a local family's
-// size to recommend where this computer runs it, its GPU having the memory it needs; else, for
-// translation, Index-Translate's cloud; for recognition, none.
 func (c *Core) Recommended(e Engine) bool { return e.ID != "" && e.ID == c.recommended(e.Kind) }
 
 func (c *Core) recommended(k Kind) string {
@@ -103,16 +86,11 @@ func (c *Core) recommended(k Kind) string {
 	return ""
 }
 
-// Shortfall is what this computer lacks to run a model: Need of memory, where it has Has, of its
-// GPU's own if GPU; zero where it has what the model needs, or what it has is not known.
 type Shortfall struct {
-	Need, Has uint64 // in whole GB
+	Need, Has uint64
 	GPU       bool
 }
 
-// Shortfall says what this computer lacks to run m: its memory, else its GPU's, short of what m
-// needs. Both in whole GB, as a computer's are told: a card of 8 GB counts as 8, though its driver
-// keeps some of it.
 func (c *Core) Shortfall(m models.Model) Shortfall {
 	var mem uint64
 	if c.deps.Memory != nil {
@@ -129,8 +107,6 @@ func (c *Core) Shortfall(m models.Model) Shortfall {
 	return Shortfall{}
 }
 
-// Runs tells whether this computer is known to run m: its memory found, and its GPU's where m
-// needs one, enough. Not found, as a GPU before its devices are listed, it is not known.
 func (c *Core) Runs(m models.Model) bool {
 	if c.deps.Memory == nil || c.deps.Memory() == 0 || m.Needs.VRAM != 0 && c.gpu() == 0 {
 		return false
@@ -145,10 +121,8 @@ func (c *Core) gpu() uint64 {
 	return c.deps.GPU()
 }
 
-// gb is n bytes in GB, rounded.
 func gb(n uint64) uint64 { return (n + 1<<29) >> 30 }
 
-// Engine finds an engine of kind k.
 func (c *Core) Engine(k Kind, id string) (Engine, bool) {
 	for _, e := range c.Engines(k) {
 		if e.ID == id {
@@ -158,8 +132,6 @@ func (c *Core) Engine(k Kind, id string) (Engine, bool) {
 	return Engine{}, false
 }
 
-// Usable tells whether e can be used now: its model, if it has one, is downloaded and runs on
-// this computer; a cloud recognition service has its API key.
 func (c *Core) Usable(e Engine) bool {
 	if e.Model != nil && c.Shortfall(*e.Model) != (Shortfall{}) {
 		return false
@@ -167,8 +139,6 @@ func (c *Core) Usable(e Engine) bool {
 	return c.EngineService.usable(e, c.Prefs.APIs())
 }
 
-// Pick is the engine of family f to use on choosing the family: the size in use, else its size
-// to recommend, else the largest; of those Usable. False where none is.
 func (c *Core) Pick(f []Engine) (Engine, bool) {
 	var found []Engine
 	for _, e := range f {
@@ -192,8 +162,6 @@ func (c *Core) Pick(f []Engine) (Engine, bool) {
 	return found[len(found)-1], true
 }
 
-// Suggested is the size of family f to offer where one is picked for the user, as the guide does:
-// its size to recommend if this computer runs it, else the largest it runs, else the smallest.
 func (c *Core) Suggested(f []Engine) Engine {
 	runs := func(e Engine) bool { return e.Model == nil || c.Shortfall(*e.Model) == (Shortfall{}) }
 	for _, e := range f {
@@ -209,7 +177,6 @@ func (c *Core) Suggested(f []Engine) Engine {
 	return f[0]
 }
 
-// InUse is the engine of kind k in use.
 func (c *Core) InUse(k Kind) string {
 	if k == ASR {
 		return c.Prefs.ASR
@@ -217,13 +184,10 @@ func (c *Core) InUse(k Kind) string {
 	return c.Prefs.MT
 }
 
-// Chosen is the engine of kind k last chosen: the one to use once it is downloaded, else the one in
-// use.
 func (c *Core) Chosen(k Kind) string {
 	return c.EngineService.chosen(k, c.InUse(k))
 }
 
-// Use uses engine id of kind k from now on, if it is Usable, and tells whether it was.
 func (c *Core) Use(k Kind, id string) bool {
 	e, ok := c.Engine(k, id)
 	if !ok || !c.Usable(e) {
@@ -235,8 +199,6 @@ func (c *Core) Use(k Kind, id string) bool {
 	return true
 }
 
-// Choose chooses engine id of kind k, as the first-run guide does: used at once if it can be, else
-// once its model is downloaded, the one in use going on until then.
 func (c *Core) Choose(k Kind, id string) {
 	e, ok := c.Engine(k, id)
 	if !ok {
@@ -263,7 +225,6 @@ func (c *Core) use(e Engine) {
 	}
 }
 
-// usePending uses the engines chosen whose models came in.
 func (c *Core) usePending() {
 	ready := c.EngineService.readyPending(c.Prefs.Endpoints, c.Prefs.APIs())
 	for _, e := range ready {

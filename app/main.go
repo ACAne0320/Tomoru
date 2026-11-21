@@ -1,14 +1,3 @@
-// Tomoru shows live translated subtitles over whatever the computer plays. See docs/architecture.md.
-//
-// The layers, each depending only on those after it:
-//
-//	internal/ui/shell     the windows and the menu bar icon, and going between them
-//	internal/ui/...       the surfaces: overlay, panel, settings, guide; and what they share
-//	internal/core         the application: settings, translating, what the system says
-//	internal/live         a session: engine → segmenter → translator
-//	internal/engine, segment, translate, models, prefs, resource, applog
-//
-//	go run . [--start] [--guide]
 package main
 
 import (
@@ -45,14 +34,11 @@ func main() {
 	flag.Parse()
 	useDesktop()
 	if !mygo.App.RequestSingleInstanceLock() {
-		return // the running one opens its settings
+		return
 	}
-	// Updates: checked soon after launch, then once a day, offered in a window of their own, in the
-	// app's language.
 	mygo.Use(native.New(updater.Options{Icon: assets.AppIconPNG}))
 
 	mygo.App.WhenReady(func() {
-		// The logs: the app's and the engine's in tomoru.log, llama-server's, which says much, apart.
 		var logPath string
 		var llamaLog io.Writer
 		if dir, err := mygo.App.Path(mygo.PathLogs); err == nil {
@@ -80,14 +66,11 @@ func main() {
 		if *guide {
 			p.Onboarded, p.GuideStep = false, 0
 		}
-		// Before the first window, which shows in it.
 		mygo.Theme.SetSource(kit.ThemeSource(p.Appearance))
 		ctx, cancel := context.WithCancel(context.Background())
 		post := shell.Post(ctx)
 		roots := resourceRoots()
 		var k *core.Core
-		// The cloud is reached as the settings say, from the first request: the models' downloads
-		// resume as the manager starts.
 		proxy.Install()
 		proxy.Set(p.NoProxy, p.ProxyURL)
 		deps := core.Deps{Context: ctx, Post: post, NoVoice: noVoice,
@@ -96,9 +79,6 @@ func main() {
 			ASRPath:    func() (string, error) { return engine.ASRPath(roots...) }, PrefsPath: path, ScenesPath: scenesPath, HistoryDir: historyDir, StatsPath: statsPath, LogPath: logPath, LicensesDir: resource.Licenses(roots...), Version: mygo.App.Version(), OS: osVersion(), Login: mygo.App, Secrets: mygo.Secrets,
 			Network: func() (bool, bool) { s := mygo.Network.Status(); return s.Online, s.Metered },
 			Select:  capture.Selector(func() (string, error) { return engine.Path(roots...) })}
-		// The local models: downloaded into the user's data, or the folder they were moved to, run by
-		// the llama-server the app ships, with a model's vision projector once a picture had it
-		// downloaded.
 		var manager *models.Manager
 		dir, err := models.Dir()
 		if p.ModelsDir != "" {
@@ -112,14 +92,12 @@ func main() {
 			log.Println("models:", err)
 		}
 		if bin, err := resource.Bin("llama-server", roots...); err == nil {
-			// Translation's, and recognition's apart: both may run at once.
 			server, hearing := models.NewServer(bin, llamaLog), models.NewServer(bin, llamaLog)
 			hearing.Warm = llama.Warm
 			if manager != nil {
 				server.Vision, hearing.Vision = manager.VisionOf, manager.VisionOf
 			}
 			deps.Server, deps.ASRServer = server, hearing
-			// The GPUs, for the engines to recommend: once, in the background (some 50 ms).
 			var gpu atomic.Uint64
 			deps.GPU, deps.Memory = gpu.Load, models.Memory
 			go func() {
@@ -137,20 +115,14 @@ func main() {
 		}
 		k = core.New(p, deps)
 
-		// A menu bar app. Until the first-run guide is done, a regular one from the start: become one
-		// later, once in front, and the system keeps it out of the apps it goes back to, and its
-		// permission prompt, answered, gives the front to the app before, often System Settings.
 		if p.Onboarded {
 			mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory)
 		} else {
 			mygo.App.SetActivationPolicy(mygo.ActivationPolicyRegular)
 		}
-		mygo.App.OnWindowAllClosed(func() {}) // a menu bar app keeps running
+		mygo.App.OnWindowAllClosed(func() {})
 		mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { k.Shutdown(); cancel() })
 		ui := shell.New(k)
-		// Starting the app again, from Finder or the launcher, opens its settings: the menu bar icon
-		// may be out of sight, behind the notch. macOS starts no second instance for that: it asks
-		// the running one to reopen.
 		mygo.App.OnSecondInstance(func([]string, string) { ui.ShowSettings() })
 		mygo.App.OnActivate(func(bool) { ui.ShowSettings() })
 		ui.Launch(*start)
@@ -160,8 +132,6 @@ func main() {
 	}
 }
 
-// resourceRoots is desktop composition policy. Runtime packages receive these
-// paths explicitly and never consult the UI framework or working directory.
 func resourceRoots() []string {
 	var roots []string
 	if dir, err := mygo.App.Path(mygo.PathResources); err == nil {

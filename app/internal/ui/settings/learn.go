@@ -14,42 +14,32 @@ import (
 	"tomoru/locales"
 )
 
-// The dialog that learns names from subtitles kept: the API to ask, what it found, for the user
-// to take into a scene or not, and translating them again with what was taken.
-
-// learnEdit is the dialog's state while it shows.
 type learnEdit struct {
 	open     bool
-	paths    []string // the sessions
-	scene    string   // theirs
+	paths    []string
+	scene    string
 	endpoint string
-	taken    []bool // of the suggestions, by index
-	target   string // the scene they go to; newTarget for a new one
-	took     int    // how many were taken, once they were
-	tookTo   string // the scene they went to
-	done     bool   // they were taken
-	// asking asks, in place of the dialog's buttons, before the names found are thrown away.
-	asking bool
+	taken    []bool
+	target   string
+	took     int
+	tookTo   string
+	done     bool
+	asking   bool
 }
 
-// unsaved tells whether names were found, as l has them, and not taken yet.
 func (d *learnEdit) unsaved(l core.Learning) bool {
 	return !d.done && l.Finished && l.Err != core.ErrNoChatEndpoint && len(l.Suggestions) > 0
 }
 
-// newTarget is the menu's choice of a new scene for the names learned.
 const newTarget = "+new"
 
-// learnFrom opens the dialog for the sessions at paths, of scene id.
 func (s *Settings) learnFrom(paths []string, id string) {
 	k := s.core
 	k.ForgetLearning()
 	k.ForgetRetranslating()
 	if _, ok := k.SceneByID(id); !ok {
-		id = "" // its scene was deleted: the names go to the general one, or where the user says
+		id = ""
 	}
-	// The general scene's names go with whatever is watched: those of one video go to a scene of
-	// their own, unless the user says otherwise.
 	target := id
 	if id == "" {
 		target = newTarget
@@ -66,7 +56,7 @@ func (s *Settings) learnFrom(paths []string, id string) {
 
 func (s *Settings) learnDialog(c *ui.Context) {
 	k, d := s.core, &s.learn
-	if !d.open || s.edit.open { // adding an API shows its own dialog first
+	if !d.open || s.edit.open {
 		return
 	}
 	dialog := kit.Dialog(c, &d.open, locales.LearnNames(), "", func() {
@@ -89,8 +79,7 @@ func (s *Settings) learnDialog(c *ui.Context) {
 			s.learnSetup(c)
 		}
 	})
-	unsaved := d.unsaved(k.Learning) // before stopping, which keeps what was found
-	// Escape or a click outside while it works stops it, as its Cancel does, and the dialog stays.
+	unsaved := d.unsaved(k.Learning)
 	if dialog.Dismissed() {
 		switch {
 		case k.Learning.Running:
@@ -108,7 +97,6 @@ func (s *Settings) learnDialog(c *ui.Context) {
 	}
 }
 
-// learnSetup chooses the API to ask, or says to add one.
 func (s *Settings) learnSetup(c *ui.Context) {
 	k, d := s.core, &s.learn
 	eps := k.ChatEndpoints()
@@ -126,7 +114,7 @@ func (s *Settings) learnSetup(c *ui.Context) {
 		return
 	}
 	if !slices.ContainsFunc(eps, func(e prefs.Endpoint) bool { return e.ID == d.endpoint }) {
-		d.endpoint = eps[len(eps)-1].ID // one just added
+		d.endpoint = eps[len(eps)-1].ID
 	}
 	ids := make([]string, len(eps))
 	for i, e := range eps {
@@ -152,7 +140,6 @@ func (s *Settings) learnSetup(c *ui.Context) {
 	})
 }
 
-// learnFound lists what was found, each taken at first, and the scene to add them to.
 func (s *Settings) learnFound(c *ui.Context) {
 	k, d := s.core, &s.learn
 	p := kit.Colors(c)
@@ -238,7 +225,6 @@ func (s *Settings) learnFound(c *ui.Context) {
 	})
 }
 
-// learnTaken says what was taken, and offers to translate the sessions again with it.
 func (s *Settings) learnTaken(c *ui.Context) {
 	k, d := s.core, &s.learn
 	p := kit.Colors(c)

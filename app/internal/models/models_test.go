@@ -19,7 +19,6 @@ import (
 	"tomoru/internal/resource"
 )
 
-// withModel makes All one small model served by srv, for the test.
 func withModel(t *testing.T, data []byte, sum string) {
 	t.Helper()
 	old := All
@@ -29,7 +28,6 @@ func withModel(t *testing.T, data []byte, sum string) {
 
 func sha(b []byte) string { s := sha256.Sum256(b); return hex.EncodeToString(s[:]) }
 
-// server serves data at any path, honoring Range, and fails the first fails requests.
 func server(data []byte, fails int) (*httptest.Server, *int) {
 	var mu sync.Mutex
 	n := 0
@@ -68,7 +66,6 @@ func wait(t *testing.T, m *Manager, id string, want State) Status {
 	}
 }
 
-// redirect makes the manager's client fetch every URL from srv.
 func redirect(m *Manager, srv *httptest.Server) {
 	m.client = &http.Client{Transport: rewrite{srv.URL}}
 }
@@ -87,12 +84,11 @@ func TestDownload(t *testing.T) {
 	data := []byte(strings.Repeat("tomoru ", 100000))
 	withModel(t, data, sha(data))
 	dir := t.TempDir()
-	srv, _ := server(data, 1) // the first source fails: the second serves it
+	srv, _ := server(data, 1)
 	defer srv.Close()
 	m := NewManager(dir, false, nil)
 	redirect(m, srv)
 
-	// Half of it came in before: the download goes on from there.
 	os.WriteFile(dir+"/m.gguf.part", data[:len(data)/2], 0o644)
 	if st := m.Status("m"); st.State != Missing || st.Done != int64(len(data)/2) {
 		t.Fatalf("before: %+v", st)
@@ -111,8 +107,6 @@ func TestDownload(t *testing.T) {
 	}
 }
 
-// TestFiles downloads a model of two files into its directory, going on with the second when the
-// first is there.
 func TestFiles(t *testing.T) {
 	a, b := []byte(strings.Repeat("sense ", 50000)), []byte("tokens\n")
 	old := All
@@ -150,7 +144,6 @@ func TestFiles(t *testing.T) {
 	}
 }
 
-// TestManifest: a model's size is its files'.
 func TestManifest(t *testing.T) {
 	for _, m := range All {
 		var n int64
@@ -163,12 +156,11 @@ func TestManifest(t *testing.T) {
 	}
 }
 
-// TestSlowSource gives up on a source that trickles, and goes on from the next.
 func TestSlowSource(t *testing.T) {
 	data := []byte(strings.Repeat("tomoru ", 200000))
 	withModel(t, data, sha(data))
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/models/") { // ModelScope: fast, from where asked
+		if strings.HasPrefix(r.URL.Path, "/models/") {
 			from := 0
 			if rg := r.Header.Get("Range"); rg != "" {
 				from, _ = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(rg, "bytes="), "-"))
@@ -177,7 +169,7 @@ func TestSlowSource(t *testing.T) {
 			w.Write(data[from:])
 			return
 		}
-		for i := 0; i < len(data); i += 100 { // Hugging Face: a trickle
+		for i := 0; i < len(data); i += 100 {
 			if _, err := w.Write(data[i:min(i+100, len(data))]); err != nil {
 				return
 			}
@@ -253,8 +245,6 @@ func TestStalledSource(t *testing.T) {
 	}
 }
 
-// The final mirror may be slow for the entire download. Progress, however small,
-// keeps it alive beyond the source-selection window; there is no whole-file deadline.
 func TestLastSourceKeepsSlowProgress(t *testing.T) {
 	data := []byte("a slowly delivered model")
 	withModel(t, data, sha(data))
@@ -297,7 +287,6 @@ func TestChecksum(t *testing.T) {
 	}
 }
 
-// TestServer runs the bundled llama-server on the 2B model, when both are on this computer.
 func TestServer(t *testing.T) {
 	bin, err := resource.Bin("llama-server", filepath.Join("..", "..", "resources"))
 	if err != nil {
@@ -327,8 +316,6 @@ func TestServer(t *testing.T) {
 	}
 }
 
-// TestRealDownload downloads the 2B model for a few seconds from the real sources, stops, and goes
-// on from where it stopped, when TOMORU_DOWNLOAD is "hf" or "china" (ModelScope first).
 func TestRealDownload(t *testing.T) {
 	src := os.Getenv("TOMORU_DOWNLOAD")
 	if src == "" {
@@ -355,9 +342,6 @@ func TestRealDownload(t *testing.T) {
 	}
 }
 
-// TestVisions: a translation model that reads pictures comes with its vision projector, and each
-// recognition model llama-server runs with its audio projector, one of its files, which VisionOf
-// finds once the model is downloaded; tomoru-asr's recognition models have none.
 func TestVisions(t *testing.T) {
 	for _, m := range All {
 		if m.ASR && (m.Vision != "") != m.Served() || m.Vision != "" && !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == m.Vision }) {
@@ -386,9 +370,6 @@ func TestVisions(t *testing.T) {
 	}
 }
 
-// TestServerVision has the bundled llama-server serve the 2B model without its vision projector,
-// then, for a picture, again with it, on the same port, where a session's translator sends its sentences; when
-// both are on this computer.
 func TestServerVision(t *testing.T) {
 	bin, err := resource.Bin("llama-server", filepath.Join("..", "..", "resources"))
 	if err != nil {

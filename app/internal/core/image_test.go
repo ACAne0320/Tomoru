@@ -22,10 +22,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// TestTranslateImage translates a picture into the language translating goes to, with the scene's
-// names, as it streams in; into another chosen on its card, again, without them, the subtitles'
-// language kept; with no picture, it says so; closed meanwhile, it drops what comes. Each translation
-// got is counted, under Index-Translate in the cloud; none is in the guide.
 func TestTranslateImage(t *testing.T) {
 	var prompt string
 	asked, done := make(chan struct{}), make(chan struct{})
@@ -34,7 +30,7 @@ func TestTranslateImage(t *testing.T) {
 		prompt = string(b)
 		if strings.Contains(prompt, "slow") {
 			close(asked)
-			<-r.Context().Done() // until the card closes
+			<-r.Context().Done()
 			close(done)
 			return
 		}
@@ -57,7 +53,7 @@ func TestTranslateImage(t *testing.T) {
 	if !c.Image.Running || c.Image.PNG == nil {
 		t.Fatalf("translating: %+v", c.Image)
 	}
-	f.flush(t, 3) // two pieces, then the end
+	f.flush(t, 3)
 	if c.Image.Running || c.Image.Err != nil || c.Image.Text != "克劳德：走吧。" {
 		t.Errorf("translated: %+v", c.Image)
 	}
@@ -75,7 +71,7 @@ func TestTranslateImage(t *testing.T) {
 	if strings.Contains(prompt, "翻译为中文") || strings.Contains(prompt, "克劳德") {
 		t.Errorf("English prompt %s", prompt)
 	}
-	c.SetImageTgt(tgt) // the subtitles' again: followed
+	c.SetImageTgt(tgt)
 	f.flush(t, 3)
 	if c.Prefs.ImageTgt != "" || c.ImageTgt() != tgt {
 		t.Errorf("following %q: %q", tgt, c.Prefs.ImageTgt)
@@ -122,8 +118,6 @@ func TestTranslateImage(t *testing.T) {
 	}
 }
 
-// TestSelectImage selects a part of the screen once the app may capture it, and translates it;
-// cancelled, nothing; failing, it checks the permission again.
 func TestSelectImage(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"好\"}}]}\n\n")
@@ -152,7 +146,7 @@ func TestSelectImage(t *testing.T) {
 	at := image.Rect(100, 200, 400, 260)
 	c.ImageService.selectPicture = func(context.Context) ([]byte, image.Rectangle, error) { return pic, at, err }
 	shown := 0
-	c.SelectImage(func() { shown++ }) // cancelled
+	c.SelectImage(func() { shown++ })
 	f.flush(t, 1)
 	if shown != 0 || c.Image.PNG != nil {
 		t.Errorf("cancelled: shown %d, %+v", shown, c.Image)
@@ -171,7 +165,6 @@ func TestSelectImage(t *testing.T) {
 		t.Errorf("translated: %+v", c.Image)
 	}
 
-	// Turned off in System Settings since: the capture fails, and the permission is checked again.
 	pic, err = nil, errors.New("capture: exit status 1: could not create image from rect")
 	f.answers["screen-access"] = []engine.Event{{Type: "access", State: "denied"}}
 	c.SelectImage(func() { shown++ })
@@ -182,9 +175,6 @@ func TestSelectImage(t *testing.T) {
 	}
 }
 
-// TestImageEngines translates pictures with the engine chosen: a local model, whose llama-server,
-// started for it, stops when the card closes; the user's API, which fails alone, the cloud not
-// asked.
 func TestImageEngines(t *testing.T) {
 	answer := func(text string) *httptest.Server {
 		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -251,7 +241,6 @@ func TestImageEngines(t *testing.T) {
 	e, _ := c.Prefs.Endpoint(id)
 	e.Model = "bad"
 	c.SaveEndpoint(*e, "")
-	// The API fails, as one that reads no pictures: the picture goes nowhere else.
 	c.TranslateImage(b.Bytes())
 	for deadline := time.Now().Add(2 * time.Second); c.Image.Running; {
 		if time.Now().After(deadline) {
@@ -264,8 +253,6 @@ func TestImageEngines(t *testing.T) {
 	}
 }
 
-// TestSelectImageAgain: the shortcut pressed while a selection is open ends it and selects anew, so
-// one stuck out of sight (#62) does not keep the shortcut from working until the app restarts.
 func TestSelectImageAgain(t *testing.T) {
 	c, f := newCore(t)
 	var b bytes.Buffer
@@ -273,7 +260,7 @@ func TestSelectImageAgain(t *testing.T) {
 	var calls atomic.Int32
 	c.ImageService.selectPicture = func(ctx context.Context) ([]byte, image.Rectangle, error) {
 		if calls.Add(1) == 1 {
-			<-ctx.Done() // stuck until its process is killed
+			<-ctx.Done()
 			return nil, image.Rectangle{}, errors.New("capture: exit status 1")
 		}
 		return b.Bytes(), image.Rect(0, 0, 4, 4), nil
@@ -281,8 +268,8 @@ func TestSelectImageAgain(t *testing.T) {
 	shown := 0
 	c.SelectImage(func() { shown++ })
 	c.SelectImage(func() { shown++ })
-	f.flush(t, 1) // the first ended
-	f.flush(t, 1) // the second selected
+	f.flush(t, 1)
+	f.flush(t, 1)
 	if calls.Load() != 2 || shown != 1 || c.Image.PNG == nil {
 		t.Fatalf("selections %d, shown %d, %+v", calls.Load(), shown, c.Image)
 	}

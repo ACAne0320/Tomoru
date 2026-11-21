@@ -2,9 +2,6 @@ package kit
 
 import "github.com/egoist/mygo/ui"
 
-// FadeScroll is a scroll area, as tall as its content up to its room, whose last line fades into
-// the paper while more is below it, so that what is cut there reads as going on, not as the end.
-// s keeps where it is scrolled.
 func FadeScroll(c *ui.Context, s *ui.ScrollState, fn func()) ui.Element {
 	more := float32(0)
 	if s.MaxY-s.Y > 1 {
@@ -12,7 +9,6 @@ func FadeScroll(c *ui.Context, s *ui.ScrollState, fn func()) ui.Element {
 	}
 	outer := ui.Column(c).Shrink(1).MinHeight(0)
 	return outer.Children(func() {
-		// Room at its sides for the focus ring of a control at its edge, which it would cut.
 		ui.Scroll(c).Shrink(1).MinHeight(0).Padding(0, Space(1)).Margin(0, -Space(1)).TrackScroll(s).Children(fn)
 		paper := Colors(c).Paper
 		fade := ui.Box(c).Absolute().Left(0).Right(0).Bottom(0).Height(Space(8)).PassThrough().

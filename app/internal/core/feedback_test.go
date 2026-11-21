@@ -94,8 +94,6 @@ func TestIssueURLStartsTheBugForm(t *testing.T) {
 	}
 }
 
-// TestFeedbackIdea asks for an idea's need and its worth, reads no logs and asks no steps to make
-// it happen, and is sent as the idea form has it.
 func TestFeedbackIdea(t *testing.T) {
 	c := feedbackCore(nil)
 	got := c.Feedback(FeedbackIdea, "Save an episode's subtitles as SRT")

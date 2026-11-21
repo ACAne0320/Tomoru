@@ -30,8 +30,6 @@ func TestParse(t *testing.T) {
 	}
 }
 
-// TestFor goes directly when off and to loopback, through the user's proxy when given, and leaves
-// the rest to the system's.
 func TestFor(t *testing.T) {
 	defer current.Store(nil)
 	req := func(u string) *http.Request {
@@ -51,7 +49,6 @@ func TestFor(t *testing.T) {
 	if u, _ := For(req("https://api.openai.com")); u != nil {
 		t.Errorf("off: %v", u)
 	}
-	// Not an address: the system's, as with none.
 	Set(false, "127.0")
 	if c := current.Load(); c.off || c.url != nil {
 		t.Errorf("%+v", c)

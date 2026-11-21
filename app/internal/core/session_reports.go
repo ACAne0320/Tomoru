@@ -9,10 +9,6 @@ import (
 	"tomoru/internal/usage"
 )
 
-// sessionReports retains the runtime's latest snapshot and daily usage independently
-// of callbacks queued for the application thread. Stop joins the runtime before
-// reading it. Each run owns its own accumulator, so retired callbacks cannot alter
-// another run or the saved ledger.
 type sessionReports struct {
 	mu       sync.Mutex
 	latest   live.State
@@ -23,11 +19,11 @@ type sessionReports struct {
 func (r *sessionReports) store(st live.State, now func() time.Time) live.State {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if st.StatsAt.IsZero() { // adapters without a runtime clock
+	if st.StatsAt.IsZero() {
 		st.StatsAt = now()
 	}
 	delta := st.Stats.Since(r.latest.Stats)
-	delta.Run = 0 // elapsed time belongs to the application, not the runtime
+	delta.Run = 0
 	speech := delta.Speech
 	delta.Speech = 0
 	if delta != (usage.Counts{}) {

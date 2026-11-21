@@ -6,22 +6,16 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// ListItem is an item of a List: a scene, a session kept.
 type ListItem struct {
-	Key   any    // the item's own, as a session's path: its state stays with it across frames
-	On    bool   // shown beside the list
-	Head  string // what starts a part of the list over it, as a day; "" for none
+	Key   any
+	On    bool
+	Head  string
 	Title string
-	Meta  []string // what it is, in parts, under its title
-	Lead  func()   // what goes at its start: a time
-	Trail func()   // what goes at its end: In use, an action on it
+	Meta  []string
+	Lead  func()
+	Trail func()
 }
 
-// List lists items as Options lists rows, their content as far in from the card's edge as a
-// Card's: the one shown on the band, a rule between two not shown, each its lead, its title over
-// its meta on a line each (OneLine, Parts), and its trail at its end, lead and trail centred on
-// the two lines. A list with one shown is a list of tabs, the item shown beside it. Put it in an
-// OptionsCard. It returns the index of the item clicked, or -1.
 func List(c *ui.Context, items []ListItem) int {
 	p := Colors(c)
 	clicked := -1
@@ -58,7 +52,6 @@ func List(c *ui.Context, items []ListItem) int {
 	return clicked
 }
 
-// listItem is an item of a List, returning the part that shows it.
 func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 	p := Colors(c)
 	row := ui.Row(c).Padding(Space(3), Space(4)).Gap(Space(3)).AlignItems(ui.Center).Radius(RadiusTile)
@@ -74,7 +67,6 @@ func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 		b = ui.ButtonBase(c).Grow(1).MinWidth(0).Gap(Space(3)).Justify(ui.Start).AlignItems(ui.Center).
 			Label(t.Title).Cursor(ui.CursorPointer)
 		if tab {
-			// Selected paints the theme's accent: the row's face is the item's.
 			b = b.Role(ui.RoleTab).Selected(t.On).Background(ui.Transparent)
 		}
 		b.Children(func() {
@@ -95,8 +87,6 @@ func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 	return b
 }
 
-// OneLine is s on one line, of size, weight (0 for the body's) and ink: cut with an ellipsis where
-// it doesn't fit, and then told in full in its tooltip.
 func OneLine(c *ui.Context, s string, size float32, weight int, ink ui.Color) ui.Element {
 	t := ui.Text(c, s).FontSize(size).TextColor(ink).MaxLines(1).MinWidth(0)
 	if weight != 0 {
@@ -110,16 +100,12 @@ func OneLine(c *ui.Context, s string, size float32, weight int, ink ui.Color) ui
 	return t
 }
 
-// partSep is what goes between the parts of a line of Parts.
 const partSep = " · "
 
-// Parts is parts on one line, partSep between them, of size and ink: as many from the first as
-// fit, never one cut short but the first alone, and then all of them in its tooltip.
 func Parts(c *ui.Context, parts []string, size float32, ink ui.Color) ui.Element {
 	all := strings.Join(parts, partSep)
 	shown := all
 	box := ui.Column(c).MinWidth(0)
-	// The room is the last frame's: once it changes, one more frame fits the parts to it.
 	room, was := box.LayoutBounds().W, ui.Local(box, "room", func() float32 { return -1 })
 	if room != *was {
 		*was = room

@@ -10,9 +10,6 @@ import (
 	"tomoru/internal/ui/kit"
 )
 
-// The stage's night, as the icon's: indigo, deeper at the top (kit's sky), with the lantern's
-// light low in the middle, breathing, and a violet light drifting high, as a video plays behind
-// subtitles.
 var (
 	night = shader.MustCompile(`package main
 
@@ -43,28 +40,24 @@ func Fragment(dst vec4, pos vec2) vec4 {
 	nightStart = time.Now()
 )
 
-// stage is the right of the window: the night, and over it what the step shows, which comes in
-// as the step does.
 func (g *Guide) stage(c *ui.Context) {
 	still := c.Preferences().ReduceMotion
 	pal := kit.Colors(c)
 	ui.Box(c).Grow(1).Radius(kit.RadiusTile).Clip().Gradient(pal.SkyTop, pal.SkyBottom, 180).
 		Draw(func(p *ui.Painter, r ui.Rect) {
 			if !p.Accelerated() {
-				return // the gradient alone
+				return
 			}
 			t := float32(0)
 			if !still {
 				t = float32(p.Now().Sub(nightStart).Seconds())
-				p.After(33 * time.Millisecond) // a slow light: thirty frames a second are plenty
+				p.After(33 * time.Millisecond)
 			}
 			night.Draw(p, r, shader.Options{Radius: kit.RadiusTile, Uniforms: map[string]any{
 				"Time": t, "Top": pal.SkyTop, "Bottom": pal.SkyBottom, "Glow": pal.Lantern,
 			}})
 		}).Children(func() {
-		// The stage comes in; the one before goes at once, as the step does.
 		fade := ui.ElementTransition{Animation: &kit.Spring, Enter: &ui.Motion{Scale: .97}}
-		// The two engine steps share their stage: it stays, and lights the engine the step chooses.
 		key := g.Step
 		if key == stepTranslation {
 			key = stepRecognition
@@ -92,18 +85,15 @@ func (g *Guide) stage(c *ui.Context) {
 	})
 }
 
-// glass is a pane on the stage: lighter than the night, with a hairline.
 func glass(c *ui.Context, e ui.Element) ui.Element {
 	p := kit.Colors(c)
 	return e.Background(p.Glass).Border(1, p.GlassLine).Radius(kit.RadiusField)
 }
 
-// onStage is text on the stage, of size, in starlight as bright as alpha.
 func onStage(c *ui.Context, s string, size float32, alpha float32) ui.Element {
 	return ui.Text(c, s).FontSize(size).TextColor(kit.Colors(c).Starlight.Alpha(alpha))
 }
 
-// tint is the ground of a step's icon, an amber square of d with icon in it.
 func tint(c *ui.Context, d float32, icon func()) ui.Element {
 	return ui.Box(c).Size(d, d).Radius(kit.RadiusInner).Background(kit.Colors(c).Lantern.Alpha(.16)).Center().Shrink(0).Children(icon)
 }

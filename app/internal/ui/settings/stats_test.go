@@ -20,16 +20,13 @@ import (
 	"tomoru/locales"
 )
 
-// sampleLedger is three weeks of translating, with Apple's recognition and Index-Translate's cloud,
-// then Qwen ASR and an endpoint the last few days; a day of no engines noted, and a few seconds of
-// the 2B translating nothing.
 func sampleLedger(now time.Time) usage.Ledger {
 	var l usage.Ledger
 	apple := usage.Engines{ASR: "apple", MT: "cloud"}
 	cloud := usage.Engines{ASR: core.QwenCloud, ASRModel: "qwen3-asr-flash-realtime", MT: "custom:or", MTName: "OpenRouter", MTModel: "qwen/qwen3-30b-a3b"}
 	for i := 20; i >= 0; i-- {
 		if i%6 == 4 {
-			continue // a day without
+			continue
 		}
 		hours := 1 + 2.5*math.Abs(math.Sin(float64(i)))
 		var c usage.Counts
@@ -66,8 +63,6 @@ func statsCore(t *testing.T, l usage.Ledger) *core.Core {
 	return coretest.NewWith(func(d *core.Deps) { d.StatsPath = path })
 }
 
-// TestStats shows the numbers of the period, its chart, the latencies and the engines, and says
-// so when there are none yet.
 func TestStats(t *testing.T) {
 	s := New(statsCore(t, usage.Ledger{}), &coretest.Nav{})
 	s.Tab = "stats"
@@ -89,15 +84,11 @@ func TestStats(t *testing.T) {
 			}
 		}
 	}
-	// Translation first: its engines by lines, those of no engine noted last.
-	// Of the last 7 days, compared with the 7 before.
 	if vs := strings.TrimSpace(locales.StatsVsBefore(7, "")); !slices.ContainsFunc(tt.Texts(), func(text string) bool { return strings.Contains(text, vs) }) {
 		t.Errorf("no %q in %q", vs, tt.Texts())
 	}
 	has("compared", locales.LatSame(7))
 	has("translation", locales.StatLines(), "OpenRouter", "qwen/qwen3-30b-a3b", locales.EngineUnknown(), locales.FactInTokens(), locales.LatEndToEnd())
-	// A day of two engines says what each did; picked out, the chart is of one engine alone, until
-	// it is picked again.
 	split := func() int {
 		n := 0
 		for _, text := range tt.Texts() {
@@ -129,10 +120,8 @@ func TestStats(t *testing.T) {
 	}
 	tt.Frame()
 	has("recognition", locales.StatRun(), locales.EngineApple(), locales.EngineQwenAsr(), "qwen3-asr-flash-realtime", locales.FactAudio())
-	// The latencies: what the user waits first, as its times spread; another chosen, then day by
-	// day.
 	has("latency", locales.LatEndToEndDescription(), locales.LatYouWait())
-	if err := tt.Click(locales.EnginesMt()); err != nil { // whose engines' figures name no recognition step
+	if err := tt.Click(locales.EnginesMt()); err != nil {
 		t.Error(err)
 	}
 	tt.Frame()
@@ -145,7 +134,7 @@ func TestStats(t *testing.T) {
 	if !ok {
 		t.Fatalf("no %q in %q", locales.StatsSpread(), tt.Texts())
 	}
-	tt.ClickAt(spread.X+spread.W+kit.Space(10), spread.Y+spread.H/2) // the segment beside it, as the bar chart is named the same
+	tt.ClickAt(spread.X+spread.W+kit.Space(10), spread.Y+spread.H/2)
 	if s.statsEdit.latView != 1 {
 		t.Errorf("day by day: view %d", s.statsEdit.latView)
 	}
@@ -155,16 +144,14 @@ func TestStats(t *testing.T) {
 	}
 }
 
-// TestStatsBefore sums the days of the period before, and only those, to compare with; and says
-// how much more or less.
 func TestStatsBefore(t *testing.T) {
 	all := func(usage.Use) bool { return true }
 	now := time.Date(2026, 10, 21, 20, 0, 0, 0, time.Local)
 	var l usage.Ledger
-	l.Add("2026-10-21", usage.Engines{}, usage.Counts{Lines: 1}) // this week
-	l.Add("2026-10-15", usage.Engines{}, usage.Counts{Lines: 2}) // its first day
-	l.Add("2026-10-14", usage.Engines{}, usage.Counts{Lines: 4}) // the week before: its last day
-	l.Add("2026-10-08", usage.Engines{}, usage.Counts{Lines: 8}) // its first day
+	l.Add("2026-10-21", usage.Engines{}, usage.Counts{Lines: 1})
+	l.Add("2026-10-15", usage.Engines{}, usage.Counts{Lines: 2})
+	l.Add("2026-10-14", usage.Engines{}, usage.Counts{Lines: 4})
+	l.Add("2026-10-08", usage.Engines{}, usage.Counts{Lines: 8})
 	l.Add("2026-10-07", usage.Engines{}, usage.Counts{Lines: 16})
 	if sum, ok := statsBefore(l, 7, now, all); !ok || sum.Lines != 12 {
 		t.Errorf("the week before: %d lines, %v", sum.Lines, ok)
@@ -185,8 +172,6 @@ func TestStatsBefore(t *testing.T) {
 	}
 }
 
-// TestEngineColors gives each engine its own color whatever its rank, and one's own API the same
-// one every time.
 func TestEngineColors(t *testing.T) {
 	p := &kit.Light
 	mt := func(u usage.Use) string { return u.MT }
@@ -199,7 +184,7 @@ func TestEngineColors(t *testing.T) {
 		t.Error("one's own API, or none noted")
 	}
 	for id, want := range map[string]ui.Color{
-		"local-2b": p.Bilibili[2], "local-9b": p.Bilibili[1], // paler for the smaller
+		"local-2b": p.Bilibili[2], "local-9b": p.Bilibili[1],
 		"qwen3-asr-0.6b": p.QwenPale, "qwen3-asr-1.7b": p.Qwen, core.QwenCloud: p.Qwen, "sensevoice-small": p.Alibaba,
 	} {
 		if got := engineColor(p, id); got != want {
@@ -231,8 +216,6 @@ func TestStatsBuckets(t *testing.T) {
 	}
 }
 
-// TestStatsGallery pictures the statistics page, of translation and of recognition, light and
-// dark: TOMORU_GALLERY=<dir> go test ./internal/ui/settings -run StatsGallery writes it there.
 func TestStatsGallery(t *testing.T) {
 	dir := os.Getenv("TOMORU_GALLERY")
 	if dir == "" {
@@ -262,8 +245,6 @@ func TestStatsGallery(t *testing.T) {
 	}
 }
 
-// TestStatsImages counts the pictures translated on the translation side, in the period's line and
-// under Index-Translate; the recognition side has no row for them, as no recognizer heard them.
 func TestStatsImages(t *testing.T) {
 	now := time.Now()
 	var l usage.Ledger
@@ -284,8 +265,6 @@ func TestStatsImages(t *testing.T) {
 	}
 }
 
-// TestStatsUntranslated counts subtitles of the original only as listening, and not as lines
-// translated, nor as a translator of no name.
 func TestStatsUntranslated(t *testing.T) {
 	now := time.Now()
 	var l usage.Ledger

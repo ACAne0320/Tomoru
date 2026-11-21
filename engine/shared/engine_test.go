@@ -67,8 +67,6 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	}
 }
 
-// TestHearer sends what is heard in chunks of 100 ms, and silence for what was not, once nothing
-// came for a while: time goes on as the audio does.
 func TestHearer(t *testing.T) {
 	var events []Event
 	var voiced int
@@ -77,7 +75,7 @@ func TestHearer(t *testing.T) {
 	h.now = func() time.Time { return now }
 	h.started = now
 
-	h.Feed(make([]int16, chunk+100)) // a chunk and a little
+	h.Feed(make([]int16, chunk+100))
 	if len(events) != 1 || events[0].Type != "audio" || events[0].T != 0 || voiced != chunk {
 		t.Fatalf("one chunk: %+v, voiced %d", events, voiced)
 	}
@@ -86,12 +84,12 @@ func TestHearer(t *testing.T) {
 	}
 
 	now = now.Add(200 * time.Millisecond)
-	h.FillSilence() // the source is not quiet yet
+	h.FillSilence()
 	if len(events) != 1 {
 		t.Fatalf("filled too soon: %d", len(events))
 	}
 	now = now.Add(time.Second)
-	h.FillSilence() // quiet for 1.2 s: silence up to 1.2 s of audio
+	h.FillSilence()
 	if len(events) != 12 || events[11].T != 1.1 {
 		t.Fatalf("filled to %d chunks, the last at %v", len(events), events[len(events)-1].T)
 	}
@@ -105,8 +103,6 @@ func TestHearerResumesWithoutSilenceBacklog(t *testing.T) {
 	h.started = now
 	h.Feed(make([]int16, chunk+100))
 
-	// A suspended process must not replay the whole gap as audio. Three seconds is
-	// enough to exercise the bound without allocating an hour of PCM on failure.
 	now = now.Add(3 * time.Second)
 	h.FillSilence()
 	if h.sent > chunk+100+2*Rate {
@@ -125,7 +121,6 @@ func TestHearerResumesWithoutSilenceBacklog(t *testing.T) {
 	}
 }
 
-// wav is a WAV file of PCM, 16-bit, of channels interleaved at r Hz.
 func wav(r, channels int, samples []int16) []byte {
 	var b bytes.Buffer
 	data := 2 * len(samples)
@@ -142,7 +137,6 @@ func wav(r, channels int, samples []int16) []byte {
 }
 
 func TestDecodeWAV(t *testing.T) {
-	// 0.1 s of 48 kHz stereo, a 400 Hz tone on the left only: half as loud, mono.
 	in := make([]int16, 2*4800)
 	for i := range 4800 {
 		in[2*i] = int16(16000 * math.Sin(2*math.Pi*400*float64(i)/48000))
@@ -170,7 +164,6 @@ func TestDecodeWAV(t *testing.T) {
 	}
 }
 
-// script is a VAD that speaks in the windows it is told to.
 type script struct {
 	speaking []bool
 	i        int
@@ -179,9 +172,7 @@ type script struct {
 func (s *script) Accept([]float32) { s.i++ }
 func (s *script) Speaking() bool   { return s.i <= len(s.speaking) && s.speaking[s.i-1] }
 
-// TestDetector places voice's start and stop at the start of the runs that decided them.
 func TestDetector(t *testing.T) {
-	// Voice decided at the 5th window, after 2 over; stopped at the 12th, after 3 under.
 	s := &script{speaking: []bool{false, false, false, false, true, true, true, true, true, true, true, false}}
 	var got []string
 	d := NewDetector(s, func(on bool, at float64) {

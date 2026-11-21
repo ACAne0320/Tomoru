@@ -9,7 +9,6 @@ import (
 	sherpa "github.com/k2-fsa/sherpa-onnx-go/sherpa_onnx"
 )
 
-// senseVoice is SenseVoice through sherpa-onnx's offline recognizer.
 type senseVoice struct{ r *sherpa.OfflineRecognizer }
 
 func newSenseVoice(dir, lang string, threads int) (*senseVoice, error) {
@@ -24,7 +23,7 @@ func newSenseVoice(dir, lang string, threads int) (*senseVoice, error) {
 	c.ModelConfig.SenseVoice = sherpa.OfflineSenseVoiceModelConfig{Model: model, Language: lang, UseInverseTextNormalization: 1}
 	c.ModelConfig.Tokens = tokens
 	c.ModelConfig.NumThreads = threads
-	c.ModelConfig.Provider = "cpu" // CoreML was no faster (docs/local-asr.md)
+	c.ModelConfig.Provider = "cpu"
 	c.DecodingMethod = "greedy_search"
 	r := sherpa.NewOfflineRecognizer(&c)
 	if r == nil {
@@ -53,8 +52,6 @@ func (v *senseVoice) Decode(samples []float32) ([]Piece, string) {
 	return out, heard(res.Lang)
 }
 
-// heard is the language of SenseVoice's tag, "<|ja|>": zh, en, ja, ko or yue; "" for none heard
-// ("<|nospeech|>").
 func heard(tag string) string {
 	switch l := strings.Trim(tag, "<|>"); l {
 	case "zh", "en", "ja", "ko", "yue":

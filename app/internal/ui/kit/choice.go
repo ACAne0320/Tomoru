@@ -2,30 +2,21 @@ package kit
 
 import "github.com/egoist/mygo/ui"
 
-// Choice is a row of a ChoiceList: a family of engines, its radio using it, the rest of the row
-// showing it beside the list.
 type Choice struct {
-	Key   any    // the row's own, as a family's name: its state stays with it across frames
-	Head  string // what starts a group of rows over it, as On device; "" for none
-	Shown bool   // what it is shows beside the list
-	On    bool   // in use: its radio is filled
-	Off   bool   // nothing of it can be used yet: its radio is dashed, and does nothing
-	Use   string // its radio's name, "Use Qwen3-ASR": the row's title names the tab
-	Title string
-	Tag   string // a word beside the title, in amber if Accent: Recommended, Built in
-	// Accent puts the tag in amber.
-	Accent bool
-	Meta   string // its state, under the title
-	Warn   bool   // Meta is what keeps it from working (a language it doesn't hear), in red
-	// Progress is a download's, from 0 to 1, under the meta; below 0 for none.
+	Key      any
+	Head     string
+	Shown    bool
+	On       bool
+	Off      bool
+	Use      string
+	Title    string
+	Tag      string
+	Accent   bool
+	Meta     string
+	Warn     bool
 	Progress float64
 }
 
-// ChoiceList lists rows under their heads: each its radio, then its title and tag over its meta, the
-// radio centred on the two, a download's progress below; the row shown on the band. Clicking a
-// radio uses the row, clicking the rest shows it. To assistive technology the rows are tabs,
-// selected while shown, and their radios radio buttons beside them. It returns the index of the
-// row clicked to show and of the radio clicked, -1 for none.
 func ChoiceList(c *ui.Context, label string, rows []Choice) (shown, used int) {
 	p := Colors(c)
 	shown, used = -1, -1
@@ -50,7 +41,6 @@ func ChoiceList(c *ui.Context, label string, rows []Choice) (shown, used int) {
 	return shown, used
 }
 
-// choiceRow is a row of a ChoiceList, telling whether it was clicked to show and to use.
 func choiceRow(c *ui.Context, r Choice) (show, use bool) {
 	p := Colors(c)
 	row := ui.Column(c).Padding(Space(3)).Gap(Space(2)).Radius(RadiusTile)
@@ -74,7 +64,6 @@ func choiceRow(c *ui.Context, r Choice) (show, use bool) {
 					Dot(c, r.On)
 				}
 			}).Clicked()
-			// Selected paints the theme's accent: the row's face is the shown one's.
 			tab := ui.ButtonBase(c).Grow(1).MinWidth(0).Justify(ui.Start).Role(ui.RoleTab).Selected(r.Shown).
 				Background(ui.Transparent).Cursor(ui.CursorPointer)
 			show = tab.Children(func() {

@@ -14,7 +14,6 @@ func TestRecorderRetainsBacklogAndPartialCompletions(t *testing.T) {
 	for id := 1; id <= 12; id++ {
 		recordLine(&result, lines, 0, live.Line{ID: id, Src: fmt.Sprint(id)})
 	}
-	// Display eviction is irrelevant: the old sentences still receive independent events.
 	for id := 1; id <= 12; id++ {
 		line := lines[id]
 		line.Tgt = "partial"

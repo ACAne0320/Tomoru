@@ -4,7 +4,6 @@ package main
 
 import "syscall"
 
-// cpuTimes are the seconds of CPU the children and the benchmark itself took.
 func cpuTimes() (children, self float64) {
 	return cpu(syscall.RUSAGE_CHILDREN), cpu(syscall.RUSAGE_SELF)
 }

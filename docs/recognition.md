@@ -126,7 +126,6 @@ type Caps struct {
 	Longest  float64 // a stretch is at most
 	Stops    bool    // every decode ends with a full stop, left out
 	Untimed  bool    // no piece is timed: the runner spreads the stretch over them
-	Steady   bool    // each volatile decode shows as it is
 	Remote   bool    // decodes over the network: each is timed, to tell a slow network
 }
 ```
@@ -263,7 +262,7 @@ slow each other):
   (`VolatileSentences`), and once it has ended one, the stretch ends at the speaker's next pause
   however short (`batch.Caps.Untimed`), which keeps stretches short and decodes quick. Without
   that, stretches ran to 15 s and showed text 0.8 s later.
-- Volatile decodes still need two that agree: shown as decoded (`Steady`), it put full stops at
+- Volatile decodes still need two that agree: shown as each was decoded, it put full stops at
   half-said sentences, which committed and came again: 45 % errors.
 - Stretches go on through pauses of up to 1 s (`Gap`): Sekiro's 「ほら昔聞かせてくれたであろう」
   holds together. A decode every 0.5 s, made final at the next pause past 15 s.

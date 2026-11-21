@@ -10,8 +10,6 @@ import (
 	"testing"
 )
 
-// fakeRec decodes a character every 0.1 s of what it is given, with spaces between, as SenseVoice
-// puts in Japanese, and a full stop at the end.
 type fakeRec struct{ lens []int }
 
 func (r *fakeRec) Decode(s []float32) ([]Piece, string) {
@@ -58,7 +56,7 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	}
 	var input []byte
 	for _, command := range fixture.Commands {
-		line, err := json.Marshal(command) // one line each
+		line, err := json.Marshal(command)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -69,7 +67,7 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	var answers []Event
 	err = readCommands(bytes.NewReader(input), func(c Command) error {
 		if c.Type != "decode" {
-			return nil // audio, finalize and unknown commands are not tomoru-asr's
+			return nil
 		}
 		ev, err := decode(rec, "en", c)
 		answers = append(answers, ev)
@@ -81,7 +79,6 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	if len(answers) != 1 || answers[0].ID != "7" || len(rec.lens) != 1 || rec.lens[0] != fixture.Samples {
 		t.Fatalf("decoded %v of %d samples; want one of %d", answers, rec.lens, fixture.Samples)
 	}
-	// EOF is successful, including empty stdin; malformed lines and half samples are not.
 	if err := readCommands(strings.NewReader(""), func(Command) error { return nil }); err != nil {
 		t.Fatal(err)
 	}
@@ -93,11 +90,8 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	}
 }
 
-// TestDecode answers a stretch with its tokens timed from its start, without the spaces SenseVoice
-// puts between Japanese words, and its language, the one heard when told to tell it; and nothing at
-// all for no audio.
 func TestDecode(t *testing.T) {
-	pcm := base64.StdEncoding.EncodeToString(make([]byte, 2*rate/5)) // 0.2 s of silence
+	pcm := base64.StdEncoding.EncodeToString(make([]byte, 2*rate/5))
 	ev, err := decode(&fakeRec{}, "ja", Command{Type: "decode", ID: "3", PCM: pcm})
 	if err != nil {
 		t.Fatal(err)
@@ -112,7 +106,6 @@ func TestDecode(t *testing.T) {
 	if ev.Lang != "ja" {
 		t.Fatalf("language %q", ev.Lang)
 	}
-	// Told to tell the language, it cleans the text for the one heard, and says it.
 	if ev, err := decode(&fakeRec{}, "auto", Command{Type: "decode", ID: "5", PCM: pcm}); err != nil || ev.Lang != "ja" || ev.Tokens[1].Text != "あ" {
 		t.Fatalf("auto: %+v %v", ev, err)
 	}

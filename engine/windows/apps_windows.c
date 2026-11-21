@@ -1,5 +1,3 @@
-// Apps: the processes playing sound, by the audio sessions of every output; those with a window
-// on the taskbar; and what their programs are called.
 #define COBJMACROS
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -85,8 +83,6 @@ typedef struct {
 	int n, cap;
 } windowed;
 
-// onTaskbar tells whether a window shows on the taskbar: a visible window of its own, with a
-// title, not a tool's, not cloaked (an app of the Store's, suspended, keeps its window hidden so).
 static int onTaskbar(HWND w) {
 	if (!IsWindowVisible(w) || GetWindow(w, GW_OWNER) != NULL || GetWindowTextLengthW(w) == 0) {
 		return 0;
@@ -129,7 +125,6 @@ int tc_describe(unsigned long pid, wchar_t *path, int pathcap, wchar_t *name, in
 	if (!ok) {
 		return -1;
 	}
-	// The file's description, as Task Manager shows it: "Google Chrome", not chrome.exe.
 	DWORD ignored;
 	DWORD n = GetFileVersionInfoSizeW(path, &ignored);
 	if (n == 0) {

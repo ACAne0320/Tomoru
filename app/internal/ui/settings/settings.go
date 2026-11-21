@@ -1,4 +1,3 @@
-// Package settings is the settings window: a sidebar of pages, each in a file of its own.
 package settings
 
 import (
@@ -12,28 +11,23 @@ import (
 	"tomoru/locales"
 )
 
-// Width and Height are the window's size at first; it remembers the size the user gives it.
 const Width, Height = 1040, 720
 
-// MinWidth and MinHeight are the least the user can make it.
 const MinWidth, MinHeight = 860, 600
 
-// Settings is the window's content. The shell shows it in a window.
 type Settings struct {
-	core   *core.Core
-	nav    shared.Nav
-	Tab    string // the page: "home", "general", "scenes", "history", "stats", "subtitles", "engines" or "about"
-	source shared.SourceMenu
-	edit   endpointEdit            // learning names' dialog adding an API
-	edits  int                     // the forms opened, to tell their tests apart
-	models map[string]models.State // the local models' states, as last shown: one coming in says so
-	// modelsMoving is the models moving to another folder, as last shown: once there, it says so.
+	core         *core.Core
+	nav          shared.Nav
+	Tab          string
+	source       shared.SourceMenu
+	edit         endpointEdit
+	edits        int
+	models       map[string]models.State
 	modelsMoving bool
-	keys         shared.ShortcutRecorder // start and stop's
-	imageKeys    shared.ShortcutRecorder // the picture's
-	// customColors shows the subtitles' colors of one's own, chosen as a scheme's swatch is.
+	keys         shared.ShortcutRecorder
+	imageKeys    shared.ShortcutRecorder
 	customColors bool
-	navWidth     float32 // the sidebar's, as the language shown has it
+	navWidth     float32
 	enginesEdit
 	sceneEdit
 	historyEdit
@@ -41,7 +35,7 @@ type Settings struct {
 	confirm   confirmEdit
 	feedback  feedbackEdit
 	fonts     fontEdit
-	deleting  string // the local model asked about by its button before it is deleted
+	deleting  string
 	statsEdit statsEdit
 }
 
@@ -90,7 +84,6 @@ func (s *Settings) View(c *ui.Context) {
 	})
 }
 
-// Open shows page; the scenes' shows the scene in use.
 func (s *Settings) Open(page string) {
 	if page == "scenes" {
 		s.sceneEdit.id = false

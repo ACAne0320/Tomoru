@@ -92,8 +92,6 @@ func TestServerRequestTimeout(t *testing.T) {
 	}
 }
 
-// TestSleeper is the child of the tests that need one that runs until stopped: this test binary,
-// which sleeps, on every platform.
 func TestSleeper(t *testing.T) {
 	if os.Getenv("TOMORU_SLEEPER") == "" {
 		t.Skip("the child of TestServerStopReapsChild")
@@ -120,7 +118,7 @@ func TestServerStopReapsChild(t *testing.T) {
 	default:
 		t.Fatal("Stop returned before reaping the child")
 	}
-	s.Stop() // stopping twice is safe
+	s.Stop()
 }
 
 func TestEnsureCancelledDoesNotStart(t *testing.T) {
@@ -141,9 +139,6 @@ func TestEnsureCancelledDoesNotStart(t *testing.T) {
 	}
 }
 
-// Queued Ensure calls must recheck cancellation after waiting for a stopping
-// process to release the server lock. Starting even briefly would revive a child
-// after the application has already stopped its server.
 func TestEnsureCancelledWhileWaitingForLock(t *testing.T) {
 	s := NewServer("does-not-exist", nil)
 	parent, cancel := context.WithCancel(context.Background())
@@ -152,7 +147,7 @@ func TestEnsureCancelledWhileWaitingForLock(t *testing.T) {
 	s.mu.Lock()
 	done := make(chan error, 1)
 	go func() { _, err := s.Ensure(ctx, "model"); done <- err }()
-	<-ctx.checked // Ensure observed a live context before it waited for the lock.
+	<-ctx.checked
 	cancel()
 	s.mu.Unlock()
 	select {
@@ -165,7 +160,6 @@ func TestEnsureCancelledWhileWaitingForLock(t *testing.T) {
 	}
 }
 
-// checkedContext signals after reading the first Err result, before returning it.
 type checkedContext struct {
 	context.Context
 	checked chan struct{}
@@ -178,7 +172,6 @@ func (c *checkedContext) Err() error {
 	return err
 }
 
-// TestWarm: warming asks for a translation, with a picture once the vision projector is loaded.
 func TestWarm(t *testing.T) {
 	for _, vision := range []string{"", "mmproj.gguf"} {
 		var got map[string]any
@@ -205,10 +198,9 @@ func TestWarm(t *testing.T) {
 	}
 }
 
-// TestWarmExit: a server that exits while warming stops it.
 func TestWarmExit(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(io.Discard, r.Body) // read, the request's going is seen
+		io.Copy(io.Discard, r.Body)
 		<-r.Context().Done()
 	}))
 	defer srv.Close()

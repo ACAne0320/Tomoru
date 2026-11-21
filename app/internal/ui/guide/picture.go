@@ -12,14 +12,11 @@ import (
 	"tomoru/locales"
 )
 
-// sample is the sample picture as the stage shows it: its language's, decoded once.
 type sample struct {
 	lang   string
 	bitmap *ui.Bitmap
 }
 
-// samplePNG is the sample game dialogue in the spoken language, which the picture step has the
-// user select and translate.
 func (g *Guide) samplePNG() []byte {
 	if b := assets.SamplePicture(g.core.Preferences().Src); b != nil {
 		return b
@@ -27,7 +24,6 @@ func (g *Guide) samplePNG() []byte {
 	return assets.SamplePicture("en")
 }
 
-// sampleBitmap is the sample to show.
 func (g *Guide) sampleBitmap() *ui.Bitmap {
 	if lang := g.core.Preferences().Src; g.sample.lang != lang || g.sample.bitmap == nil {
 		b, _ := ui.DecodeBitmap(g.samplePNG())
@@ -36,20 +32,15 @@ func (g *Guide) sampleBitmap() *ui.Bitmap {
 	return g.sample.bitmap
 }
 
-// picture offers selecting text on the screen to translate, for the user to want or skip, as it
-// takes Screen Recording. Wanted, it asks for it; macOS has it turned on in System Settings, and the
-// app reopened, which comes back to this step. On, the user chooses its shortcut and tries it on the
-// sample on the stage, its translation coming under.
 func (g *Guide) picture(c *ui.Context) {
 	k := g.core
-	// Answered, the system's prompt gives the front back to the app before: take it back.
 	if k.ScreenAsking {
 		g.asked = true
 	} else if g.asked {
 		g.asked = false
 		g.nav.Focus()
 	}
-	k.CheckScreen() // turned on in System Settings meanwhile
+	k.CheckScreen()
 	c.After(core.ListEvery)
 	if k.CanSelect() {
 		g.pictureTry(c)
@@ -58,8 +49,6 @@ func (g *Guide) picture(c *ui.Context) {
 	g.part(c, 0, func() { g.pictureAsk(c) })
 }
 
-// pictureAsk is the picture step before selecting is on: asking for Screen Recording, or the way
-// to turn it on.
 func (g *Guide) pictureAsk(c *ui.Context) {
 	k := g.core
 	title(c, locales.GuideSelectTitle())
@@ -82,9 +71,6 @@ func (g *Guide) pictureAsk(c *ui.Context) {
 	}
 }
 
-// pictureTry is selecting, on: its shortcut, to change or keep, and two checks, done one after
-// the other: pressing it, which lights its keys on the stage, then pressing it again to select the
-// sample on the stage, which translates it for real, its translation under.
 func (g *Guide) pictureTry(c *ui.Context) {
 	k := g.core
 	keys, works := kit.ShortcutText(k.Preferences().ImageShortcut), g.works(core.PictureShortcut)
@@ -104,8 +90,6 @@ func (g *Guide) pictureTry(c *ui.Context) {
 	g.part(c, 2, func() { g.pictureChecks(c, keys, works) })
 }
 
-// pictureChecks are the picture step's two checks, done one after the other, and the sample's
-// translation under them once selecting it worked.
 func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 	k := g.core
 	pal := kit.Colors(c)
@@ -117,7 +101,7 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 		}
 		check(c, works, false, false, locales.GuideSelectPress(keys), detail)
 		if !works {
-			return // the next once this is done
+			return
 		}
 		done := g.selected != ""
 		switch {
@@ -142,8 +126,6 @@ func (g *Guide) pictureChecks(c *ui.Context, keys string, works bool) {
 	})
 }
 
-// selectCorners draws the corners of a selection drawing themselves around r, over and over, in
-// col: what to select, as selecting it will look. Still, they are there.
 func selectCorners(p *ui.Painter, r ui.Rect, col ui.Color, still bool) {
 	const (
 		period = 2800 * time.Millisecond
@@ -159,7 +141,7 @@ func selectCorners(p *ui.Painter, r ui.Rect, col ui.Color, still bool) {
 		switch {
 		case t < draw:
 			k = float32(t) / float32(draw)
-			k = 1 - (1-k)*(1-k)*(1-k) // easing out
+			k = 1 - (1-k)*(1-k)*(1-k)
 		case t >= gone:
 			p.After(period - t)
 			return
@@ -175,12 +157,10 @@ func selectCorners(p *ui.Painter, r ui.Rect, col ui.Color, still bool) {
 			up = -1
 		}
 		corner := (&ui.Path{}).MoveTo(c[0], c[1]+up*arm).LineTo(c[0], c[1]).LineTo(c[0]+c[2]*arm, c[1])
-		p.StrokePath(corner.Trim(.5-k/2, .5+k/2), width, col.Alpha(alpha)) // from the corner out
+		p.StrokePath(corner.Trim(.5-k/2, .5+k/2), width, col.Alpha(alpha))
 	}
 }
 
-// pictureStage is the shortcut's keys while it is checked, else the sample game dialogue, as a game
-// would show it on the screen, with a note over it to select it until it is.
 func (g *Guide) pictureStage(c *ui.Context) {
 	if g.core.CanSelect() && !g.works(core.PictureShortcut) {
 		ui.Column(c).Fill().AlignItems(ui.Center).Justify(ui.Center).Children(func() {
@@ -201,7 +181,6 @@ func (g *Guide) pictureStage(c *ui.Context) {
 			onStage(c, locales.GuideSelectHere(), kit.TextControl, .9).FontWeight(kit.WeightBold).
 				Background(pal.Glass).Radius(kit.Pill(28)).Padding(kit.Space(2), kit.Space(4)).Margin(0, 0, kit.Space(3), 0)
 		}
-		// Room around the dialogue for the corners showing what to select.
 		ui.Box(c).Padding(kit.Space(2)).Draw(func(p *ui.Painter, r ui.Rect) {
 			if translated == "" {
 				selectCorners(p, r, pal.Lantern, c.Preferences().ReduceMotion)
@@ -214,7 +193,6 @@ func (g *Guide) pictureStage(c *ui.Context) {
 		if translated == "" {
 			return
 		}
-		// Its translation unfolds under it, as it comes.
 		glass(c, ui.Column(c.Key("translated")).Width(w+2*kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Clip()).
 			Transition(ui.ElementTransition{Animation: &kit.Resize, Size: true, Enter: &ui.Motion{Collapse: true}}).Children(func() {
 			kit.ArriveAfter(ui.Text(c, translated).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(pal.SubTgt).LineHeight(1.4).MaxLines(4), kit.Settle)

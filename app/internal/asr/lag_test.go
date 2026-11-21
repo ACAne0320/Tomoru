@@ -8,8 +8,6 @@ import (
 	"tomoru/internal/engine"
 )
 
-// TestLag says the network is slow once three of the last five measures came late, or sending
-// stalled, and quick again once the last three came soon.
 func TestLag(t *testing.T) {
 	var said []bool
 	l := &lag{}
@@ -18,7 +16,7 @@ func TestLag(t *testing.T) {
 			said = append(said, slow)
 		}
 	}
-	for _, s := range []float64{5, .5, 5, 4} { // seconds: one late is not slow
+	for _, s := range []float64{5, .5, 5, 4} {
 		note(batch.Took(time.Duration(s * float64(time.Second))))
 	}
 	if len(said) != 1 || !said[0] {
@@ -40,7 +38,6 @@ func TestLag(t *testing.T) {
 	}
 }
 
-// fakeRecognizer sends what it is given to send.
 type fakeRecognizer struct{ done chan struct{} }
 
 func (fakeRecognizer) Audio(engine.Event) error { return nil }
@@ -48,8 +45,6 @@ func (f fakeRecognizer) Stop()                  {}
 func (f fakeRecognizer) Done() <-chan struct{}  { return f.done }
 func (fakeRecognizer) Err() error               { return nil }
 
-// TestWatched turns a cloud recognizer's measures into slow and quick, and passes the rest; every
-// cloud recognizer is watched.
 func TestWatched(t *testing.T) {
 	var send func(engine.Event)
 	f, _ := watched(func(Env) (Factory, error) {

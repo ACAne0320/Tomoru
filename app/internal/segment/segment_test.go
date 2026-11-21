@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-// chars makes one token per character, as SpeechAnalyzer times Chinese and Japanese, dt seconds
-// each from t.
 func chars(s string, t float64) []Token {
 	const dt = 0.15
 	var out []Token
@@ -38,7 +36,6 @@ func texts(segs []Segment) []string {
 
 func zh(maxWidth int) *Segmenter { return New(Config{MaxWidth: maxWidth}) }
 
-// zhVol is a segmenter of a recognizer whose volatile sentence ends hold.
 func zhVol() *Segmenter { return New(Config{VolatileSentences: true}) }
 
 func TestFinal(t *testing.T) {
@@ -67,7 +64,7 @@ func TestFinal(t *testing.T) {
 	t.Run("finalized again over committed audio, nothing is repeated", func(t *testing.T) {
 		s := zh(0)
 		s.Final(chars("先看看角色创建界面吧。", 0))
-		got := commits(s.Final(chars("界面吧。好的。", 1.05))) // 界 is the 8th character
+		got := commits(s.Final(chars("界面吧。好的。", 1.05)))
 		if !slices.Equal(texts(got), []string{"好的。"}) {
 			t.Errorf("%q", texts(got))
 		}
@@ -108,7 +105,6 @@ func TestVolatile(t *testing.T) {
 		if !slices.Equal(texts(got), []string{"大家好。"}) || got[0].Timed {
 			t.Fatalf("%+v", got)
 		}
-		// The hypothesis is revised before the committed point (。→！) and grows.
 		got = commits(s.Volatile("大家好！欢迎来到今天的直播。我们", 0, 3))
 		if !slices.Equal(texts(got), []string{"欢迎来到今天的直播。"}) {
 			t.Errorf("%q", texts(got))
@@ -142,7 +138,7 @@ func TestVolatile(t *testing.T) {
 	t.Run("a final result with no words still ends the hypothesis committed from", func(t *testing.T) {
 		s := New(Config{VolatileSentences: true, FinalsEnd: true})
 		s.Volatile(" Any questions so far?", 9.41, 11.51)
-		s.Final([]Token{{"?..?", 9.41, 11.39}}) // Apple's, for "Any questions so far?"
+		s.Final([]Token{{"?..?", 9.41, 11.39}})
 		got := commits(s.Volatile(" Okay, then let's move on to the next item.", 12.83, 16.85))
 		if !slices.Equal(texts(got), []string{"Okay, then let's move on to the next item."}) {
 			t.Errorf("%q", texts(got))
@@ -215,12 +211,10 @@ func TestFirstSentenceEnd(t *testing.T) {
 	}
 }
 
-// TestVoice commits the tail of final results once the speaker has been silent for TailWait, by
-// voice activity: a pause shorter than that, mid-sentence, keeps it for the next final result.
 func TestVoice(t *testing.T) {
 	s := New(Config{})
 	s.Voice(true, 0)
-	s.Final(chars("その後とは", 0)) // ends at 0.75
+	s.Final(chars("その後とは", 0))
 	s.Voice(false, 0.8)
 	if got := commits(s.Tick(1.3)); len(got) > 0 {
 		t.Fatalf("committed in a short pause: %q", texts(got))
@@ -238,7 +232,6 @@ func TestVoice(t *testing.T) {
 	if got := commits(s.Tick(5.2)); !slices.Equal(texts(got), []string{"はい"}) || got[0].Reason != "pause" {
 		t.Fatalf("%+v", got)
 	}
-	// While the voice goes on, no wait commits.
 	s.Voice(true, 6)
 	s.Final(chars("いや", 6))
 	if got := commits(s.Tick(20)); len(got) > 0 {
@@ -246,8 +239,6 @@ func TestVoice(t *testing.T) {
 	}
 }
 
-// TestFinalsEnd commits the unfinished tail of a final result at once, for a recognizer whose final
-// results end utterances.
 func TestFinalsEnd(t *testing.T) {
 	s := New(Config{FinalsEnd: true})
 	got := commits(s.Final(chars("大事はないか。その後とは", 0)))
@@ -256,7 +247,6 @@ func TestFinalsEnd(t *testing.T) {
 	}
 }
 
-// TestLength cuts a sentence past two lines at its last clause mark, and only past them.
 func TestLength(t *testing.T) {
 	long := "我们今天要玩的是一款新出的角色扮演游戏，听说剧情非常感人，画面也很漂亮，所以大家一起来看看吧然后"
 	got := commits(New(Config{}).Final(chars(long, 0)))
@@ -266,7 +256,6 @@ func TestLength(t *testing.T) {
 	if got := commits(New(Config{}).Final(chars("我们今天要玩的是一款新出的角色扮演游戏，听说剧情非常感人", 0))); len(got) > 0 {
 		t.Errorf("cut a sentence of one line: %q", texts(got))
 	}
-	// No clause mark: between the last two words.
 	var toks []Token
 	for i, w := range []string{" so", " I", " went", " to", " the", " store", " and", " bought", " some", " apples", " and", " then", " I", " walked", " home", " because", " it", " was", " a", " really", " nice", " day", " outside", " today"} {
 		toks = append(toks, Token{Text: w, Start: float64(i) * .3, End: float64(i+1) * .3})
@@ -278,7 +267,6 @@ func TestLength(t *testing.T) {
 	if w := Width(got[0].Text); w > 90 {
 		t.Errorf("cut %d wide", w)
 	}
-	// A whole sentence too long, final at once: cut within two lines too, then the rest.
 	toks = nil
 	for i, w := range strings.Fields("She was still struggling, often losing sleep in the middle of the night, feeling unfocused, unmotivated during the day.") {
 		toks = append(toks, Token{Text: " " + w, Start: float64(i) * .3, End: float64(i+1) * .3})

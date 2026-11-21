@@ -7,16 +7,8 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// The global shortcut, as the settings keep it: an accelerator ("Alt+Shift+T"), which
-// mygo.GlobalShortcut registers. It shows as the system writes shortcuts: on macOS its modifiers'
-// symbols in their order (⌃⌥⇧⌘) before its key, elsewhere their names, as Windows does
-// ("Ctrl+Alt+T").
-
-// macKeys tells whether shortcuts show as macOS shows them.
 var macKeys = runtime.GOOS == "darwin"
 
-// mods are the modifiers of accelerators, in the order they show, with their symbols on macOS and
-// their names elsewhere.
 var mods = []struct {
 	name, symbol, label string
 	mod                 ui.Modifiers
@@ -24,8 +16,6 @@ var mods = []struct {
 	{"Ctrl", "⌃", "Ctrl", ui.Ctrl}, {"Alt", "⌥", "Alt", ui.Alt}, {"Shift", "⇧", "Shift", ui.Shift}, {"Cmd", "⌘", "Win", ui.Super},
 }
 
-// keyNames are the keys a global shortcut can end with, by their names in accelerators. Letters
-// and digits are themselves.
 var keyNames = map[ui.Key]string{
 	ui.KeySpace: "Space", ui.KeyEnter: "Enter", ui.KeyTab: "Tab", ui.KeyBackspace: "Backspace",
 	ui.KeyDelete: "Delete", ui.KeyHome: "Home", ui.KeyEnd: "End", ui.KeyPageUp: "PageUp",
@@ -46,29 +36,23 @@ func init() {
 	}
 }
 
-// arrows are the keys that show as their symbols on every system.
 var arrows = map[string]bool{"Left": true, "Right": true, "Up": true, "Down": true}
 
-// keySymbols are how keys with a symbol of their own show on macOS.
 var keySymbols = map[string]string{
 	"Space": "Space", "Enter": "↩", "Tab": "⇥", "Backspace": "⌫", "Delete": "⌦", "Home": "↖", "End": "↘",
 	"PageUp": "⇞", "PageDown": "⇟", "Left": "←", "Right": "→", "Up": "↑", "Down": "↓",
 }
 
-// ShortcutKeys are the keys of an accelerator as they show: its modifiers' symbols, then its key.
 func ShortcutKeys(acc string) []string {
 	keys, _ := shortcutKeys(acc)
 	return keys
 }
 
-// ShortcutMods are the modifiers of an accelerator's keys, as ShortcutKeys has them: each
-// modifier's, then 0 for its key.
 func ShortcutMods(acc string) []ui.Modifiers {
 	_, ms := shortcutKeys(acc)
 	return ms
 }
 
-// shortcutKeys are the keys of an accelerator as they show, and the modifier each is.
 func shortcutKeys(acc string) ([]string, []ui.Modifiers) {
 	parts := strings.Split(acc, "+")
 	key := parts[len(parts)-1]
@@ -98,8 +82,6 @@ func shortcutKeys(acc string) ([]string, []ui.Modifiers) {
 	return append(keys, key), append(ms, 0)
 }
 
-// ShortcutText is an accelerator as a line of text says it: "⌥⇧T" on macOS, "Alt+Shift+T"
-// elsewhere.
 func ShortcutText(acc string) string {
 	if macKeys {
 		return strings.Join(ShortcutKeys(acc), "")
@@ -107,15 +89,11 @@ func ShortcutText(acc string) string {
 	return strings.Join(ShortcutKeys(acc), "+")
 }
 
-// ShortcutKey tells whether a global shortcut can end with key.
 func ShortcutKey(key ui.Key) bool {
 	_, ok := keyNames[key]
 	return ok
 }
 
-// Accelerator is the accelerator of a key pressed with mods, if it makes a global shortcut: the
-// key with Control, Option or Command (Shift alone would take a capital letter from every app), or
-// a function key alone.
 func Accelerator(m ui.Modifiers, key ui.Key) (string, bool) {
 	name, ok := keyNames[key]
 	if !ok {
@@ -133,7 +111,6 @@ func Accelerator(m ui.Modifiers, key ui.Key) (string, bool) {
 	return strings.Join(append(parts, name), "+"), true
 }
 
-// KeyCaps shows an accelerator's keys as the keys of a keyboard, one cap each.
 func KeyCaps(c *ui.Context, acc string) {
 	t := c.Theme()
 	ui.Row(c).Gap(4).AlignItems(ui.Center).Children(func() {

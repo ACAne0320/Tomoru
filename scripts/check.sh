@@ -1,7 +1,4 @@
 #!/bin/sh
-# Static checks, with no tests and no builds: the license inventory, gofmt, go vet, the linters of
-# .golangci.yml and unreachable functions for macOS, Windows and Linux, the app's layering and
-# design rules, and a type check of the Swift engine (macOS only).
 set -eu
 
 go=0
@@ -27,7 +24,6 @@ if [ "$go$swift" = 00 ]; then
 fi
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
-# tool <name> <package> <version> prints the path of a pinned Go tool, built the first time.
 tool() {
     dir="${TOMORU_TOOLS:-$HOME/.cache/tomoru-tools}/$1-$3"
     if [ ! -x "$dir/$1" ] && [ ! -x "$dir/$1.exe" ]; then
@@ -36,13 +32,10 @@ tool() {
     echo "$dir/$1"
 }
 
-# analyze checks the module it runs in, for the platform the environment names. A library, as
-# engine/shared, which each engine uses its part of, has no unreachable functions to look for.
 analyze() {
     go vet ./...
     "$lint" run ./...
     [ -n "$(go list -f '{{if eq .Name "main"}}main{{end}}' ./...)" ] || return 0
-    # Only tests reach core/coretest, the desktop's test adapter.
     unreachable=$("$deadcode" ./...)
     unreachable=$(echo "$unreachable" | grep -v '^internal/core/coretest/' || true)
     if [ -n "$unreachable" ]; then
@@ -67,18 +60,14 @@ if [ "$go" = 1 ]; then
     lint=$(tool golangci-lint github.com/golangci/golangci-lint/v2/cmd/golangci-lint v2.15.0)
     deadcode=$(tool deadcode golang.org/x/tools/cmd/deadcode v0.52.0)
     (
-        # The app needs no cgo: it is checked for every platform anywhere.
         cd "$root/app"
         for target in darwin/arm64 windows/amd64 linux/amd64; do
             export GOOS="${target%/*}" GOARCH="${target#*/}" CGO_ENABLED=0
             analyze
         done
         unset GOOS GOARCH CGO_ENABLED
-        go test -count=1 layers_test.go design_test.go
+        go test -count=1 layers_test.go design_test.go comments_test.go
     )
-    # The engines need cgo: each is checked for this computer and for Windows, as far as it builds
-    # there. The Windows engine builds for Windows only, and the Linux engine on Linux only, with
-    # libpulse's and GTK 3's headers (apt install libpulse-dev libgtk-3-dev).
     for m in engine/asr engine/shared engine/windows engine/linux; do
         (
             cd "$root/$m"

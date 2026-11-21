@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-// TestMain is tomoru-asr too, when the test runs itself as it: it answers each decode with a token
-// at half the stretch, heard in Japanese, and exits on an empty stretch, as a crash.
 func TestMain(m *testing.M) {
 	if os.Getenv("FAKE_TOMORU_ASR") == "" {
 		os.Exit(m.Run())
@@ -49,7 +47,6 @@ func TestDecoder(t *testing.T) {
 	if _, err := d.Decode(canceled, make([]byte, 2)); err != context.Canceled {
 		t.Fatalf("canceled: %v", err)
 	}
-	// An empty stretch has the fake crash: the decode in flight fails, and the decoder ends.
 	if _, err := d.Decode(ctx, nil); err == nil {
 		t.Fatal("decoded with tomoru-asr gone")
 	}

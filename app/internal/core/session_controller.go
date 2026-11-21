@@ -11,10 +11,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// SessionController owns one session's preparation, lifetime and display state.
-// Inputs are resolved by the application facade; hooks coordinate history and usage.
-// Methods and hooks run on the application thread. Runtime callbacks retain dated
-// reports in a synchronized accumulator, then enqueue display updates.
 type SessionController struct {
 	Running bool
 	Err     error
@@ -98,8 +94,6 @@ func (s *SessionController) start(r sessionRequest) {
 				})
 			}
 			if err != nil {
-				// A failed startup may already have queued its own terminal callback. Retire
-				// its token before cancellation so that callback cannot replace the real error.
 				s.run++
 				cancel()
 				s.onStopped()
@@ -133,7 +127,6 @@ func (s *SessionController) apply(st live.State) {
 	s.onState(st)
 	switch {
 	case st.Phase == "stopped":
-		// Wait is safe here: runtime reports enqueue callbacks and never wait for this thread.
 		if s.session != nil {
 			s.session.Wait()
 		}
@@ -142,8 +135,6 @@ func (s *SessionController) apply(st live.State) {
 		}
 		s.onStopped()
 		s.session, s.prepare, s.reports, s.Running = nil, nil, nil, false
-		// An engine that ends without a word, or is ended by the system (a crash, killed), exited:
-		// its exit status means nothing to the user.
 		s.Err = st.Err
 		if exit := (*exec.ExitError)(nil); s.Err == nil || errors.As(s.Err, &exit) {
 			s.Err = errExited
@@ -156,8 +147,6 @@ func (s *SessionController) apply(st live.State) {
 		}
 		s.Updated = time.Now()
 	}
-	// The engine's clock reports several times a second with nothing new to show: redrawing the
-	// windows for those is all cost.
 	if st.Phase == "stopped" || !sameShown(st, prev) {
 		s.changed()
 	}
@@ -173,8 +162,6 @@ func sameText(a, b live.State) bool {
 	return a.Pending == b.Pending && a.Draft == b.Draft && slices.Equal(a.Lines, b.Lines)
 }
 
-// sameShown tells whether the windows show a and b alike: the clock's time, the latencies and the
-// audio billed change without showing.
 func sameShown(a, b live.State) bool {
 	return a.Phase == b.Phase && sameText(a, b) && a.PendingLang == b.PendingLang && a.Voice == b.Voice && a.Slow == b.Slow &&
 		a.Err == b.Err && a.Stats.Lines == b.Stats.Lines && a.Stats.Speech == b.Stats.Speech && a.Stats.Chars == b.Stats.Chars

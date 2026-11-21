@@ -51,7 +51,6 @@ func TestStatsTimestampSurvivesQueuedReports(t *testing.T) {
 	s.update(func(st *State) { st.Stats.Chars += 7 })
 	clock.set(before.Add(4 * time.Second))
 	s.Stop()
-	// All reports are delivered on a later date, including the terminal report.
 	clock.set(before.Add(48 * time.Hour))
 	once.Do(func() { close(release) })
 	s.Wait()
@@ -87,13 +86,11 @@ func TestSpeechEndPreservesCrossMidnightAudioInterval(t *testing.T) {
 			end := start.Add(4 * time.Second)
 			reported := end
 			if withClock {
-				// Detection reports late; audio still ended at 00:00:02.
 				reported = end.Add(5 * time.Second)
 			}
 			clock.set(reported)
 			s.handle(engine.Event{Type: "voice", On: false, T: 104})
 			clock.set(reported.Add(time.Second))
-			// Duplicate voice-off notifications must not move the interval's endpoint.
 			s.handle(engine.Event{Type: "voice", On: false, T: 105})
 			s.Stop()
 			s.Wait()
@@ -133,9 +130,6 @@ func TestStatsTimestampDefaultsToWallClock(t *testing.T) {
 	}
 }
 
-// TestLineSaid checks when lines were said: a timed one from its first sound to its last; those
-// cut from the hypothesis together share the time from when the voice began, not before the line
-// before ended, to when they were committed.
 func TestLineSaid(t *testing.T) {
 	start := time.Date(2026, 11, 19, 14, 26, 0, 0, time.Local)
 	clock := &statsClock{at: start}
@@ -168,7 +162,6 @@ func TestLineSaid(t *testing.T) {
 	if l := lines[0]; !l.Start.Equal(sec(0.5)) || !l.End.Equal(sec(2)) {
 		t.Errorf("timed %q: %v – %v", l.Src, l.Start, l.End)
 	}
-	// Committed together, they share 2 s to 5 s by their length, one after another.
 	for i, want := range [][2]float64{{2, 2.9}, {2.9, 4.55}, {4.55, 5}} {
 		if l := lines[i+1]; !l.Start.Equal(sec(want[0])) || !l.End.Equal(sec(want[1])) {
 			t.Errorf("untimed %q: %v – %v", l.Src, l.Start.Sub(start), l.End.Sub(start))

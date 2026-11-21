@@ -36,14 +36,11 @@ func TestLoad(t *testing.T) {
 		t.Errorf("%+v, %v", got, err)
 	}
 
-	// Edited out of range: set right. An API deleted stays chosen: translating says it is gone
-	// rather than sending the subtitles elsewhere.
 	os.WriteFile(path, []byte(`{"Src": "ja", "Tgt": "ja", "Shown": 99, "Font": " ", "MT": "custom:gone"}`), 0o644)
 	got, _ = Load(path, "zh-Hans")
 	if got.Src != "en" || got.Tgt != "zh" || got.Shown != MaxShown || got.Font != "system" || got.MT != "custom:gone" {
 		t.Errorf("%+v", got)
 	}
-	// A language detected stays; it is no language to translate into.
 	os.WriteFile(path, []byte(`{"Src": "auto", "Tgt": "zh"}`), 0o644)
 	if got, _ = Load(path, "en"); got.Src != "auto" || got.Tgt != "zh" {
 		t.Errorf("auto → %s became %s → %s", "zh", got.Src, got.Tgt)
@@ -52,25 +49,20 @@ func TestLoad(t *testing.T) {
 	if got, _ = Load(path, "zh-Hans"); got.Src != "en" || got.Tgt != "zh" {
 		t.Errorf("ja → auto became %s → %s", got.Src, got.Tgt)
 	}
-	// A color a person mistyped takes the default.
 	os.WriteFile(path, []byte(`{"SrcColor": "white", "TgtColor": "#12345", "EdgeColor": "#ABCDEF80"}`), 0o644)
 	if got, _ = Load(path, "en"); got.SrcColor != "#ffffff" || got.TgtColor != "#7fdbff" || got.EdgeColor != "#ABCDEF80" {
 		t.Errorf("colors %q %q %q", got.SrcColor, got.TgtColor, got.EdgeColor)
 	}
-	// Opacity past its range is set right; settings from before it take the defaults.
 	os.WriteFile(path, []byte(`{"TextOpacity": 5, "BoxOpacity": 120}`), 0o644)
 	if got, _ = Load(path, "en"); got.TextOpacity != MinTextOpacity || got.BoxOpacity != 100 || got.OlderOpacity != 54 {
 		t.Errorf("opacity %v %v %v", got.TextOpacity, got.BoxOpacity, got.OlderOpacity)
 	}
-	// A family of the system's stays, installed or not: the subtitles fall back to the system's.
 	os.WriteFile(path, []byte(`{"Font": "Comic Sans MS"}`), 0o644)
 	if got, _ = Load(path, "en"); got.Font != "Comic Sans MS" {
 		t.Errorf("font %q", got.Font)
 	}
 }
 
-// TestImageShortcut gives settings from before pictures were translated the picture's shortcut,
-// one that is not starting and stopping's.
 func TestImageShortcut(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	for shortcut, want := range map[string]string{"Ctrl+Alt+T": DefaultImageShortcut, "Alt+Shift+S": DefaultShortcut} {
@@ -81,8 +73,6 @@ func TestImageShortcut(t *testing.T) {
 	}
 }
 
-// TestEndpointFormat reads an API's format, and moves Index, as settings kept it before Format,
-// into it.
 func TestEndpointFormat(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	os.WriteFile(path, []byte(`{"Endpoints": [{"ID": "a", "Index": true}, {"ID": "b", "Index": false}, {"ID": "c"}, {"ID": "d", "Format": "hy-mt"}]}`), 0o644)
@@ -106,7 +96,6 @@ func TestEndpointFormat(t *testing.T) {
 	}
 }
 
-// TestASRCloud moves Qwen's service, as settings kept it before ASRAPIs, into them, once.
 func TestASRCloud(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	os.WriteFile(path, []byte(`{"ASR": "qwen-cloud", "ASRCloud": {"Host": "dashscope-intl.aliyuncs.com", "Model": "", "Key": true}}`), 0o644)
@@ -121,15 +110,12 @@ func TestASRCloud(t *testing.T) {
 	if b, _ := os.ReadFile(path); strings.Contains(string(b), `"ASRCloud"`) {
 		t.Error("saved the old field")
 	}
-	// Never set up: nothing to move.
 	os.WriteFile(path, []byte(`{"ASRCloud": {"Host": "", "Model": "", "Key": false}}`), 0o644)
 	if p, _ := Load(path, "zh-Hans"); len(p.ASRAPIs) != 0 || p.ASRCloud != nil {
 		t.Errorf("%+v", p.ASRAPIs)
 	}
 }
 
-// TestDisplay keeps the original only, which translates nothing, and sets a choice it does not
-// know back to both.
 func TestDisplay(t *testing.T) {
 	for in, want := range map[string]int{`{"Display":2}`: DisplaySrc, `{"Display":1}`: DisplayTgt, `{"Display":7}`: DisplayBoth, `{"Display":-1}`: DisplayBoth} {
 		path := filepath.Join(t.TempDir(), "settings.json")

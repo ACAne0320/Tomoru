@@ -17,7 +17,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// until runs what is posted until done, or fails.
 func (f *fake) until(t *testing.T, done func() bool) {
 	t.Helper()
 	for deadline := time.Now().Add(3 * time.Second); !done(); time.Sleep(time.Millisecond) {
@@ -34,7 +33,6 @@ func (f *fake) until(t *testing.T, done func() bool) {
 	}
 }
 
-// keepSession keeps a session of scene id with lines a second apart, after a start.
 func keepSession(t *testing.T, dir, id string, start time.Time, lines ...string) string {
 	t.Helper()
 	w := history.NewWriter(dir, history.Head{Scene: id, Src: "zh", Tgt: "en", Start: start})
@@ -52,8 +50,6 @@ func keepSession(t *testing.T, dir, id string, start time.Time, lines ...string)
 	return ""
 }
 
-// TestLearnFrom asks the user's chat model about a session two chunks long, and takes one of what
-// it suggests, turning the other down.
 func TestLearnFrom(t *testing.T) {
 	c, f := scenesCore(t)
 	c.deps.HistoryDir = t.TempDir()
@@ -73,7 +69,6 @@ func TestLearnFrom(t *testing.T) {
 		t.Fatalf("chat endpoints %+v", es)
 	}
 	id := c.AddScene("雷军演讲")
-	// 0 s and 70 s, then 140 s and 210 s: two chunks.
 	path := keepSession(t, c.deps.HistoryDir, id, time.Now(), "舒七的研发", "到了关键的时候", "在刘北赛道上", "挑战刘北")
 
 	c.LearnFrom([]string{path}, id, ep)
@@ -96,7 +91,6 @@ func TestLearnFrom(t *testing.T) {
 		t.Errorf("undone: %+v", s)
 	}
 
-	// Without a chat model's endpoint, it says so.
 	c.LearnFrom([]string{path}, id, "nope")
 	if c.Learning.Err != ErrNoChatEndpoint || c.Learning.Running {
 		t.Errorf("learning %+v", c.Learning)
@@ -109,8 +103,6 @@ func (marked) Translate(_ context.Context, r translate.Request, _ func(string)) 
 	return fmt.Sprintf("%s %v", r.Text, r.Terms), nil
 }
 
-// TestRetranslate translates again the lines the glossary concerns, with names heard wrong written
-// right, and keeps them so; the others stay as they were.
 func TestRetranslate(t *testing.T) {
 	c, f := scenesCore(t)
 	c.deps.HistoryDir = t.TempDir()

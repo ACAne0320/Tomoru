@@ -96,7 +96,6 @@ type Caps struct {
 	Longest  float64 // a stretch is at most
 	Stops    bool    // every decode ends with a full stop, left out
 	Untimed  bool    // no piece is timed: the runner spreads the stretch over them
-	Steady   bool    // each volatile decode shows as it is
 	Remote   bool    // decodes over the network: each is timed, to tell a slow network
 }
 ```
@@ -177,7 +176,7 @@ type Spec struct {
 | RTX 5060，Qwen3-ASR | 12.7 | 4.2 | 1.46 s | 2.64 / 5.89 s | 23.4 |
 
 - 它不给字的时间：一段进行中它结束的句子，从临时结果提交（`VolatileSentences`）；它结束一句之后，这段在说话人的下一个停顿处结束，停顿再短也算（`batch.Caps.Untimed`），这样段短、解码快。不这样做时段长到 15 s，原文晚 0.8 s 出现。
-- 临时解码仍要两次一致：每次直接显示（`Steady`）时，它会给说了一半的句子加句号，这些半句被提交后又再出现一次：错误率 45%。
+- 临时解码仍要两次一致：每次解码直接显示时，它会给说了一半的句子加句号，这些半句被提交后又再出现一次：错误率 45%。
 - 语音段越过 1 s 以内的停顿继续（`Gap`）：只狼的「ほら昔聞かせてくれたであろう」能连成一句。每 0.5 s 解码一次，超过 15 s 在下一个停顿处定稿。
 - `llama-server --list-devices` 显示有 GPU 且内存够（3 GB）时，引擎页推荐它；默认仍是 SenseVoice。
 

@@ -1,5 +1,4 @@
 #!/bin/sh
-# Tests, uncached: no model downloads, credentials, microphone or system audio needed.
 set -eu
 
 go=0
@@ -38,7 +37,6 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 if [ "$go" = 1 ]; then
     (
         cd "$root/app"
-        # The UI and its desktop test adapter need a desktop; the benchmark is headless.
         packages=$(go list ./internal/... ./cmd/... | awk '!/^tomoru\/internal\/ui\// && !/^tomoru\/internal\/core\/coretest($|\/)/')
         go test -count=1 $race $packages
     )
@@ -59,8 +57,6 @@ if [ "$swift" = 1 ]; then
     swiftc -module-cache-path "$out/cache" "$src/Protocol.swift" \
         "$root/engine/mac/Tests/ProtocolContract.swift" -o "$out/protocol-contract"
     "$out/protocol-contract" "$root/protocol/fixtures.json"
-    # Synthetic PCM through the production hearer: the silence limit and continuous timestamps,
-    # with no capture or model.
     swiftc -target "$(uname -m)-apple-macos26.0" -module-cache-path "$out/cache" \
         "$src/Protocol.swift" "$src/Hear.swift" "$src/Voice.swift" "$src/Capture.swift" "$src/File.swift" \
         "$root/engine/mac/Tests/HearerContract.swift" -o "$out/hearer-contract"

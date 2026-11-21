@@ -1,7 +1,6 @@
 import AVFoundation
 import Foundation
 
-// Compiled with the production hearer; no capture source or model is started.
 @main
 struct HearerContract {
     static func main() {
@@ -35,7 +34,6 @@ struct HearerContract {
                              "the emitted audio clock jumped")
                 precondition(Data(base64Encoded: event.pcm!)!.count == 3200)
             }
-            // The partial real-audio chunk is retained ahead of any synthetic silence.
             let next = Data(base64Encoded: events[1].pcm!)!
             let retained = Data((0..<100).flatMap { _ in [UInt8(123), 0] })
             precondition(next.prefix(200) == retained)

@@ -7,26 +7,17 @@ import (
 	"github.com/egoist/mygo/ui/chart"
 )
 
-// Bin is a bin of a Histogram: the stretch it counts, from Lo to Hi, its share of all of them, from
-// 0 to 1, and what it says chosen.
 type Bin struct {
 	Lo, Hi, Share float64
 	Tip           string
 }
 
-// HistMark is a line across a Histogram at a value, named over the plot: Strong in ink, else muted.
 type HistMark struct {
 	At     float64
 	Label  string
 	Strong bool
 }
 
-// Histogram shows how values spread from 0 to the last bin's Hi: a bar over each bin, as high as
-// its share is dense, so that bins of any width compare. The bins to the first mark are of the
-// lantern's amber, those to the second paler, and those past it of the lines' color; the marks
-// cross the plot, named in a row over it. The pointer, or the arrows once it has the focus, choose
-// a bin, *chosen its index, -1 for none, whose tip shows above it. format says the axis's last
-// value, with its unit; name it with label.
 func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format func(float64) string, chosen *int) ui.Element {
 	p := Colors(c)
 	hi, top := 1.0, 0.0
@@ -46,7 +37,7 @@ func Histogram(c *ui.Context, label string, bins []Bin, marks []HistMark, format
 		top = 1
 	}
 	x := chart.NewLinear(0, hi)
-	y := chart.NewLinear(0, top*1.15) // room over the highest for its tip
+	y := chart.NewLinear(0, top*1.15)
 	ticks := x.Ticks(5)
 	unitLast(ticks, format)
 	xs := make([]float32, len(bins))

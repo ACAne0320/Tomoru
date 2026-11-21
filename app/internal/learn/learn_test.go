@@ -21,8 +21,6 @@ func (m *model) Chat(_ context.Context, system, user string, _ int) (string, err
 	return m.reply, m.err
 }
 
-// The lines and the reply are the experiment's, from qwen3.8-max on the Xiaomi keynote and on the
-// Running Man case, with the names it got wrong and right.
 var xiaomi = []Line{
 	{"在那个时间点舒七的研发呢到了最关键的时候", "At that point, Shu Qi's R&D was at its most critical stage"},
 	{"开着亲手打造的车在刘北赛道上驰骋", "to drive a car they built on the Liubei track"},
@@ -77,7 +75,6 @@ func TestAsk(t *testing.T) {
 	}
 }
 
-// TestFilter keeps what the experiment found worth suggesting.
 func TestFilter(t *testing.T) {
 	lines := []Line{
 		{"개미들 모인다 지금 개미들 모여요", "蚂蚁们聚过来了"},
@@ -89,15 +86,15 @@ func TestFilter(t *testing.T) {
 	}
 	c := Context{Terms: []scene.Term{
 		{Src: "メテオ", Tgt: "陨石", Heard: []string{"メデオ"}, Auto: true},
-		{Src: "ニンフィア", Tgt: "仙子伊布"}, // the user's
+		{Src: "ニンフィア", Tgt: "仙子伊布"},
 	}, Rejected: []string{"개미"}}
 	fs := []found{
-		{Heard: "개미들", Src: "개미", Tgt: "散户", Sure: true},                                         // a particle: as 개미, which was turned down
-		{Heard: "엔터주로", Src: "엔터주", Tgt: "娱乐股", Sure: true},                                      // a particle: a translation only
-		{Heard: "private cloud compute", Src: "Private Cloud Compute", Tgt: "私有云计算", Sure: true}, // case apart, and translated right
-		{Heard: "インフィア", Src: "ニンフィア", Tgt: "仙女伊布", Sure: true},                                  // the user's own term
-		{Heard: "メデオ", Src: "メテオ", Tgt: "陨石", Sure: true},                                        // the glossary has it
-		{Heard: "シュート", Src: "キュート", Tgt: "可爱", Sure: true},                                      // not in the lines
+		{Heard: "개미들", Src: "개미", Tgt: "散户", Sure: true},
+		{Heard: "엔터주로", Src: "엔터주", Tgt: "娱乐股", Sure: true},
+		{Heard: "private cloud compute", Src: "Private Cloud Compute", Tgt: "私有云计算", Sure: true},
+		{Heard: "インフィア", Src: "ニンフィア", Tgt: "仙女伊布", Sure: true},
+		{Heard: "メデオ", Src: "メテオ", Tgt: "陨石", Sure: true},
+		{Heard: "シュート", Src: "キュート", Tgt: "可爱", Sure: true},
 	}
 	got := Filter(fs, c, lines)
 	want := []Suggestion{{Src: "엔터주", Tgt: "娱乐股", Count: 1, Example: lines[1].Src}}

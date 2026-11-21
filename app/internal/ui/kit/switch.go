@@ -6,7 +6,6 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// Switch turns *on on or off, named label for assistive technology: the lantern's amber when on.
 func Switch(c *ui.Context, on *bool, label string) ui.Element {
 	p := Colors(c)
 	const w, h, in = 44, 26, 3

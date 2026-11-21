@@ -1,8 +1,5 @@
 name: Tests
 
-# Tests (scripts/test.sh) for what changed (.github/paths.yml): the Go modules on Linux, the UI
-# and the Swift engine's contracts on macOS.
-
 on:
   push:
     branches: [main]
@@ -10,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read # the files a pull request changed
+  pull-requests: read
 
 concurrency:
   group: tests-${{ github.ref }}

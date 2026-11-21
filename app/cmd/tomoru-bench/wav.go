@@ -9,7 +9,6 @@ import (
 	"slices"
 )
 
-// wavSeconds is how long a WAV file of ffmpeg's lasts.
 func wavSeconds(path string) (float64, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -23,7 +22,6 @@ func wavSeconds(path string) (float64, error) {
 	return float64(size) / float64(bytesPerSec), nil
 }
 
-// trimWav writes the first sec seconds of src to dst.
 func trimWav(src, dst string, sec float64) error {
 	f, err := os.Open(src)
 	if err != nil {
@@ -50,8 +48,6 @@ func trimWav(src, dst string, sec float64) error {
 	return err
 }
 
-// wavData reads a WAV file's chunks up to its data, leaving f there: its bytes a second, the
-// data's size, and the header up to it.
 func wavData(f *os.File) (bytesPerSec uint32, size int64, header []byte, err error) {
 	h := make([]byte, 12)
 	if _, err = io.ReadFull(f, h); err != nil || string(h[:4]) != "RIFF" || string(h[8:]) != "WAVE" {

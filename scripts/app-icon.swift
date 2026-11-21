@@ -1,9 +1,3 @@
-// Makes the app's icon from the mascot art: app/internal/ui/assets/icon.png, the art on the macOS
-// icon grid (an 824/1024 rounded square, centered, with a soft drop shadow), which the UI draws and
-// MyGo makes the Windows and Linux icons of; and app/icon/Tomoru.icns, macos.icon in mygo.json.
-// Every size is the same picture, so the icon looks the same wherever it shows.
-//
-//	swift scripts/app-icon.swift <art.png>
 import AppKit
 
 let args = CommandLine.arguments

@@ -21,7 +21,7 @@ import (
 func TestPanel(t *testing.T) {
 	nav := &coretest.Nav{}
 	k := coretest.New()
-	tt := ui.NewTester(New(k, nav).View, Width, Height+50) // taller than it is: it fits itself
+	tt := ui.NewTester(New(k, nav).View, Width, Height+50)
 	tt.Frame()
 	for _, want := range []string{locales.HomeIdle(), locales.SourceAll(), shared.LangName("ja"), locales.Start()} {
 		if !tt.HasText(want) {
@@ -31,7 +31,6 @@ func TestPanel(t *testing.T) {
 	if nav.PanelHeight == 0 || nav.PanelHeight > Height+40 {
 		t.Errorf("fits a panel %d tall", nav.PanelHeight)
 	}
-	// The foot's icons, by the names they show on hovering them.
 	for _, label := range []string{locales.TranslateScreen(), locales.MoveSubtitles(), locales.LockSubtitles(), locales.OpenTomoru()} {
 		if err := tt.Click(label); err != nil {
 			t.Fatal(err)
@@ -40,7 +39,6 @@ func TestPanel(t *testing.T) {
 	if !slices.Equal(nav.Went, []string{"image", "adjust", "lock", "settings"}) {
 		t.Errorf("went %q", nav.Went)
 	}
-	// Locked, the lock is named for unlocking them.
 	k.Prefs.Locked = true
 	tt.Frame()
 	if err := tt.Click(locales.UnlockSubtitles()); err != nil || nav.Went[len(nav.Went)-1] != "lock" {
@@ -51,8 +49,6 @@ func TestPanel(t *testing.T) {
 	}
 }
 
-// TestMeasure measures the panel as tall as it fits itself, with an error over it and its action,
-// which make it taller than Height.
 func TestMeasure(t *testing.T) {
 	nav := &coretest.Nav{}
 	k := coretest.New()
@@ -67,8 +63,6 @@ func TestMeasure(t *testing.T) {
 	gallery(t, tt, "panel-error")
 }
 
-// TestPanelError says why translating stopped, with the action that resolves it under it: an
-// engine to set up opens Speech & translation; anything else tries again.
 func TestPanelError(t *testing.T) {
 	nav := &coretest.Nav{}
 	k := coretest.New()
@@ -83,7 +77,6 @@ func TestPanelError(t *testing.T) {
 	tt.SetSize(Width, Measure(k, nav))
 	tt.Frame()
 	gallery(t, tt, "panel-error-engines")
-	// All of it fits: the icons at its foot show.
 	if err := tt.Click(locales.OpenTomoru()); err != nil {
 		t.Error(err)
 	}
@@ -94,8 +87,6 @@ func TestPanelError(t *testing.T) {
 	}
 }
 
-// TestPanelCount says the count with its unit, as many as there are ("1 line", "1,234 lines"),
-// apart from the time, so a line too long breaks between them and never inside the count.
 func TestPanelCount(t *testing.T) {
 	k := coretest.New()
 	k.Err, k.Running = nil, true
@@ -109,7 +100,6 @@ func TestPanelCount(t *testing.T) {
 	}
 }
 
-// TestPanelRunning shows the run's numbers while translating, and pauses it.
 func TestPanelRunning(t *testing.T) {
 	k := coretest.New()
 	k.Err, k.Running = nil, true
@@ -127,16 +117,14 @@ func TestPanelRunning(t *testing.T) {
 	if err := tt.Click(locales.PauseShort()); err != nil {
 		t.Fatal(err)
 	}
-	gallery(t, tt, "panel-idle") // the sticker asleep
+	gallery(t, tt, "panel-idle")
 }
 
-// TestPanelClock shows each second of the running time as it passes, with nothing else redrawing
-// the panel, even after a frame between two seconds.
 func TestPanelClock(t *testing.T) {
 	var tt *ui.Tester
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Now = func() time.Time {
-			if tt == nil { // the tester's first frame, while it is made
+			if tt == nil {
 				return time.Now()
 			}
 			return tt.Now()
@@ -160,8 +148,6 @@ func TestPanelClock(t *testing.T) {
 	}
 }
 
-// gallery saves what tt shows, light and dark, as name-light.png and name-dark.png in the
-// directory TOMORU_GALLERY names, if any.
 func gallery(t *testing.T, tt *ui.Tester, name string) {
 	dir := coretest.GalleryDir(t)
 	if dir == "" {
@@ -184,7 +170,6 @@ func gallery(t *testing.T, tt *ui.Tester, name string) {
 	}
 }
 
-// TestPanelScene chooses the scene in use.
 func TestPanelScene(t *testing.T) {
 	k := coretest.New()
 	id := k.AddScene("FF7")
@@ -198,7 +183,6 @@ func TestPanelScene(t *testing.T) {
 	if k.Prefs.Scene != id {
 		t.Errorf("in use %q", k.Prefs.Scene)
 	}
-	// All of it fits: the icons at its foot show.
 	if err := tt.Click(locales.OpenTomoru()); err != nil {
 		t.Error(err)
 	}

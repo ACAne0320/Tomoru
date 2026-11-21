@@ -19,8 +19,6 @@ import (
 	"tomoru/internal/live"
 )
 
-// TestGallery pictures the guide's steps, light and dark, one under another, to review them by
-// eye: TOMORU_GALLERY=<dir> go test ./internal/ui/guide -run Gallery writes them there.
 func TestGallery(t *testing.T) {
 	dir := coretest.GalleryDir(t)
 	if dir == "" {
@@ -31,7 +29,7 @@ func TestGallery(t *testing.T) {
 		for step := range steps {
 			k := coretest.New()
 			if !strings.HasPrefix(i18n.Locale(), "zh") {
-				k.Prefs.Tgt = "en" // the stage's sample in the pictures' language, as the README shows them
+				k.Prefs.Tgt = "en"
 			}
 			k.Access = "granted"
 			k.Screen = "unknown"

@@ -8,8 +8,6 @@ import (
 	"tomoru/internal/prefs"
 )
 
-// TestKeep keeps the lines of a session once translated, in order, under the scene in use, and
-// those still translating as they are when it stops; nothing while the user did not ask.
 func TestKeep(t *testing.T) {
 	c, f := scenesCore(t)
 	c.deps.HistoryDir = t.TempDir()
@@ -24,11 +22,11 @@ func TestKeep(t *testing.T) {
 		f.flush(t, 1)
 	}
 	one := live.Line{ID: 1, Src: "メテオ", Heard: "メデオ", Tgt: "陨石", Done: true}
-	report(one) // not asked yet
+	report(one)
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.History = true })
 	two := live.Line{ID: 2, Src: "クラウド", Draft: "克劳"}
 	three := live.Line{ID: 3, Src: "さらに", Tgt: "还有", Done: true}
-	report(one, two, three) // the second still translating holds the third
+	report(one, two, three)
 	rs, _ := history.List(c.deps.HistoryDir)
 	if len(rs) != 1 || rs[0].Lines != 1 || rs[0].Head.Scene != id || rs[0].Head.Name != "FF7" || rs[0].Head.Src != "en" {
 		t.Fatalf("records %+v", rs)
@@ -39,7 +37,6 @@ func TestKeep(t *testing.T) {
 		t.Errorf("lines %+v %v", es, err)
 	}
 
-	// Listing, reading and deleting, as the settings do.
 	c.LoadHistory()
 	f.until(t, func() bool { return !c.History.Loading })
 	if !c.History.Loaded || len(c.History.Records) != 1 || c.HistoryStale() {
@@ -62,7 +59,6 @@ func TestKeep(t *testing.T) {
 	}
 }
 
-// TestKeepNothingUnasked keeps no subtitles until the user asks to keep them.
 func TestKeepNothingUnasked(t *testing.T) {
 	c, f := newCore(t)
 	c.deps.HistoryDir = t.TempDir()

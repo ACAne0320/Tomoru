@@ -12,8 +12,6 @@ import (
 	"tomoru/internal/usage"
 )
 
-// TestToday counts what each session did into the day's numbers, keeps them for the next launch,
-// and starts afresh the next day.
 func TestToday(t *testing.T) {
 	c, f := newCore(t)
 	now := time.Date(2026, 10, 20, 21, 0, 0, 0, time.Local)
@@ -46,12 +44,10 @@ func TestToday(t *testing.T) {
 	if got := c.TodayStats(); got != want {
 		t.Errorf("today %+v, want %+v", got, want)
 	}
-	// By the engines it used.
 	if l := c.Usage(); len(l.Days) != 1 || len(l.Days[0].Uses) != 1 || l.Days[0].Uses[0].Engines != (usage.Engines{ASR: c.Prefs.ASR, MT: "cloud"}) {
 		t.Errorf("usage %+v", l)
 	}
 
-	// The next launch reads them; the next day has none.
 	d := New(prefs.Default("zh-Hans"), Deps{Post: func(func()) {}, StatsPath: c.deps.StatsPath, Now: func() time.Time { return now }})
 	if got := d.TodayStats(); got != want {
 		t.Errorf("read back %+v", got)
@@ -62,8 +58,6 @@ func TestToday(t *testing.T) {
 	}
 }
 
-// TestGuideKeepsNothing tries translating in the first-run guide: the sample is neither counted
-// nor kept.
 func TestGuideKeepsNothing(t *testing.T) {
 	c, f := newCore(t)
 	c.deps.StatsPath = filepath.Join(t.TempDir(), "stats.json")
@@ -82,8 +76,6 @@ func TestGuideKeepsNothing(t *testing.T) {
 	}
 }
 
-// TestUsage counts each session under the engines it started with, an endpoint's name and model
-// as they were, and shows the one going on, today's.
 func TestUsage(t *testing.T) {
 	c, f := newCore(t)
 	now := time.Date(2026, 10, 21, 9, 0, 0, 0, time.Local)
@@ -106,7 +98,6 @@ func TestUsage(t *testing.T) {
 	if u.Engines != want || u.Run != 60 || u.Lines != 2 || u.Audio != 12 || u.InTokens != 64 {
 		t.Errorf("use %+v", u)
 	}
-	// Renamed after: what ran is counted as it was.
 	c.Prefs.Endpoints[0].Name = "Mine"
 	c.Stop()
 	if u := c.Usage().Days[0].Uses[0]; u.MTName != "OpenRouter" || u.Run != 60 {

@@ -1,5 +1,3 @@
-// Package lang is the languages Tomoru knows, by BCP 47 code: which they are, their names, and
-// how they are written. What each engine recognizes is the engine's to say.
 package lang
 
 import (
@@ -10,22 +8,14 @@ import (
 	"golang.org/x/text/language/display"
 )
 
-// All are the languages to translate into, and among which recognition hears: the 30 that Qwen
-// ASR recognizes, which take in the system's and SenseVoice's, and Traditional Chinese, which is
-// only written. "zh" is Mandarin, written in Simplified Chinese.
 var All = []string{
 	"zh", "en", "ja", "ko", "zh-Hant", "yue",
 	"ar", "cs", "da", "de", "el", "es", "fa", "fi", "fil", "fr", "hi", "hu", "id", "it",
 	"mk", "ms", "nl", "pl", "pt", "ro", "ru", "sv", "th", "tr", "vi",
 }
 
-// Auto is the language to speak that is no one language: the recognizer tells which it hears,
-// sentence by sentence, among those it recognizes, for speakers who change language.
 const Auto = "auto"
 
-// Choose makes l the language of side, of a pair to speak and translate into; choosing other's
-// swaps them, but for Auto, which nothing is translated into: then other is English, or Chinese
-// for English.
 func Choose(side, other *string, l string) {
 	if l == *other {
 		*other = *side
@@ -39,19 +29,14 @@ func Choose(side, other *string, l string) {
 	*side = l
 }
 
-// Featured are the languages most watched, which pickers show first.
 var Featured = []string{"zh", "en", "ja", "ko"}
 
-// Spoken are the languages of All that may be heard: all but Traditional Chinese, a way of writing
-// what is spoken as Mandarin or Cantonese.
 func Spoken() []string {
 	return slices.DeleteFunc(slices.Clone(All), func(code string) bool { return code == "zh-Hant" })
 }
 
-// Known tells whether code is one of All.
 func Known(code string) bool { return slices.Contains(All, code) }
 
-// Of is the language of All that a reader of locale ("zh-Hans", "pt-BR") reads, or "".
 func Of(locale string) string {
 	t, err := language.Parse(locale)
 	if err != nil {
@@ -68,8 +53,6 @@ func Of(locale string) string {
 	return code
 }
 
-// Name is the name of a language in the language of locale: "日语" for "ja" in "zh-Hans". Where
-// that language has no name for it, it is the language's own.
 func Name(code, locale string) string {
 	t, err := language.Parse(code)
 	if err != nil {
@@ -86,8 +69,6 @@ func Name(code, locale string) string {
 	return code
 }
 
-// Locale is a language with the region it is most spoken in, as recognizers and voices take it:
-// "ja-JP" for "ja", "zh-TW" for "zh-Hant".
 func Locale(code string) string {
 	t, err := language.Parse(code)
 	if err != nil {
@@ -98,8 +79,6 @@ func Locale(code string) string {
 	return base.String() + "-" + region.String()
 }
 
-// Spaced tells whether the language puts spaces between its words: English and Korean do;
-// Chinese, Japanese and Thai do not.
 func Spaced(code string) bool {
 	switch script(code) {
 	case "Hans", "Hant", "Jpan", "Thai", "Laoo", "Khmr", "Mymr", "Tibt":
@@ -108,7 +87,6 @@ func Spaced(code string) bool {
 	return true
 }
 
-// CJK tells whether the language is written in Chinese characters, kana or hangul.
 func CJK(code string) bool {
 	switch script(code) {
 	case "Hans", "Hant", "Jpan", "Kore":
@@ -117,7 +95,6 @@ func CJK(code string) bool {
 	return false
 }
 
-// Chinese tells whether the language is Chinese: Mandarin, in either script, or Cantonese.
 func Chinese(code string) bool {
 	t, err := language.Parse(code)
 	if err != nil {
@@ -127,9 +104,6 @@ func Chinese(code string) bool {
 	return base.String() == "zh" || base.String() == "yue"
 }
 
-// Fits tells whether text may be in code, by the scripts it has: hangul only in Korean, kana only
-// in Japanese, Chinese characters only in Chinese and Japanese, and other letters in none of these.
-// A recognizer's label it does not fit is wrong.
 func Fits(text, code string) bool {
 	var hangul, kana, han, other bool
 	for _, r := range text {

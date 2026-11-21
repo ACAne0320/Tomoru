@@ -7,9 +7,6 @@ import (
 	"github.com/egoist/mygo"
 )
 
-// Post schedules callbacks in FIFO order without waiting for the main thread. The
-// caller can therefore finish a worker while shutdown waits on the main thread.
-// Cancelling ctx rejects new work and invalidates already queued callbacks.
 func Post(ctx context.Context) func(func()) {
 	post, _ := postQueue(ctx, mygo.RunOnMain)
 	return post

@@ -8,25 +8,17 @@ import (
 	"unicode"
 )
 
-// Decoding a stretch of speech: the app cuts speech into stretches and asks for each to be decoded
-// as it grows and once more when it ends (app/internal/asr/batch, docs/recognition.md).
-
 const rate = 16000
 
-// Recognizer decodes a stretch of audio, 16 kHz mono: its tokens, each with its time from the
-// stretch's start, and the language it heard, "" for none.
 type Recognizer interface {
 	Decode(samples []float32) ([]Piece, string)
 }
 
-// Piece is a token a recognizer decoded, at At seconds into the stretch.
 type Piece struct {
 	Text string
 	At   float64
 }
 
-// decode answers a decode command: the stretch's tokens, cleaned for its language, each timed from
-// its start, and the language: lang, or the one heard where lang is "auto".
 func decode(rec Recognizer, lang string, c Command) (Event, error) {
 	b, err := base64.StdEncoding.DecodeString(c.PCM)
 	if err != nil {
@@ -54,8 +46,6 @@ func decode(rec Recognizer, lang string, c Command) (Event, error) {
 	return Event{Type: "decoded", ID: c.ID, Tokens: tokens, Lang: spoken}, nil
 }
 
-// clean drops the spaces SenseVoice puts between Chinese, Cantonese and Japanese words, which they
-// don't have, and the space a text starts with.
 func clean(pieces []Piece, lang string) []Piece {
 	var out []Piece
 	for _, p := range pieces {
@@ -77,7 +67,6 @@ func clean(pieces []Piece, lang string) []Piece {
 	return out
 }
 
-// round is seconds to the millisecond, as the protocol's times are.
 func round(x float64) float64 {
 	return float64(int64(x*1000+.5)) / 1000
 }

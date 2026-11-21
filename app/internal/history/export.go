@@ -6,14 +6,8 @@ import (
 	"time"
 )
 
-// A session exported: as text, to read or hand to a summary, or as SubRip subtitles, timed from
-// the session's start, to lay over a recording of it.
-
-// minShown is the least time an exported subtitle shows.
 const minShown = 1500 * time.Millisecond
 
-// Text is a session's lines as text, under title: each line's time, as said, and words, its
-// translation under them, a blank line between.
 func Text(title string, head Head, es []Entry) string {
 	var b strings.Builder
 	b.WriteString(title)
@@ -29,8 +23,6 @@ func Text(title string, head Head, es []Entry) string {
 	return b.String()
 }
 
-// SRT is a session's lines as SubRip subtitles, its words over its translation. Time 0 is when
-// the session started, or its first line, if said before.
 func SRT(head Head, es []Entry) string {
 	zero := head.Start
 	for _, e := range es {
@@ -45,7 +37,6 @@ func SRT(head Head, es []Entry) string {
 			end = least
 		}
 		if i+1 < len(es) {
-			// Shown until the next is said, not over it.
 			if next, _ := es[i+1].said(); next.After(start) && next.Before(end) {
 				end = next
 			}
@@ -62,7 +53,6 @@ func SRT(head Head, es []Entry) string {
 	return b.String()
 }
 
-// said is when e was said: when it was kept, in sessions kept before that was.
 func (e Entry) said() (start, end time.Time) {
 	start, end = e.Start, e.End
 	if start.IsZero() {
@@ -74,8 +64,6 @@ func (e Entry) said() (start, end time.Time) {
 	return start, end
 }
 
-// translation is e's translation, "" where it has none: untranslated, said in the language
-// translated into, or failed.
 func (e Entry) translation(head Head) string {
 	if head.Untranslated || e.Said {
 		return ""
@@ -83,7 +71,6 @@ func (e Entry) translation(head Head) string {
 	return e.Tgt
 }
 
-// stamp is d as SubRip writes a time: 00:01:02,345.
 func stamp(d time.Duration) string {
 	d = max(d, 0)
 	ms := d.Milliseconds()

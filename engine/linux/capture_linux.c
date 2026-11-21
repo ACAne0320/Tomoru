@@ -9,26 +9,23 @@
 
 #include "engine_linux.h"
 
-// The longest the heard audio waits for tc_read, in samples: 10 s. Older audio goes first.
 #define MAX_PENDING (16000 * 10)
 
 struct tc_capture {
 	pa_threaded_mainloop *loop;
 	pa_context *ctx;
 	pa_stream *stream;
-	char sink[512];    // the default output when opened, whose monitor is heard
-	char monitor[512]; // and its monitor
+	char sink[512];
+	char monitor[512];
 
-	// What is heard and not read yet, and the state, under mu: the server's thread adds to it.
 	pthread_mutex_t mu;
 	pthread_cond_t cond;
 	int16_t *pending;
 	int len;
-	int state; // 0, TC_CHANGED or TC_ENDED
+	int state;
 	char why[256];
 };
 
-// ended says the capture ended, for why, unless it had already. Under the loop's lock.
 static void ended(tc_capture *c, const char *why) {
 	pthread_mutex_lock(&c->mu);
 	if (c->state == 0) {
@@ -45,7 +42,6 @@ static void context_state(pa_context *ctx, void *data) {
 	case PA_CONTEXT_FAILED:
 	case PA_CONTEXT_TERMINATED:
 		ended(c, pa_strerror(pa_context_errno(ctx)));
-		// fallthrough
 	case PA_CONTEXT_READY:
 		pa_threaded_mainloop_signal(c->loop, 0);
 		break;
@@ -60,7 +56,6 @@ static void stream_state(pa_stream *s, void *data) {
 	case PA_STREAM_FAILED:
 	case PA_STREAM_TERMINATED:
 		ended(c, pa_strerror(pa_context_errno(c->ctx)));
-		// fallthrough
 	case PA_STREAM_READY:
 		pa_threaded_mainloop_signal(c->loop, 0);
 		break;
@@ -69,7 +64,6 @@ static void stream_state(pa_stream *s, void *data) {
 	}
 }
 
-// add puts n samples heard after those pending, or silence for a hole when s is NULL.
 static void add(tc_capture *c, const int16_t *s, int n) {
 	pthread_mutex_lock(&c->mu);
 	if (n > MAX_PENDING) {
@@ -95,12 +89,11 @@ static void stream_read(pa_stream *s, size_t nbytes, void *data) {
 		const void *p;
 		size_t n;
 		if (pa_stream_peek(s, &p, &n) < 0 || n == 0) return;
-		add(c, p, n / sizeof(int16_t)); // p is NULL for a hole: silence
+		add(c, p, n / sizeof(int16_t));
 		pa_stream_drop(s);
 	}
 }
 
-// server_info tells whether the default output is still the one heard.
 static void server_info(pa_context *ctx, const pa_server_info *i, void *data) {
 	tc_capture *c = data;
 	(void)ctx;
@@ -138,7 +131,6 @@ static void sink_info(pa_context *ctx, const pa_sink_info *i, int eol, void *dat
 	}
 }
 
-// failed is the reason opening c failed, from the server or as given.
 static int failed(tc_capture *c, char *why, int n, const char *what) {
 	const char *reason = c->state == TC_ENDED ? c->why : pa_strerror(pa_context_errno(c->ctx));
 	snprintf(why, n, "%s: %s", what, reason);
@@ -184,8 +176,6 @@ static int open_locked(tc_capture *c, char *why, int n) {
 	if (!c->stream) return failed(c, why, n, "make a recording stream");
 	pa_stream_set_state_callback(c->stream, stream_state, c);
 	pa_stream_set_read_callback(c->stream, stream_read, c);
-	// 100 ms at a time. Not moved: a monitor that goes away ends the stream, rather than the server
-	// moving it to the microphone.
 	pa_buffer_attr attr = {.maxlength = (uint32_t)-1, .fragsize = 3200};
 	if (pa_stream_connect_record(c->stream, c->monitor, &attr, PA_STREAM_ADJUST_LATENCY | PA_STREAM_DONT_MOVE) < 0)
 		return failed(c, why, n, "record the default output");

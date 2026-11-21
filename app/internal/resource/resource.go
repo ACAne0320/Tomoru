@@ -1,5 +1,3 @@
-// Package resource finds what the app ships with: the engine, llama-server, the third-party
-// licenses.
 package resource
 
 import (
@@ -10,9 +8,6 @@ import (
 	"strings"
 )
 
-// Bin finds a bundled program in explicitly supplied resource roots, in order. A packaged root
-// contains bin/; a development root contains GOOS-GOARCH/bin/. Entry points choose the roots:
-// lookup never consults a UI runtime, the working directory, or a repository marker.
 func Bin(name string, roots ...string) (string, error) {
 	if runtime.GOOS == "windows" {
 		name += ".exe"
@@ -30,8 +25,6 @@ func Bin(name string, roots ...string) (string, error) {
 	return "", fmt.Errorf("no %s in resource roots [%s]", name, strings.Join(roots, ", "))
 }
 
-// Licenses finds the directory of the third-party licenses the app ships with, in the roots as Bin
-// does, or "" for none.
 func Licenses(roots ...string) string {
 	for _, dir := range roots {
 		for _, p := range []string{

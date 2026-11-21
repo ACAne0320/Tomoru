@@ -25,7 +25,6 @@ func TestOvernightIdleSessionKeepsYesterdaySubtitles(t *testing.T) {
 	f.sessions[0].report(live.State{Phase: "listening", Stats: live.Stats{Lines: 184, Chars: 3200, Speech: 502}})
 	f.flush(t, 1)
 
-	// No further speech, results or UI callbacks arrive while the session stays open.
 	now = time.Date(2026, 10, 22, 0, 45, 0, 0, zone)
 	wantToday := Today{Day: "2026-10-22", Counts: usage.Counts{Run: 45 * 60}}
 	if got := c.TodayStats(); got != wantToday {
@@ -53,7 +52,6 @@ func TestOvernightIdleSessionKeepsYesterdaySubtitles(t *testing.T) {
 		t.Fatalf("reopening changed yesterday: %+v", got)
 	}
 
-	// A new silent five-second session must not copy the old subtitle totals again.
 	c.Start()
 	f.flush(t, 1)
 	now = now.Add(5 * time.Second)
@@ -76,7 +74,6 @@ func TestUsageUsesEventDatesBeforeDelayedDispatchAndStop(t *testing.T) {
 	first := live.Stats{Lines: 2, Chars: 8, Audio: 4, InTokens: 10, OutTokens: 3}
 	first.Latency.Translation.Add(100 * time.Millisecond)
 
-	// Both the runtime reporter and UI dispatcher can be delayed across midnight.
 	now = start.Add(40 * time.Second)
 	old.report(live.State{Phase: "listening", StatsAt: start.Add(10 * time.Second), Stats: first})
 	second := first
@@ -95,7 +92,6 @@ func TestUsageUsesEventDatesBeforeDelayedDispatchAndStop(t *testing.T) {
 	if got := c.TodayStats().Counts; got != wantToday {
 		t.Fatalf("pending UI callbacks changed dates: %+v", got)
 	}
-	// Reading snapshots, stopping, and later draining stale UI reports count each delta once.
 	copy := c.Usage()
 	copy.Days[0].Uses[0].Lines = 999
 	c.Stop()

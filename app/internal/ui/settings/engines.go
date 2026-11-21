@@ -22,11 +22,6 @@ import (
 	"tomoru/locales"
 )
 
-// engines is the page of recognition and translation (docs/design-system.md): a card of each, its
-// families on device and in the cloud listed on the left, the one shown on the right, its sizes
-// or its service; translating pictures, apart; then translating ahead and the models' folder, a
-// setting each. Only what is downloaded or set up is used, by its radio; a download only
-// downloads.
 func (s *Settings) engines(c *ui.Context) {
 	k := s.core
 	p := kit.Colors(c)
@@ -48,16 +43,13 @@ func (s *Settings) engines(c *ui.Context) {
 	s.watchModels(c)
 }
 
-// enginesEdit is the page's state: the family shown of each kind, and the forms open in the
-// detail.
 type enginesEdit struct {
-	shown     map[core.Kind]string // by core.Engine.Family; else the one in use's
-	addingAPI bool                 // translation's detail adds an API
-	api       endpointEdit         // the API added or edited there
-	svc       [2]serviceEdit       // by core.Kind, the cloud service set up there
+	shown     map[core.Kind]string
+	addingAPI bool
+	api       endpointEdit
+	svc       [2]serviceEdit
 }
 
-// show shows family of kind, closing the forms of the one shown before.
 func (s *Settings) show(kind core.Kind, family string) {
 	s.shown[kind] = family
 	if kind == core.MT {
@@ -70,9 +62,6 @@ func (s *Settings) show(kind core.Kind, family string) {
 	}
 }
 
-// pictures is the group of translating pictures: its engine, of those that read pictures, under
-// where they run, as the engines' list has them: the cloud's sizes and the user's APIs, then those
-// on this computer, each named without where; and its shortcut.
 func (s *Settings) pictures(c *ui.Context) {
 	k := s.core
 	id := k.Preferences().ImageMT
@@ -121,8 +110,6 @@ func (s *Settings) pictures(c *ui.Context) {
 	})
 }
 
-// modelsFolder is the folder the local models are in, a setting's row: shown, or another chosen,
-// which they move to, the move followed under the path until it ends.
 func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 	k := s.core
 	mv := k.ModelsMoving()
@@ -133,7 +120,7 @@ func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 	var under func()
 	switch {
 	case mv.Active:
-		c.After(250 * time.Millisecond) // the progress moves
+		c.After(250 * time.Millisecond)
 		under = func() {
 			kit.OptionProgress(c, float64(mv.Done)/float64(max(mv.Total, 1)), locales.ModelsMoving(shared.Size(mv.Done), shared.Size(mv.Total)))
 		}
@@ -155,7 +142,6 @@ func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 			}
 			if kit.Button(c, kit.Plain, kit.Small, nil, locales.ModelsFolderChange()).Clicked() {
 				opts := mygo.OpenDialogOptions{Parent: mygo.FocusedWindow(), DefaultPath: dir, Directory: true, CreateDirectories: true}
-				// The dialog waits for the user: not on the main thread, which draws.
 				go func() {
 					dirs, err := mygo.Dialog.Open(opts)
 					if err != nil {
@@ -169,8 +155,6 @@ func (s *Settings) modelsFolder(c *ui.Context, dir string) {
 	}, under)
 }
 
-// kind is the card of the engines of a kind: its families on device, then in the cloud, the one in
-// use's radio filled, and beside them the one shown. Translation's list ends with adding an API.
 func (s *Settings) kind(c *ui.Context, kind core.Kind) {
 	k := s.core
 	title := locales.EnginesAsr()
@@ -224,13 +208,10 @@ func (s *Settings) kind(c *ui.Context, kind core.Kind) {
 	})
 }
 
-// inUse tells whether a size of family f is in use.
 func (s *Settings) inUse(f []core.Engine) bool {
 	return slices.ContainsFunc(f, func(e core.Engine) bool { return e.ID == s.core.InUse(e.Kind) })
 }
 
-// choice is family f as a row of its list: its name and tag, and what it is at: in use, what keeps
-// it from use, its download, or what of it is there.
 func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice {
 	k := s.core
 	name := shared.FamilyName(f)
@@ -255,7 +236,7 @@ func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice
 		}
 	}
 	switch {
-	case r.On && sizes: // its radio says it is in use: the size, and another's download
+	case r.On && sizes:
 		for _, e := range f {
 			if e.ID == k.InUse(e.Kind) {
 				r.Meta = sizeLabel(e)
@@ -289,19 +270,18 @@ func (s *Settings) choice(c *ui.Context, f []core.Engine, shown bool) kit.Choice
 			}
 		}
 		r.Meta = locales.SizesDownloaded(len(f), strings.Join(have, locales.ListSeparator()))
-	case f[0].Model != nil: // its one size, downloaded
+	case f[0].Model != nil:
 		r.Meta = locales.Downloaded()
 	default:
 		r.Meta = cmp.Or(summary(k, f[0]), shared.FamilyNote(f))
 	}
 	if loading != nil && !shown {
-		c.After(250 * time.Millisecond) // the progress moves
+		c.After(250 * time.Millisecond)
 		r.Progress = float64(st.Done) / float64(max(st.Total, 1))
 	}
 	return r
 }
 
-// sizeLabel is the name of e's size: its model's, or its size of Index-Translate's cloud.
 func sizeLabel(e core.Engine) string {
 	if e.Model != nil {
 		return e.Model.Label
@@ -310,14 +290,10 @@ func sizeLabel(e core.Engine) string {
 	return size.Label
 }
 
-// head titles a part of a family's detail: as a section's title, but without the height a
-// section's buttons need, close above what it titles.
 func head(c *ui.Context, label string) {
 	ui.Text(c, label).FontSize(kit.TextBody).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).Ink).MaxLines(1).Margin(kit.Space(2), 0, 0)
 }
 
-// summary is a cloud service as set up, in a line: an API's model and host; a service's of the
-// user's key, and that its key is kept. "" for one not set up, or of no settings.
 func summary(k *core.Core, e core.Engine) string {
 	switch {
 	case e.Endpoint != nil:
@@ -334,14 +310,11 @@ func summary(k *core.Core, e core.Engine) string {
 	return ""
 }
 
-// detail is family f shown: its name, with where it is from or, an API of the user's, Delete, and
-// what is worth knowing of it; then its sizes, with the languages a recognizer hears, or its
-// service, set up in place.
 func (s *Settings) detail(c *ui.Context, kind core.Kind, f []core.Engine) {
 	k := s.core
 	p := kit.Colors(c)
 	inUse := s.inUse(f)
-	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Start).Children(func() { // a long name wraps beside it
+	ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Start).Children(func() {
 		ui.Text(c, shared.FamilyName(f)).FontSize(kit.TextTitle).FontWeight(kit.WeightHeavy).TextColor(p.Ink).MaxLines(2).Grow(1)
 		if ep := f[0].Endpoint; ep != nil {
 			if kit.Button(c, kit.Destructive(kit.Quiet), kit.Small, assets.Trash, locales.Delete()).Clicked() {
@@ -378,9 +351,9 @@ func (s *Settings) detail(c *ui.Context, kind core.Kind, f []core.Engine) {
 		s.cloudSizes(c, kind, f)
 	case e.Cloud:
 		s.service(c, e)
-	default: // the system's: a row of its own, its radio as the others' say it is in use
+	default:
 		head(c, locales.EndpointModel())
-		ui.Column(c).Children(func() { // in the pane's card: no card of its own
+		ui.Column(c).Children(func() {
 			if kit.Options(c, []kit.Option{{Key: e.ID, On: inUse, Title: locales.TagBuiltIn()}}) == 0 && !inUse {
 				k.Use(kind, e.ID)
 			}
@@ -398,8 +371,6 @@ func (s *Settings) detail(c *ui.Context, kind core.Kind, f []core.Engine) {
 	}
 }
 
-// sizes are the sizes of a model's family, each a row its radio uses once it is downloaded and
-// this computer runs it; each with its download, cancelling it, or deleting it at its end.
 func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 	k := s.core
 	_, metered := k.Network()
@@ -429,7 +400,7 @@ func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 		o.Action = func() { s.download(c, e, st, short == core.Shortfall{}) }
 		var below []func()
 		if st.State == models.Downloading && !moving {
-			c.After(250 * time.Millisecond) // the progress moves
+			c.After(250 * time.Millisecond)
 			below = append(below, func() {
 				kit.OptionProgress(c, float64(st.Done)/float64(max(st.Total, 1)), locales.Downloading(shared.Size(st.Done), shared.Size(st.Total))).Padding(0, kit.QuietInset, 0, 0)
 			})
@@ -456,7 +427,6 @@ func (s *Settings) sizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 	})
 }
 
-// cloudSizes are the sizes of Index-Translate's cloud, each a row its radio uses.
 func (s *Settings) cloudSizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 	k := s.core
 	rows := make([]kit.Option, len(f))
@@ -466,15 +436,13 @@ func (s *Settings) cloudSizes(c *ui.Context, kind core.Kind, f []core.Engine) {
 			rows[i].Tag, rows[i].Accent = locales.TagRecommended(), true
 		}
 	}
-	ui.Column(c).Children(func() { // in the pane's card: no card of its own
+	ui.Column(c).Children(func() {
 		if i := kit.Options(c, rows); i >= 0 && !rows[i].On {
 			k.Use(kind, f[i].ID)
 		}
 	})
 }
 
-// home is where a family of engines is from, as its button names it and the page it opens: an
-// open model's repository, or a service's page of its models. "" for the system's and the user's.
 func home(family string) (label, url string) {
 	switch family {
 	case "SenseVoice":
@@ -495,8 +463,6 @@ func home(family string) (label, url string) {
 	return "", ""
 }
 
-// download is what is done with a model: download it where this computer runs it, follow and
-// cancel its download, or delete it once it is in.
 func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs bool) {
 	k := s.core
 	if k.ModelsMoving().Active {
@@ -524,7 +490,6 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs
 	case models.Verifying:
 		kit.Caption(c, locales.Verifying())
 	case models.Ready:
-		// It can't be undone: by its button, or in a dialog if it is in use, as another takes over.
 		del := kit.DeleteButton(c, kit.Small, locales.Delete())
 		question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
 		remove := func(c *ui.Context) {
@@ -548,8 +513,6 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs
 	}
 }
 
-// takingOver says, under the question before deleting a local model of kind k in use, what takes
-// over from it, and how much using it again downloads.
 func (s *Settings) takingOver(k core.Kind, size string) string {
 	next, ok := s.core.Engine(k, core.Successor(k))
 	if !ok || next.ID == "" {
@@ -558,9 +521,6 @@ func (s *Settings) takingOver(k core.Kind, size string) string {
 	return locales.AskDeleteModelInUse(shared.EngineName(next), size)
 }
 
-// service is a cloud service: a service of the user's API key or an API of the user's, as set up,
-// with Use while another is in use, and Edit; edited, its form in its place, a service's from the
-// start until it is set up.
 func (s *Settings) service(c *ui.Context, e core.Engine) {
 	k := s.core
 	usable := k.Usable(e)
@@ -571,7 +531,7 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 		editing = s.api.open && s.api.e.ID == e.Endpoint.ID
 		ep := *e.Endpoint
 		edit = func() { s.editAPI(&s.api, ep) }
-	default: // a service of the user's API key
+	default:
 		d := &s.svc[e.Kind]
 		if !usable && !(d.open && d.a.ID == e.ID) {
 			d.Open(k, e.ID, s.next())
@@ -580,7 +540,7 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 		edit = func() { d.Open(k, e.ID, s.next()) }
 	}
 	switch {
-	case !usable: // its key is all it needs: the form, under nothing but the note above
+	case !usable:
 		s.serviceForm(c, &s.svc[e.Kind], false)
 	case !editing:
 		head(c, locales.Service())
@@ -602,8 +562,6 @@ func (s *Settings) service(c *ui.Context, e core.Engine) {
 	}
 }
 
-// watchModels says when a local model has come in, whether it is shown or not: with a button that
-// uses it, unless it is in use already, as the guide's choice is once it comes in.
 func (s *Settings) watchModels(c *ui.Context) {
 	k := s.core
 	for _, e := range append(k.Engines(core.ASR), k.Engines(core.MT)...) {

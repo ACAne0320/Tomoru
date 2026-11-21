@@ -1,5 +1,3 @@
-// Speaking: SAPI, with a voice for the language. Windows installs voices with a language as
-// OneCore's, which SAPI lists apart from its own: those first.
 #define COBJMACROS
 #include <windows.h>
 #include <sapi.h>
@@ -19,7 +17,6 @@ static const wchar_t *categories[] = {
 
 static ISpVoice *voice;
 
-// findVoice finds a voice of the category whose language is lcid.
 static ISpObjectToken *findVoice(const wchar_t *category, LCID lcid) {
 	ISpObjectTokenCategory *cat = NULL;
 	if (FAILED(CoCreateInstance(&clsidSpObjectTokenCategory, NULL, CLSCTX_ALL, &iidSpObjectTokenCategory, (void **)&cat))) {

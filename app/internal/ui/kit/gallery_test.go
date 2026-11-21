@@ -16,9 +16,6 @@ import (
 	"tomoru/internal/ui/assets"
 )
 
-// The gallery shows each of kit's components in its states, light and dark, to review them by eye:
-// TOMORU_GALLERY=<dir> go test ./internal/ui/kit -run Gallery writes it there as pictures.
-
 type gallery struct {
 	on, off   bool
 	seg, seg2 int
@@ -108,7 +105,7 @@ func (g *gallery) view(c *ui.Context) {
 				var bars []Bar
 				for i, v := range []float64{1.5, 3.2, math.NaN(), 0.4, 2.8, 4.1, 2.2} {
 					bar := Bar{Label: fmt.Sprintf("10/%d", 15+i), Value: v, Tip: fmt.Sprintf("10/%d · %.1f 小时", 15+i, v)}
-					if i >= 4 { // stacked, by engine
+					if i >= 4 {
 						bar.Parts = []BarPart{{v * .6, p.Series[0]}, {v * .3, p.Series[1]}, {v * .1, p.LineStrong}}
 					}
 					bars = append(bars, bar)
@@ -244,7 +241,6 @@ func TestGallery(t *testing.T) {
 	tt.SetDark(false)
 	tt.Frame()
 
-	// Each button at rest, hovered and pressed, side by side.
 	labels := []string{"开始翻译", "暂停翻译", "取消", "从字幕记录学习", "稍后", "最终幻想7 重制版", "通用"}
 	var strip *image.RGBA
 	const cw, ch, padX, padY = 300, 64, 44, 18
@@ -284,7 +280,6 @@ func TestGallery(t *testing.T) {
 		save("gallery-states.png", strip)
 	}
 
-	// What they do.
 	clicks := g.clicks
 	if err := tt.Click("开始翻译"); err != nil || g.clicks != clicks+1 {
 		t.Errorf("button: %v, clicks %d", err, g.clicks)
@@ -300,8 +295,6 @@ func TestGallery(t *testing.T) {
 	}
 }
 
-// TestEmptyGallery draws each Art in its Empty, light and dark, as the pages have them: every one
-// parses in either theme. TOMORU_GALLERY=<dir> writes empty-light.png and empty-dark.png there.
 func TestEmptyGallery(t *testing.T) {
 	view := func(c *ui.Context) {
 		Paper(c)

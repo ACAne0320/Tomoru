@@ -1,5 +1,3 @@
-// Package subtitle draws subtitles in the user's style: the overlay's, and the settings' preview.
-// It also works out which sentences show.
 package subtitle
 
 import (
@@ -22,26 +20,16 @@ import (
 )
 
 var (
-	// presets are the families of the fonts of prefs.Fonts, by key: the first family with a glyph
-	// draws it, of macOS's, then Windows's, then Linux's (noto-fonts-cjk, which most desktops
-	// install). Windows and Linux have no rounded one: the system's draws it there.
 	presets = map[string]string{
 		"serif":   "Songti SC, Hiragino Mincho ProN, AppleMyungjo, SimSun, Yu Mincho, Batang, Noto Serif CJK SC",
 		"rounded": "Yuanti SC, Hiragino Maru Gothic ProN",
 	}
-	// TextColors and EdgeColors are the colors to choose from: light ones for the text, to read
-	// over a picture, and dark ones around it; a white edge for dark text.
 	TextColors = []string{"#ffffff", "#c8c8c8", "#ffec8c", "#f5a524", "#ffb3cf", "#7fdbff", "#a8f0a0"}
 	EdgeColors = []string{"#000000", "#1e2259", "#4a3200", "#4a1030", "#ffffff"}
 )
 
-// Scheme is a set of the subtitles' colors that go together, of TextColors and EdgeColors. The
-// original stays white, or a gray under the translation, which carries the color: it is what
-// people read.
 type Scheme struct{ ID, Src, Tgt, Edge string }
 
-// Schemes are the color schemes to choose from, the default first: the translation in ice blue,
-// edged in Tomoru's night, which reads over most pictures. "amber" is the lantern's of its brand.
 var Schemes = []Scheme{
 	{"ice", "#ffffff", "#7fdbff", "#1e2259"},
 	{"amber", "#ffffff", "#f5a524", "#1e2259"},
@@ -51,29 +39,18 @@ var Schemes = []Scheme{
 	{"focus", "#c8c8c8", "#ffffff", "#000000"},
 }
 
-// Entry is a sentence to show.
 type Entry struct {
-	Key      any // the sentence's ID, which keeps its element as it goes from pending to committed
+	Key      any
 	Src, Tgt string
-	Lang     string // the language Src was heard in, as live.Line's; "" for the one spoken (prefs.Prefs's Src)
-	Pending  bool   // still being spoken
-	DimTgt   bool   // Tgt is not this sentence's, or not a translation
-	Note     bool   // Tgt is a note in the app's language, such as why there is no translation
-	Draft    bool   // Tgt is a draft: the translation of an unfinished sentence
-	// Swaps says that Tgt changes whole, as a draft does to the next, or to the translation: it
-	// cross-fades, where a translation streaming in grows.
-	Swaps bool
-	// Grows says that Tgt is a translation still streaming in: its lines fill as it comes, and are
-	// balanced once it is done, rather than broken anew with each word.
-	Grows bool
+	Lang     string
+	Pending  bool
+	DimTgt   bool
+	Note     bool
+	Draft    bool
+	Swaps    bool
+	Grows    bool
 }
 
-// Visible is what shows of st, oldest first, like scrolling lyrics: the lines since the
-// subtitles last went, and what is being said. With one sentence at a time the previous
-// translation stays while the next sentence is recognized, dimmed: it is not that sentence's
-// translation. With the original alone, no entry has a translation. A sentence said in the language
-// translated into is shown in the translation's place: it is what to read, as bilingual subtitles
-// show a line said in their language alone.
 func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	n := int(p.Shown)
 	var all []Entry
@@ -88,8 +65,6 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		case l.AsSaid:
 			e.Src, e.Tgt = "", l.Src
 		case l.Draft != "" && !l.Done:
-			// A translation streaming in starts shorter than the draft it replaces: keep the draft
-			// until the translation is done, rather than going back to a few words.
 			e.Tgt, e.Draft = l.Draft, true
 		case l.Err != nil:
 			e.Tgt, e.DimTgt, e.Note = Failure(l.Err), true, true
@@ -111,7 +86,7 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 		}
 		e := Entry{Key: next, Src: st.Pending, Lang: st.PendingLang, Pending: true, Tgt: draft, Draft: draft != "", Swaps: draft != ""}
 		if st.PendingLang == p.Tgt && p.Display != prefs.DisplaySrc {
-			e.Src, e.Tgt = "", st.Pending // as it will show once said
+			e.Src, e.Tgt = "", st.Pending
 		}
 		if p.Display != prefs.DisplayTgt || e.Tgt != "" {
 			all = append(all, e)
@@ -124,7 +99,6 @@ func Visible(st live.State, since int, p prefs.Prefs) []Entry {
 	return all[max(0, len(all)-n):]
 }
 
-// Failure is why a line has no translation, as the user can act on it.
 func Failure(err error) string {
 	var status *translate.StatusError
 	var netErr net.Error
@@ -138,16 +112,11 @@ func Failure(err error) string {
 		return locales.TranslationLimited()
 	case errors.Is(err, translate.ErrStalled), errors.Is(err, context.DeadlineExceeded),
 		errors.As(err, &netErr) && netErr.Timeout(), errors.As(err, &opErr):
-		// An error of the client wraps every request's failure as a net.Error, a bad URL's too:
-		// only a timeout, or a connection that failed, is the service not answering.
 		return locales.TranslationNotAnswering()
 	}
 	return locales.TranslationFailed()
 }
 
-// Samples are the last of the sample sentences, as many as show at once, in the chosen
-// languages: to show the look. Each keeps its key as the number changes, so only the one added or
-// removed comes or goes.
 func Samples(p prefs.Prefs) []Entry {
 	var out []Entry
 	from := len(samples.Lines) - min(int(p.Shown), len(samples.Lines))
@@ -157,8 +126,6 @@ func Samples(p prefs.Prefs) []Entry {
 	return out
 }
 
-// sampleSrc is the language the samples are said in: the one spoken, or for lang.Auto, of many,
-// English, or Japanese for subtitles in English.
 func sampleSrc(p prefs.Prefs) string {
 	switch {
 	case p.Src != lang.Auto:
@@ -169,22 +136,16 @@ func sampleSrc(p prefs.Prefs) string {
 	return "en"
 }
 
-// RollEvery is how often Rolling brings in the next sample.
 const RollEvery = 2400 * time.Millisecond
 
-// rollKey keys a sentence of Rolling's stream: the how-manyth since the epoch.
 type rollKey int64
 
-// Sample is the n-th of the sample sentences, going round, in p's languages.
 func Sample(p prefs.Prefs, n int64) Entry {
 	l := int64(len(samples.Lines))
 	s := samples.Lines[(n%l+l)%l]
 	return Entry{Key: rollKey(n), Src: samples.In(s, sampleSrc(p)), Lang: sampleSrc(p), Tgt: samples.In(s, p.Tgt)}
 }
 
-// Rolling are the sample sentences as they would come, in the chosen languages: one more every
-// RollEvery, the oldest going, as many as show at once; and how long until the next. To show the
-// look in motion.
 func Rolling(p prefs.Prefs, now time.Time) ([]Entry, time.Duration) {
 	every := RollEvery.Milliseconds()
 	n := now.UnixMilli() / every
@@ -195,11 +156,8 @@ func Rolling(p prefs.Prefs, now time.Time) ([]Entry, time.Duration) {
 	return out, time.Duration(every-now.UnixMilli()%every) * time.Millisecond
 }
 
-const lineHeight = 1.35 // of the font size, about
+const lineHeight = 1.35
 
-// SlotHeight is the height of a sentence of two lines of source and two of translation, of those
-// shown, scaled by k: the least the overlay's block is, so that the pointer finds it the same size
-// empty.
 func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 	h := float32(p.SrcSize*2+p.TgtSize*2)*lineHeight*k + 2*k
 	switch p.Display {
@@ -209,14 +167,11 @@ func SlotHeight(p prefs.Prefs, k float32, boxed bool) float32 {
 		h = float32(p.SrcSize*2) * lineHeight * k
 	}
 	if boxed && p.Style == 0 {
-		h += 12 * k // the caption band's padding
+		h += 12 * k
 	}
 	return h
 }
 
-// Align is where the lines of a sentence start. On the left, the words of a sentence being spoken
-// come in at a fixed place, and lines do not shift as they grow, as the BBC asks of live
-// subtitles; centered looks like a film's.
 func Align(p prefs.Prefs) ui.Align {
 	if p.Align == 1 {
 		return ui.Center
@@ -224,31 +179,12 @@ func Align(p prefs.Prefs) ui.Align {
 	return ui.Start
 }
 
-// Follows only fades colors: what has it follows the text, which moves by itself.
 var Follows = ui.ElementTransition{Colors: true, Duration: 160 * time.Millisecond}
 
-// swap cross-fades a translation changing whole: quickly, as the eye is on it.
 var swap = ui.ContentTransition{Animation: &ui.Animation{Duration: 220 * time.Millisecond, Ease: ui.EaseOut}}
 
-// NoBlock is Draw's bareBelow with no block to show behind the sentences.
 const NoBlock = 1e9
 
-// Draw draws entries, oldest first, in p's style, scaled by k (the settings preview is smaller),
-// in width, each on a closed-caption band if that is the style, but those from bareBelow down in
-// the window: there the overlay's hovered block is their background. They go in a column that
-// holds them at its bottom. It returns the top of the oldest, as last laid out, in the window.
-//
-// The newest sentence is at the bottom, where the eye rests; the older ones above, fainter, are
-// there to look up to for what was missed. Nothing moves but by as much as the text grows, as
-// roll-up live captions go: a sentence wrapping to a new line, or the next one's first line,
-// pushes those above up by that line, smoothly, those farther up a moment later, as Apple
-// Music's lyrics do. A sentence comes in from a little below, fading in; the oldest goes a
-// little up, fading out. Each spans the width, and only goes up and down: a centered sentence
-// growing does not move sideways.
-//
-// A sentence said wraps in lines of about the same length, as films' subtitles do, rather than a
-// full line and a word or two alone under it; one being said, or a translation streaming in, wraps
-// as it comes.
 func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow float32) (top float32) {
 	align := Align(p)
 	band := p.Style == 0
@@ -268,8 +204,6 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 		sentence := ui.Column(c.Key(e.Key)).Transition(roll)
 		fade := float32(1)
 		if age > 0 {
-			// The one above the newest as the user chose, those above it fainter, down to not
-			// quite half of it: by default .54, .46, … down to a quarter.
 			fade = float32(p.OlderOpacity) / 100 * max(.46, 1-.15*float32(age-1))
 		}
 		sentence.Opacity(sentence.Animate("fade", fade, 320*time.Millisecond))
@@ -279,12 +213,8 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 		}
 		boxed := b.H > 0 && b.Y < bareBelow || bareBelow == NoBlock
 		sentence.Children(func() {
-			// The band keeps its padding without its color, so that hovering moves no text.
 			lines := ui.Column(c).AlignSelf(align).AlignItems(align).Gap(2 * k)
 			if !band {
-				// Without a band, a line spans the width, aligned by its text: as wide whatever it
-				// says, its edge's layer (edgeFor) keeps its size as words come in, rather than
-				// being made anew for each, its old one kept on the GPU until Go collects it.
 				lines = ui.Column(c).AlignSelf(ui.Stretch).AlignItems(ui.Stretch).Gap(2 * k)
 			}
 			if band {
@@ -301,11 +231,9 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					}
 					text, n, dim := e.Src, 2, float32(1)
 					if p.Display == prefs.DisplaySrc && age == 0 {
-						n = 3 // the newest, as its translation would have
+						n = 3
 					}
 					if e.Pending {
-						// Still being recognized: one line that rolls, as live captions do, rather
-						// than a second line opening and filling word by word, a little faint.
 						n, dim = 1, .8
 						text = fitTail(c, p, text, srcLang, float32(p.SrcSize)*k, width-36*k)
 					}
@@ -321,7 +249,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					}
 					tgtLang := p.Tgt
 					if e.Note {
-						tgtLang = "" // the app's
+						tgtLang = ""
 					}
 					t := line(c, p, e.Tgt, tgtLang, float32(p.TgtSize)*k, ui.Hex(p.TgtColor), n, !e.Pending && !e.Grows, width-28*k)
 					if e.Swaps {
@@ -332,7 +260,7 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 					case e.DimTgt:
 						dim = .5
 					case e.Draft:
-						dim = .72 // a draft, until the sentence ends
+						dim = .72
 					}
 					t.Opacity(dim * opacity)
 				}
@@ -349,8 +277,6 @@ func Draw(c *ui.Context, entries []Entry, p prefs.Prefs, k, width, bareBelow flo
 	return top
 }
 
-// family is the family list the subtitles are in: a preset's, a family of the system's by name, or
-// "" for the system's. What a family lacks, or a family not installed, the system's draws.
 func family(p prefs.Prefs) string {
 	if f, ok := presets[p.Font]; ok {
 		return f
@@ -361,9 +287,6 @@ func family(p prefs.Prefs) string {
 	return p.Font
 }
 
-// fitTail is s, in code, if it fits one line of width at size, else "…" and as much of its end as
-// fits: the newest words of a sentence still being spoken matter most. Spaced languages start at a
-// word.
 func fitTail(c *ui.Context, p prefs.Prefs, s, code string, size, width float32) string {
 	cjk := lang.CJK(code)
 	measure := func(t string) float32 {
@@ -374,7 +297,7 @@ func fitTail(c *ui.Context, p prefs.Prefs, s, code string, size, width float32) 
 		return s
 	}
 	r := []rune(s)
-	lo, hi := 1, len(r) // the first rune of the longest end that fits after "…"
+	lo, hi := 1, len(r)
 	for lo < hi {
 		mid := (lo + hi) / 2
 		if measure("…"+string(r[mid:])) <= width {
@@ -390,10 +313,6 @@ func fitTail(c *ui.Context, p prefs.Prefs, s, code string, size, width float32) 
 	return "…" + end
 }
 
-// line draws one subtitle line in language lang ("" for the app's) with the chosen edge, which the
-// GPU draws from the text as it renders (edgeShader), its lines balanced if balance, in room as wide
-// as width on a band. The language picks the glyphs of the Han characters that Chinese and Japanese
-// draw apart, so that Japanese in a Chinese app reads as Japanese.
 func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Color, lines int, balance bool, width float32) ui.Element {
 	t := ui.Text(c, s).Lang(lang).FontSize(size).Bold().TextAlign(Align(p)).TextColor(col).MaxLines(lines)
 	if f := family(p); f != "" {
@@ -401,8 +320,6 @@ func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Col
 	}
 	switch {
 	case balance && p.Style == 0:
-		// Balanced lines leave a text as wide as its room, and its band with it: wrapped at the
-		// width that balances them, the band is as wide as they are.
 		t = t.MaxWidth(balanced(c, ui.Span{Text: s, Font: family(p), Size: size, Weight: 700, Lang: lang}, width, lines))
 	case balance:
 		t = t.Balance()
@@ -413,8 +330,6 @@ func line(c *ui.Context, p prefs.Prefs, s, lang string, size float32, col ui.Col
 	return t
 }
 
-// balanced is the narrowest width, up to width, at which text wraps in as many lines as at width:
-// where they are about as long, as Balance wraps them. Text cut at lines wraps at width.
 func balanced(c *ui.Context, text ui.Span, width float32, lines int) float32 {
 	one, lineH := c.MeasureText(0, text)
 	if one <= width {
@@ -436,11 +351,6 @@ func balanced(c *ui.Context, text ui.Span, width float32, lines int) float32 {
 	return hi
 }
 
-// edgeShader draws a line's edge from the line as it renders: an outline Width wide around the
-// glyphs (their coverage, the most of it within Width), or a soft shadow down and to the right
-// (their coverage moved by Width and blurred, and a faint rim close around them), under the text.
-// Drawing the text once more for each side costs a run of glyphs a copy and notches the outline's
-// corners.
 var edgeShader = shader.MustCompile(`package main
 
 var Edge vec4   // the edge's color
@@ -476,7 +386,6 @@ func LayerEffect(pos vec2) vec4 {
 }
 `)
 
-// edgeFor is the edge of a line of size in p's style.
 func edgeFor(p prefs.Prefs, size float32) ui.Effect {
 	w := max(1.2, size*.06)
 	reach := w + 1
@@ -489,8 +398,6 @@ func edgeFor(p prefs.Prefs, size float32) ui.Effect {
 	})}
 }
 
-// gpuOnly is an effect drawn on the GPU only: in memory, as in tests, a shader runs pixel by pixel,
-// and the content shows as it is.
 type gpuOnly struct{ shader.Effect }
 
 func (e gpuOnly) PaintEffect(p *ui.Painter, box ui.Rect, content *ui.Bitmap, inset ui.Point) {

@@ -1,7 +1,3 @@
-// Makes the menu bar icon's pictures from their drawings: app/internal/ui/assets/tray-idle.svg and
-// tray-on.svg, as PNGs 36 pixels tall beside them, the menu bar's 18 points at twice the pixels.
-//
-//	swift scripts/tray-icons.swift
 import AppKit
 
 let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("../app/internal/ui/assets")

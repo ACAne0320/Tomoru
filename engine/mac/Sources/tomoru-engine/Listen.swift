@@ -1,9 +1,7 @@
-// Recognition: SpeechAnalyzer's SpeechTranscriber on the tap's audio, sent as protocol results.
 import AVFoundation
 import Foundation
 import Speech
 
-/// supportedLocale is the transcriber's locale for a BCP 47 tag, or the command fails.
 func supportedLocale(_ tag: String) async -> Locale {
     guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: tag)) else {
         fail("unsupported-locale", "SpeechTranscriber has no \(tag)")
@@ -11,8 +9,6 @@ func supportedLocale(_ tag: String) async -> Locale {
     return locale
 }
 
-/// listLocales sends a `locale` for each locale the transcriber recognizes. supportedLocale(equivalentTo:)
-/// is no test of that: it gave th-TH, which is not among them.
 func listLocales() async {
     for locale in await SpeechTranscriber.supportedLocales {
         send(.locale(locale.identifier(.bcp47)))
@@ -24,9 +20,6 @@ func makeTranscriber(_ locale: Locale) -> SpeechTranscriber {
                       attributeOptions: [.audioTimeRange, .transcriptionConfidence])
 }
 
-/// installAssets makes sure the transcriber's assets are on this Mac, saying `downloading` while
-/// they come. The request is there even when they are, as it reserves the locale for this app (at
-/// most 5), and then takes no time. A new locale took 13–21 s, with no progress reported.
 func installAssets(_ t: SpeechTranscriber, _ locale: Locale) async {
     do {
         guard let req = try await AssetInventory.assetInstallationRequest(supporting: [t]) else { return }
@@ -38,7 +31,6 @@ func installAssets(_ t: SpeechTranscriber, _ locale: Locale) async {
     }
 }
 
-/// Listener runs `listen`: capture, recognition, and the audio clock.
 final class Listener {
     let locale: Locale
     let app: String?
@@ -51,22 +43,17 @@ final class Listener {
     var voice: VoiceDetector?
     let voiceQ = DispatchQueue(label: "voice")
 
-    // The audio clock: seconds of audio heard, which is the analyzer's own timeline, extrapolated
-    // by wall time while capture delivers nothing.
     let clockLock = NSLock()
     var fedFrames: Int64 = 0
     var lastFeedWall = Date()
 
-    // Silence, once quietTail of it has passed, is not handed to the analyzer, which hears things
-    // in it: "あ", 0.91 confident, 6 s into the zeros a tap gives while nothing plays. The next
-    // sound comes with its time, so the timeline still counts the silence.
     static let quietTail = 2.0
-    static let quietPeak: Float = 1e-4 // −80 dBFS: nothing to hear
-    var quietFrames: Int64 = 0 // of the analyzer's, in a row
+    static let quietPeak: Float = 1e-4
+    var quietFrames: Int64 = 0
     var skipping = false
 
     let vadModel: URL?
-    let file: String? // the recording to hear instead of the system, with --file
+    let file: String?
 
     init(locale: Locale, app: String?, vad: URL?, file: String?) {
         self.locale = locale
@@ -123,7 +110,6 @@ final class Listener {
         clockTimer = timer
     }
 
-    /// feed converts a buffer of the tap to the analyzer's format and hands it over.
     func feed(_ pcm: AVAudioPCMBuffer) {
         if let v = voice, let copy = copyBuffer(pcm) {
             voiceQ.async { v.feed(copy) }
@@ -153,13 +139,11 @@ final class Listener {
             skipping = true
             return
         }
-        // After a skip, the buffer says where it starts; otherwise it follows the last.
         let at = skipping ? CMTime(value: start, timescale: CMTimeScale(analyzerFormat.sampleRate)) : nil
         skipping = false
         inCont.yield(AnalyzerInput(buffer: out, bufferStartTime: at))
     }
 
-    /// results sends each of the transcriber's results, volatile or final.
     func results(_ transcriber: SpeechTranscriber) async {
         do {
             for try await r in transcriber.results {
@@ -180,14 +164,11 @@ final class Listener {
         }
     }
 
-    /// finalize has the analyzer make its result final through t, at the segmenter's request.
     func finalize(through t: Double) {
         Task { try? await analyzer?.finalize(through: CMTime(seconds: t, preferredTimescale: 1000)) }
     }
 }
 
-/// peak is the loudest sample of a buffer of the tap, 0 to 1; 1 when its samples are not floats,
-/// which says nothing of them.
 func peak(_ pcm: AVAudioPCMBuffer) -> Float {
     guard let data = pcm.floatChannelData else { return 1 }
     var p: Float = 0
@@ -198,7 +179,6 @@ func peak(_ pcm: AVAudioPCMBuffer) -> Float {
     return p
 }
 
-/// copyBuffer copies a buffer of the tap, whose memory the tap reuses once its callback returns.
 func copyBuffer(_ pcm: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
     guard let out = AVAudioPCMBuffer(pcmFormat: pcm.format, frameCapacity: pcm.frameLength) else { return nil }
     out.frameLength = pcm.frameLength

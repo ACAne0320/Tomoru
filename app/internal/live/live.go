@@ -1,5 +1,3 @@
-// Package live is a translating session: the engine's results go through the segmenter, and each
-// segment through the translator, if there is one, into the lines the subtitles show.
 package live
 
 import (
@@ -19,187 +17,115 @@ import (
 	"tomoru/internal/usage"
 )
 
-// Line is a sentence heard, and its translation as far as it has come.
 type Line struct {
-	ID  int
-	Src string
-	// Heard is Src as recognized, when the glossary wrote a name in it right.
-	Heard string
-	// Lang is the language it was heard in, of lang.All: the one the recognizer told, else the
-	// session's; "" for lang.Auto before the recognizer told one.
-	Lang string
-	// AsSaid tells it was heard in the language it is translated into: it is not translated, and
-	// shows as said.
-	AsSaid bool
-	Tgt    string
-	Done   bool  // translation finished, failed, was skipped, or was canceled; or none was to be done
-	Err    error // why it has no translation: the translator's error, ErrBehind or context.Canceled
-	// Draft is the translation of the sentence while it was being spoken. A translation streaming
-	// in starts shorter than the draft it replaces, so the draft shows until Done.
-	Draft string
-	// Start and End are when it was said, by the wall: its first and last sounds, where recognition
-	// timed them; else from when the voice began, not before the line before ended, to when it was
-	// committed.
+	ID         int
+	Src        string
+	Heard      string
+	Lang       string
+	AsSaid     bool
+	Tgt        string
+	Done       bool
+	Err        error
+	Draft      string
 	Start, End time.Time
 }
 
-// ErrBehind is a translation skipped because translating fell behind. Its message is what history
-// files keep for it.
 var ErrBehind = errors.New("behind")
 
-// State is what the subtitles show.
 type State struct {
-	// Phase is "starting", "downloading" (recognition for the language), "listening" or "stopped".
 	Phase       string
-	Lines       []Line // the latest last, MaxLines at most
-	Pending     string // heard and not committed yet
-	PendingLang string // the language Pending is heard in, as a Line's Lang
-	Draft       string // a translation of Pending, when Config.Draft
-	Voice       bool   // someone is speaking, as the engine's voice detection says
-	// Slow tells the recognizer's network is slow: its text comes late, for the user to check it.
-	Slow  bool
-	Err   error // why the session stopped
-	Stats Stats // how much the session has done
-	// StatsAt is when this cumulative snapshot was produced, before callbacks are queued.
-	// Consumers must use it, rather than callback delivery time, to date statistics.
-	StatsAt time.Time
-	// SpeechEnd is the audio's wall-clock end of the latest positive Speech increment.
-	// The interval starts Speech's increment seconds earlier. It remains unchanged until
-	// another increment; consumers use it only when cumulative Speech increases.
-	SpeechEnd time.Time
+	Lines       []Line
+	Pending     string
+	PendingLang string
+	Draft       string
+	Voice       bool
+	Slow        bool
+	Err         error
+	Stats       Stats
+	StatsAt     time.Time
+	SpeechEnd   time.Time
 }
 
-// Stats is how much a session has done, and how long its steps took. Its Run is the app's to
-// count: a session leaves it 0.
 type Stats = usage.Counts
 
-// MaxLines is how many lines the subtitle snapshot keeps; lifecycle events are not limited.
 const MaxLines = 10
 
-// Config is what a session needs.
 type Config struct {
-	// Context owns the session's lifetime. Nil uses context.Background.
-	Context context.Context
-	// Now supplies statistics timestamps and anchors the engine's audio clock to wall time.
-	// Nil uses time.Now. A supplied clock must be safe for concurrent session goroutines.
-	Now func() time.Time
-	// OnLine receives every committed sentence, translation progress and final result, even
-	// after the subtitle snapshot has evicted the sentence. It must return promptly.
-	OnLine func(LineEvent)
-	// LineMetadata captures caller-owned metadata synchronously when a sentence commits,
-	// before its lifecycle notifications are queued. It must be fast and safe from session
-	// goroutines, must not call session methods, and must return an immutable value or snapshot.
-	// The exact value accompanies every lifecycle event for that sentence; nil leaves it absent.
-	LineMetadata func() any
-	Engine       string // the engine's path
-	// Recognize starts the recognizer of what the engine hears, for a language: one of package
-	// asr's. Nil has the engine recognize itself.
-	Recognize asr.Factory
-	// VolatileSentences commits the sentences the recognizer's volatile text ends: where they
-	// hold (asr.Spec).
+	Context           context.Context
+	Now               func() time.Time
+	OnLine            func(LineEvent)
+	LineMetadata      func() any
+	Engine            string
+	Recognize         asr.Factory
 	VolatileSentences bool
-	// FinalsEnd tells the recognizer's final results end utterances (asr.Spec).
-	FinalsEnd bool
-	// Hint tells a recognizer in the engine when to make its result final, as each of the engine's
-	// events comes (asr.Spec's Hint): Apple's. Nil for none.
-	Hint     func(engine.Event) (through float64, ok bool)
-	Src, Tgt string // languages, of lang.All
-	App      string // the app to hear, "" for the whole system
-	File     string // a recording to hear instead, at its pace, for benchmarks
-	// Translator translates each sentence. Nil translates nothing: the session only recognizes, and
-	// each sentence is done as it is committed.
-	Translator translate.Translator
-	// Parallel is how many sentences may be translated at once, of those waiting; 0 is one. Each
-	// streams into its line, whatever the order they finish in.
-	Parallel int
-	// Draft translates sentences while they are spoken, so that their gist shows before they end.
-	Draft bool
-	// Terms applies the scene's glossary to text heard: the text with names heard wrong written
-	// right, which shows and is translated, and the terms it concerns, which go with it. It is
-	// called from the session's goroutines. Nil leaves text as it is.
-	Terms func(text string) (string, []translate.Term)
-	// About is what is being watched, as the scene's description says, sent with each sentence.
-	// It is called from the session's goroutines. Nil sends none.
-	About func() string
+	FinalsEnd         bool
+	Hint              func(engine.Event) (through float64, ok bool)
+	Src, Tgt          string
+	App               string
+	File              string
+	Translator        translate.Translator
+	Parallel          int
+	Draft             bool
+	Terms             func(text string) (string, []translate.Term)
+	About             func() string
 }
 
-// stopper is a process of the session, to stop and wait for.
 type stopper interface {
 	Stop()
 	Done() <-chan struct{}
 	Err() error
 }
 
-// Session is a running session.
 type Session struct {
 	cfg      Config
 	onChange func(State)
 	seg      *segment.Segmenter
-	proc     finalizer   // the engine recognizing, as Hint has it finalize; nil for a recognizer of its own
-	procs    []stopper   // the engine and the recognizer, to stop; none in tests
-	queue    chan queued // segments to translate, in order
+	proc     finalizer
+	procs    []stopper
+	queue    chan queued
 	ctx      context.Context
 	cancel   context.CancelFunc
 
-	// Events can arrive from both the capture process and an external recognizer.
 	eventMu       sync.Mutex
-	procMu        sync.Mutex // guards process installation during Start
-	mu            sync.Mutex // guards state, active lines, lifecycle and drafts
+	procMu        sync.Mutex
+	mu            sync.Mutex
 	state         State
-	next          int                // the last line's ID
-	active        map[int]activeLine // committed lines still translating, independent of the display
+	next          int
+	active        map[int]activeLine
 	stopped       bool
 	workers       sync.WaitGroup
-	notifications []notification // ordered under mu; callbacks run outside it
+	notifications []notification
 	wake          chan struct{}
 	reportsDone   chan struct{}
 	workersDone   chan struct{}
 	started       chan struct{}
 	reportsClosed bool
 
-	// Drafts: one at a time, of pending text grown by a few words, and not too often. A commit
-	// makes the one in flight stale.
 	draftGen    int
 	draftBusy   bool
-	draftLen    int // the letters of the pending text last drafted
+	draftLen    int
 	draftAt     time.Time
-	draftCancel context.CancelFunc // drops the one in flight
+	draftCancel context.CancelFunc
 
 	errMu   sync.Mutex
-	lastErr string // the translation error logged last, by translateLoop
+	lastErr string
 
-	voiceAt float64 // when the voice started, by the audio clock, while it is on: on the engine's goroutine
+	voiceAt float64
 	voiceOn bool
 
-	// The audio clock as the engine last told it, and when: the wall's time of an audio time.
-	clockT  float64
-	clockAt time.Time
-	// heardAt is when the voice last started, by the wall, until text is recognized after it.
-	heardAt time.Time
-	// voiceStart is when the voice last started, by the wall, and saidEnd when the line committed
-	// last ended: on the engine's goroutine.
+	clockT              float64
+	clockAt             time.Time
+	heardAt             time.Time
 	voiceStart, saidEnd time.Time
-	// heard is the language the recognizer last told it heard, and heardFinal its final results'
-	// last: "" before it told one. On the engine's goroutine.
-	heard, heardFinal string
-	billed            interface{ Sent() float64 } // a cloud recognizer, which bills the audio sent
-	// ends pair each line's speech end with the first words of its translation, by its segment's
-	// Seq, under mu: the first known waits for the other. A line cut from the hypothesis learns its
-	// end from the final result after it, often once its translation shows.
-	ends map[int]endPair
+	heard, heardFinal   string
+	billed              interface{ Sent() float64 }
+	ends                map[int]endPair
 }
 
-// endPair is when a line's speech ended and when its translation's first words showed, by the
-// wall; zero while not known.
 type endPair struct{ spoke, shown time.Time }
 
-// maxEnds is the most lines waiting to pair their ends: one whose final result never comes is
-// dropped with the oldest.
 const maxEnds = 64
 
-// pairEnd notes when segment seq's speech ended, or its translation's first words showed, under
-// mu; once both are known, the wait between them is the line's EndToEnd. A line not waiting (never
-// translated, or dropped) is left alone.
 func (s *Session) pairEnd(st *State, seq int, spoke, shown time.Time) {
 	p, ok := s.ends[seq]
 	if !ok {
@@ -219,7 +145,6 @@ func (s *Session) pairEnd(st *State, seq int, spoke, shown time.Time) {
 	st.Stats.Latency.EndToEnd.Add(p.shown.Sub(p.spoke))
 }
 
-// waitEnd has segment seq's line wait to pair its ends, under mu.
 func (s *Session) waitEnd(seq int) {
 	s.ends[seq] = endPair{}
 	for len(s.ends) > maxEnds {
@@ -231,14 +156,12 @@ func (s *Session) waitEnd(seq int) {
 	}
 }
 
-// queued is a sentence to translate: its segment's Seq, and when it was committed.
 type queued struct {
 	Line
 	seq int
 	at  time.Time
 }
 
-// wall is the time by the wall of t, a time of the audio clock; zero before the engine told it.
 func (s *Session) wall(t float64) time.Time {
 	if s.clockAt.IsZero() {
 		return time.Time{}
@@ -246,7 +169,6 @@ func (s *Session) wall(t float64) time.Time {
 	return s.clockAt.Add(time.Duration((t - s.clockT) * float64(time.Second)))
 }
 
-// since is the time since t, if it is not zero.
 func since(t time.Time) (time.Duration, bool) {
 	if t.IsZero() {
 		return 0, false
@@ -254,23 +176,15 @@ func since(t time.Time) (time.Duration, bool) {
 	return time.Since(t), true
 }
 
-// firstTextWait is the longest wait for text after the voice starts that counts as recognition's:
-// past it, the voice was not speech (music, a cough), and the text is of later speech.
 const firstTextWait = 10 * time.Second
 
-// finalizer is what the session asks of the engine: a *engine.Process, or a fake in tests.
 type finalizer interface{ Finalize(t float64) error }
 
-// Start starts the engine, recognizer and translating session. onChange and Config.OnLine run
-// serially on a reporting goroutine, outside session locks. They must return promptly; they may
-// call Stop, but must not call Wait (which waits for callbacks to finish).
 func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 	s := newStartingSession(cfg, onChange)
 	defer func() {
 		close(s.started)
 		if err != nil {
-			// A recognizer can emit synchronously during startup. Finish those line events and
-			// every started worker/child before the caller discards a failed session's handle.
 			s.stop(err)
 			s.Wait()
 		}
@@ -286,7 +200,6 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 		}
 		s.installProcesses(p, p)
 	} else {
-		// The engine hears, and its audio goes on to the recognizer.
 		rec, err := cfg.Recognize(cfg.Src, s.handle)
 		if err != nil {
 			return nil, err
@@ -297,8 +210,6 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 			case "audio":
 				rec.Audio(ev)
 			case "voice":
-				// The recognizer takes the engine's voice detection: the cloud's, to hang up while
-				// nobody speaks, a local model's, to cut speech into stretches. Each reports it on.
 				if v, ok := rec.(interface{ Voice(engine.Event) }); ok {
 					v.Voice(ev)
 				}
@@ -315,7 +226,6 @@ func Start(cfg Config, onChange func(State)) (session *Session, err error) {
 		s.billed, _ = rec.(interface{ Sent() float64 })
 		s.procMu.Unlock()
 	}
-	// The first to end ends the session, and says why.
 	var once sync.Once
 	s.procMu.Lock()
 	procs := append([]stopper(nil), s.procs...)
@@ -353,7 +263,6 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 		parent = context.Background()
 	}
 	s.ctx, s.cancel = context.WithCancel(parent)
-	// The tokens of the translations, drafts too.
 	s.ctx = translate.WithUsage(s.ctx, func(u translate.Usage) {
 		s.update(func(st *State) {
 			st.Stats.InTokens, st.Stats.OutTokens = st.Stats.InTokens+u.In, st.Stats.OutTokens+u.Out
@@ -384,7 +293,6 @@ func newStartingSession(cfg Config, onChange func(State)) *Session {
 	return s
 }
 
-// handle serializes capture and recognizer events before using the segmenter and audio clock.
 func (s *Session) handle(ev engine.Event) {
 	s.eventMu.Lock()
 	defer s.eventMu.Unlock()
@@ -402,12 +310,12 @@ func (s *Session) handle(ev engine.Event) {
 		}
 	}
 	var acts []segment.Action
-	var lat usage.Latency // the steps that ended with ev
+	var lat usage.Latency
 	switch ev.Type {
 	case "state":
 		s.update(func(st *State) { st.Phase = ev.State })
 		return
-	case "slow": // a cloud recognizer's, as its network is slow, or quick again
+	case "slow":
 		s.update(func(st *State) { st.Slow = ev.On })
 		return
 	case "clock":
@@ -437,7 +345,7 @@ func (s *Session) handle(ev engine.Event) {
 		}
 		s.update(func(st *State) {
 			if began {
-				s.warm() // a sentence to translate is coming
+				s.warm()
 			}
 			st.Voice, st.Stats.Speech = ev.On, st.Stats.Speech+spoke
 			if spoke > 0 {
@@ -445,7 +353,6 @@ func (s *Session) handle(ev engine.Event) {
 			}
 		})
 	case "result":
-		// Text of no language known is of none: not of the language heard before.
 		if ev.Lang != "" || strings.TrimSpace(ev.Text()) != "" {
 			s.heard = ev.Lang
 			if ev.Final {
@@ -487,7 +394,6 @@ func (s *Session) handle(ev engine.Event) {
 	now := time.Now()
 	heard := s.spoken(s.heard)
 	for _, a := range acts {
-		// A sentence of final results is in their language; one cut from the hypothesis, in its.
 		l := heard
 		if a.Commit.Timed {
 			l = s.spoken(s.heardFinal)
@@ -502,7 +408,6 @@ func (s *Session) handle(ev engine.Event) {
 		added, segs = append(added, q), append(segs, a.Commit)
 	}
 	s.said(added, segs, s.cfg.Now())
-	// The ends of lines cut from the hypothesis, as the final results after them tell.
 	for _, e := range s.seg.Ended() {
 		spoke = append(spoke, ended{e.Seq, s.wall(e.End)})
 	}
@@ -521,13 +426,10 @@ func (s *Session) handle(ev engine.Event) {
 		for _, q := range added {
 			s.next++
 			q.ID = s.next
-			// The sentence keeps the draft of it until its own translation is done.
 			q.Draft, st.Draft = st.Draft, ""
 			s.draftGen++
 			s.draftLen = 0
 			if s.draftCancel != nil {
-				// The draft in flight is of this sentence, and no use now: dropped, so that the
-				// next sentence's need not wait for it.
 				s.draftCancel()
 				s.draftCancel, s.draftBusy = nil, false
 			}
@@ -537,7 +439,7 @@ func (s *Session) handle(ev engine.Event) {
 			}
 			s.active[q.ID] = activeLine{Line: q.Line, metadata: metadata}
 			s.emitLine(LineCommitted, q.Line, metadata)
-			if s.cfg.Translator == nil || q.Lang == s.cfg.Tgt { // nothing to translate it with, or into
+			if s.cfg.Translator == nil || q.Lang == s.cfg.Tgt {
 				q.Done, q.AsSaid = true, s.cfg.Translator != nil
 				delete(s.active, q.ID)
 				s.emitLine(LineCompleted, q.Line, metadata)
@@ -545,7 +447,7 @@ func (s *Session) handle(ev engine.Event) {
 				select {
 				case s.queue <- q:
 					s.waitEnd(q.seq)
-				default: // translation is far behind: this line goes without
+				default:
 					q.Done, q.Err = true, ErrBehind
 					delete(s.active, q.ID)
 					s.emitLine(LineCompleted, q.Line, metadata)
@@ -567,9 +469,6 @@ func (s *Session) handle(ev engine.Event) {
 	})
 }
 
-// said sets when lines, committed together at now from segs, were said, by the wall: a line
-// recognition timed, from its first sound to its last; the others share the time from when the
-// voice began, not before the line before ended, to now, by their length, one after another.
 func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
 	var untimed []int
 	total := 0
@@ -602,8 +501,6 @@ func (s *Session) said(lines []queued, segs []*segment.Segment, now time.Time) {
 	s.saidEnd = now
 }
 
-// spoken is the language of what was heard, as the recognizer told it (heard), else the session's;
-// "" for lang.Auto before it told one.
 func (s *Session) spoken(heard string) string {
 	if heard != "" || s.cfg.Src == lang.Auto {
 		return heard
@@ -611,8 +508,6 @@ func (s *Session) spoken(heard string) string {
 	return s.cfg.Src
 }
 
-// draftStep is how many letters pending text grows by before it is drafted again: about two
-// words, as a Chinese or Japanese character carries more than a letter.
 func draftStep(code string) int {
 	switch {
 	case lang.Chinese(code):
@@ -625,14 +520,12 @@ func draftStep(code string) int {
 	return 12
 }
 
-// maybeDraft starts translating the pending text when it has grown by a few words since the last
-// draft, one at a time and not more often than every 0.6 s. It runs under s.mu.
 func (s *Session) maybeDraft(st *State) {
 	if !s.cfg.Draft || s.cfg.Translator == nil || s.ctx.Err() != nil {
 		return
 	}
 	n := segment.Letters(st.Pending)
-	if n == 0 || st.PendingLang == s.cfg.Tgt { // nothing to draft, or as said
+	if n == 0 || st.PendingLang == s.cfg.Tgt {
 		st.Draft, s.draftLen = "", 0
 		return
 	}
@@ -641,8 +534,6 @@ func (s *Session) maybeDraft(st *State) {
 	}
 	s.draftBusy, s.draftLen, s.draftAt = true, n, time.Now()
 	gen, text, src := s.draftGen, st.Pending, st.PendingLang
-	// In languages that space words, the last one may be half heard ("tips" as "ti"), and the model
-	// would guess the rest: leave it out.
 	if lang.Spaced(src) {
 		if i := strings.LastIndexByte(text, ' '); i > 0 && !strings.HasSuffix(text, " ") {
 			text = text[:i]
@@ -658,20 +549,18 @@ func (s *Session) maybeDraft(st *State) {
 		out, err := s.cfg.Translator.Translate(ctx, translate.Request{Src: src, Tgt: s.cfg.Tgt, Text: text, Draft: true, Terms: terms, About: s.about()}, nil)
 		s.update(func(st *State) {
 			if gen != s.draftGen {
-				return // a commit dropped it
+				return
 			}
 			s.draftBusy, s.draftCancel = false, nil
 			if err != nil || out == "" {
 				return
 			}
 			st.Draft = out
-			s.maybeDraft(st) // the pending text may have grown meanwhile
+			s.maybeDraft(st)
 		})
 	}()
 }
 
-// translateLoop translates the lines one by one, in order, streaming each into its line;
-// Config.Parallel of them take the lines in turn.
 func (s *Session) translateLoop() {
 	for {
 		select {
@@ -682,10 +571,9 @@ func (s *Session) translateLoop() {
 				return
 			}
 			s.update(func(st *State) { st.Stats.Latency.Queue.Add(time.Since(l.at)) })
-			// The terms as the glossary is now: one learned since the line was heard goes with it.
 			_, terms := s.terms(l.Src)
 			r := translate.Request{Src: l.Lang, Tgt: s.cfg.Tgt, Text: l.Src, Terms: terms, About: s.about()}
-			shown := false // the first words of the translation showed, and were timed
+			shown := false
 			first := func(st *State) {
 				if shown {
 					return
@@ -726,14 +614,14 @@ func (s *Session) translateLoop() {
 				s.emitLine(LineCompleted, x.Line, x.metadata)
 				switch {
 				case err == nil:
-					first(st) // a translation that came whole
+					first(st)
 					st.Stats.Latency.Translation.Add(time.Since(l.at))
 					st.Stats.Chars += utf8.RuneCountInString(strings.Join(strings.Fields(out), ""))
 				case s.ctx.Err() == nil:
 					st.Stats.Failed++
 				}
 				if !shown {
-					delete(s.ends, l.seq) // no translation to wait for
+					delete(s.ends, l.seq)
 				}
 			})
 			s.logErr(err)
@@ -741,11 +629,9 @@ func (s *Session) translateLoop() {
 	}
 }
 
-// logErr logs a translation's error, once while lines keep failing alike: when the service is
-// down, every line fails so.
 func (s *Session) logErr(err error) {
 	if s.ctx.Err() != nil {
-		return // stopped, not failed
+		return
 	}
 	s.errMu.Lock()
 	defer s.errMu.Unlock()
@@ -759,9 +645,6 @@ func (s *Session) logErr(err error) {
 	s.lastErr = msg
 }
 
-// warm has the translator open its connection, when it does (the cloud), ahead of a sentence to
-// translate. It runs as the session starts, or under s.mu while it runs, as the session's
-// goroutines must not be added to once it waits for them.
 func (s *Session) warm() {
 	w, ok := s.cfg.Translator.(interface{ Warm(context.Context) })
 	if !ok || s.ctx.Err() != nil {
@@ -774,7 +657,6 @@ func (s *Session) warm() {
 	}()
 }
 
-// about is what is being watched, with Config.About.
 func (s *Session) about() string {
 	if s.cfg.About == nil {
 		return ""
@@ -782,7 +664,6 @@ func (s *Session) about() string {
 	return s.cfg.About()
 }
 
-// terms applies the glossary to text, with Config.Terms.
 func (s *Session) terms(text string) (string, []translate.Term) {
 	if s.cfg.Terms == nil || text == "" {
 		return text, nil
@@ -790,7 +671,6 @@ func (s *Session) terms(text string) (string, []translate.Term) {
 	return s.cfg.Terms(text)
 }
 
-// lineOf changes the line id of st, with f, if it still has it.
 func lineOf(st *State, id int, f func(*Line)) {
 	for i := range st.Lines {
 		if st.Lines[i].ID == id {
@@ -799,8 +679,6 @@ func lineOf(st *State, id int, f func(*Line)) {
 	}
 }
 
-// update serializes state changes and queues immutable reports in the same order. Once stopped,
-// even a translator or recognizer that returns late cannot change the session again.
 func (s *Session) update(f func(*State)) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

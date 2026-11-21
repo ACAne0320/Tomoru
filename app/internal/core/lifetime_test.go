@@ -61,7 +61,6 @@ func TestSessionReplacementRejectsLatePreparation(t *testing.T) {
 	f.until(t, func() bool { return len(f.sessions) == 1 })
 	close(release)
 	<-done
-	// Worker cancellation can race queue delivery; joining ensures its late post is present.
 	c.work.wg.Wait()
 	f.mu.Lock()
 	queued := f.posted
@@ -106,8 +105,6 @@ func TestCloudCredentialPreparationDoesNotBlockApplicationThread(t *testing.T) {
 	c.EngineService.secrets = secrets
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.ASR = QwenCloud; p.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}} })
 	returned := make(chan struct{})
-	// This goroutine stands in for the application thread. No test accesses Core
-	// until its return is synchronized; credential IO must run on another worker.
 	go func() { c.Start(); close(returned) }()
 	select {
 	case <-returned:

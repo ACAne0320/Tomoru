@@ -16,8 +16,6 @@ import (
 	"tomoru/locales"
 )
 
-// The windows, as shared.Nav opens them.
-
 func (s *Shell) togglePanel() {
 	if s.panel != nil {
 		s.panel.Close()
@@ -26,16 +24,10 @@ func (s *Shell) togglePanel() {
 	s.OpenPanel(nil)
 }
 
-// OpenPanel shows the panel below the tray icon, or above anchor, a box in the overlay. The
-// overlay's settings button is the way in when the menu bar has no room for the icon: macOS hides
-// status items behind the notch, and capturing adds its own recording indicator.
 func (s *Shell) OpenPanel(anchor *mygo.Rectangle) {
 	if s.panel != nil {
 		s.panel.Close()
 	}
-	// The panel draws its own frame, the night's band over the paper; the system draws its shadow.
-	// As tall as it measures: it shows before it fits itself, and changing its height then made it
-	// jump as it opened, the first time after launch too, when it had not fitted itself yet.
 	opts := mygo.FlyoutOptions{Width: panel.Width, Height: panel.Measure(s.core, s), Focusable: true, Shadow: true, Gap: 6,
 		Content: ui.View(panel.New(s.core, s).View)}
 	if anchor == nil {
@@ -52,21 +44,17 @@ func (s *Shell) OpenPanel(anchor *mygo.Rectangle) {
 	})
 }
 
-// FitPanel makes the panel h tall, as tall as what it shows.
 func (s *Shell) FitPanel(h int) {
 	if s.panel != nil {
 		s.panel.SetContentSize(panel.Width, h)
 	}
 }
 
-// TranslateImage translates a picture, as its shortcut asks: a part of the screen the user selects
-// when the app may capture it, else the picture on the clipboard, with a card that says how to
-// put one there when there is none.
 func (s *Shell) TranslateImage() {
 	k := s.core
 	if k.CanSelect() {
 		if s.image != nil {
-			s.image.Close() // out of the way of the selection
+			s.image.Close()
 		}
 		s.closePanel()
 		k.SelectImage(s.showImage)
@@ -87,21 +75,18 @@ func (s *Shell) ShowSettings() { s.ShowSettingsPage("") }
 func (s *Shell) ShowSettingsPage(page string) {
 	s.closePanel()
 	if s.guide != nil {
-		s.guide.Show() // finish the first-run guide first
+		s.guide.Show()
 		return
 	}
 	if s.settings == nil {
 		s.pages = settings.New(s.core, s)
 		w := mygo.NewWindow(mygo.WindowOptions{
 			Title: locales.SettingsTitle(), Width: settings.Width, Height: settings.Height, MinWidth: settings.MinWidth, MinHeight: settings.MinHeight,
-			TitleBarStyle: mygo.TitleBarHidden, // the frame draws under the window's controls
+			TitleBarStyle: mygo.TitleBarHidden,
 			StateKey:      "settings",
 			Content:       ui.View(s.pages.View),
 		})
-		// Its controls are on the night's band, dark in either appearance: drawn light (Windows).
 		w.SetWindowButtonsTheme(mygo.ThemeDark)
-		// GTK's take the theme's color, dark in a light one, whatever the window: theirs alone
-		// are over a hidden title bar, so those are made light (Linux; nothing elsewhere).
 		if err := mygo.Theme.SetGTKCSS(`headerbar.mygo-window-controls button.titlebutton { color: #f6efe4; }`); err != nil {
 			log.Println("settings:", err)
 		}
@@ -131,7 +116,6 @@ func (s *Shell) ShowGuide() {
 			Content: ui.View(guide.New(s.core, s).View),
 		}
 		if shared.Windows {
-			// Windows' title bar is white: the guide draws its own on the paper, under the controls.
 			opts.TitleBarStyle, opts.TitleBarHeight, opts.Height = mygo.TitleBarHidden, guide.TitleBar, guide.Height+guide.TitleBar
 		}
 		w := mygo.NewWindow(opts)
@@ -140,8 +124,7 @@ func (s *Shell) ShowGuide() {
 			if s.guide == w {
 				s.guide = nil
 			}
-			clear(s.core.Held) // the shortcuts it checked do what they do again
-			// Closed before it was done: what it tried stops with it.
+			clear(s.core.Held)
 			if k := s.core; !k.Preferences().Onboarded {
 				k.StopSpeaking()
 				k.Stop()
@@ -158,9 +141,9 @@ func (s *Shell) FinishGuide() {
 		s.guide.Close()
 	}
 	if !s.core.Running {
-		s.core.Start() // else it runs since the guide tried it
+		s.core.Start()
 	}
-	s.overlay.ShowSample(8 * time.Second) // show where the subtitles go, while nobody speaks
+	s.overlay.ShowSample(8 * time.Second)
 }
 
 func (s *Shell) StartAdjust() {
@@ -170,7 +153,7 @@ func (s *Shell) StartAdjust() {
 
 func (s *Shell) SetLocked(locked bool) {
 	if !locked {
-		s.closePanel() // unlocked to move the subtitles: out of their way
+		s.closePanel()
 	}
 	s.overlay.SetLocked(locked)
 	s.redraw()
@@ -198,9 +181,6 @@ func (s *Shell) SetImageShortcut(acc string) error {
 	})
 }
 
-// bind makes acc the global shortcut that runs fn, in place of *held, the one registered before
-// ("" for none), which stays if acc cannot be registered. what says what it does, where the
-// desktop binds the keys and asks the user about them (Wayland).
 func bind(held *string, acc, what string, fn func()) error {
 	opts := mygo.GlobalShortcutOptions{Description: what}
 	before := *held

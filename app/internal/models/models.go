@@ -1,6 +1,3 @@
-// Package models keeps the models that run on this computer, of translation and of recognition:
-// what they are, where they are downloaded to, downloading them, and llama-server, which runs the
-// translation models.
 package models
 
 import (
@@ -10,80 +7,43 @@ import (
 	"runtime"
 )
 
-// Model is a model to download: a file, or a few in a directory of its own.
 type Model struct {
-	ID string // as the settings name the engine
-	// Family is the model's, which its sizes share, and Label its size: shown together, as
-	// "Index-Translate 9B".
-	Family, Label string
-	Dir           string // its directory among the models, "" for none
-	Files         []File // the first is the model itself, at Manager.Path
-	Size          int64  // of all its files
-	// Repo is the model's repository, by the same name on Hugging Face and ModelScope unless
-	// ModelScope names another. Rev pins its revision on Hugging Face, "main" when "".
+	ID                    string
+	Family, Label         string
+	Dir                   string
+	Files                 []File
+	Size                  int64
 	Repo, ModelScope, Rev string
-	// Needs is what a model llama-server runs is said to need to run, in bytes: memory on a Mac,
-	// whose GPU shares it, and the GPU's own memory on Windows, where llama.cpp runs it on Vulkan;
-	// 0 for one that runs on the CPU. A computer with less memory is told so. Estimates from the
-	// file's size and its context, not measured on every machine.
-	Needs struct{ Memory, VRAM uint64 }
-	// Rec tells it is its family's size to recommend, where the GPU has the memory it needs.
-	Rec bool
-	// ASR tells it recognizes speech; else it translates, with llama-server.
-	ASR bool
-	// Runtime is what runs a recognition model: "" tomoru-asr (sherpa-onnx), "llama" llama-server,
-	// which hears through the model's audio projector, its Vision file.
-	Runtime string
-	// Langs are the languages a recognition model hears, in the order of lang.All.
-	Langs []string
-	// Format is how a translation model is prompted, as translate names its formats ("index").
-	Format string
-	// Vision is the file among Files with which llama-server has a translation model read pictures
-	// (docs/image-translation.md), or a recognition model hear; "" for none.
-	Vision string
-	// NoAbout leaves the scene's description out of a translation model's prompts: given it, the
-	// 2B model put the names in it where none was said (docs/scenes.md).
-	NoAbout bool
+	Needs                 struct{ Memory, VRAM uint64 }
+	Rec                   bool
+	ASR                   bool
+	Runtime               string
+	Langs                 []string
+	Format                string
+	Vision                string
+	NoAbout               bool
 }
 
-// Name is the model's name as shown: its family's, then its size.
 func (m Model) Name() string { return m.Family + " " + m.Label }
 
-// Served tells it is a recognition model llama-server runs.
 func (m Model) Served() bool { return m.ASR && m.Runtime == "llama" }
 
-// needs is a model's Needs: memory and the GPU's memory, in GB.
 func needs(memory, vram uint64) struct{ Memory, VRAM uint64 } {
 	return struct{ Memory, VRAM uint64 }{memory << 30, vram << 30}
 }
 
-// File is a file of a model, by its name in the repository and in the model's directory.
 type File struct {
 	Name   string
 	Size   int64
 	SHA256 string
 }
 
-// Qwen3ASRLangs are the languages Qwen3-ASR recognizes, as its model card lists them, in the order
-// of lang.All.
 var Qwen3ASRLangs = []string{
 	"zh", "en", "ja", "ko", "yue",
 	"ar", "cs", "da", "de", "el", "es", "fa", "fi", "fil", "fr", "hi", "hu", "id", "it",
 	"mk", "ms", "nl", "pl", "pt", "ro", "ru", "sv", "th", "tr", "vi",
 }
 
-// All are the models, a family's sizes together, the smallest first. The translation models are
-// from the official repositories: Index-Translate's (Q4_K_M: in our tests, the same mistakes as
-// Q8_0 at less than two thirds of the size), each with its vision projector (Q8_0), so that it
-// translates pictures too; and Hy-MT2's, Tencent's, Q4_K_M too, which with llama-server's flags
-// here takes as much as Index-Translate's of its size (on an M5, 1380 MiB of Metal's memory for
-// the 1.8B, 1389 for the 2B; 5043 for the 7B, 5257 for the 9B) and has no projector: it reads no
-// pictures. The recognition models are
-// SenseVoice as sherpa-onnx publishes it, the 2024-07-17 release: the 2025-09-09 one recognizes
-// everything as Cantonese with sherpa-onnx 1.13.8 (docs/local-asr.md), and its only size: the
-// larger was never published; and Qwen3-ASR as llama.cpp's own (ggml-org) publish it, Q8_0 (bf16
-// recognized the same; docs/recognition.md), which needs a GPU: the 1.7B 2.9–3.1 GB of memory on an
-// M5, 2.5 GB of VRAM on an RTX 5060; the 0.6B 1.9 GB on an M5, more mistakes in Korean.
 var All = []Model{
 	{ID: "local-2b", Family: "Index-Translate", Label: "2B", Size: 1312164352 + 361518144, Repo: "IndexTeam/Index-Translate-2B-GGUF", Needs: needs(8, 4), NoAbout: true,
 		Format: "index", Vision: "Index-Translate-2B.mmproj-Q8_0.gguf",
@@ -131,7 +91,6 @@ var All = []Model{
 		}},
 }
 
-// ByID finds a model.
 func ByID(id string) (Model, bool) {
 	for _, m := range All {
 		if m.ID == id {
@@ -141,8 +100,6 @@ func ByID(id string) (Model, bool) {
 	return Model{}, false
 }
 
-// URLs are where to download a file of m from, in the order to try: ModelScope first for a reader
-// in China, where Hugging Face is slow or out of reach, else Hugging Face first.
 func (m Model) URLs(f File, china bool) []string {
 	rev, msRepo := m.Rev, m.ModelScope
 	if rev == "" {
@@ -159,9 +116,6 @@ func (m Model) URLs(f File, china bool) []string {
 	return []string{hf, ms}
 }
 
-// Dir is where models are kept: the user's data, not the app, which updates replace whole, nor the
-// cache, which cleaners empty. Not MyGo's user data directory either: on Windows that is the
-// roaming profile, on Linux ~/.config.
 func Dir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {

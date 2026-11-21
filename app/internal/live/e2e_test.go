@@ -17,13 +17,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// TestEndToEnd runs the real engine and the cloud translator while a recording plays, when
-// TOMORU_E2E names it, as "ja:/path/to/ja.wav". With TOMORU_E2E_LOCAL naming a model file, a local
-// model translates instead; with TOMORU_E2E_ASR naming a recognition model's directory, tomoru-asr
-// recognizes, rather than the engine; with TOMORU_E2E_CLOUD naming a model of qwencloud.Models,
-// Model Studio does, with DASHSCOPE_API_KEY and DASHSCOPE_API_HOST. The engine hears the whole system, so the
-// recording plays out loud; the process running the test needs the System Audio Recording (or
-// Screen Recording) permission.
 func TestEndToEnd(t *testing.T) {
 	spec := os.Getenv("TOMORU_E2E")
 	if spec == "" {
@@ -40,7 +33,6 @@ func TestEndToEnd(t *testing.T) {
 	}
 	var tr translate.Translator = translate.Cloud()
 	if model := os.Getenv("TOMORU_E2E_LOCAL"); model != "" {
-		// A local model, run by the llama-server the app ships.
 		server, err := resource.Bin("llama-server", filepath.Join("..", "..", "resources"))
 		if err != nil {
 			t.Fatal(err)
@@ -108,7 +100,7 @@ func TestEndToEnd(t *testing.T) {
 	if out, err := exec.Command("afplay", wav).CombinedOutput(); err != nil {
 		t.Fatalf("afplay: %v %s", err, out)
 	}
-	time.Sleep(4 * time.Second) // the last sentence's pause, and its translation
+	time.Sleep(4 * time.Second)
 	mu.Lock()
 	defer mu.Unlock()
 	if len(last.Lines) == 0 {

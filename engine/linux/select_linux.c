@@ -1,7 +1,3 @@
-// Selecting a part of the screen, as the Windows engine does: a picture of every screen, dimmed,
-// over them, on which the user drags; the part dragged over shows bright. Escape, or the right
-// button, cancels. The picture comes from the Screenshot portal under Wayland, which asks the
-// user the first time, and from the root window under X11.
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
@@ -16,23 +12,21 @@
 #include "engine_linux.h"
 
 static struct {
-	GdkPixbuf *shot;          // every screen, as one picture
-	double ratio;             // the picture's pixels in a logical pixel
-	int ox, oy;               // the screens' top-left, in logical pixels
-	GtkWidget *from;          // the window the drag started in
-	GdkRectangle at;          // its monitor, in logical pixels
-	double fx, fy, tx, ty;    // the drag, in the window's coordinates
-	int dragging, done;       // done: 1 selected, -1 cancelled
+	GdkPixbuf *shot;
+	double ratio;
+	int ox, oy;
+	GtkWidget *from;
+	GdkRectangle at;
+	double fx, fy, tx, ty;
+	int dragging, done;
 } sel;
 
-// The portal's answer, which a main loop waits for.
 struct answer {
 	GMainLoop *loop;
 	guint code;
 	char *uri;
 };
 
-// session_bus is the session bus.
 static GDBusConnection *session_bus(char *why, int n) {
 	static GDBusConnection *bus;
 	if (bus) return bus;
@@ -45,8 +39,6 @@ static GDBusConnection *session_bus(char *why, int n) {
 	return bus;
 }
 
-// session is the session bus, on which the engine said what app it is, as the app does: the
-// portals then count its screenshots and their permission as the app's.
 static GDBusConnection *session(const char *app, char *why, int n) {
 	static gboolean registered;
 	GDBusConnection *bus = session_bus(why, n);
@@ -57,7 +49,7 @@ static GDBusConnection *session(const char *app, char *why, int n) {
 	GVariant *r = g_dbus_connection_call_sync(bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
 		"org.freedesktop.host.portal.Registry", "Register", g_variant_new("(sa{sv})", app, &opts), NULL,
 		G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
-	if (r) g_variant_unref(r); // older portals have no registry, and know the app by its cgroup
+	if (r) g_variant_unref(r);
 	return bus;
 }
 
@@ -74,10 +66,6 @@ static void responded(GDBusConnection *bus, const char *sender, const char *path
 
 static int stored(const char *app);
 
-// portal_file takes a picture of every screen through the Screenshot portal, without its own
-// interface, and returns the file it is in, which the caller removes, or NULL with the reason in
-// why. The desktop asks the user the first time, which GNOME does only while the app has the
-// focus; *code is the portal's answer: 0 taken, 1 not allowed, 2 otherwise.
 static char *portal_file(const char *app, guint *code, char *why, int n) {
 	GError *err = NULL;
 	*code = 2;
@@ -109,11 +97,7 @@ static char *portal_file(const char *app, guint *code, char *why, int n) {
 		goto out;
 	}
 	g_variant_unref(r);
-	// The first time, the desktop asks the user, who may take a while: the answer is waited for,
-	// however late, for a yes takes a picture that only the engine removes. Closing the request
-	// does not stop it: the portals answer nothing while their dialog is open.
 	g_main_loop_run(a.loop);
-	// A no comes as any other failure, 2, on GNOME and KDE: the no the portals keep tells it.
 	*code = a.code == 2 && stored(app) == TC_DENIED ? 1 : a.code;
 	if (*code != 0 || !a.uri) {
 		snprintf(why, n, *code == 1 ? "the screenshot was not allowed" : "the desktop took no screenshot");
@@ -128,7 +112,6 @@ out:
 	return file;
 }
 
-// portal_shot is the picture portal_file takes. The file is removed: the picture is not kept.
 static GdkPixbuf *portal_shot(const char *app, char *why, int n) {
 	guint code;
 	char *file = portal_file(app, &code, why, n);
@@ -144,8 +127,6 @@ static GdkPixbuf *portal_shot(const char *app, char *why, int n) {
 	return shot;
 }
 
-// stored is what the portals keep of the user's answer for app: TC_GRANTED, TC_DENIED or
-// TC_UNKNOWN when it has none. Their store answers while the portals ask the user.
 static int stored(const char *app) {
 	char why[64];
 	GDBusConnection *bus = session_bus(why, sizeof why);
@@ -154,7 +135,7 @@ static int stored(const char *app) {
 		"/org/freedesktop/impl/portal/PermissionStore", "org.freedesktop.impl.portal.PermissionStore", "Lookup",
 		g_variant_new("(ss)", "screenshot", "screenshot"), G_VARIANT_TYPE("(a{sas}v)"), G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
 	int state = TC_UNKNOWN;
-	if (!r) return state; // no answer kept yet
+	if (!r) return state;
 	GVariant *apps = g_variant_get_child_value(r, 0);
 	const char **answer = NULL;
 	if (g_variant_lookup(apps, app, "^a&s", &answer) && answer && answer[0])
@@ -165,7 +146,6 @@ static int stored(const char *app) {
 	return state;
 }
 
-// forget removes the user's answer for app, a no, so that the desktop asks them again.
 static void forget(const char *app) {
 	char why[64];
 	GDBusConnection *bus = session_bus(why, sizeof why);
@@ -177,11 +157,9 @@ static void forget(const char *app) {
 }
 
 int tc_screen_access(const char *app, int request, char *why, int n) {
-	if (!g_getenv("WAYLAND_DISPLAY")) return TC_GRANTED; // X11: the engine reads the screen itself
+	if (!g_getenv("WAYLAND_DISPLAY")) return TC_GRANTED;
 	int state = stored(app);
 	if (state == TC_GRANTED) return state;
-	// A no is not for good: asking again forgets it, and the desktop asks the user, who may say
-	// yes now. Until then it is as if they were never asked.
 	if (!request) return TC_UNKNOWN;
 	if (state == TC_DENIED) forget(app);
 	guint code;
@@ -194,7 +172,6 @@ int tc_screen_access(const char *app, int request, char *why, int n) {
 	return code == 1 ? TC_UNKNOWN : -1;
 }
 
-// root_shot takes a picture of every screen from the X11 root window.
 static GdkPixbuf *root_shot(char *why, int n) {
 	GdkWindow *root = gdk_get_default_root_window();
 	GdkPixbuf *shot = gdk_pixbuf_get_from_window(root, 0, 0, gdk_window_get_width(root), gdk_window_get_height(root));
@@ -202,7 +179,6 @@ static GdkPixbuf *root_shot(char *why, int n) {
 	return shot;
 }
 
-// dragged is the drag, in the window's coordinates, within its monitor.
 static GdkRectangle dragged(void) {
 	double x0 = CLAMP(MIN(sel.fx, sel.tx), 0, sel.at.width), x1 = CLAMP(MAX(sel.fx, sel.tx), 0, sel.at.width);
 	double y0 = CLAMP(MIN(sel.fy, sel.ty), 0, sel.at.height), y1 = CLAMP(MAX(sel.fy, sel.ty), 0, sel.at.height);
@@ -212,7 +188,6 @@ static GdkRectangle dragged(void) {
 
 static gboolean draw(GtkWidget *w, cairo_t *cr, gpointer data) {
 	GdkRectangle *at = data;
-	// The picture of this monitor, as large as the monitor in logical pixels.
 	cairo_save(cr);
 	cairo_scale(cr, 1 / sel.ratio, 1 / sel.ratio);
 	gdk_cairo_set_source_pixbuf(cr, sel.shot, -(at->x - sel.ox) * sel.ratio, -(at->y - sel.oy) * sel.ratio);
@@ -268,7 +243,6 @@ static gboolean released(GtkWidget *w, GdkEventButton *e, gpointer data) {
 	sel.ty = e->y;
 	sel.dragging = 0;
 	GdkRectangle r = dragged();
-	// A click, not a drag, selects nothing.
 	sel.done = r.width >= 4 && r.height >= 4 ? 1 : -1;
 	return TRUE;
 }
@@ -294,9 +268,6 @@ static void realized(GtkWidget *w, gpointer data) {
 
 int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, char *why, int n) {
 	memset(&sel, 0, sizeof sel);
-	// Under Wayland the picture is the portal's: XWayland sees only X11 windows. The windows are
-	// of the display the app chose (GDK_BACKEND): XWayland's under GNOME, which gives a program's
-	// new Wayland window no focus and puts it under the window in use, and lets an X11 one over.
 	int wayland = g_getenv("WAYLAND_DISPLAY") != NULL;
 	if (!gtk_init_check(NULL, NULL)) {
 		snprintf(why, n, "no display to select on");
@@ -306,7 +277,6 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 	sel.shot = wayland ? portal_shot(app, why, n) : root_shot(why, n);
 	if (!sel.shot) return -1;
 
-	// The screens' layout, in logical pixels, which the picture covers whole.
 	int monitors = gdk_display_get_n_monitors(display);
 	int x0 = G_MAXINT, y0 = G_MAXINT, x1 = G_MININT;
 	GdkRectangle *geometry = g_new(GdkRectangle, monitors);
@@ -341,7 +311,6 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 		gtk_widget_show(win);
 	}
 #ifdef GDK_WINDOWING_X11
-	// With the server's time, an X11 window manager takes the windows for the user's doing.
 	if (GDK_IS_X11_DISPLAY(display))
 		gtk_window_present_with_time(GTK_WINDOW(windows[0]), gdk_x11_get_server_time(gtk_widget_get_window(windows[0])));
 	else
@@ -359,7 +328,6 @@ int tc_select(const char *app, const char *out, int *x, int *y, int *w, int *h, 
 		GdkPixbuf *part = gdk_pixbuf_new_subpixbuf(sel.shot, px, py, pw, ph);
 		GError *err = NULL;
 		if (gdk_pixbuf_save(part, out, "png", &err, NULL)) {
-			// Where it is, in the pixels of the monitor it is on, as the app takes it.
 			GdkMonitor *m = gdk_display_get_monitor_at_point(display, sel.at.x + r.x, sel.at.y + r.y);
 			int scale = m ? gdk_monitor_get_scale_factor(m) : 1;
 			*x = (sel.at.x + r.x) * scale;

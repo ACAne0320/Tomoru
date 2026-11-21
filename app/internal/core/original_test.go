@@ -13,19 +13,15 @@ import (
 	"tomoru/internal/usage"
 )
 
-// stopCount is how many times s was stopped.
 func (s *fakeServer) stopCount() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.stops
 }
 
-// TestOriginalOnly starts subtitles of the original alone with a translation engine that could
-// not translate: nothing is asked of it, llama-server gives its memory back, and switching to and
-// from translating restarts, as switching between the two that translate does not.
 func TestOriginalOnly(t *testing.T) {
 	c, f, _, srv, _ := engineCore(t)
-	c.SetEngine("local-2b") // not downloaded
+	c.SetEngine("local-2b")
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
 	c.Start()
 	if c.Err != nil || !c.Running || c.State.Phase != "starting" {
@@ -43,7 +39,6 @@ func TestOriginalOnly(t *testing.T) {
 		t.Errorf("history head %+v", h)
 	}
 
-	// Translating again: the model, downloaded now, loads.
 	c.Download("local-2b")
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplayBoth })
 	if len(f.sessions) != 1 || c.State.Phase != "loading" {
@@ -58,8 +53,6 @@ func TestOriginalOnly(t *testing.T) {
 		t.Errorf("the translation alone restarted: %d sessions", len(f.sessions))
 	}
 
-	// The original alone again, while a picture's card has the model: it keeps running, and
-	// the subtitles no longer hold it.
 	c.ImageService.Image = ImageView{PNG: []byte{1}, Via: "local-2b"}
 	stops := srv.stopCount()
 	c.UpdatePrefs(func(p *prefs.Prefs) { p.Display = prefs.DisplaySrc })
@@ -69,8 +62,6 @@ func TestOriginalOnly(t *testing.T) {
 	}
 }
 
-// TestKeepUntranslated keeps the lines of the original alone as they are done, in a session that
-// says it showed no translation.
 func TestKeepUntranslated(t *testing.T) {
 	c, f := newCore(t)
 	c.deps.HistoryDir = t.TempDir()
@@ -90,13 +81,11 @@ func TestKeepUntranslated(t *testing.T) {
 	}
 }
 
-// TestRetranslateUntranslated writes the names right in a session of the original alone, with no
-// translator: the engine chosen could not translate.
 func TestRetranslateUntranslated(t *testing.T) {
 	c, f := scenesCore(t)
 	c.deps.HistoryDir = t.TempDir()
 	c.deps.Translator = nil
-	c.Prefs.MT = "local-2b" // not downloaded
+	c.Prefs.MT = "local-2b"
 	id := c.AddScene("雷军演讲")
 	c.AddTerm(id, scene.Term{Src: "纽北", Tgt: "Nürburgring", Heard: []string{"刘北"}})
 	start := time.Now()
@@ -115,7 +104,6 @@ func TestRetranslateUntranslated(t *testing.T) {
 		t.Errorf("lines %+v", es)
 	}
 
-	// A session translated still needs the translator, and says why it is not there.
 	translated := keepSession(t, c.deps.HistoryDir, id, start.Add(time.Hour), "在刘北赛道上")
 	c.Retranslate([]string{path, translated}, id)
 	f.until(t, func() bool { return c.Retranslating.Finished })
@@ -124,7 +112,6 @@ func TestRetranslateUntranslated(t *testing.T) {
 	}
 }
 
-// TestTodayTranslated counts today's lines translated apart from those of the original only.
 func TestTodayTranslated(t *testing.T) {
 	c, _ := newCore(t)
 	day := usage.DayOf(c.now())

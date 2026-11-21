@@ -81,7 +81,7 @@ func TestSpecsMake(t *testing.T) {
 	if !ok || !oa.Cloud || !oa.Billed || !oa.Key || oa.FinalsEnd || oa.URL == "" || len(oa.Models) < 2 || oa.Models[0] != "gpt-live-transcribe" {
 		t.Fatalf("OpenAI's entry: %+v", oa)
 	}
-	for _, model := range []string{"", "gpt-transcribe"} { // live transcription, the transcription API
+	for _, model := range []string{"", "gpt-transcribe"} {
 		if f, err := oa.New(Env{Service: Service{Model: model, Key: "k"}}); f == nil || err != nil {
 			t.Fatalf("OpenAI's factory of %q: %v", model, err)
 		}

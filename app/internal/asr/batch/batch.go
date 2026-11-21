@@ -1,7 +1,3 @@
-// Package batch makes a recognizer of a decoder that decodes whole stretches of speech, as
-// SenseVoice does (docs/recognition.md): the engine's voice detection cuts what it hears into
-// stretches; while a stretch goes on, it is decoded again every so often, as a volatile result,
-// and once more when it ends, as a final one (docs/local-asr.md).
 package batch
 
 import (
@@ -26,36 +22,22 @@ import (
 const rate = 16000
 
 const (
-	window = 512 // samples a step, the voice detector's window
-	// minSpeech is the voice that starts a stretch: shorter is a click, or a cough.
-	minSpeech = 0.25
-	// preroll is the audio before the voice a stretch starts with: detection is late for it.
-	preroll = 0.4
-	// undetected is the audio, in seconds, after which an engine that sent no voice event detects
-	// none: then speech is one stretch, cut every Longest.
+	window     = 512
+	minSpeech  = 0.25
+	preroll    = 0.4
 	undetected = 1.0
-	// behind is how many inputs waiting say decoding lags what is heard: volatile decodes are
-	// skipped until it catches up, and final ones never are.
-	behind = 3
-	// finishing is how long the last stretch's final decode may take, as the session stops.
-	finishing = 5 * time.Second
+	behind     = 3
+	finishing  = 5 * time.Second
 )
 
-// forced is how long Stop waits for the runner to end before it stops the decoder, ending the
-// decode going on: one that never returns (a llama-server that hangs) would hold the session,
-// and the app stopping it, forever.
 var forced = finishing + time.Second
 
-// Piece is a token a decoder decoded, at At seconds into the stretch, in the language Lang, of
-// lang.All: the one the decoder heard the stretch in, where it tells it; else "".
 type Piece struct {
 	Text string
 	At   float64
 	Lang string
 }
 
-// Decoder decodes a stretch of speech, 16 kHz mono 16-bit little-endian PCM, as a process does
-// that ends with Stop.
 type Decoder interface {
 	Decode(ctx context.Context, pcm []byte) ([]Piece, error)
 	Stop()
@@ -63,38 +45,19 @@ type Decoder interface {
 	Err() error
 }
 
-// Caps are how a decoder is run, in seconds.
 type Caps struct {
-	Volatile float64 // between volatile decodes of a stretch going on; 0 for none, as a decode costs
-	Gap      float64 // without voice that end a stretch
-	Longest  float64 // a stretch is at most: longer, it is made final
-	// Stops tells the decoder ends every decode with a full stop, where the stretch ends, which
-	// is no sentence's end of the speaker's: it is left out of final results as of volatile ones.
-	Stops bool
-	// Untimed tells the decoder times no piece: the runner spreads the stretch over them by their
-	// letters. Then the sentences it ends while a stretch goes on are not made final here, for
-	// want of a time to cut the audio at, but committed from its volatile text (asr.Spec's
-	// VolatileSentences); and the stretch ends at the speaker's next pause, however short, once the
-	// decoder has ended a sentence in it, as a timed one goes on after the sentence, or once past
-	// Longest; past twice Longest wherever it is.
-	Untimed bool
-	// Steady tells the decoder reads a stretch alike as it grows: each volatile decode shows as it
-	// is, not only what two decodes in a row agree on.
-	Steady bool
-	// Remote tells the decoder decodes over the network: the runner sends how long each decode
-	// took (Took), for package asr to tell whether the network is slow.
-	Remote bool
+	Volatile float64
+	Gap      float64
+	Longest  float64
+	Stops    bool
+	Untimed  bool
+	Remote   bool
 }
 
-// ErrStopped is audio or voice given a runner that stopped.
 var ErrStopped = errors.New("batch: stopped")
 
-// ErrBehind is decoding that fell behind what is heard: the runner's inputs, about 25 s of audio,
-// waited on a decode that had not returned.
 var ErrBehind = errors.New("batch: decoding fell behind")
 
-// Runner is a recognizer of the engine's audio and voice events, with a decoder. It reports what
-// it recognizes as the engine protocol's result, voice and clock events.
 type Runner struct {
 	dec  Decoder
 	caps Caps
@@ -103,27 +66,26 @@ type Runner struct {
 	in       chan input
 	quit     chan struct{}
 	stopOnce sync.Once
-	forcing  atomic.Bool // Stop stopped the decoder, as the runner had not ended
-	behind   atomic.Bool // put stopped the decoder, its inputs full
+	forcing  atomic.Bool
+	behind   atomic.Bool
 	done     chan struct{}
-	err      error // why it ended, set before done closes
+	err      error
 
-	// The loop's, as it goes through the inputs.
-	audio   []byte // 16-bit samples since base
+	audio   []byte
 	base    int64
-	total   int64 // samples heard
-	stepped int64 // where the last step was
-	clocked int64 // where the clock was last sent
-	detect  int   // the engine's voice detection: 0 unknown yet, 1 on, -1 none
-	voiceOn bool  // the engine hears voice
-	onAt    int64 // where its voice started
-	offAt   int64 // where its voice stopped
-	open    bool  // in a stretch
-	ended   bool  // the decoder ended a sentence in it: untimed, it ends at the next pause
-	start   int64 // the stretch's first sample, preroll included
-	decoded int64 // where the last volatile result was decoded through
+	total   int64
+	stepped int64
+	clocked int64
+	detect  int
+	voiceOn bool
+	onAt    int64
+	offAt   int64
+	open    bool
+	ended   bool
+	start   int64
+	decoded int64
 	last    []Piece
-	agreed  []Piece // what the stretch's last two volatile decodes agree on, from its start: what shows
+	agreed  []Piece
 }
 
 type input struct {
@@ -131,14 +93,12 @@ type input struct {
 	voice *engine.Event
 }
 
-// Start runs dec with caps, calling on with each event, in order, from a goroutine of its own.
 func Start(dec Decoder, caps Caps, on func(engine.Event)) *Runner {
 	r := &Runner{dec: dec, caps: caps, on: on, in: make(chan input, 256), quit: make(chan struct{}), done: make(chan struct{})}
 	go r.loop()
 	return r
 }
 
-// Audio takes an audio event of the engine.
 func (r *Runner) Audio(ev engine.Event) error {
 	b, err := base64.StdEncoding.DecodeString(ev.PCM)
 	if err != nil {
@@ -150,7 +110,6 @@ func (r *Runner) Audio(ev engine.Event) error {
 	return r.put(input{pcm: b})
 }
 
-// Voice takes a voice event of the engine.
 func (r *Runner) Voice(ev engine.Event) { r.put(input{voice: &ev}) }
 
 func (r *Runner) put(x input) error {
@@ -166,8 +125,6 @@ func (r *Runner) put(x input) error {
 		return nil
 	default:
 	}
-	// Waiting would hold the engine's events, and the subtitles, as long as the decode: one that
-	// hangs, forever. Stopping the decoder ends it, and the runner says why.
 	r.stopOnce.Do(func() {
 		r.behind.Store(true)
 		r.dec.Stop()
@@ -178,8 +135,6 @@ func (r *Runner) put(x input) error {
 	return ErrBehind
 }
 
-// Stop ends the runner: the stretch going on is made final, and the decoder stops. It returns at
-// once; Done tells when it has ended, within forced.
 func (r *Runner) Stop() {
 	r.stopOnce.Do(func() {
 		close(r.quit)
@@ -194,10 +149,8 @@ func (r *Runner) Stop() {
 	})
 }
 
-// Done is closed when the runner has ended.
 func (r *Runner) Done() <-chan struct{} { return r.done }
 
-// Err is why the runner ended, after Done: nil when stopped.
 func (r *Runner) Err() error { return r.err }
 
 func (r *Runner) loop() {
@@ -207,9 +160,9 @@ func (r *Runner) loop() {
 	<-r.dec.Done()
 	switch {
 	case r.behind.Load():
-		err = ErrBehind // the decode put ended, not the decoder's failure
+		err = ErrBehind
 	case r.forcing.Load():
-		err = nil // the decode Stop ended, not the decoder's failure
+		err = nil
 	}
 	r.err = err
 }
@@ -239,7 +192,6 @@ func (r *Runner) run() error {
 	}
 }
 
-// ended is why the decoder ended when it was not asked to.
 func ended(dec Decoder) error {
 	if err := dec.Err(); err != nil {
 		return err
@@ -267,7 +219,6 @@ func (r *Runner) take(x input) error {
 	return nil
 }
 
-// voice follows the engine's voice detection.
 func (r *Runner) voice(ev engine.Event) {
 	r.detect = 1
 	t := int64(ev.T*rate + .5)
@@ -279,8 +230,6 @@ func (r *Runner) voice(ev engine.Event) {
 	}
 }
 
-// speaking tells whether a stretch goes on through the samples stepped: voice for minSpeech
-// starts one, and the Gap without voice after it ends it.
 func (r *Runner) speaking() bool {
 	if r.detect == 0 && r.stepped >= int64(undetected*rate) {
 		r.detect = -1
@@ -296,13 +245,12 @@ func (r *Runner) speaking() bool {
 	default:
 		gap := r.caps.Gap
 		if r.caps.Untimed && (r.ended || r.stepped-r.start >= int64(r.caps.Longest*rate)) {
-			gap = 0 // past a sentence's end or Longest, the first pause ends it
+			gap = 0
 		}
 		return r.open && r.stepped < r.offAt+int64(gap*rate)
 	}
 }
 
-// step follows the voice after a window.
 func (r *Runner) step() error {
 	speaking := r.speaking()
 	switch {
@@ -319,7 +267,6 @@ func (r *Runner) step() error {
 	case speaking && !r.caps.Untimed && r.stepped-r.start >= int64(r.caps.Longest*rate):
 		return r.long()
 	case speaking && r.caps.Untimed && r.stepped-r.start >= int64(2*r.caps.Longest*rate):
-		// No pause came: final where it is, and the stretch goes on.
 		if err := r.final(context.Background(), r.stepped); err != nil {
 			return err
 		}
@@ -350,7 +297,6 @@ func (r *Runner) step() error {
 		return r.final(context.Background(), r.stepped)
 	}
 	if !r.open {
-		// Out of voice, keep only the preroll of the next stretch, and the voice before it starts.
 		if keep := int64((preroll+minSpeech+.2)*rate) + window; r.stepped-r.base > 2*keep {
 			r.cut(r.stepped - keep)
 		}
@@ -358,7 +304,6 @@ func (r *Runner) step() error {
 	return nil
 }
 
-// finish makes the stretch going on final, as the runner stops.
 func (r *Runner) finish() error {
 	if !r.open {
 		return nil
@@ -370,7 +315,6 @@ func (r *Runner) finish() error {
 	return r.final(ctx, r.total)
 }
 
-// final sends the stretch through end as a final result, and forgets its audio.
 func (r *Runner) final(ctx context.Context, end int64) error {
 	pieces, err := r.decode(ctx, r.start, end)
 	if err != nil {
@@ -385,8 +329,6 @@ func (r *Runner) final(ctx context.Context, end int64) error {
 	return nil
 }
 
-// long makes a stretch past Longest final but for its last token, which the cut may have halved:
-// the next stretch starts with it, to be decoded again with what follows.
 func (r *Runner) long() error {
 	pieces, err := r.decode(context.Background(), r.start, r.stepped)
 	if err != nil {
@@ -405,10 +347,6 @@ func (r *Runner) long() error {
 	return nil
 }
 
-// early makes the first n pieces of the agreed decode final, the sentences the recognizer ended
-// while the stretch goes on, so that they are translated without waiting for it to end; the
-// stretch goes on from between their end mark and the next piece, decoded without them: a piece's
-// time is about its middle, and cutting there lost the next word's start.
 func (r *Runner) early(agreed []Piece, n int) {
 	end := r.start + int64((agreed[n-1].At+agreed[n].At)/2*rate)
 	r.send(result(true, r.start, end, agreed[:n]))
@@ -417,9 +355,6 @@ func (r *Runner) early(agreed []Piece, n int) {
 	r.last, r.agreed = nil, nil
 }
 
-// Sentences is how many of the pieces a decode agreed on finish sentences that the recognizer
-// ended and went on after: through the last sentence end with speech before and after it; 0 for
-// none.
 func Sentences(ps []Piece) int {
 	n := 0
 	for i := 1; i+1 < len(ps); i++ {
@@ -430,7 +365,6 @@ func Sentences(ps []Piece) int {
 	return n
 }
 
-// endsSentence tells whether a piece ends with a sentence's end mark.
 func endsSentence(text string) bool {
 	r, _ := utf8.DecodeLastRuneInString(strings.TrimRightFunc(text, unicode.IsSpace))
 	return strings.ContainsRune("。．.！!？?", r)
@@ -440,7 +374,6 @@ func hasSpeech(s string) bool {
 	return strings.IndexFunc(s, func(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) }) >= 0
 }
 
-// unstopped is pieces without the punctuation they end with.
 func unstopped(pieces []Piece) []Piece {
 	for len(pieces) > 0 && strings.TrimFunc(pieces[len(pieces)-1].Text, ending) == "" {
 		pieces = pieces[:len(pieces)-1]
@@ -448,21 +381,7 @@ func unstopped(pieces []Piece) []Piece {
 	return pieces
 }
 
-// settle steadies a volatile decode cur for the screen: of it, what two decodes in a row agree
-// on, from the start. Decoding the stretch again with more of it reads it otherwise now and then,
-// and back ("과학 소설 속", "과학 소 속", "과학 소설 속"): a reader sees words they read change.
-// SenseVoice's volatile text changed 25 words in 100 that way, Apple's 5 (the benchmark,
-// 2026-10-17). Showing what two decodes agreed on changed 3, and showed words 0.5 s later, a
-// decode on; keeping it and showing the rest of the latest changed 20; leaving out the latest's
-// last word, a word the decode cut, did nothing more. What shows shrinks not: two decodes that
-// agree on less leave it, as a reading going back and forth. The final decode reads the whole
-// stretch again, as before. A decode in another language than what shows is another reading: it
-// starts anew, as a stretch whose start was taken for the language before turns out another, once
-// there is more of it to tell.
 func (r *Runner) settle(cur []Piece) []Piece {
-	if r.caps.Steady {
-		return cur
-	}
 	if len(cur) > 0 && len(r.agreed) > 0 && cur[0].Lang != r.agreed[0].Lang {
 		r.last, r.agreed = nil, nil
 	}
@@ -475,7 +394,6 @@ func (r *Runner) settle(cur []Piece) []Piece {
 	return r.agreed
 }
 
-// common is how many pieces a and b start with alike.
 func common(a, b []Piece) int {
 	n := 0
 	for n < len(a) && n < len(b) && a[n].Text == b[n].Text {
@@ -489,7 +407,6 @@ func (r *Runner) cut(to int64) {
 	r.base = to
 }
 
-// decode decodes the samples from..to.
 func (r *Runner) decode(ctx context.Context, from, to int64) ([]Piece, error) {
 	start := time.Now()
 	pieces, err := r.dec.Decode(ctx, r.audio[2*(from-r.base):2*(to-r.base)])
@@ -502,8 +419,6 @@ func (r *Runner) decode(ctx context.Context, from, to int64) ([]Piece, error) {
 	return Spaced(pieces), err
 }
 
-// Spaced starts a stretch's text with a space where its script spaces words: the stretch before
-// may have ended mid-sentence, "…tell" before "us to do", which would run together.
 func Spaced(pieces []Piece) []Piece {
 	if len(pieces) == 0 {
 		return pieces
@@ -517,8 +432,6 @@ func Spaced(pieces []Piece) []Piece {
 
 func isSpeechRune(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) }
 
-// Spread times untimed pieces over seconds of speech, by their letters: each at the share of the
-// letters before it.
 func Spread(pieces []Piece, seconds float64) {
 	total, before := 0, 0
 	for _, p := range pieces {
@@ -544,8 +457,6 @@ func letters(s string) int {
 
 func (r *Runner) send(ev engine.Event) { r.on(ev) }
 
-// result is the result of the pieces decoded from..to: volatile, their text as one token, or none
-// (no Type); or final, each token timed. Its language is theirs.
 func result(final bool, from, to int64, pieces []Piece) engine.Event {
 	t0, t1 := float64(from)/rate, float64(to)/rate
 	var tokens []engine.Token
@@ -559,8 +470,6 @@ func result(final bool, from, to int64, pieces []Piece) engine.Event {
 			tokens = append(tokens, engine.Token{Text: p.Text, Start: &start, End: &until})
 		}
 	} else if text := strings.TrimRightFunc(join(pieces), ending); text != "" {
-		// The stretch is cut where the audio has come to, mid-sentence: the full stop the
-		// recognizer ends it with is not the speaker's, and would have the app commit a sentence.
 		tokens = []engine.Token{{Text: text}}
 	}
 	if tokens == nil {
@@ -579,7 +488,6 @@ func result(final bool, from, to int64, pieces []Piece) engine.Event {
 	return ev
 }
 
-// ending is a sentence's end, or a clause's, as a recognizer ends a stretch.
 func ending(r rune) bool {
 	return strings.ContainsRune("。．.！!？?、，,", r) || unicode.IsSpace(r)
 }
@@ -594,19 +502,17 @@ func join(pieces []Piece) string {
 
 func sec(n int64) float64 { return Round(float64(n) / rate) }
 
-// Round is seconds to the millisecond, as the protocol's times are.
 func Round(x float64) float64 {
 	return float64(int64(x*1000+.5)) / 1000
 }
 
-// WAV is 16 kHz mono 16-bit PCM, as decoders get it, as a WAV file.
 func WAV(pcm []byte) []byte {
 	var b bytes.Buffer
 	b.WriteString("RIFF")
 	binary.Write(&b, binary.LittleEndian, uint32(36+len(pcm)))
 	b.WriteString("WAVEfmt ")
 	for _, v := range []any{uint32(16), uint16(1), uint16(1), uint32(rate), uint32(2 * rate), uint16(2), uint16(16)} {
-		binary.Write(&b, binary.LittleEndian, v) // the format: PCM, mono, 16 kHz, 2 bytes a sample
+		binary.Write(&b, binary.LittleEndian, v)
 	}
 	b.WriteString("data")
 	binary.Write(&b, binary.LittleEndian, uint32(len(pcm)))
@@ -614,8 +520,6 @@ func WAV(pcm []byte) []byte {
 	return b.Bytes()
 }
 
-// Pieces cuts an untimed decoder's text into what decodes are compared by: a character of the scripts that don't space
-// their words (Chinese, Japanese), else a word with the space before it, and each punctuation mark.
 func Pieces(text string) []Piece {
 	var out []Piece
 	var word strings.Builder

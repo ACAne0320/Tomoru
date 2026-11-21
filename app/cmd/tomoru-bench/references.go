@@ -14,7 +14,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// translateRefs translates a case's reference, sentence by sentence.
 func translateRefs(c Case, media string, tr translate.Translator, about string) Result {
 	tgt, tgtRef := target(c)
 	r := Result{ID: c.ID, Lang: c.Lang, Scene: c.Scene, Tgt: tgt, TgtRef: tgtRef}
@@ -75,8 +74,6 @@ func readSRT(path string) ([]cue, error) {
 	return out, sc.Err()
 }
 
-// sentences joins a reference's cues into sentences, as the segmenter would commit them: a cue
-// ending a sentence, or a pause of 0.8 s, ends one, and one gets no longer than about two lines.
 func sentences(cues []cue, code string) []string {
 	var out []string
 	var cur strings.Builder

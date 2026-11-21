@@ -54,8 +54,6 @@ func TestResetStyle(t *testing.T) {
 	}
 }
 
-// TestCustomColor shows colors of one's own under the cards only with Custom chosen, and chooses
-// the original text's color in the picker of its custom well.
 func TestCustomColor(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -87,7 +85,6 @@ func TestCustomColor(t *testing.T) {
 	}
 }
 
-// TestScheme chooses a color scheme, which sets the three colors.
 func TestScheme(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -102,8 +99,6 @@ func TestScheme(t *testing.T) {
 	}
 }
 
-// TestStyleTellsOverlay tells the core's listeners, as the overlay is, of a style chosen, and of
-// nothing while the preview rolls: the overlay redraws only when what it shows changed.
 func TestStyleTellsOverlay(t *testing.T) {
 	k := coretest.New()
 	changes := 0
@@ -125,8 +120,6 @@ func TestStyleTellsOverlay(t *testing.T) {
 	}
 }
 
-// TestShortcut records new global shortcuts: starting and stopping's, then the picture's, which
-// cannot be the same.
 func TestShortcut(t *testing.T) {
 	k := coretest.New()
 	nav := &coretest.Nav{}
@@ -135,7 +128,6 @@ func TestShortcut(t *testing.T) {
 	tt := ui.NewTester(s.View, Width, 900)
 	record := func() {
 		t.Helper()
-		// The field's first keycap: the field's name is its label's too.
 		r, ok := tt.Find(kit.ShortcutKeys(k.Prefs.Shortcut)[0])
 		if !ok {
 			t.Fatalf("no keycaps: %q", tt.Texts())
@@ -166,7 +158,6 @@ func TestShortcut(t *testing.T) {
 		t.Errorf("escape: %s, %q", k.Prefs.Shortcut, tt.Texts())
 	}
 
-	// The picture's field, by its last keycap: S of ⌥⇧S.
 	r, ok := tt.Find("S")
 	if !ok || !tt.HasText(locales.ImageShortcut()) {
 		t.Fatalf("no picture's field: %q", tt.Texts())
@@ -189,9 +180,6 @@ func TestShortcut(t *testing.T) {
 	}
 }
 
-// TestAddEndpoint adds a translation API from the end of the cloud's list of the engines page, uses it,
-// and deletes it.
-// enginesPage is the engines page on a computer with the local models m has, tall enough for all.
 func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.Tester) {
 	t.Helper()
 	k := coretest.NewWith(func(d *core.Deps) {
@@ -204,8 +192,6 @@ func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.T
 	return k, s, ui.NewTester(s.View, Width, 1800)
 }
 
-// TestAddEndpoint lists the cloud's translation with its star, adds an API in place, which saving
-// doesn't use, uses it by its radio, and deletes it, which can be undone.
 func TestAddEndpoint(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
 	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT2", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
@@ -222,7 +208,6 @@ func TestAddEndpoint(t *testing.T) {
 			t.Errorf("%q shows: %q", gone, tt.Texts())
 		}
 	}
-	// Index-Translate's cloud, shown as it is in use, links to its repository.
 	if err := tt.Click("GitHub"); err != nil {
 		t.Fatal(err)
 	}
@@ -236,7 +221,6 @@ func TestAddEndpoint(t *testing.T) {
 	if !tt.HasText(locales.EndpointIntro()) {
 		t.Fatalf("no form: %q", tt.Texts())
 	}
-	// The name, then the address and the model, a Tab away each.
 	if err := tt.Click(locales.EndpointName()); err != nil {
 		t.Fatal(err)
 	}
@@ -263,8 +247,6 @@ func TestAddEndpoint(t *testing.T) {
 		t.Errorf("engine %q, texts %q", k.Prefs.MT, tt.Texts())
 	}
 
-	// Deleting it, by the button beside its name, doesn't ask: it says so, with a button that
-	// puts it back.
 	tt.Frame()
 	if err := tt.Click(locales.Delete()); err != nil {
 		t.Fatal(err)
@@ -281,8 +263,6 @@ func TestAddEndpoint(t *testing.T) {
 	}
 }
 
-// TestDownloadThenUse can't use a model before it is downloaded: Download only downloads, and
-// once it is in, a toast's button uses it, as its radio does then.
 func TestDownloadThenUse(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{}}
 	k, _, tt := enginesPage(t, m)
@@ -304,7 +284,7 @@ func TestDownloadThenUse(t *testing.T) {
 	if k.Prefs.MT != "cloud" || k.Chosen(core.MT) != "cloud" {
 		t.Fatalf("not downloaded, chose: in use %q, chosen %q", k.Prefs.MT, k.Chosen(core.MT))
 	}
-	if err := tt.Click(locales.DownloadModel()); err != nil { // the 2B's, the first
+	if err := tt.Click(locales.DownloadModel()); err != nil {
 		t.Fatal(err)
 	}
 	if !slices.Equal(m.Downloads, []string{"local-2b"}) || k.Prefs.MT != "cloud" || k.Chosen(core.MT) != "cloud" {
@@ -315,7 +295,6 @@ func TestDownloadThenUse(t *testing.T) {
 	if !tt.HasText(locales.Downloading(shared.Size(400<<20), shared.Size(models.All[0].Size))) {
 		t.Fatalf("no progress: %q", tt.Texts())
 	}
-	// Cancelled, it stops; downloaded, it says so, and is used only by the toast's button.
 	if err := tt.Click(locales.Cancel()); err != nil {
 		t.Fatal(err)
 	}
@@ -335,7 +314,6 @@ func TestDownloadThenUse(t *testing.T) {
 	if k.Prefs.MT != "local-2b" {
 		t.Errorf("used: in use %q, texts %q", k.Prefs.MT, tt.Texts())
 	}
-	// The cloud's radio goes back to it, the family's to its size downloaded.
 	if err := tt.Click(locales.UseEngine(locales.EngineIndexCloud())); err != nil {
 		t.Fatal(err)
 	}
@@ -347,7 +325,6 @@ func TestDownloadThenUse(t *testing.T) {
 	}
 }
 
-// TestTooLarge offers no download of a size this computer can't run, and says why.
 func TestTooLarge(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = &coretest.Models{St: map[string]models.Status{}}
@@ -374,8 +351,6 @@ func TestTooLarge(t *testing.T) {
 	}
 }
 
-// TestDeleteModel asks by a model's button before deleting it, which can't be undone; deleting the
-// one in use asks in a dialog, which says what takes over.
 func TestDeleteModel(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
 	k, _, tt := enginesPage(t, m)
@@ -386,7 +361,6 @@ func TestDeleteModel(t *testing.T) {
 	e, _ := k.Engine(core.MT, "local-2b")
 	question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
 
-	// By its button: Escape keeps it; Delete, a Tab from Cancel, deletes it.
 	if err := tt.Click(locales.Delete()); err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +384,6 @@ func TestDeleteModel(t *testing.T) {
 		t.Fatalf("models %v, texts %q", m.St, tt.Texts())
 	}
 
-	// In use, the cloud takes over, as the dialog says.
 	m.St["local-2b"] = models.Status{State: models.Ready}
 	k.SetEngine("local-2b")
 	tt.Frame()
@@ -432,8 +405,6 @@ func TestDeleteModel(t *testing.T) {
 	}
 }
 
-// TestDiscardChanges closes learning names' dialog adding an API with Escape at once while nothing
-// changed; with changes, it asks first: Escape again goes back to them, Discard throws them away.
 func TestDiscardChanges(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -476,8 +447,6 @@ func TestDiscardChanges(t *testing.T) {
 	}
 }
 
-// TestRecognitionCloud sets up the cloud's recognition in place: its radio does nothing until it
-// is set up, saving uses nothing, and then its radio uses it.
 func TestRecognitionCloud(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
 	if err := tt.Click(locales.EngineQwenAsr()); err != nil {
@@ -514,7 +483,6 @@ func TestRecognitionCloud(t *testing.T) {
 	if k.Prefs.ASR != core.QwenCloud {
 		t.Errorf("set up, not used: %q", k.Prefs.ASR)
 	}
-	// Edited, Cancel puts the form away.
 	tt.Frame()
 	if err := tt.Click(locales.Edit()); err != nil {
 		t.Fatal(err)
@@ -531,7 +499,6 @@ func TestRecognitionCloud(t *testing.T) {
 		t.Errorf("the form stays: %q", tt.Texts())
 	}
 
-	// OpenAI's beside it, at a compatible service's address, folded under its key.
 	if err := tt.Click("OpenAI"); err != nil {
 		t.Fatal(err)
 	}
@@ -558,7 +525,6 @@ func TestRecognitionCloud(t *testing.T) {
 	}
 }
 
-// TestCloudSizes lists Index-Translate's cloud sizes, each used by its row.
 func TestCloudSizes(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
 	if err := tt.Click(locales.EngineIndexCloud()); err != nil {
@@ -579,8 +545,6 @@ func TestCloudSizes(t *testing.T) {
 	}
 }
 
-// TestTranslationCloud sets up Hy-MT2 on Tencent Cloud in place, as recognition's are: its size
-// chosen, its key saved, Use using it only then.
 func TestTranslationCloud(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
 	name := locales.EngineHyMtCloud()
@@ -618,7 +582,6 @@ func TestTranslationCloud(t *testing.T) {
 	if !tt.HasText("hy-mt2-pro · tokenhub.tencentmaas.com · " + locales.KeySaved()) {
 		t.Errorf("texts %q", tt.Texts())
 	}
-	// Set up, Use beside it uses it.
 	if err := tt.Click(locales.Use()); err != nil {
 		t.Fatal(err)
 	}
@@ -627,14 +590,12 @@ func TestTranslationCloud(t *testing.T) {
 	}
 }
 
-// TestDeafRecognizer says, of a recognizer that doesn't hear the language spoken, so in its row and
-// what using it changes in its detail.
 func TestDeafRecognizer(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{"sensevoice-small": {State: models.Ready}}}
 	k, _, tt := enginesPage(t, m)
 	k.Prefs.Src, k.Prefs.Tgt = "fr", "zh"
 	if prefs.SystemASR() == "" {
-		k.Prefs.ASR = core.OpenAI // one that hears French, in use
+		k.Prefs.ASR = core.OpenAI
 	}
 	tt.Frame()
 	if err := tt.Click("SenseVoice"); err != nil {
@@ -647,9 +608,6 @@ func TestDeafRecognizer(t *testing.T) {
 	}
 }
 
-// TestEndpointTest shows whether a test worked and in how many milliseconds: an answer without a
-// translation did not work, and a model that only thought says so; one that worked, whether it
-// read the picture.
 func TestEndpointTest(t *testing.T) {
 	_, s, tt := enginesPage(t, nil)
 	k := s.core
@@ -679,8 +637,6 @@ func TestEndpointTest(t *testing.T) {
 	}
 }
 
-// TestEndpointFormat offers the formats an API may be prompted in, the chat model's first, and
-// edits the one chosen.
 func TestEndpointFormat(t *testing.T) {
 	_, s, tt := enginesPage(t, nil)
 	s.addingAPI = true
@@ -692,7 +648,7 @@ func TestEndpointFormat(t *testing.T) {
 	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate", "Hy-MT2"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
-	tt.Frame() // the menu's frame has ended
+	tt.Frame()
 	if err := tt.ChooseMenuItem("Hy-MT2"); err != nil {
 		t.Fatal(err)
 	}
@@ -702,8 +658,6 @@ func TestEndpointFormat(t *testing.T) {
 	}
 }
 
-// TestImageEngine chooses the engine for pictures from a menu of those that read pictures, which
-// still commits after its frame has ended. The picture's shortcut is here too.
 func TestImageEngine(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Models = &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
@@ -719,7 +673,6 @@ func TestImageEngine(t *testing.T) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
-	// Its picker, at the end of its row: the engines under where they run, as the list above has them.
 	row, ok := tt.Find(locales.ImageEngine())
 	if !ok {
 		t.Fatalf("no picture's engine: %q", tt.Texts())
@@ -728,8 +681,8 @@ func TestImageEngine(t *testing.T) {
 	if got, want := tt.Menu(), []string{locales.TagCloud(), "Index-Translate 2B", "Index-Translate 9B", "Index-Translate 35B", "Qwen-VL", "-", locales.TagLocal(), "Index-Translate 2B"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
-	tt.Frame()                                                      // the menu's frame has ended
-	if err := tt.ChooseMenuItem("Index-Translate 9B"); err != nil { // the cloud's: no 9B is downloaded
+	tt.Frame()
+	if err := tt.ChooseMenuItem("Index-Translate 9B"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -738,8 +691,6 @@ func TestImageEngine(t *testing.T) {
 	}
 }
 
-// TestScenes adds a scene, a name to its glossary, edits how it was misheard in place, uses the
-// scene, and deletes the name and the scene.
 func TestScenes(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -759,7 +710,6 @@ func TestScenes(t *testing.T) {
 	}
 	id := k.Scenes[1].ID
 
-	// A name: as written, its translation, how it was heard wrong; Return adds it.
 	if err := tt.Click(locales.NewTerm()); err != nil {
 		t.Fatal(err)
 	}
@@ -775,8 +725,6 @@ func TestScenes(t *testing.T) {
 	if terms := k.Scenes[1].Terms; len(terms) != 1 || terms[0].Tgt != "克劳德" || !slices.Equal(terms[0].Heard, []string{"クラウト", "グラウド"}) {
 		t.Fatalf("terms %+v", terms)
 	}
-	// One more way it was misheard, typed in its cell, under its column's head: the separator stays
-	// as typed.
 	r, ok := tt.Find(locales.TermHeard())
 	if !ok {
 		t.Fatal("no column of the ways misheard")
@@ -803,7 +751,6 @@ func TestScenes(t *testing.T) {
 		t.Errorf("in use %q, texts %q", k.Prefs.Scene, tt.Texts())
 	}
 
-	// The name's button deletes it, the scene's menu the scene.
 	if err := tt.Click(locales.Delete()); err != nil {
 		t.Fatal(err)
 	}
@@ -824,8 +771,6 @@ func TestScenes(t *testing.T) {
 	}
 }
 
-// TestHistory shows the switch that keeps the subtitles and the sessions kept, the latest shown;
-// filters them by scene, shows a session's lines with the names corrected, and deletes it.
 func TestHistory(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) { d.HistoryDir = t.TempDir() })
 	s := New(k, &coretest.Nav{})
@@ -846,7 +791,6 @@ func TestHistory(t *testing.T) {
 	if k.History.Shown != "/h/gone.jsonl" {
 		t.Errorf("shown %q, not the latest", k.History.Shown)
 	}
-	// The FF7 scene's only.
 	if err := tt.Click("FF7"); err != nil {
 		t.Fatal(err)
 	}
@@ -854,7 +798,6 @@ func TestHistory(t *testing.T) {
 	if hasTextContaining(tt, "Old") || k.History.Shown != "/h/ff7.jsonl" {
 		t.Errorf("shown %q, texts %q", k.History.Shown, tt.Texts())
 	}
-	// A line skipped says so, as old files and new ones keep it; another failure as it came.
 	k.History.Lines = []history.Entry{{At: start, Src: "まずはクラウドの武器", Heard: "まずは黒ウドの武器", Tgt: "先看克劳德的武器"},
 		{At: start, Src: "スキップ", Err: "behind"}, {At: start, Src: "失敗", Err: "translate: 500 Internal Server Error: down"}}
 	tt.Frame()
@@ -867,7 +810,6 @@ func TestHistory(t *testing.T) {
 	if slices.Contains(tt.Texts(), "behind") {
 		t.Errorf("a skipped line shows its stored reason: %q", tt.Texts())
 	}
-	// Deleting it doesn't ask: it says so, with a button that puts it back.
 	if err := tt.Click(locales.DeleteRecord()); err != nil {
 		t.Fatal(err)
 	}
@@ -877,8 +819,6 @@ func TestHistory(t *testing.T) {
 	}
 }
 
-// TestHistoryEmpty says what brings sessions to an empty history: turning the switch on, then
-// playing something; filtered to a scene with none while others have some, only that.
 func TestHistoryEmpty(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) { d.HistoryDir = t.TempDir() })
 	s := New(k, &coretest.Nav{})
@@ -889,7 +829,6 @@ func TestHistoryEmpty(t *testing.T) {
 	if !tt.HasText(locales.HistoryOff()) {
 		t.Fatalf("texts %q", tt.Texts())
 	}
-	// The switch at the end of its row: the paper's margin, the page's, the card's side, half the switch.
 	r, _ := tt.Find(locales.KeepHistory())
 	tt.ClickAt(Width-kit.Space(2)-kit.Space(8)-kit.Space(5)-22, r.Y+r.H/2)
 	tt.Frame()
@@ -909,7 +848,6 @@ func TestHistoryEmpty(t *testing.T) {
 		t.Errorf("texts %q", tt.Texts())
 	}
 
-	// The scene's glossary: learning from the records it has, else adding a name.
 	k.History.Records[0].Head.Scene = id
 	s.Tab, s.sceneEdit.scene, s.sceneEdit.id = "scenes", id, true
 	tt.Frame()
@@ -918,8 +856,6 @@ func TestHistoryEmpty(t *testing.T) {
 	}
 }
 
-// TestCorrections marks the names the glossary corrected in a line: as its names tell them, else
-// the stretch the line differs in.
 func TestCorrections(t *testing.T) {
 	terms := []scene.Term{{Src: "クラウド", Tgt: "克劳德", Heard: []string{"黒ウド"}}, {Src: "マテリア", Heard: []string{"マテリヤ"}}}
 	for _, c := range []struct {
@@ -937,13 +873,10 @@ func TestCorrections(t *testing.T) {
 	}
 }
 
-// hasTextContaining tells whether a text shown has s in it.
 func hasTextContaining(tt *ui.Tester, s string) bool {
 	return slices.ContainsFunc(tt.Texts(), func(t string) bool { return strings.Contains(t, s) })
 }
 
-// TestLearn learns names from a scene's sessions, from the scene's page: it asks for an API first, then lists what was
-// found, each taken at first; one turned down, the other goes into the scene.
 func TestLearn(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) { d.HistoryDir = t.TempDir() })
 	id := k.AddScene("雷军演讲")
@@ -959,14 +892,13 @@ func TestLearn(t *testing.T) {
 	}
 	tt.Frame()
 
-	// No chat model's API yet: add one, and the dialog comes back with it.
 	if !tt.HasText(locales.LearnNoEndpoint()) {
 		t.Fatalf("texts %q", tt.Texts())
 	}
 	if err := tt.Click(locales.AddEndpoint()); err != nil {
 		t.Fatal(err)
 	}
-	tt.Frame() // the dialog's first field has the keyboard
+	tt.Frame()
 	for i, text := range []string{"Mine", "https://api.example.com", "chat"} {
 		if i > 0 {
 			tt.Key(0, ui.KeyTab)
@@ -988,7 +920,6 @@ func TestLearn(t *testing.T) {
 		t.Fatalf("learning %+v, texts %q", k.Learning, tt.Texts())
 	}
 
-	// What the model found, as the core has it once done.
 	k.Learning = core.Learning{Finished: true, Scene: id, Paths: []string{"/h/a.jsonl"}, Suggestions: []learn.Suggestion{
 		{Src: "纽北", Tgt: "Nürburgring", Heard: []string{"刘北", "刘备"}, Count: 4, Example: "在刘北赛道上驰骋"},
 		{Src: "卢伟冰", Tgt: "Lu Weibing", Heard: []string{"撸时辰"}, Count: 1, Example: "撸时辰说"},
@@ -1022,8 +953,6 @@ func TestLearn(t *testing.T) {
 	}
 }
 
-// TestLearnGeneral adds names learned from the general scene's records to a new scene, as they
-// would otherwise go with whatever is watched.
 func TestLearnGeneral(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -1047,7 +976,6 @@ func TestLearnGeneral(t *testing.T) {
 	}
 }
 
-// TestGeneralGlossary has no ways misheard for the general scene's names: they are not used.
 func TestGeneralGlossary(t *testing.T) {
 	k := coretest.New()
 	k.AddTerm("", scene.Term{Src: "Faker", Tgt: "Faker"})
@@ -1067,7 +995,6 @@ func TestGeneralGlossary(t *testing.T) {
 	}
 }
 
-// TestOrder puts the translation on top, and has no order with the translation only.
 func TestOrder(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -1094,8 +1021,6 @@ func TestOrder(t *testing.T) {
 	}
 }
 
-// TestOriginalOnly shows the original alone, greys what only the translation has, and names
-// starting and stopping for subtitles, not translating.
 func TestOriginalOnly(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
@@ -1134,15 +1059,12 @@ func TestOriginalOnly(t *testing.T) {
 	}
 }
 
-// TestSizeOff drags the original's size, which a click on its slider changes, and with the
-// translation only, does not.
 func TestSizeOff(t *testing.T) {
 	k := coretest.New()
 	s := New(k, &coretest.Nav{})
 	s.Tab = "subtitles"
 	tt := ui.NewTester(s.View, Width, 1400)
 	click := func() {
-		// The slider's track, left of the size it shows.
 		r, ok := tt.Find(strconv.Itoa(int(k.Prefs.SrcSize)))
 		if !ok {
 			t.Fatalf("no original size in %q", tt.Texts())
@@ -1163,8 +1085,6 @@ func TestSizeOff(t *testing.T) {
 	}
 }
 
-// TestRerunGuide runs the guide again as on a first launch: it is kept where it is left, to come
-// back to after a quit.
 func TestRerunGuide(t *testing.T) {
 	k := coretest.New()
 	k.Prefs.Onboarded, k.Prefs.GuideStep = true, 3
@@ -1180,8 +1100,6 @@ func TestRerunGuide(t *testing.T) {
 	}
 }
 
-// TestProxy shows the system's proxy, which is used at first, an address that is none, and no
-// address once the proxy is off; each choice goes to the app's transport.
 func TestProxy(t *testing.T) {
 	var got []string
 	k := coretest.NewWith(func(d *core.Deps) {
@@ -1212,8 +1130,6 @@ func TestProxy(t *testing.T) {
 	}
 }
 
-// TestModelsFolder shows where the models are, follows their move to another folder with the
-// models' own actions held, and says how it ended.
 func TestModelsFolder(t *testing.T) {
 	m := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
 	k := coretest.NewWith(func(d *core.Deps) { d.Models = m })
@@ -1247,8 +1163,6 @@ func TestModelsFolder(t *testing.T) {
 	}
 }
 
-// TestFeedback copies the user's words with the app's setup for an agent, and opens the issue form
-// started with them: the bug form for a problem, the idea form once Idea is chosen.
 func TestFeedback(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() uint64 { return 24 << 30 }
@@ -1263,8 +1177,6 @@ func TestFeedback(t *testing.T) {
 	if !tt.HasText(locales.FeedbackIntroProblem()) {
 		t.Fatalf("no dialog: %q", tt.Texts())
 	}
-	// The summary names the version and system, and says what stays out; the memory only the text
-	// copied says.
 	for _, want := range []string{"Tomoru 0.1.4", "macOS 26.6.2", locales.FeedbackPrivate()} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
@@ -1286,11 +1198,10 @@ func TestFeedback(t *testing.T) {
 	if got := tt.OpenedURLs(); len(got) != 1 || !strings.HasPrefix(got[0], core.Repo+"/issues/new?") || !strings.Contains(got[0], "what=Subtitles+stopped") || !strings.Contains(got[0], "bug_report.yml") {
 		t.Errorf("opened %q", got)
 	}
-	// An idea: what it says, what is copied and the form opened change; the words stay.
 	if err := tt.Click(locales.FeedbackIdea()); err != nil {
 		t.Fatal(err)
 	}
-	tt.Advance(2 * time.Second) // "Copied" goes back to the copy button's label
+	tt.Advance(2 * time.Second)
 	tt.Frame()
 	if !tt.HasText(locales.FeedbackIntroIdea()) || tt.HasText(locales.FeedbackIntroProblem()) {
 		t.Errorf("idea's intro: %q", tt.Texts())

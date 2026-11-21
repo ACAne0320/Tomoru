@@ -1,6 +1,3 @@
-// Package scene is the user's translation scenes: what they watch, each with its own languages
-// and glossary of names (docs/scenes.md). A line goes to the translator with the terms of the
-// glossary it concerns, and with the names it was heard wrong as written right.
 package scene
 
 import (
@@ -22,29 +19,23 @@ import (
 	"tomoru/internal/translate"
 )
 
-// Scene is a translation scene. The general one, with no ID, is always first of a file's: it has
-// no name or description, and its languages are those of translating outside the others.
 type Scene struct {
 	ID       string
 	Name     string
-	About    string // what is watched: sent with each sentence translated, and to the model that learns names
-	Src, Tgt string // the languages, "" until the scene is first used
+	About    string
+	Src, Tgt string
 	Terms    []Term
-	// Rejected are names suggested that the user did not take, as heard: they are not suggested
-	// again.
 	Rejected []string `json:",omitempty"`
 }
 
-// Term is a name of the glossary: as said, its translation, and how recognition heard it wrong.
 type Term struct {
 	Src   string
 	Tgt   string
 	Heard []string `json:",omitempty"`
-	Auto  bool     `json:",omitempty"` // learned; the user's own are not
+	Auto  bool     `json:",omitempty"`
 	Added time.Time
 }
 
-// Load reads the scenes at path, the general one first. A missing file has the general one only.
 func Load(path string) ([]Scene, error) {
 	var ss []Scene
 	var err error
@@ -62,7 +53,6 @@ func Load(path string) ([]Scene, error) {
 	return ss, err
 }
 
-// Save writes the scenes to path.
 func Save(path string, ss []Scene) error {
 	b, err := json.MarshalIndent(ss, "", "  ")
 	if err != nil {
@@ -71,7 +61,6 @@ func Save(path string, ss []Scene) error {
 	return atomicfile.Write(path, b, 0o644)
 }
 
-// Clone is a copy of ss that shares nothing with it.
 func Clone(ss []Scene) []Scene {
 	ss = slices.Clone(ss)
 	for i := range ss {
@@ -84,11 +73,8 @@ func Clone(ss []Scene) []Scene {
 	return ss
 }
 
-// MaxTerms is the most terms a line goes to the translator with.
 const MaxTerms = 12
 
-// Glossary is a scene's terms, ready to apply to lines. It does not change, and may be used from
-// several goroutines.
 type Glossary struct {
 	entries []entry
 	general bool
@@ -100,12 +86,10 @@ type entry struct {
 	heard []form
 }
 
-// form is a way a name is written, and how to find it: a Latin one as a whole word, whatever its
-// case; another within the text, as written alike once normalized.
 type form struct {
 	text string
-	word *regexp.Regexp // Latin: the form in any case, to check as a whole word
-	norm string         // other
+	word *regexp.Regexp
+	norm string
 }
 
 func newForm(s string) form {
@@ -118,7 +102,6 @@ func newForm(s string) form {
 	return f
 }
 
-// in tells whether the form is in text, whose normalized form is n.
 func (f form) in(text, n string) bool {
 	if f.word != nil {
 		return len(f.words(text)) > 0
@@ -126,7 +109,6 @@ func (f form) in(text, n string) bool {
 	return f.norm != "" && strings.Contains(n, f.norm)
 }
 
-// words are where a Latin form is in text as a whole word.
 func (f form) words(text string) [][]int {
 	var out [][]int
 	for _, m := range f.word.FindAllStringIndex(text, -1) {
@@ -139,19 +121,13 @@ func (f form) words(text string) [][]int {
 	return out
 }
 
-// wordy tells whether r would go on a Latin word: a Latin letter or a digit. Another script's
-// letter does not: "outra项目" has the word "outra".
 func wordy(r rune) bool { return unicode.Is(unicode.Latin, r) || unicode.IsDigit(r) }
 
-// Has tells whether name is in text, as a glossary finds it: a Latin name as a whole word, in any
-// case; another as written alike once normalized.
 func Has(text, name string) bool {
 	name = strings.TrimSpace(name)
 	return name != "" && newForm(name).in(text, normalize(text))
 }
 
-// Distinct tells whether a way a name was heard is long enough to be told from other words: three
-// letters in Latin, two characters else. Written right, "F" would be every F.
 func Distinct(heard string) bool {
 	n := len([]rune(normalize(heard)))
 	if latin(heard) {
@@ -160,10 +136,8 @@ func Distinct(heard string) bool {
 	return n >= 2
 }
 
-// Same tells whether a and b are the same name, but for width, case, spaces and dots.
 func Same(a, b string) bool { return normalize(a) == normalize(b) }
 
-// latin tells whether s is written in Latin letters, with digits and marks between them.
 func latin(s string) bool {
 	has := false
 	for _, r := range s {
@@ -178,8 +152,6 @@ func latin(s string) bool {
 	return has
 }
 
-// normalize makes alike what differs in width, case, spaces and the dots between a name's parts:
-// "ファイナルファンタジー VII" and "ファイナルファンタジーⅦ".
 func normalize(s string) string {
 	s = strings.ToLower(norm.NFKC.String(s))
 	return strings.Map(func(r rune) rune {
@@ -190,10 +162,6 @@ func normalize(s string) string {
 	}, s)
 }
 
-// NewGlossary makes the glossary of terms: the user's own first, as they go before those learned
-// when a line concerns more than MaxTerms. The general scene's goes with whatever is watched, so it
-// only gives the terms of names said: recognition is not told them, and nothing heard is written
-// over, as a name misheard in one video is a word said right in the next ("cloud" for Claude).
 func NewGlossary(terms []Term, general bool) *Glossary {
 	g := &Glossary{general: general}
 	for _, own := range []bool{true, false} {
@@ -214,8 +182,6 @@ func NewGlossary(terms []Term, general bool) *Glossary {
 	return g
 }
 
-// Names are the names of the glossary as said, the user's own first: what recognition is told to
-// expect. Nil for a nil glossary, or the general scene's.
 func (g *Glossary) Names() []string {
 	if g == nil || g.general {
 		return nil
@@ -229,8 +195,6 @@ func (g *Glossary) Names() []string {
 	return names
 }
 
-// Apply writes in text the names heard wrong as said, and gives the terms the text then concerns,
-// MaxTerms at most. A nil glossary leaves text as it is, with none.
 func (g *Glossary) Apply(text string) (string, []translate.Term) {
 	if g == nil {
 		return text, nil
@@ -253,8 +217,6 @@ func (g *Glossary) Apply(text string) (string, []translate.Term) {
 	return text, terms
 }
 
-// replace writes to for each time the form is in text as it is written: a Latin one as a whole
-// word.
 func (f form) replace(text, to string) string {
 	if f.word == nil {
 		return strings.ReplaceAll(text, f.text, to)

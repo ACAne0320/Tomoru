@@ -1,5 +1,3 @@
-// Package sensevoice decodes stretches of speech with tomoru-asr, which runs SenseVoice through
-// sherpa-onnx (docs/local-asr.md).
 package sensevoice
 
 import (
@@ -13,15 +11,8 @@ import (
 	"tomoru/internal/engine"
 )
 
-// Caps are how SenseVoice is run: a volatile decode every 0.4 s, a stretch made final at 12 s, and
-// ended by 0.5 s without voice. The engine's detector on macOS (Silero v6, Core ML) hears pauses
-// under music: at 0.25 s a variety show was cut in 28 stretches of 2 s rather than 5, and words
-// were lost at the cuts (Korean 18.5 → 26.0 % errors; the benchmark's quick set, 2026-10-31).
-// 0.5 s gave back English and Chinese, and most of Korean (22.4 %); 0.8 s did no better. SenseVoice ends every decode with a full stop, wherever the stretch ends: it is no
-// sentence's end.
 var Caps = batch.Caps{Volatile: .4, Gap: .5, Longest: 12, Stops: true}
 
-// Decoder is tomoru-asr, serving a model.
 type Decoder struct {
 	p *engine.Process
 
@@ -30,8 +21,6 @@ type Decoder struct {
 	waiting map[string]chan engine.Event
 }
 
-// Start starts tomoru-asr at bin decoding lang with the model in dir: lang.Auto has it tell the
-// language of each stretch.
 func Start(bin, dir, lang string) (*Decoder, error) {
 	d := &Decoder{waiting: map[string]chan engine.Event{}}
 	p, err := engine.Serve(bin, dir, lang, d.event)
@@ -55,8 +44,6 @@ func (d *Decoder) event(ev engine.Event) {
 	}
 }
 
-// Decode decodes a stretch: its tokens, each at its time from the stretch's start, in the language
-// heard.
 func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error) {
 	ch := make(chan engine.Event, 1)
 	d.mu.Lock()
@@ -96,11 +83,8 @@ func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error)
 	}
 }
 
-// Stop stops tomoru-asr.
 func (d *Decoder) Stop() { d.p.Stop() }
 
-// Done is closed when tomoru-asr has ended.
 func (d *Decoder) Done() <-chan struct{} { return d.p.Done() }
 
-// Err is why tomoru-asr ended, after Done: nil when stopped.
 func (d *Decoder) Err() error { return d.p.Err() }

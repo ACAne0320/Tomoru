@@ -8,23 +8,19 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// TestHeatmapHover lines the squares up in columns under the weeks' names, the days to come
-// too; outlines the square under the pointer and moves none of the others; and picks its day
-// clicked.
 func TestHeatmapHover(t *testing.T) {
 	days := make([]HeatDay, 7*10)
 	for i := range days {
 		days[i] = HeatDay{Value: float64(1 + i%5), Tip: "day"}
-		if i >= 7*9+2 { // this week's, from Wednesday: to come
+		if i >= 7*9+2 {
 			days[i].Value = math.NaN()
 		}
 	}
 	weeks := make([]string, 10)
 	weeks[8] = "Oct"
 	picked := -1
-	// Narrow, so that the squares fill the rows below their most, as on a page.
 	const width = 224
-	sq := (width - 2*Space(4) - Space(8) - 10*heatGap) / 10 // the rows, less their padding, the weekdays and the gaps
+	sq := (width - 2*Space(4) - Space(8) - 10*heatGap) / 10
 	tt := ui.NewTester(func(c *ui.Context) {
 		Paper(c)
 		ui.Column(c).Fill().Padding(Space(4)).Background(Colors(c).Card).Children(func() {
@@ -36,10 +32,8 @@ func TestHeatmapHover(t *testing.T) {
 	if !ok {
 		t.Fatalf("no weekday in %q", tt.Texts())
 	}
-	week := sq + heatGap // a column, and its gap
+	week := sq + heatGap
 	x, y := mon.X+Space(8)+heatGap+2*week+sq/2, mon.Y+mon.H/2
-	// Where the ninth week's square starts on each day's row, as the card's white gives way to it:
-	// the same on each, and where the week's name starts.
 	img, card := tt.Image(), Light.Card
 	oct, _ := tt.Find("Oct")
 	for d := range 7 {
@@ -57,10 +51,9 @@ func TestHeatmapHover(t *testing.T) {
 	}
 	before := image.NewRGBA(tt.Image().Bounds())
 	copy(before.Pix, tt.Image().Pix)
-	tt.Move(x, y) // the third week's Monday
+	tt.Move(x, y)
 	tt.Frame()
 	after := tt.Image()
-	// Every pixel but the hovered square's as it was: no row grows, no square moves.
 	changed := 0
 	half := sq/2 + 2
 	for py := before.Rect.Min.Y; py < before.Rect.Max.Y; py++ {
@@ -83,8 +76,6 @@ func TestHeatmapHover(t *testing.T) {
 	}
 }
 
-// TestHeatmapFills spans a wide card with a year of squares, as on a maximized window, rather
-// than leaving most of it empty.
 func TestHeatmapFills(t *testing.T) {
 	days := make([]HeatDay, 7*53)
 	for i := range days {

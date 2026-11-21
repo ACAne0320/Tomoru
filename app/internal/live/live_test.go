@@ -20,7 +20,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// newSession is a session started already, as Start's is once its engines run.
 func newSession(cfg Config, onChange func(State)) *Session {
 	s := newStartingSession(cfg, onChange)
 	close(s.started)
@@ -41,8 +40,6 @@ type finalizes struct{ ts []float64 }
 
 func (f *finalizes) Finalize(t float64) error { f.ts = append(f.ts, t); return nil }
 
-// TestReplay plays a recording of the engine through a session, and checks the lines it ends
-// with.
 func TestReplay(t *testing.T) {
 	var mu sync.Mutex
 	var last State
@@ -81,8 +78,6 @@ func TestReplay(t *testing.T) {
 		for i, l := range st.Lines {
 			done = done && l.ID == i+1 && l.Src == want[i] && l.Done && l.Tgt == "[ja→zh] "+want[i]
 		}
-		// Each was cut from the hypothesis, its end told by the final result after it: each times
-		// the wait from its end to its translation.
 		timed := st.Stats.Latency.EndToEnd.N == len(want)
 		if done && timed && st.Phase == "listening" && st.Pending == "" {
 			return
@@ -98,9 +93,6 @@ func TestReplay(t *testing.T) {
 	}
 }
 
-// TestNoTranslator plays the recording through a session with no translator: each sentence shows
-// as it is heard, and is done as it is committed, once; nothing is drafted, and no translation is
-// counted.
 func TestNoTranslator(t *testing.T) {
 	var got lifecycleLog
 	drafted := false
@@ -153,8 +145,6 @@ func TestNoTranslator(t *testing.T) {
 	}
 }
 
-// TestDraft checks that pending text is drafted as it grows, and that a sentence keeps the
-// draft of it when it is committed.
 func TestDraft(t *testing.T) {
 	var mu sync.Mutex
 	var drafts []string
@@ -174,7 +164,6 @@ func TestDraft(t *testing.T) {
 	if drafts[0] != "draft: 今日は新しいゲーム" {
 		t.Fatalf("drafts %q", drafts)
 	}
-	// Grown by less than a step, or too soon: no new draft.
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1.2, Tokens: []engine.Token{{Text: "今日は新しいゲームを"}}})
 	time.Sleep(50 * time.Millisecond)
 	mu.Lock()
@@ -182,7 +171,6 @@ func TestDraft(t *testing.T) {
 		t.Errorf("drafts %q", drafts)
 	}
 	mu.Unlock()
-	// The sentence ends: its line takes the draft, and the next starts without one.
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
 	waitFor(t, &mu, func() bool { return len(last.Lines) == 1 && last.Lines[0].Done })
 	if l := last.Lines[0]; l.Draft != "draft: 今日は新しいゲーム" || last.Draft != "" {
@@ -205,7 +193,6 @@ func waitFor(t *testing.T, mu *sync.Mutex, ok func() bool) {
 	}
 }
 
-// glossed translates as upper does, and says the terms it was given.
 type glossed struct{ upper }
 
 func (g glossed) Translate(ctx context.Context, r translate.Request, onDelta func(string)) (string, error) {
@@ -216,8 +203,6 @@ func (g glossed) Translate(ctx context.Context, r translate.Request, onDelta fun
 	return out, err
 }
 
-// TestTerms applies the glossary to what is heard: a name heard wrong shows written right, in the
-// line and in the text still pending, and the line goes to the translator with its terms.
 func TestTerms(t *testing.T) {
 	terms := func(text string) (string, []translate.Term) {
 		text = strings.ReplaceAll(text, "ゲーム", "ゲイム")
@@ -278,7 +263,6 @@ func TestTerms(t *testing.T) {
 	}
 }
 
-// TestStats counts the sentences committed, the seconds spoken and the letters translated.
 func TestStats(t *testing.T) {
 	var mu sync.Mutex
 	var last State
@@ -290,7 +274,7 @@ func TestStats(t *testing.T) {
 	defer s.Stop()
 	s.proc = &finalizes{}
 	s.handle(engine.Event{Type: "voice", On: true, T: 1})
-	s.handle(engine.Event{Type: "voice", On: true, T: 1.5}) // still on: no new start
+	s.handle(engine.Event{Type: "voice", On: true, T: 1.5})
 	s.handle(engine.Event{Type: "voice", On: false, T: 3})
 	s.handle(engine.Event{Type: "voice", On: true, T: 4})
 	s.handle(engine.Event{Type: "voice", On: false, T: 4.5})
@@ -305,8 +289,6 @@ func TestStats(t *testing.T) {
 	}
 }
 
-// TestLatency times a sentence's steps, from the voice starting to its translation, and counts
-// the tokens its translation took.
 func TestLatency(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(30 * time.Millisecond)
@@ -360,7 +342,6 @@ func TestLatency(t *testing.T) {
 	}
 }
 
-// held translates the sentence starting "今日" once hold is closed, and the others at once.
 type held struct{ hold chan struct{} }
 
 func (h held) Translate(ctx context.Context, r translate.Request, onDelta func(string)) (string, error) {
@@ -375,8 +356,6 @@ func (h held) Translate(ctx context.Context, r translate.Request, onDelta func(s
 	return r.Text, nil
 }
 
-// TestParallel translates sentences at once, as Config.Parallel says: one held up holds up the
-// next only when they are translated one at a time. Each counts its wait in the queue.
 func TestParallel(t *testing.T) {
 	for _, parallel := range []int{0, 2} {
 		var mu sync.Mutex
@@ -404,7 +383,6 @@ func TestParallel(t *testing.T) {
 	}
 }
 
-// stuck leaves its first draft hanging until it is dropped.
 type stuck struct {
 	mu               sync.Mutex
 	drafts, canceled int
@@ -428,8 +406,6 @@ func (s *stuck) Translate(ctx context.Context, r translate.Request, onDelta func
 	return "draft: " + r.Text, nil
 }
 
-// TestDraftDropped drops the draft in flight when its sentence is committed: the next sentence's
-// drafts need not wait for it.
 func TestDraftDropped(t *testing.T) {
 	var mu sync.Mutex
 	var last State
@@ -443,7 +419,7 @@ func TestDraftDropped(t *testing.T) {
 	s.proc = &finalizes{}
 	s.handle(engine.Event{Type: "result", Start: 0, End: 1, Tokens: []engine.Token{{Text: "今日は新しいゲーム"}}})
 	s.handle(engine.Event{Type: "result", Start: 0, End: 2, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。"}}})
-	time.Sleep(650 * time.Millisecond) // drafts are 0.6 s apart at least
+	time.Sleep(650 * time.Millisecond)
 	s.handle(engine.Event{Type: "result", Start: 0, End: 3, Tokens: []engine.Token{{Text: "今日は新しいゲームをやります。明日もゲームをします"}}})
 	waitFor(t, &mu, func() bool { return last.Draft == "draft: 明日もゲームをします" })
 	tr.mu.Lock()
@@ -453,7 +429,6 @@ func TestDraftDropped(t *testing.T) {
 	}
 }
 
-// warmed translates as upper does, and counts the times it was asked to warm.
 type warmed struct {
 	upper
 	n atomic.Int32
@@ -461,14 +436,13 @@ type warmed struct {
 
 func (w *warmed) Warm(context.Context) { w.n.Add(1) }
 
-// TestWarm has the translator warm as the session starts, and as someone starts speaking.
 func TestWarm(t *testing.T) {
 	tr := &warmed{}
 	s := newSession(Config{VolatileSentences: true, Src: "ja", Tgt: "zh", Translator: tr}, func(State) {})
 	defer s.Stop()
 	s.proc = &finalizes{}
 	s.handle(engine.Event{Type: "voice", On: true, T: 1})
-	s.handle(engine.Event{Type: "voice", On: true, T: 1.5}) // still on
+	s.handle(engine.Event{Type: "voice", On: true, T: 1.5})
 	s.handle(engine.Event{Type: "voice", On: false, T: 3})
 	s.handle(engine.Event{Type: "voice", On: true, T: 4})
 	deadline := time.Now().Add(2 * time.Second)
@@ -480,7 +454,6 @@ func TestWarm(t *testing.T) {
 	}
 }
 
-// TestHint has the engine finalize where the recognizer's Hint says, as its events come.
 func TestHint(t *testing.T) {
 	hint := func(ev engine.Event) (float64, bool) { return ev.T - 1, ev.Type == "clock" && ev.T >= 3 }
 	s := newSession(Config{Src: "zh", Tgt: "en", Translator: upper{}, Hint: hint}, func(State) {})
@@ -496,9 +469,6 @@ func TestHint(t *testing.T) {
 	}
 }
 
-// TestLanguages has each line take the language its recognizer told, translated from it, and a
-// line heard in the language translated into done as said, untranslated; pending text in it is
-// not drafted. With lang.Auto and no language told, the translator is told none.
 func TestLanguages(t *testing.T) {
 	var mu sync.Mutex
 	var last State
@@ -519,7 +489,7 @@ func TestLanguages(t *testing.T) {
 	s.handle(engine.Event{Type: "result", Start: 2, End: 3, Lang: "zh", Tokens: []engine.Token{{Text: "我们BLG就是最强的我们"}}})
 	waitFor(t, &mu, func() bool { return last.PendingLang == "zh" })
 	final("我们BLG就是最强的。", "zh", 2)
-	final("金になる。", "", 3) // told no language: not the one before
+	final("金になる。", "", 3)
 	waitFor(t, &mu, func() bool {
 		return len(last.Lines) == 4 && last.Lines[0].Done && last.Lines[1].Done && last.Lines[2].Done && last.Lines[3].Done
 	})

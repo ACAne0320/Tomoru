@@ -13,7 +13,7 @@ func TestFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer l.Close() // before the directory goes: Windows removes no open file
+	defer l.Close()
 	l.Write([]byte("one\ntw"))
 	l.Write([]byte("o\n"))
 	b, _ := os.ReadFile(l.Path())
@@ -22,7 +22,6 @@ func TestFile(t *testing.T) {
 		t.Errorf("%q", b)
 	}
 
-	// Past MaxSize, it starts afresh, keeping the last.
 	big := strings.Repeat("x", 1<<20) + "\n"
 	for range 6 {
 		l.Write([]byte(big))
@@ -39,7 +38,6 @@ type broken struct{}
 
 func (broken) Write([]byte) (int, error) { return 0, errors.New("the handle is invalid") }
 
-// TestAnd logs what the console cannot take.
 func TestAnd(t *testing.T) {
 	l, err := Open(t.TempDir(), "test")
 	if err != nil {

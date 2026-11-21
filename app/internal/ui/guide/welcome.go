@@ -12,9 +12,7 @@ import (
 	"tomoru/locales"
 )
 
-// welcome chooses the languages, which the stage's subtitles show at once.
 func (g *Guide) welcome(c *ui.Context) {
-	// What shows comes in one after another, as the window opens.
 	g.part(c, 0, func() { ui.Image(c, assets.AppIcon).Size(76, 76).Margin(-6) })
 	g.part(c, 1, func() {
 		ui.Column(c).Gap(kit.Space(2)).Children(func() {
@@ -25,10 +23,8 @@ func (g *Guide) welcome(c *ui.Context) {
 	g.part(c, 2, func() { g.languages(c) })
 }
 
-// language is a language's field, as one of the two: swapped, each goes to where the other was.
 type language string
 
-// languages are the two languages, and swapping them, its icon turning half a turn each time.
 func (g *Guide) languages(c *ui.Context) {
 	k := g.core
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Margin(6, 0, 0, 0).Children(func() {
@@ -51,13 +47,11 @@ func (g *Guide) languages(c *ui.Context) {
 	})
 }
 
-// welcomeStage is a video playing, with subtitles in the languages chosen rolling in.
 func (g *Guide) welcomeStage(c *ui.Context) {
 	p := g.core.Preferences()
 	entries, next := subtitle.Rolling(p, c.Now())
 	c.After(next)
 	ui.Column(c).Fill().Justify(ui.End).Padding(kit.Space(5), kit.Space(6), kit.Space(4)).Gap(kit.Space(4)).Children(func() {
-		// In other languages, the subtitles come in anew.
 		ui.Column(c.Key(p.Src + ">" + p.Tgt)).Gap(kit.Space(2)).Transition(kit.Rise(0)).Children(func() {
 			subtitle.Draw(c, entries, p, .62, 340, subtitle.NoBlock)
 		})
@@ -65,7 +59,6 @@ func (g *Guide) welcomeStage(c *ui.Context) {
 	})
 }
 
-// scrubber is a video's progress, going on.
 func scrubber(c *ui.Context) {
 	still := c.Preferences().ReduceMotion
 	light := kit.Colors(c).Starlight

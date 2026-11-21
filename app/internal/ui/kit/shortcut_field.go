@@ -5,20 +5,14 @@ import (
 	"tomoru/locales"
 )
 
-// ShortcutRecorder is the state of a ShortcutField.
 type ShortcutRecorder struct {
-	on    bool   // recording: the next keys pressed are the shortcut
-	focus bool   // to give the field the focus, as recording starts
-	err   string // why the keys pressed last are not the shortcut
+	on    bool
+	focus bool
+	err   string
 }
 
-// ShortcutField is the field of a global shortcut, which: its keys as keycaps, named label. A click
-// records new ones, until keys that make a shortcut are pressed, or Escape, a click or the focus
-// going elsewhere stops it. The shortcut works meanwhile, and pressing it does what it does: the
-// field gets keys no app has. The other shortcut's keys are not taken.
 func ShortcutField(c *ui.Context, acc, other, label string, register func(string) error, changed func(string), r *ShortcutRecorder) {
 	t := c.Theme()
-	// It fills the column it is in, as a Control's: a row's other controls end where it ends.
 	ui.Column(c).Grow(1).Gap(Space(1)).Children(func() {
 		border := t.Border
 		if r.on {
@@ -35,7 +29,7 @@ func ShortcutField(c *ui.Context, acc, other, label string, register func(string
 			if !r.on || ev.Kind != ui.InputKeyDown {
 				return false
 			}
-			key := ev.PhysicalKey // the key codes shortcuts register are by position
+			key := ev.PhysicalKey
 			if key == ui.KeyUnknown {
 				key = ev.Key
 			}
@@ -43,9 +37,8 @@ func ShortcutField(c *ui.Context, acc, other, label string, register func(string
 			case key == ui.KeyEscape && ev.Mods == 0:
 				r.on, r.err = false, ""
 			case key == ui.KeyTab && ev.Mods&^ui.Shift == 0:
-				return false // the focus goes on, which stops recording
+				return false
 			case !ShortcutKey(key):
-				// A modifier alone, as the keys are held one by one.
 			default:
 				keys, ok := Accelerator(ev.Mods, key)
 				if !ok {

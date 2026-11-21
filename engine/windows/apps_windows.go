@@ -15,13 +15,9 @@ import (
 	"tomoru-engine-shared"
 )
 
-// shell are the programs of Windows's own that have windows but nothing to hear on their own.
 var shell = []string{"explorer.exe", "applicationframehost.exe", "textinputhost.exe", "shellexperiencehost.exe",
 	"startmenuexperiencehost.exe", "searchhost.exe", "systemsettings.exe", "lockapp.exe"}
 
-// listApps sends the apps whose sound can be heard on their own: those with a window on the
-// taskbar, and any playing sound (playing), those playing first. An app is its program: a
-// helper that plays for it, as a browser's audio process, is the same program.
 func listApps() {
 	var buf [1024]C.ulong
 	playing := map[uint32]bool{}
@@ -36,7 +32,6 @@ func listApps() {
 	for pid := range playing {
 		pids = append(pids, pid)
 	}
-	// Not the engine, nor the app that runs it: Tomoru itself.
 	procs := processes()
 	own := map[string]bool{strings.ToLower(filepath.Base(os.Args[0])): true}
 	if p, ok := procs[uint32(os.Getpid())]; ok {
@@ -64,7 +59,6 @@ func listApps() {
 			byID[id] = a
 			apps = append(apps, a)
 		}
-		// A window's process names the app: a helper may describe itself otherwise.
 		if a.name == "" || i < windowed && name != "" {
 			a.name = name
 		}
@@ -87,7 +81,6 @@ func listApps() {
 	}
 }
 
-// describe gives a process's program, "" when it cannot tell, and the name its file gives it.
 func describe(pid uint32) (path, name string) {
 	var p [windows.MAX_LONG_PATH]uint16
 	var n [256]uint16

@@ -21,7 +21,6 @@ func TestHistory(t *testing.T) {
 	w.Add(Entry{At: start.Add(time.Second), Src: "メテオの脅威", Heard: "メデオの脅威", Tgt: "陨石的威胁"})
 	w.Add(Entry{At: start.Add(2 * time.Second), Src: "クラウド", Err: "behind"})
 	w.Close()
-	// Another in the same second, in the general scene.
 	g := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: start})
 	g.Add(Entry{Src: "Hi", Tgt: "嗨"})
 	g.Close()
@@ -29,7 +28,6 @@ func TestHistory(t *testing.T) {
 	g2.Add(Entry{Src: "Bye", Tgt: "拜"})
 	g2.Close()
 	os.WriteFile(filepath.Join(dir, "general", "notes.jsonl"), []byte("hello\n"), 0o644)
-	// The app quit in the middle of a line: it is not one.
 	if f, err := os.OpenFile(w.path, os.O_WRONLY|os.O_APPEND, 0); err == nil {
 		f.WriteString(`{"at":"2026-10-19T15:30:03+08:00","src":"ティ`)
 		f.Close()
@@ -105,9 +103,6 @@ func TestRewrite(t *testing.T) {
 	}
 }
 
-// TestRewriteWhileRecording learns a session still recording: its lines rewritten, the one added
-// since kept after them, and the lines after going on into the same file. On Windows the file
-// could not be replaced while the writer held it open.
 func TestRewriteWhileRecording(t *testing.T) {
 	dir := t.TempDir()
 	w := NewWriter(dir, Head{Src: "ja", Tgt: "zh", Start: time.Now()})
@@ -116,7 +111,7 @@ func TestRewriteWhileRecording(t *testing.T) {
 	rs, _ := List(dir)
 	path := rs[0].Path
 	es, _ := Read(path)
-	w.Add(Entry{Src: "ティファ", Tgt: "蒂法"}) // while the names are learned
+	w.Add(Entry{Src: "ティファ", Tgt: "蒂法"})
 	es[0].Heard, es[0].Src = es[0].Src, "メテオ"
 	if err := Rewrite(path, es); err != nil {
 		t.Fatal(err)
@@ -133,8 +128,6 @@ func TestRewriteWhileRecording(t *testing.T) {
 	}
 }
 
-// TestDeleteWhileRecording deletes a session still recording: the lines after go to a session of
-// their own, which putting the deleted one back leaves alone.
 func TestDeleteWhileRecording(t *testing.T) {
 	dir := t.TempDir()
 	w := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: time.Now()})
@@ -154,8 +147,6 @@ func TestDeleteWhileRecording(t *testing.T) {
 	}
 }
 
-// TestRemovedWhileRecording has a session's file removed outside the app, as from Finder, while it
-// records: the lines after go to a new file, which takes the same name.
 func TestRemovedWhileRecording(t *testing.T) {
 	dir := t.TempDir()
 	w := NewWriter(dir, Head{Src: "en", Tgt: "zh", Start: time.Now()})
@@ -187,7 +178,7 @@ func TestExport(t *testing.T) {
 		{At: at(3), Start: at(0.5), End: at(2), Src: "What is wrong?", Tgt: "出啥事了？"},
 		{At: at(4), Start: at(2.4), End: at(2.8), Src: "Weird.", Tgt: "怪怪的。"},
 		{At: at(9), Start: at(5), End: at(7), Src: "Cloud", Err: "behind"},
-		{At: at(3725.25), Src: "Hi", Tgt: "Hi", Said: true}, // kept before said times were
+		{At: at(3725.25), Src: "Hi", Tgt: "Hi", Said: true},
 	}
 	if got, want := Text("General", head, es), `General
 
@@ -203,8 +194,6 @@ func TestExport(t *testing.T) {
 `; got != want {
 		t.Errorf("text:\n%s", got)
 	}
-	// Time 0 is the first line, said before the session started; the second shows its least time,
-	// cut where the third starts.
 	if got, want := SRT(head, es), `1
 00:00:00,000 --> 00:00:01,500
 What is wrong?

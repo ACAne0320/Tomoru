@@ -1,10 +1,3 @@
-// Package proxy is how the app reaches the cloud, as the user chose in Preferences: through the
-// proxy the system sets, as browsers do (MyGo's netproxy, with its bypass list and PAC files),
-// through one of the user's own, or directly. Loopback, where the local models' servers are, is
-// always reached directly.
-//
-// Install puts it in Go's default transport, which the app's clients use: the cloud's recognition
-// and translation, the user's APIs, model downloads.
 package proxy
 
 import (
@@ -20,19 +13,16 @@ import (
 
 type choice struct {
 	off bool
-	url *url.URL // the user's proxy; nil for the system's
+	url *url.URL
 }
 
 var current atomic.Pointer[choice]
 
-// Set chooses how the cloud is reached from now on: with off, directly; else through addr, or the
-// system's proxy when addr is "" or no address. Requests under way keep their connections.
 func Set(off bool, addr string) {
 	u, _ := Parse(addr)
 	current.Store(&choice{off: off, url: u})
 }
 
-// Parse reads a proxy's address, "host:port" or a URL of http, https or socks5: nil for "".
 func Parse(addr string) (*url.URL, error) {
 	addr = strings.TrimSpace(addr)
 	if addr == "" {
@@ -54,8 +44,6 @@ func Parse(addr string) (*url.URL, error) {
 	return u, nil
 }
 
-// For is the proxy of req, or nil to connect directly: an http.Transport's Proxy, safe from any
-// goroutine. The system's may block while the system runs a PAC file.
 func For(req *http.Request) (*url.URL, error) {
 	c := current.Load()
 	switch {
@@ -69,15 +57,12 @@ func For(req *http.Request) (*url.URL, error) {
 	return netproxy.Proxy(req)
 }
 
-// Install has Go's default transport ask For.
 func Install() {
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 		t.Proxy = For
 	}
 }
 
-// System is the proxy the system sets for target, a URL, as "host:port" (or a URL, for another
-// scheme than http): "" for none. It may block while the system runs a PAC file.
 func System(target string) string {
 	req, err := http.NewRequest(http.MethodGet, target, nil)
 	if err != nil {

@@ -1,7 +1,3 @@
-// Package overlay is the subtitle overlay: a transparent window over the screen, which lets clicks
-// through, showing the subtitles at the bottom. Hovered and unlocked, the subtitle area can be
-// moved and resized, and shows a toolbar; locked, only the text shows, and the lock to unlock it
-// while the pointer rests there.
 package overlay
 
 import (
@@ -21,46 +17,37 @@ import (
 	"tomoru/locales"
 )
 
-// The overlay covers the work area, and reaches below it by below: transparent room for the
-// newest line sliding in at the bottom. The subtitle block moves within it, up and down as
-// sideways, so the window never moves or resizes: with many sentences it was as tall as the
-// screen, and a window cannot go above the screen's top to bring its bottom up.
 const below = 80
 
-// Overlay is the subtitle overlay. It is used on the main thread, but as noted.
 type Overlay struct {
 	core    *core.Core
 	nav     shared.Nav
 	win     *mygo.Window
-	display mygo.Display   // the display the overlay is on
-	area    mygo.Rectangle // its work area, which the overlay covers
+	display mygo.Display
+	area    mygo.Rectangle
 
-	locked atomic.Bool // Prefs.Locked, read by the pointer watcher
-	// grabbable tells the pointer watcher that the block shows something to grab: subtitles, or the
-	// frame of adjusting. An empty block does not answer the pointer passing by.
+	locked    atomic.Bool
 	grabbable atomic.Bool
-	adjusting atomic.Bool // the frame shows: the pointer need not rest to grab it
-	pointerOn atomic.Bool // the overlay has the pointer, where the system tells no other (pointerUnseen)
-	mu        sync.Mutex  // guards block, which the pointer watcher reads
-	block     ui.Rect     // the subtitle block in the overlay, with its toolbar, as last laid out
-	lock      ui.Rect     // the lock above the locked block while it shows, as last laid out
-	// woken wakes the pointer watcher, asleep while nothing shows to grab (wake).
-	woken chan struct{}
+	adjusting atomic.Bool
+	pointerOn atomic.Bool
+	mu        sync.Mutex
+	block     ui.Rect
+	lock      ui.Rect
+	woken     chan struct{}
 
-	adjust  time.Time // the block shows its frame, to be moved, until then
+	adjust  time.Time
 	hover   bool
-	peek    bool      // locked, the pointer rests on the block: the lock shows to unlock it
-	hoverH  float32   // the block's height while hovered, fixed when it showed
-	toast   time.Time // the "locked" note shows until then
-	sample  time.Time // sample subtitles show until then
+	peek    bool
+	hoverH  float32
+	toast   time.Time
+	sample  time.Time
 	resize  *resize
-	textTop float32   // the top of the subtitles in the overlay, as last laid out
-	barW    float32   // the width of the toolbar's capsule, as last laid out
-	notes   int       // the notices shown: one that shows after none did is a new pill
-	noted   time.Time // when the notice showing appeared, zero while none does
+	textTop float32
+	barW    float32
+	notes   int
+	noted   time.Time
 }
 
-// New makes the overlay's window, on the display the subtitles were put on, and shows it.
 func New(k *core.Core, nav shared.Nav) *Overlay {
 	o := &Overlay{core: k, nav: nav, woken: make(chan struct{}, 1)}
 	o.display = displayNamed(mygo.Screen.Displays(), k.Preferences().Screen)
@@ -74,19 +61,12 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 	o.win.SetContentProtection(k.Preferences().HideFromCapture)
 	o.win.ShowInactive()
 	go o.watchPointer()
-	// A display plugged in or out, or its resolution changed: the subtitles go to theirs, or
-	// to the primary display while theirs is gone.
 	mygo.Screen.OnDisplaysChanged(func() {
 		o.win.Update(func() { o.moveTo(displayNamed(mygo.Screen.Displays(), o.core.Preferences().Screen)) })
 	})
 	return o
 }
 
-// windowOptions makes the overlay's window: the work area, plus below for the newest line sliding
-// in, with content drawn there, letting the mouse through until something shows to grab
-// (watchPointer). DisableFullScreen keeps the window out of full screen itself; with
-// SetVisibleOnAllWorkspaces, MyGo then makes it an auxiliary of other apps' full-screen Spaces
-// (egoist/mygo#309), the way macOS documents for showing over them.
 func windowOptions(area mygo.Rectangle, content mygo.Content) mygo.WindowOptions {
 	return mygo.WindowOptions{
 		Title: "Tomoru", X: area.X, Y: area.Y,
@@ -97,8 +77,6 @@ func windowOptions(area mygo.Rectangle, content mygo.Content) mygo.WindowOptions
 	}
 }
 
-// displayNamed is the display of ds named name, or the primary one: the first, as
-// mygo.Screen.Displays lists them.
 func displayNamed(ds []mygo.Display, name string) mygo.Display {
 	for _, d := range ds {
 		if name != "" && d.Label == name {
@@ -116,8 +94,6 @@ func displayNamed(ds []mygo.Display, name string) mygo.Display {
 	return mygo.Screen.PrimaryDisplay()
 }
 
-// screenName is how Prefs.Screen names d: "" for the primary display, which the subtitles follow
-// to whichever display becomes it.
 func screenName(d mygo.Display) string {
 	if d.Primary {
 		return ""
@@ -125,7 +101,6 @@ func screenName(d mygo.Display) string {
 	return d.Label
 }
 
-// moveTo puts the overlay over d's work area, unless it is there.
 func (o *Overlay) moveTo(d mygo.Display) {
 	if d.ID == o.display.ID && d.WorkArea == o.area {
 		return
@@ -136,28 +111,23 @@ func (o *Overlay) moveTo(d mygo.Display) {
 	}
 }
 
-// Window is the overlay's window.
 func (o *Overlay) Window() *mygo.Window { return o.win }
 
-// Redraw redraws the overlay.
 func (o *Overlay) Redraw() { o.win.Update(func() {}) }
 
-// SetHideFromCapture keeps the subtitles out of screenshots and recordings, or not.
 func (o *Overlay) SetHideFromCapture(hide bool) { o.win.SetContentProtection(hide) }
 
-// ShowSample shows sample subtitles for d, to show where they go.
 func (o *Overlay) ShowSample(d time.Duration) {
 	o.sample = time.Now().Add(d)
 	o.Redraw()
 }
 
-// SetLocked locks the subtitles, or unlocks them and shows where they are, to move them now.
 func (o *Overlay) SetLocked(v bool) {
 	o.core.UpdatePrefs(func(p *prefs.Prefs) { p.Locked = v })
 	o.locked.Store(v)
 	if v {
 		o.hover, o.adjust = false, time.Time{}
-		o.wake() // to stop taking the mouse
+		o.wake()
 		o.toast = time.Now().Add(2600 * time.Millisecond)
 	} else {
 		o.peek = false
@@ -166,8 +136,6 @@ func (o *Overlay) SetLocked(v bool) {
 	o.Redraw()
 }
 
-// StartAdjust shows the subtitle block's frame for a while, even without subtitles, so that it
-// can be found and moved.
 func (o *Overlay) StartAdjust() {
 	if o.core.Preferences().Locked {
 		o.SetLocked(false)
@@ -177,8 +145,6 @@ func (o *Overlay) StartAdjust() {
 	o.Redraw()
 }
 
-// blockBottom is the subtitle block's bottom edge on screen: where it was put, or 24 above the
-// work area's bottom edge; with room for the block and its toolbar above it.
 func (o *Overlay) blockBottom() int {
 	area, p := o.area, o.core.Preferences()
 	y := area.Y + area.Height - 24
@@ -188,26 +154,16 @@ func (o *Overlay) blockBottom() int {
 	return o.onScreen(y)
 }
 
-// onScreen is the block's bottom edge y kept within the work area, with room for the block and its
-// toolbar above it.
 func (o *Overlay) onScreen(y int) int {
 	area := o.area
 	return min(max(y, area.Y+int(subtitle.SlotHeight(o.core.Preferences(), 1, true))+60), area.Y+area.Height)
 }
 
 var (
-	// What shows over the block fades in and out, and moves with it at once: animating its
-	// position too, as a transition does unless told what to animate, it trailed the block dragged.
-	fades = ui.ElementTransition{Colors: true, Duration: 160 * time.Millisecond, Enter: &ui.Motion{}, Exit: &ui.Motion{}}
-	// The subtitles come and go fading in place, all together: nothing slides in or out of view.
+	fades   = ui.ElementTransition{Colors: true, Duration: 160 * time.Millisecond, Enter: &ui.Motion{}, Exit: &ui.Motion{}}
 	appears = ui.ElementTransition{Colors: true, Duration: 240 * time.Millisecond, Enter: &ui.Motion{}, Exit: &ui.Motion{}}
 )
 
-// View draws the subtitles at the bottom of the subtitle area, and under them the block: as wide
-// as the area, as tall as the subtitles (at least one sentence, so that the pointer can find it
-// empty). One layer at a time: the closed-caption bands hug the text; hovered, the block takes the
-// background, and the text on it drops its bands and stays within it, the toolbar floating above
-// it, clear of the text.
 func (o *Overlay) View(c *ui.Context) {
 	k, p := o.core, o.core.Preferences()
 	c.Root().Background(ui.Transparent)
@@ -217,7 +173,7 @@ func (o *Overlay) View(c *ui.Context) {
 	hideAfter := k.HideAfter()
 	show := k.Running && len(entries) > 0 && (hideAfter == 0 || idle < hideAfter)
 	if show && hideAfter > 0 {
-		c.After(hideAfter - idle) // hide once no new subtitles came for a while
+		c.After(hideAfter - idle)
 	}
 	sample := time.Until(o.sample)
 	if !show && sample > 0 {
@@ -235,7 +191,7 @@ func (o *Overlay) View(c *ui.Context) {
 	}
 	ww, wh := c.Size()
 	left, width := float32(p.AreaX-p.AreaW/2)*ww, float32(p.AreaW)*ww
-	minH := subtitle.SlotHeight(p, 1, true) + 16 // the same size empty as with one sentence
+	minH := subtitle.SlotHeight(p, 1, true) + 16
 	note := o.notice(c)
 	if shown := !show && note.title != ""; !shown {
 		o.noted = time.Time{}
@@ -243,19 +199,12 @@ func (o *Overlay) View(c *ui.Context) {
 		o.notes++
 		o.noted = c.Now()
 	}
-	// The block's bottom, from the overlay's bottom edge.
 	bottom := float32(o.area.Y + int(wh) - o.blockBottom())
 
-	// The block is as tall as the text was in the last frame: the text lays itself out in a column
-	// of its own, the overlay's height, so that what it adds at the bottom pushes the rest up, and
-	// what leaves at the top moves nothing.
 	h := minH
 	if show && o.textTop != 0 {
-		h = max(h, min(wh-bottom-o.textTop+8, wh-bottom-26)) // the oldest may be cut off at the top
+		h = max(h, min(wh-bottom-o.textTop+8, wh-bottom-26))
 	}
-	// Hovered, the block keeps the height it took when it showed, so that the toolbar above it
-	// stays under the pointer: the text goes on rolling up, cut off at its top edge. Locked, so
-	// does the lock, over the text rolling on.
 	switch {
 	case !hover && !peek:
 		o.hoverH, o.barW = 0, 0
@@ -265,11 +214,10 @@ func (o *Overlay) View(c *ui.Context) {
 	if hover || peek {
 		h = o.hoverH
 	}
-	var hit ui.Rect // what the pointer finds: the block, and the toolbar above it while hovered
+	var hit ui.Rect
 	column := ui.Box(c.Key("column")).Absolute().Left(left).Width(width).Top(0).Bottom(0)
 	column.Children(func() {
 		if hasGlass() && (hover || adjusting) {
-			// The glass under the block, apart from it: the block's shade fades in over it.
 			ui.Box(c.Key("glass")).Absolute().Left(0).Right(0).Bottom(bottom).Height(h).Radius(14).Material(onGlass{})
 		}
 		block := ui.Box(c.Key("block")).Absolute().Left(0).Right(0).Bottom(bottom).Height(h).Radius(14).
@@ -281,13 +229,9 @@ func (o *Overlay) View(c *ui.Context) {
 			block.Background(ui.RGBA(0, 0, 0, .22)).Border(1.5, ui.RGBA(255, 255, 255, .7))
 		}
 		if show {
-			// Hovered, the text stays within the block: rolling up, it goes under its top edge, not
-			// the toolbar. The column keeps its height, which the text's own takes nothing from, and
-			// where the block is: moved, the sentences keep their place in it, which they animate
-			// as it changes, and go with the block at once rather than trailing it.
 			clip := float32(0)
 			if hover {
-				clip = wh - bottom - h // the block's top
+				clip = wh - bottom - h
 			}
 			ui.Box(c).Absolute().Left(0).Right(0).Top(clip).Bottom(0).Clip().Children(func() {
 				ui.Column(c.Key("captions")).Absolute().Left(12).Right(12).Bottom(bottom + 8).Height(wh).
@@ -301,13 +245,11 @@ func (o *Overlay) View(c *ui.Context) {
 					}
 					if top := subtitle.Draw(c, entries, p, 1, width-24, bareBelow); top != o.textTop {
 						o.textTop = top
-						c.After(16 * time.Millisecond) // the block follows
+						c.After(16 * time.Millisecond)
 					}
 				})
 			})
 		}
-		// Over the text: what hovering and adjusting show, and the handles to grab, in the block's
-		// place.
 		ui.Column(c.Key("controls")).Absolute().Left(0).Right(0).Bottom(bottom).Height(h).
 			Justify(ui.End).AlignItems(ui.Center).Padding(8, 12).Children(func() {
 			switch {
@@ -326,26 +268,19 @@ func (o *Overlay) View(c *ui.Context) {
 			}
 		})
 		hit = block.Bounds()
-		// Above the block, or over its top where the overlay has no room above it.
 		barBottom := min(bottom+h+8, wh-toolbarH)
-		// The toolbar is built while it is gone too, unseen: a menu of it may still be open, and
-		// the item chosen from it comes in a frame that builds its button. The scene menu reaches
-		// below the block, where the pointer leaving it ends the hover before the choice.
 		var bar, lock ui.Rect
 		if !p.Locked {
 			if r := o.toolbar(c, barBottom, hover).Bounds(); hover {
 				bar = r
 			}
 		} else if r := o.unlock(c, barBottom, peek).Bounds(); peek {
-			// The lock alone takes clicks, not the row it is centered in.
 			bar, lock = r, ui.Rect{X: r.X + (r.W-o.barW)/2, Y: r.Y, W: o.barW, H: r.H}
 		}
 		if bar.H > 0 {
 			hit.H += hit.Y - bar.Y
 			hit.Y = bar.Y
 		}
-		// The notice floats on its own, centered where the toolbar comes, never in the block: with the
-		// toolbar there, above it. It takes no clicks.
 		noteBottom := barBottom + (toolbarH-30)/2
 		if !show && note.title != "" {
 			up := float32(0)
@@ -368,12 +303,9 @@ func (o *Overlay) View(c *ui.Context) {
 		o.block, o.lock = hit, lock
 		o.mu.Unlock()
 	})
-	o.pointerOn.Store(column.Hovered()) // it takes the mouse only where the block is
+	o.pointerOn.Store(column.Hovered())
 }
 
-// hoverShade is the hovered block's background, and the toolbar's over it: the block's shade, on
-// glass where the system has it, which shows what plays under it, lighter: only for the text to
-// read on.
 func hoverShade(p prefs.Prefs) ui.Color {
 	shade := float32(1)
 	if hasGlass() {
@@ -385,19 +317,14 @@ func hoverShade(p prefs.Prefs) ui.Color {
 	return ui.RGBA(0, 0, 0, max(.42, float32(p.BoxOpacity)/100)*shade)
 }
 
-// note is what floats over the subtitles while none show.
 type note struct {
 	mark   kit.MarkState
-	marked bool // errors and a slow network say so in words alone
+	marked bool
 	title  string
-	detail string // what to know beside it, as the languages while preparing
+	detail string
 	since  time.Time
 }
 
-// notice is what floats over the subtitles while none show, about translating: that it is getting
-// ready, that it listens or paused, for a while after, from wherever it was paused, and what went
-// wrong, until it is tried again. The eye is there, and the menu bar may
-// hide the icon behind the notch. Listening with nobody speaking shows nothing.
 func (o *Overlay) notice(c *ui.Context) note {
 	const lasts = 4 * time.Second
 	k := o.core
@@ -432,10 +359,7 @@ func (o *Overlay) notice(c *ui.Context) note {
 }
 
 var (
-	// The notice's pill follows its words' width closely, without bouncing past it.
-	fits = ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}}
-	// One state's words at a time: the old ones lift away blurring, quickly; then the new ones rise
-	// into place from a blur.
+	fits  = ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}}
 	swaps = ui.ElementTransition{
 		Animation:    &ui.Animation{Spring: ui.SpringOptions{Duration: 380 * time.Millisecond}},
 		ExitDuration: 90 * time.Millisecond, ExitEase: ui.EaseIn,
@@ -444,9 +368,6 @@ var (
 	}
 )
 
-// notePill is the notice in a pill of its own, each time it appears: the mark first, then its
-// words, apart from what to know beside them by weight and color alone. While it shows, its words
-// change in place.
 func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 	const wordsAfter = 320 * time.Millisecond
 	words := c.Preferences().ReduceMotion || !n.marked
@@ -459,11 +380,8 @@ func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 	}
 	pill := ui.Row(c.Key(appearance(o.notes))).MinHeight(30).Radius(15).Padding(0, 14, 0, 12)
 	if !n.marked {
-		pill.Padding(6, 14) // what went wrong can take more than a line
+		pill.Padding(6, 14)
 	}
-	// A capsule as the toolbar is. Its place in its row moves with its width, so that it stays
-	// centered as it grows; the row, not the pill, goes with the block. It comes and goes only
-	// through a blur: the system's glass under it does not scale.
 	return capsule(o.core.Preferences(), pill).Gap(10).AlignItems(ui.Center).Clip().
 		Transition(ui.ElementTransition{Animation: &fits, Position: true, Size: true, Enter: &ui.Motion{Blur: 4}, Exit: &ui.Motion{Blur: 4}}).
 		Children(func() {
@@ -485,8 +403,6 @@ func (o *Overlay) notePill(c *ui.Context, n note) ui.Element {
 		})
 }
 
-// appearance keys the notice's pill by how many showed before it, apart from the keys of the
-// handles beside it.
 type appearance int
 
 func (o *Overlay) level(t time.Time) float32 {

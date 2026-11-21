@@ -15,13 +15,11 @@ import (
 	"tomoru/internal/translate"
 )
 
-// fake is the world of a Core under test: sessions that report when told to, an engine that
-// answers from a table, and a main thread that runs what is posted when told to.
 type fake struct {
-	mu       sync.Mutex // guards posted and ran: the Core's background work posts from goroutines
+	mu       sync.Mutex
 	posted   []func()
 	sessions []*fakeSession
-	answers  map[string][]engine.Event // by command
+	answers  map[string][]engine.Event
 	ran      []string
 }
 
@@ -50,7 +48,7 @@ func (s *fakeSession) Wait() {}
 func newCore(t *testing.T) (*Core, *fake) {
 	f := &fake{answers: map[string][]engine.Event{}}
 	p := prefs.Default("zh-Hans")
-	p.ASR = "apple" // the engine's own recognition, downloaded or not, on any system: these test the session
+	p.ASR = "apple"
 	c := New(p, Deps{
 		Post: func(fn func()) {
 			f.mu.Lock()
@@ -82,7 +80,7 @@ func newCore(t *testing.T) (*Core, *fake) {
 			f.sessions = append(f.sessions, s)
 			return s, nil
 		},
-		Translator: translate.Cloud(), // never called: sessions are fake
+		Translator: translate.Cloud(),
 		RunEngine: func(_ context.Context, _ string, args ...string) ([]engine.Event, error) {
 			f.mu.Lock()
 			defer f.mu.Unlock()
@@ -93,7 +91,6 @@ func newCore(t *testing.T) (*Core, *fake) {
 	return c, f
 }
 
-// flush runs what was posted, and waits for the background work to post first.
 func (f *fake) flush(t *testing.T, n int) {
 	t.Helper()
 	var posted []func()
@@ -121,7 +118,7 @@ func TestStartStop(t *testing.T) {
 	changes := 0
 	c.OnChange(func() { changes++ })
 	c.Start()
-	f.flush(t, 1) // the translator is ready
+	f.flush(t, 1)
 	if !c.Running || c.State.Phase != "starting" || len(f.sessions) != 1 || changes != 2 {
 		t.Fatalf("running %v, phase %q, %d sessions, %d changes", c.Running, c.State.Phase, len(f.sessions), changes)
 	}
@@ -136,7 +133,6 @@ func TestStartStop(t *testing.T) {
 		t.Errorf("listening: %d changes, %+v", changes, c)
 	}
 
-	// Changing a language restarts; the old session's reports are dropped.
 	c.SetTgt("ja")
 	f.flush(t, 1)
 	if !s.stopped || len(f.sessions) != 2 || f.sessions[1].cfg.Tgt != "ja" {
@@ -164,7 +160,6 @@ func TestSessionError(t *testing.T) {
 	if c.Running || !errors.As(c.Err, &e) || e.Code != "no-permission" {
 		t.Errorf("running %v, err %v", c.Running, c.Err)
 	}
-	// Starting again clears it.
 	c.Start()
 	if c.Err != nil {
 		t.Errorf("err %v", c.Err)
@@ -175,7 +170,6 @@ func TestSessionError(t *testing.T) {
 	if !IsExited(c.Err) {
 		t.Errorf("exited without a word: %v", c.Err)
 	}
-	// Ended by the system, as a crash or a kill: the exit status is not the user's to read.
 	c.Start()
 	f.flush(t, 1)
 	f.sessions[2].report(live.State{Phase: "stopped", Err: &exec.ExitError{}})
@@ -194,7 +188,6 @@ func TestEngineMissing(t *testing.T) {
 	}
 }
 
-// After no new subtitles for a while, they start afresh from the next line, unless they are kept.
 func TestSince(t *testing.T) {
 	c, f := newCore(t)
 	c.Start()
@@ -223,7 +216,7 @@ func TestSince(t *testing.T) {
 
 func TestLanguages(t *testing.T) {
 	c, _ := newCore(t)
-	c.SetSrc("zh") // the target: they swap
+	c.SetSrc("zh")
 	if c.Prefs.Src != "zh" || c.Prefs.Tgt != "en" {
 		t.Errorf("%s → %s", c.Prefs.Src, c.Prefs.Tgt)
 	}
@@ -239,16 +232,15 @@ func TestSystem(t *testing.T) {
 	f.answers["access"] = []engine.Event{{Type: "access", State: "unknown"}}
 	f.answers["apps"] = []engine.Event{{Type: "app", ID: "com.apple.Safari", Name: "Safari", Playing: true}}
 
-	// Only the system's recognition gets ready so: Windows has none.
 	preparing, ready, ran := "preparing", "ready", []string{"access", "apps", "prepare"}
 	if prefs.SystemASR() == "" {
 		preparing, ready, ran = "", "", ran[:2]
 	}
 	c.PrepareASR("ja")
-	c.PrepareASR("ja") // once
+	c.PrepareASR("ja")
 	c.CheckAccess()
 	c.ListApps()
-	c.ListApps() // not again so soon
+	c.ListApps()
 	if c.ASR["ja"] != preparing || !c.Checking {
 		t.Errorf("asr %q, checking %v", c.ASR["ja"], c.Checking)
 	}
@@ -273,8 +265,6 @@ func TestSavePrefs(t *testing.T) {
 	}
 }
 
-// TestSpeak says the samples aloud in the spoken language, and then is done; StopSpeaking stops
-// them without an error.
 func TestSpeak(t *testing.T) {
 	c, f := newCore(t)
 	c.Prefs.Src = "ja"
@@ -291,14 +281,12 @@ func TestSpeak(t *testing.T) {
 	if c.Speaking {
 		t.Error("still speaking")
 	}
-	f.flush(t, 1) // the stopped run's end changes nothing
+	f.flush(t, 1)
 	if c.Speaking || c.SpeakErr != nil {
 		t.Errorf("after stopping: speaking %v, error %v", c.Speaking, c.SpeakErr)
 	}
 }
 
-// TestVoiceKeepsSubtitles: voice detected while nothing new is said does not keep the subtitles
-// showing.
 func TestVoiceKeepsSubtitles(t *testing.T) {
 	c, f := newCore(t)
 	c.Start()
@@ -316,11 +304,8 @@ func TestVoiceKeepsSubtitles(t *testing.T) {
 	}
 }
 
-// TestClockRedrawsNothing: the engine's clock reports, which change only numbers no window shows
-// as they come, redraw nothing; a change to what a window shows redraws once.
 func TestClockRedrawsNothing(t *testing.T) {
 	base := live.State{Phase: "listening", Lines: []live.Line{{ID: 1, Src: "a", Tgt: "あ", Done: true}}, Stats: live.Stats{Lines: 1, Speech: 2, Chars: 1}}
-	// listening reports base and then counts the changes that follow.
 	listening := func(t *testing.T) (report func(live.State), changes *int) {
 		c, f := newCore(t)
 		c.Start()

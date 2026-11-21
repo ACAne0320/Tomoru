@@ -24,7 +24,6 @@ import (
 	"tomoru/locales"
 )
 
-// DownloadError says why a model's download failed, or "".
 func DownloadError(err error) string {
 	var space models.ErrNoSpace
 	switch {
@@ -38,8 +37,6 @@ func DownloadError(err error) string {
 	return locales.DownloadFailed(err.Error())
 }
 
-// LangName is a language's name in the language the app shows; for lang.Auto, that the language
-// is detected.
 func LangName(code string) string {
 	if code == lang.Auto {
 		return locales.AutoDetect()
@@ -47,8 +44,6 @@ func LangName(code string) string {
 	return lang.Name(code, i18n.Locale())
 }
 
-// LangChoices are languages as a picker lists them: lang.Auto first, then those most watched, then
-// the others by name, each group after a separator ("", as kit.Choices takes it).
 func LangChoices(codes []string) []string {
 	var auto, first, rest []string
 	for _, code := range codes {
@@ -68,7 +63,6 @@ func LangChoices(codes []string) []string {
 	return append(auto, append(first, rest...)...)
 }
 
-// FontName is a font's name: a preset's of prefs.Fonts, by its key, or a family's own.
 func FontName(font string) string {
 	switch font {
 	case "system":
@@ -81,14 +75,8 @@ func FontName(font string) string {
 	return font
 }
 
-// CloudName is Index-Translate's cloud, 35B, as the app names it everywhere: by its model's size,
-// as the local ones are. It is free and the default, and in the cloud alone, so the cloud goes
-// without saying; its other sizes say it (locales.EngineCloudSize), as there are local ones.
 const CloudName = "Index-Translate 35B"
 
-// ModelNote is what a model's row says of it: its size, or how much of it is in when st is a
-// download stopped before, then what it needs to run: nothing but the CPU; that this computer
-// runs it, as core.Runs knows; else, on the GPU, its memory (a Mac's, the GPU's on Windows).
 func ModelNote(m models.Model, st models.Status, runs bool) string {
 	var needs string
 	switch mem, vram := int(m.Needs.Memory>>30), int(m.Needs.VRAM>>30); {
@@ -96,7 +84,7 @@ func ModelNote(m models.Model, st models.Status, runs bool) string {
 		needs = locales.ModelRunsOnCpu()
 	case runs:
 		needs = locales.RunsHere()
-	case m.ASR: // said apart from those that run on the CPU
+	case m.ASR:
 		needs = OnWindows(locales.AsrNeedsMemory(mem), locales.AsrNeedsVram(vram))
 	default:
 		needs = OnWindows(locales.NeedsMemory(mem), locales.NeedsVram(vram))
@@ -108,9 +96,6 @@ func ModelNote(m models.Model, st models.Status, runs bool) string {
 	return size + " · " + needs
 }
 
-// SizeNote says what a model's size is for, against its family's other: quicker or more
-// accurate, as measured (bench/README.md, docs/recognition.md). "" where the other measured no
-// better.
 func SizeNote(m models.Model) string {
 	switch m.ID {
 	case "local-2b", "hy-mt2-1.8b", "qwen3-asr-0.6b":
@@ -121,8 +106,6 @@ func SizeNote(m models.Model) string {
 	return ""
 }
 
-// FamilyName is a family of engines' name, as core.Families gives it: its model's, without a
-// size; else its one engine's.
 func FamilyName(f []core.Engine) string {
 	if m := f[0].Model; m != nil {
 		return m.Family
@@ -133,8 +116,6 @@ func FamilyName(f []core.Engine) string {
 	return EngineName(f[0])
 }
 
-// FamilyNote says what is worth knowing of a family of engines before using it, in a line: what
-// it costs, or how the system's does. "" for the others: their sizes say the rest.
 func FamilyNote(f []core.Engine) string {
 	e := f[0]
 	switch e.Family() {
@@ -152,7 +133,6 @@ func FamilyNote(f []core.Engine) string {
 	return ""
 }
 
-// EngineName is an engine's name: a model's, its family's and its size.
 func EngineName(e core.Engine) string {
 	switch {
 	case e.ID == "":
@@ -179,7 +159,6 @@ func EngineName(e core.Engine) string {
 	return e.ID
 }
 
-// ErrorText says why translating stopped, or "" for no error.
 func ErrorText(err error) string {
 	if err == nil {
 		return ""
@@ -229,19 +208,14 @@ func ErrorText(err error) string {
 	return locales.StatusStopped(e.Message)
 }
 
-// Fix is what resolves an error translating stopped on: the one action beside what ErrorText says.
 type Fix int
 
 const (
-	// FixRetry starts again: what failed may not fail twice.
 	FixRetry Fix = iota
-	// FixEngines chooses or sets up an engine, in Settings › Speech & translation.
 	FixEngines
-	// FixAccess lets the app hear the system, in System Settings.
 	FixAccess
 )
 
-// ErrorFix is what resolves err.
 func ErrorFix(err error) Fix {
 	var e *engine.Error
 	switch {
@@ -253,14 +227,12 @@ func ErrorFix(err error) Fix {
 		return FixEngines
 	case errors.As(err, &e) && e.Code == "no-permission":
 		return FixAccess
-	case errors.As(err, &e) && e.Code == "unsupported-locale": // another recognizer hears it
+	case errors.As(err, &e) && e.Code == "unsupported-locale":
 		return FixEngines
 	}
 	return FixRetry
 }
 
-// FixButton is the button by an error translating stopped on, which does what resolves it:
-// engines shows Settings' Speech & translation page.
 func FixButton(c *ui.Context, k *core.Core, err error, engines func()) {
 	icon, label, do := assets.Reset, locales.Retry(), k.Start
 	switch ErrorFix(err) {
@@ -274,7 +246,6 @@ func FixButton(c *ui.Context, k *core.Core, err error, engines func()) {
 	}
 }
 
-// asrCloudError says why a cloud recognition service failed, or "" for an error not its own.
 func asrCloudError(err error) string {
 	var qe *qwencloud.Error
 	var oe *openai.Error
@@ -293,7 +264,6 @@ func asrCloudError(err error) string {
 	return ""
 }
 
-// Size is a size in bytes, as "1.3 GB", the number held to its unit by a no-break space.
 func Size(n int64) string {
 	switch {
 	case n >= 1<<30:
@@ -304,7 +274,6 @@ func Size(n int64) string {
 	return fmt.Sprintf("%d\u00a0KB", n>>10)
 }
 
-// SceneName is a scene's name as shown: the general one's, or a new one's until it is named.
 func SceneName(s scene.Scene) string {
 	switch {
 	case s.ID == "":

@@ -40,7 +40,6 @@ func recordedEntries(t *testing.T, c *Core) []history.Entry {
 
 func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 	c, _, s := recordingCore(t)
-	// No State.Lines snapshot is needed to retain all twenty committed sentences.
 	for i := 1; i <= 20; i++ {
 		s.cfg.OnLine(live.LineEvent{Kind: live.LineCommitted, Line: live.Line{ID: i, Src: fmt.Sprint(i)}})
 	}
@@ -57,7 +56,6 @@ func TestHistoryRecordsEventsBeyondDisplayWindowInOrder(t *testing.T) {
 			t.Fatalf("entry %d: %+v", i, e)
 		}
 	}
-	// Late/duplicate completion of the retired session cannot be written into the next.
 	c.Start()
 	s.cfg.OnLine(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 21, Src: "stale", Done: true}})
 	c.HistoryService.drain()

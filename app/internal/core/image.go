@@ -13,16 +13,8 @@ import (
 	"tomoru/internal/translate"
 )
 
-// Translating a picture, as the picture's shortcut asks (docs/image-translation.md): a part of the screen
-// the user selects, when the app may capture the screen, else the one on the clipboard. Neither it
-// nor its translation is kept.
-
-// imageCloud is Index-Translate's cloud, which translates pictures, in the size chosen for them.
-// Tests replace it.
 var imageCloud = translate.Cloud
 
-// readsPictures tells whether translation engine id reads pictures: the cloud's sizes, a local model with
-// its vision projector, an endpoint of a format that reads them not found to read none.
 func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	if m, ok := models.ByID(id); ok {
 		return !m.ASR && m.Vision != ""
@@ -39,8 +31,6 @@ func readsPictures(id string, endpoints []prefs.Endpoint) bool {
 	return cloud
 }
 
-// imageEngineFrom is the engine for pictures of one who translates the subtitles with engine id:
-// the same where it reads pictures, else the cloud.
 func imageEngineFrom(id string, endpoints []prefs.Endpoint) string {
 	if readsPictures(id, endpoints) {
 		return id
@@ -48,9 +38,6 @@ func imageEngineFrom(id string, endpoints []prefs.Endpoint) string {
 	return "cloud"
 }
 
-// ImageEngines are the engines to choose for pictures, those that can read them now, in the order
-// of Engines: the local models downloaded, the cloud's sizes, and the user's APIs but those found
-// to read none, or prompted as a model that reads none.
 func (c *Core) ImageEngines() []Engine {
 	var es []Engine
 	for _, e := range c.Engines(MT) {
@@ -61,7 +48,6 @@ func (c *Core) ImageEngines() []Engine {
 	return es
 }
 
-// SetImageEngine translates pictures with engine id from now on, one of ImageEngines.
 func (c *Core) SetImageEngine(id string) {
 	if id == c.Prefs.ImageMT {
 		return
@@ -70,15 +56,12 @@ func (c *Core) SetImageEngine(id string) {
 	c.settingsChanged()
 }
 
-// fitImageEngine has the cloud translate pictures in place of an endpoint gone, or found to read
-// none.
 func (c *Core) fitImageEngine() {
 	if strings.HasPrefix(c.Prefs.ImageMT, prefs.CustomPrefix) && !readsPictures(c.Prefs.ImageMT, c.Prefs.Endpoints) {
 		c.Prefs.ImageMT = "cloud"
 	}
 }
 
-// serving is the local model llama-server runs for the subtitles, "" for none.
 func (c *Core) serving() string {
 	if _, local := models.ByID(c.Prefs.MT); local && c.Running && c.Prefs.Translates() {
 		return c.Prefs.MT
@@ -86,43 +69,36 @@ func (c *Core) serving() string {
 	return ""
 }
 
-// ImageView is the picture translated last, as its card shows it.
 type ImageView struct {
-	PNG     []byte          // the picture; nil when the clipboard had none
-	Area    image.Rectangle // where it was selected, in the screens' pixels; empty when not known
-	Text    string          // the translation so far
+	PNG     []byte
+	Area    image.Rectangle
+	Text    string
 	Running bool
-	Err     error  // why it could not be translated
-	Via     string // the engine translating the picture, as Preferences.ImageMT names it
-	run     int    // the translation's: what an older one sends is dropped
+	Err     error
+	Via     string
+	run     int
 }
 
-// ID tells pictures apart: it changes with each one translated.
 func (v ImageView) ID() int { return v.run }
 
-// ImageService owns picture translation and selection lifetimes. It receives
-// immutable language/glossary inputs, never the application's mutable settings.
 type ImageService struct {
 	Image         ImageView
 	imageCancel   context.CancelFunc
-	selectCancel  context.CancelFunc                   // ends the open selection
-	selectNext    func([]byte, image.Rectangle, error) // selects once the open one has ended
+	selectCancel  context.CancelFunc
+	selectNext    func([]byte, image.Rectangle, error)
 	work          *tasks
-	endpoint      *translate.Endpoint // translates every picture, whatever the engine: for tests
+	endpoint      *translate.Endpoint
 	selectPicture func(context.Context) ([]byte, image.Rectangle, error)
 	changed       func()
-	translated    func(via string) // a picture's translation came, for the numbers
-	release       func()           // the card closed after a local model translated
+	translated    func(via string)
+	release       func()
 }
 
-// imageRoute is how a picture is translated: the endpoint, which open gets ready, of engine via.
 type imageRoute struct {
 	via  string
 	open func(context.Context) (*translate.Endpoint, error)
 }
 
-// TranslateImage translates with a snapshot of the picture's language, and the scene's glossary when
-// it is the subtitles': its names are in that language.
 func (c *Core) TranslateImage(pic []byte) {
 	tgt := c.ImageTgt()
 	var terms []translate.Term
@@ -140,15 +116,12 @@ func (c *Core) TranslateImage(pic []byte) {
 	c.ImageService.translate(pic, tgt, terms, r)
 }
 
-// releaseServer stops llama-server, which a picture had started, unless the subtitles use it.
 func (c *Core) releaseServer() {
 	if c.serving() == "" && c.deps.Server != nil {
 		c.deps.Server.Stop()
 	}
 }
 
-// ImageTgt is the language pictures are translated into: the one chosen on their card, else the
-// subtitles'.
 func (c *Core) ImageTgt() string {
 	if c.Prefs.ImageTgt != "" {
 		return c.Prefs.ImageTgt
@@ -156,7 +129,6 @@ func (c *Core) ImageTgt() string {
 	return c.Prefs.Tgt
 }
 
-// SetImageSize keeps the size the user resized the picture's card to, w by h, for the next.
 func (c *Core) SetImageSize(w, h int) {
 	if w == c.Prefs.ImageW && h == c.Prefs.ImageH {
 		return
@@ -165,8 +137,6 @@ func (c *Core) SetImageSize(w, h int) {
 	c.SavePrefs()
 }
 
-// SetImageTgt translates pictures into l from now on, the one shown again, where it was; the
-// subtitles' language stays. Chosen again, the subtitles' language is followed as it changes.
 func (c *Core) SetImageTgt(l string) {
 	if l == c.ImageTgt() {
 		return
@@ -231,7 +201,6 @@ func (s *ImageService) translate(pic []byte, tgt string, terms []translate.Term,
 	})
 }
 
-// CloseImage cancels the operation and invalidates every queued result.
 func (s *ImageService) CloseImage() {
 	s.stopImage()
 	if _, local := models.ByID(s.Image.Via); local && s.release != nil {
@@ -241,8 +210,6 @@ func (s *ImageService) CloseImage() {
 	s.changed()
 }
 
-// usesServer tells whether the picture shown is translated with a local model, on llama-server:
-// translating the subtitles otherwise must not stop it.
 func (s *ImageService) usesServer() bool {
 	_, local := models.ByID(s.Image.Via)
 	return local && s.Image.PNG != nil
@@ -255,8 +222,6 @@ func (s *ImageService) stopImage() {
 	}
 }
 
-// selectImage has the user select a part of the screen. Asked while a selection is open, which
-// may be stuck out of sight, it ends that one and selects anew once it has.
 func (s *ImageService) selectImage(done func([]byte, image.Rectangle, error)) {
 	if s.selectPicture == nil || s.work.ctx.Err() != nil {
 		return
@@ -283,13 +248,8 @@ func (s *ImageService) selectImage(done func([]byte, image.Rectangle, error)) {
 	})
 }
 
-// CanSelect tells whether the user can select a part of the screen to translate: the app may
-// capture it.
 func (c *Core) CanSelect() bool { return c.Screen == "granted" && c.ImageService.selectPicture != nil }
 
-// SelectImage has the user select a part of the screen, and translates it; shown runs once its
-// translation starts. Cancelled, nothing is translated. Failing, as when Screen Recording was
-// turned off since, it checks the permission again.
 func (c *Core) SelectImage(shown func()) {
 	c.ImageService.selectImage(func(pic []byte, at image.Rectangle, err error) {
 		switch {
@@ -305,9 +265,6 @@ func (c *Core) SelectImage(shown func()) {
 	})
 }
 
-// CheckScreen checks whether the app may capture the screen, unless it did in the last few
-// seconds: views that show it check while they show, as it may be turned on or off in System
-// Settings meanwhile.
 func (c *Core) CheckScreen() {
 	if c.ScreenAsking || time.Since(c.screenCheckedAt) < ListEvery {
 		return
@@ -316,9 +273,6 @@ func (c *Core) CheckScreen() {
 	c.ask(10*time.Second, c.setScreen, "screen-access")
 }
 
-// RequestScreen has the system ask the user for Screen Recording, once; after, it is turned on in
-// System Settings. Where the engine waits for the answer, the user may leave the system's dialog
-// open a while.
 func (c *Core) RequestScreen() {
 	if c.ScreenAsking {
 		return

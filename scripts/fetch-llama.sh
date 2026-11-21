@@ -1,14 +1,6 @@
 #!/bin/sh
-# Puts llama.cpp's llama-server into the app's resources, from llama.cpp's own release, checked
-# against its SHA-256: app/resources/<platform>/bin/llama-server and the libraries it loads (from
-# beside it), and its license in app/resources/<platform>/licenses/.
-#
-#	scripts/fetch-llama.sh [darwin-arm64 | windows-amd64 | linux-amd64]   (default: darwin-arm64)
-#
-# The release is pinned: the one Tomoru's local translation was measured with. On Windows and
-# Linux it is the Vulkan build, which runs on any maker's GPU, and on the CPU without one.
 set -e
-TAG=b11960 # llama.cpp v0.8.0
+TAG=b11960
 platform=${1:-darwin-arm64}
 case $platform in
 darwin-arm64)
@@ -35,22 +27,19 @@ curl -fL --progress-bar -o "$tmp/llama" "$URL"
 echo "$SHA256  $tmp/llama" | sha256sum --strict -c -
 mkdir "$tmp/x"
 mkdir -p "$res/bin" "$res/licenses"
-# An earlier release's files, which this one may not have (b9840's libomp140.x86_64.dll).
 rm -f "$res"/bin/llama-server* "$res"/bin/*llama* "$res"/bin/*ggml* "$res"/bin/*mtmd* "$res"/bin/libomp*
 
 if [ "$platform" = linux-amd64 ]; then
 	tar -xzf "$tmp/llama" -C "$tmp/x"
 	src="$tmp/x/llama-$TAG"
-	# llama-server and the libraries it needs, through those they need (each by the name it is
-	# needed by, a link's file), and ggml's backends, which ggml loads as it starts.
 	need="llama-server"
 	todo="llama-server"
 	while [ -n "$todo" ]; do
 		next=""
 		for f in $todo; do
-			readelf -d "$src/$f" >"$tmp/needed" # apart, for set -e to stop at its failure
+			readelf -d "$src/$f" >"$tmp/needed"
 			for lib in $(sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' "$tmp/needed"); do
-				[ -e "$src/$lib" ] || continue # the system's
+				[ -e "$src/$lib" ] || continue
 				case " $need " in *" $lib "*) ;; *) need="$need $lib"; next="$next $lib" ;; esac
 			done
 		done
@@ -65,9 +54,6 @@ if [ "$platform" = linux-amd64 ]; then
 elif [ "$platform" = windows-amd64 ]; then
 	unzip -q "$tmp/llama" -d "$tmp/x"
 	src="$tmp/x"
-	# llama-server.exe and the libraries it imports, through those they import (objdump of
-	# mingw-w64, which builds the engine too), and ggml's backends, which ggml loads as it starts.
-	# Cross-compiling, mingw-w64's objdump is x86_64-w64-mingw32-objdump; in MSYS2, objdump.
 	objdump=$(command -v x86_64-w64-mingw32-objdump || command -v objdump) || {
 		echo "needs mingw-w64's objdump" >&2
 		exit 1
@@ -77,9 +63,9 @@ elif [ "$platform" = windows-amd64 ]; then
 	while [ -n "$todo" ]; do
 		next=""
 		for f in $todo; do
-			"$objdump" -p "$src/$f" >"$tmp/imports" # apart, for set -e to stop at its failure
+			"$objdump" -p "$src/$f" >"$tmp/imports"
 			for lib in $(awk '/DLL Name/{print $3}' "$tmp/imports"); do
-				[ -f "$src/$lib" ] || continue # the system's
+				[ -f "$src/$lib" ] || continue
 				case " $need " in *" $lib "*) ;; *) need="$need $lib"; next="$next $lib" ;; esac
 			done
 		done
@@ -94,7 +80,6 @@ elif [ "$platform" = windows-amd64 ]; then
 else
 	tar -xzf "$tmp/llama" -C "$tmp/x"
 	src="$tmp/x/llama-$TAG"
-	# llama-server and the libraries it needs, through those they need.
 	need="llama-server"
 	todo="llama-server"
 	while [ -n "$todo" ]; do

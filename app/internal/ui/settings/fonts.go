@@ -13,8 +13,6 @@ import (
 	"tomoru/locales"
 )
 
-// fontEdit is the list of the system's fonts, while it is open: what is typed to find one, as the
-// list was last scrolled for, and the families as they were when it opened.
 type fontEdit struct {
 	open            bool
 	query, scrolled string
@@ -22,8 +20,6 @@ type fontEdit struct {
 	list            ui.ListState
 }
 
-// subtitleFont is the font the subtitles are in, as the picker shows it: font, or the system's
-// for a family not installed, which then draws them.
 func subtitleFont(font string) string {
 	if slices.Contains(prefs.Fonts, font) || slices.ContainsFunc(ui.FontFamilies(), func(f ui.FontFamily) bool { return f.Name == font }) {
 		return font
@@ -31,8 +27,6 @@ func subtitleFont(font string) string {
 	return prefs.Fonts[0]
 }
 
-// fontMenu is the font picker's menu: the presets and a family chosen from the list, then More
-// fonts…, which opens it.
 func (s *Settings) fontMenu(font string) func(m *ui.Menu) {
 	fonts := prefs.Fonts
 	if !slices.Contains(fonts, font) {
@@ -48,7 +42,6 @@ func (s *Settings) fontMenu(font string) func(m *ui.Menu) {
 	}
 }
 
-// openFonts opens the list of the system's fonts at the one in use.
 func (s *Settings) openFonts() {
 	var names []string
 	for _, f := range ui.FontFamilies() {
@@ -62,9 +55,6 @@ func (s *Settings) openFonts() {
 	}
 }
 
-// fontDialog lists the system's fonts, found by a part of their names: each a line in it, bold in
-// the language on top of the subtitles, as they draw it, so a font without that language's script
-// shows the system's it falls back to. A click uses one and closes the list.
 func (s *Settings) fontDialog(c *ui.Context) {
 	d := &s.fonts
 	if !d.open {
@@ -72,7 +62,6 @@ func (s *Settings) fontDialog(c *ui.Context) {
 	}
 	p := kit.Colors(c)
 	pr := s.core.Preferences()
-	// The boss coming: Latin among the language's own script.
 	line := subtitle.Sample(pr, 8)
 	sample, lang := line.Src, line.Lang
 	if pr.Display == prefs.DisplayTgt || pr.Display == prefs.DisplayBoth && pr.TgtFirst {
@@ -107,8 +96,6 @@ func (s *Settings) fontDialog(c *ui.Context) {
 	})
 }
 
-// fontRow is a family of the font list: sample in it, its name under it, and the mark of the one
-// in use. It returns the part that chooses it.
 func fontRow(c *ui.Context, name, sample, lang string, on bool) ui.Element {
 	p := kit.Colors(c)
 	b := ui.ButtonBase(c).Padding(kit.Space(3)).Gap(kit.Space(3)).Justify(ui.Start).AlignItems(ui.Center).Radius(kit.RadiusTile).
@@ -122,7 +109,6 @@ func fontRow(c *ui.Context, name, sample, lang string, on bool) ui.Element {
 	}
 	return b.Background(b.AnimateColor("face", face, kit.Fade)).Children(func() {
 		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
-			// A line as tall in every font, so that the rows are.
 			ui.Text(c, sample).Font(name).Lang(lang).FontSize(kit.TextTitle).LineHeight(1.5).Bold().TextColor(p.Ink).MaxLines(1)
 			kit.OneLine(c, name, kit.TextCaption, 0, p.InkMuted)
 		})

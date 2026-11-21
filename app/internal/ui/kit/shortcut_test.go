@@ -36,7 +36,7 @@ func TestAccelerator(t *testing.T) {
 		{ui.Alt | ui.Shift, ui.KeyT, "Alt+Shift+T"},
 		{ui.Super | ui.Ctrl, ui.Key1, "Ctrl+Cmd+1"},
 		{0, ui.KeyF5, "F5"},
-		{ui.Shift, ui.KeyT, ""}, // Shift alone types a capital
+		{ui.Shift, ui.KeyT, ""},
 		{0, ui.KeyT, ""},
 		{ui.Super, ui.KeyUnknown, ""},
 	} {

@@ -21,42 +21,32 @@ import (
 	"tomoru/locales"
 )
 
-// statsEdit is what the statistics page shows: the period, the kind of engine its chart and list
-// are of, the engine picked out of the chart, and the bar chosen on it; the latency looked into,
-// whether by its spread or day by day, and the bin or day chosen on that chart.
 type statsEdit struct {
-	span    int    // 7 days, 30 days, or all
-	kind    int    // recognition or translation
-	engine  string // the id of the engine picked, if picked
+	span    int
+	kind    int
+	engine  string
 	picked  bool
-	bar     int // -1 for none
-	lat     int // of statsLatencies
-	latView int // the spread, or day by day
-	latBar  int // -1 for none
+	bar     int
+	lat     int
+	latView int
+	latBar  int
 }
 
-// statsSpans are the days of the periods the page shows, all of them for 0.
 var statsSpans = [...]int{7, 30, 0}
 
-// monthly is the most days the chart of all of them shows a bar each of: more, it shows months.
 const monthly = 45
 
-// statsKind is a kind of engine the page shows the use of, as Screen Time shows apps': the uses it
-// has, what an engine of it is, the value the chart stacks and the list ranks by, how it says that
-// value, and what else an engine did.
 type statsKind struct {
 	has      func(usage.Use) bool
 	id       func(usage.Use) string
 	value    func(usage.Counts) float64
-	tick     func(float64) string // a value on the chart's axis
-	tip      func(float64) string // a bar's value, chosen
+	tick     func(float64) string
+	tip      func(float64) string
 	describe func(usage.Use) engineUse
 }
 
-// statsKinds are recognition, by the hours it listened, and translation, by the lines.
 var statsKinds = [...]statsKind{
 	{
-		// Pictures are translated with no recognizer: no recognizer's row.
 		has:      func(u usage.Use) bool { return u.ASR != "" || u.Run > 0 },
 		id:       func(u usage.Use) string { return u.ASR },
 		value:    func(n usage.Counts) float64 { return n.Run / 3600 },
@@ -65,7 +55,6 @@ var statsKinds = [...]statsKind{
 		describe: asrUse,
 	},
 	{
-		// Subtitles of the original only had no translator.
 		has:      func(u usage.Use) bool { return !u.Untranslated },
 		id:       func(u usage.Use) string { return u.MT },
 		value:    func(n usage.Counts) float64 { return float64(n.Lines) },
@@ -75,14 +64,11 @@ var statsKinds = [...]statsKind{
 	},
 }
 
-// stats is the statistics page (docs/design-system.md): over a period, how much recognition or
-// translation did, day by day in a chart stacked by engine and in a list of the engines; and how
-// long the steps took.
 func (s *Settings) stats(c *ui.Context) {
 	k, e := s.core, &s.statsEdit
 	p := kit.Colors(c)
 	if k.Running {
-		c.After(time.Second) // the numbers count on
+		c.After(time.Second)
 	}
 	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Wrap().Children(func() {
 		ui.Text(c, locales.TabStats()).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).Grow(1).MaxLines(1)
@@ -99,7 +85,6 @@ func (s *Settings) stats(c *ui.Context) {
 	buckets, byMonth := statsBuckets(ledger, statsSpans[e.span], now)
 	kind := statsKinds[e.kind]
 	all := func(usage.Use) bool { return true }
-	// The latencies are of all; the rest of the uses of the kind.
 	var total, kindTotal usage.Counts
 	var uses []usage.Use
 	for _, b := range buckets {
@@ -159,7 +144,7 @@ func (s *Settings) stats(c *ui.Context) {
 				}
 			}
 			bar.Tip = b.label + " · " + kind.tip(bar.Value)
-			if len(each) > 1 { // what each engine did of it
+			if len(each) > 1 {
 				bar.Tip += "\n" + strings.Join(each, "\n")
 			}
 			bars[i] = bar
@@ -186,7 +171,7 @@ func (s *Settings) stats(c *ui.Context) {
 				}
 				if kit.ShareRow(c, kit.Share{Color: colors[j], Name: en.name, Sub: en.sub, Value: en.figure, Unit: en.unit, Share: share, Muted: !en.known},
 					picked == j).Clicked() {
-					e.engine, e.picked, e.bar = kind.id(u), picked != j, -1 // again, all of them
+					e.engine, e.picked, e.bar = kind.id(u), picked != j, -1
 				}
 				if len(en.facts) > 0 {
 					kit.Facts(c, en.facts).Padding(0, 0, kit.Space(1), kit.Space(6))
@@ -201,11 +186,10 @@ func (s *Settings) stats(c *ui.Context) {
 	statsLatency(c, e, total.Latency, was, statsSpans[e.span], buckets, byMonth)
 }
 
-// statsDay opens the statistics on the lines of day: of the shortest period with it, its bar chosen.
 func (s *Settings) statsDay(day, now time.Time) {
 	e := &s.statsEdit
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location()) // its start, as today's
+	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location())
 	ago := int(math.Round(today.Sub(day).Hours() / 24))
 	e.span = 2
 	for i, span := range statsSpans {
@@ -226,8 +210,6 @@ func (s *Settings) statsDay(day, now time.Time) {
 	s.Tab = "stats"
 }
 
-// statsTotal is what the kind of engine shown did in all, big, with a day's of it and more beside
-// it, and how much more or less it is than in the span days before, was, if any.
 func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usage.Counts, span int) ui.Element {
 	p := kit.Colors(c)
 	label, value, unit := locales.StatRun(), hours(total.Run), locales.UnitHours()
@@ -262,7 +244,6 @@ func statsTotal(c *ui.Context, kind int, total usage.Counts, days int, was *usag
 	})
 }
 
-// change is how much now is more or less than then, in percent: +18%, −12%.
 func change(now, then float64) string {
 	pct := int(math.Round(100 * (now - then) / then))
 	if pct < 0 {
@@ -271,8 +252,6 @@ func change(now, then float64) string {
 	return fmt.Sprintf("+%d%%", pct)
 }
 
-// statsBefore are the numbers of the span days before the last span days: for comparing, if
-// anything was done then; nothing for all of them, span 0.
 func statsBefore(l usage.Ledger, span int, now time.Time, has func(usage.Use) bool) (sum usage.Counts, ok bool) {
 	if span == 0 {
 		return sum, false
@@ -290,11 +269,8 @@ func statsBefore(l usage.Ledger, span int, now time.Time, has func(usage.Use) bo
 	return sum, ok
 }
 
-// hours is seconds as hours, to a tenth.
 func hours(s float64) string { return strconv.FormatFloat(s/3600, 'f', 1, 64) }
 
-// listening is seconds of listening as the page tells them, a value and its unit: hours to a tenth
-// from one, else whole minutes, else seconds.
 func listening(s float64) (value, unit string) {
 	switch {
 	case s >= 3600:
@@ -305,7 +281,6 @@ func listening(s float64) (value, unit string) {
 	return strconv.Itoa(int(s)), locales.UnitSeconds()
 }
 
-// listened is seconds of listening as listening tells them, in a phrase: 1.5 h, 12 min.
 func listened(s float64) string {
 	v, _ := listening(s)
 	switch {
@@ -317,8 +292,6 @@ func listened(s float64) string {
 	return locales.Seconds(v)
 }
 
-// statsDays are the days of the period: the last span days, or since the first day of the ledger
-// for 0.
 func statsDays(l usage.Ledger, span int, now time.Time) int {
 	if span > 0 {
 		return span
@@ -331,7 +304,6 @@ func statsDays(l usage.Ledger, span int, now time.Time) int {
 	return int(math.Round(today.Sub(first).Hours()/24)) + 1
 }
 
-// engineColors are the colors of the engines in the chart and the list, each its own in any period.
 func engineColors(p *kit.Palette, engines []usage.Use, id func(usage.Use) string) []ui.Color {
 	colors := make([]ui.Color, len(engines))
 	for i, u := range engines {
@@ -340,9 +312,6 @@ func engineColors(p *kit.Palette, engines []usage.Use, id func(usage.Use) string
 	return colors
 }
 
-// engineColor is the color of the engine id: its maker's, a model's in the shade of its size
-// (familyColors); else the lantern's family, by the id of one's own API or a model's family; and
-// the lines' for what no engine was noted of.
 func engineColor(p *kit.Palette, id string) ui.Color {
 	switch id {
 	case "":
@@ -367,15 +336,13 @@ func engineColor(p *kit.Palette, id string) ui.Color {
 		if shades := familyColors(p)[m.Family]; len(shades) > 0 {
 			return shades[min(size, len(shades)-1)]
 		}
-		key = m.Family // its sizes side by side in Series, apart
+		key = m.Family
 	}
 	h := fnv.New32a()
 	h.Write([]byte(key))
 	return p.Series[(h.Sum32()+uint32(size))%uint32(len(p.Series))]
 }
 
-// familyColors are the colors of the families of models, by their makers: a shade for each size,
-// the smallest's first, the last for any larger.
 func familyColors(p *kit.Palette) map[string][]ui.Color {
 	return map[string][]ui.Color{
 		"Index-Translate": {p.Bilibili[2], p.Bilibili[1]},
@@ -384,15 +351,12 @@ func familyColors(p *kit.Palette) map[string][]ui.Color {
 	}
 }
 
-// bucket is a bar of the chart: a day, or a month, and the days of it translating did something.
 type bucket struct {
 	label string
 	at    time.Time
 	days  []usage.Day
 }
 
-// statsBuckets are the days of the last span days to now, or all of them since the first for 0,
-// as the chart's bars: by month when all of them are more than monthly.
 func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth bool) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	from := today.AddDate(0, 0, 1-span)
@@ -427,7 +391,6 @@ func statsBuckets(l usage.Ledger, span int, now time.Time) (bs []bucket, byMonth
 	return bs, byMonth
 }
 
-// round is v to two digits, as a chart's ticks are: 0.25, 1.5, 120.
 func round(v float64) float64 {
 	if v == 0 {
 		return 0
@@ -436,16 +399,11 @@ func round(v float64) float64 {
 	return math.Round(v*p) / p
 }
 
-// latency is a latency of what is said to its translation, chosen among them, as they come in
-// recognition and in translation: how its times spread, or its typical time and 90% of them day by
-// day.
 type latency struct {
 	name, what func() string
 	hist       func(usage.Latency) usage.Hist
 }
 
-// statsLatencies are the latencies the page shows, what the user waits first; then recognition's
-// two and translation's two.
 var statsLatencies = [...]latency{
 	{locales.LatEndToEnd, locales.LatEndToEndDescription, func(l usage.Latency) usage.Hist { return l.EndToEnd }},
 	{locales.LatFirstText, locales.LatFirstTextDescription, func(l usage.Latency) usage.Hist { return l.FirstText }},
@@ -454,9 +412,6 @@ var statsLatencies = [...]latency{
 	{locales.LatTranslation, locales.LatTranslationDescription, func(l usage.Latency) usage.Hist { return l.Translation }},
 }
 
-// statsLatency is the card of the latencies: a tile of each with its typical time, to choose one
-// by; what it measures, and how much faster or slower it is than in the span days before, was, if
-// any; and its chart.
 func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.Latency, span int, buckets []bucket, byMonth bool) {
 	var tiles []kit.Tile
 	timed := false
@@ -514,8 +469,6 @@ func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.L
 	})
 }
 
-// latencyBins are the buckets of h as a histogram's bins, in seconds, to a round time well past
-// p90: those past it left out.
 func latencyBins(h usage.Hist, p90 time.Duration) []kit.Bin {
 	end := 10.0
 	for _, s := range []float64{.5, 1, 2, 3, 4, 5, 7, 10} {
@@ -543,8 +496,6 @@ func latencyBins(h usage.Hist, p90 time.Duration) []kit.Bin {
 	return bins
 }
 
-// latencyDays are the typical time of the latency l and the time 90% came within, of each of the
-// chart's days (or months), in seconds: NaN for those it was not timed in.
 func latencyDays(buckets []bucket, l latency) []kit.Whisker {
 	ws := make([]kit.Whisker, len(buckets))
 	for i, b := range buckets {
@@ -563,8 +514,6 @@ func latencyDays(buckets []bucket, l latency) []kit.Whisker {
 	return ws
 }
 
-// byEngine sums uses by the engine id gives, the most of rank first and those of no engine last;
-// each sum is named by the latest of its uses.
 func byEngine(uses []usage.Use, id func(usage.Use) string, rank func(usage.Counts) float64) []usage.Use {
 	var out []usage.Use
 	at := map[string]int{}
@@ -591,8 +540,6 @@ func byEngine(uses []usage.Use, id func(usage.Use) string, rank func(usage.Count
 	return out
 }
 
-// engineUse is what the list shows of an engine: its name and its model, the value it is ranked by,
-// and its other figures, what it did, then how long it took.
 type engineUse struct {
 	name, sub    string
 	figure, unit string
@@ -600,8 +547,6 @@ type engineUse struct {
 	facts        []kit.Fact
 }
 
-// asrUse is what a recognizer did: how long it listened, the speech it heard and the audio a cloud
-// one was sent, then how soon it recognized.
 func asrUse(u usage.Use) engineUse {
 	e := engineUse{known: u.ASR != ""}
 	e.name, e.sub = asrName(u)
@@ -617,8 +562,6 @@ func asrUse(u usage.Use) engineUse {
 	return e
 }
 
-// mtUse is what a translator did: the lines, their letters, the tokens they took, the lines it
-// failed and the pictures it translated, then how soon it translated.
 func mtUse(u usage.Use) engineUse {
 	e := engineUse{figure: kit.Count(u.Lines), unit: locales.UnitLines(), known: u.MT != ""}
 	e.name, e.sub = mtName(u)
@@ -641,7 +584,6 @@ func mtUse(u usage.Use) engineUse {
 	return e
 }
 
-// asrName names a recognizer, and the cloud's model.
 func asrName(u usage.Use) (name, model string) {
 	if u.ASR == "" {
 		return locales.EngineUnknown(), ""
@@ -649,8 +591,6 @@ func asrName(u usage.Use) (name, model string) {
 	return shared.EngineName(core.Engine{ID: u.ASR}), u.ASRModel
 }
 
-// mtName names a translator, and an endpoint's or a cloud service's model: an endpoint by its
-// name, as they were.
 func mtName(u usage.Use) (name, model string) {
 	switch {
 	case u.MT == "":
@@ -661,7 +601,6 @@ func mtName(u usage.Use) (name, model string) {
 	return shared.EngineName(core.Engine{ID: u.MT}), u.MTModel
 }
 
-// latencies are the typical times of hs, named by names, those timed.
 func latencies(names []string, hs ...usage.Hist) []kit.Fact {
 	var facts []kit.Fact
 	for i, h := range hs {
@@ -674,8 +613,6 @@ func latencies(names []string, hs ...usage.Hist) []kit.Fact {
 
 func seconds(s float64) time.Duration { return time.Duration(s * float64(time.Second)) }
 
-// faster says how much faster or slower the typical time now is than then, of the span days before:
-// in green faster, in red slower, the same within a twentieth of a second or a twentieth of it.
 func faster(c *ui.Context, span int, now, then time.Duration) {
 	p := kit.Colors(c)
 	d := now - then

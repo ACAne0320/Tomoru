@@ -12,8 +12,6 @@ import (
 	"tomoru/locales"
 )
 
-// feedbackEdit is feedback being written: a problem (0) or an idea (1), the user's words, kept
-// until sent or cleared, whether the text copied shows, and when it was last copied.
 type feedbackEdit struct {
 	open, shown bool
 	kind        int
@@ -21,11 +19,6 @@ type feedbackEdit struct {
 	copied      time.Time
 }
 
-// feedbackDialog asks what went wrong, or what the user would like, and copies it with the app's
-// setup and a guide for either, for an AI agent to make an issue of it with the user; or opens the
-// repository's form for either, started with the same. It sums up the setup as the app names it,
-// and that nothing private goes with it; the text itself, the computer's memory with it, shows
-// unfolded.
 func (s *Settings) feedbackDialog(c *ui.Context) {
 	d, k := &s.feedback, s.core
 	if !d.open {
@@ -55,8 +48,6 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 			})
 			kit.ResultMark(c, assets.Lock, locales.FeedbackPrivate(), true)
 		})
-		// The text, and the box written in, give way when the window is short: the rest keep their
-		// size.
 		ui.Column(c).Gap(kit.Space(2)).MinHeight(0).Children(func() {
 			if kit.Disclosure(c, &d.shown, locales.FeedbackShow()) {
 				ui.Scroll(c).MaxHeight(200).MinHeight(kit.Space(16)).Padding(kit.Space(3)).Radius(kit.RadiusField).Border(1, p.Line).Children(func() {
@@ -82,8 +73,6 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 	})
 }
 
-// feedbackFacts is what goes with a report, on sand under title: each fact's name in a column of its
-// own, its value beside it, wrapping as a long model's name does.
 func feedbackFacts(c *ui.Context, title string, facts []kit.Fact) ui.Element {
 	p := kit.Colors(c)
 	return ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Radius(kit.RadiusField).Background(p.Sand).Children(func() {
@@ -97,8 +86,6 @@ func feedbackFacts(c *ui.Context, title string, facts []kit.Fact) ui.Element {
 	})
 }
 
-// engineName is engine id of kind k as the app names it, or its ID where the app knows it not;
-// an API of one's own by its model, as the report says it, not by the name one gave it.
 func engineName(k *core.Core, kind core.Kind, id string) string {
 	e, ok := k.Engine(kind, id)
 	if !ok {

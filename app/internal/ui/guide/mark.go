@@ -8,9 +8,6 @@ import (
 	"tomoru/internal/ui/kit"
 )
 
-// mark is the state of something the guide waits for, size DIPs wide: a ring while it waits, a
-// spinner while it works, and once done a green disc popping up with a check drawn in; or a
-// warning.
 func mark(c *ui.Context, size float32, done, busy, failed bool) ui.Element {
 	pal := kit.Colors(c)
 	box := ui.Box(c).Size(size, size).Center()

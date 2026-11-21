@@ -17,10 +17,8 @@ import (
 	"unsafe"
 )
 
-// selectArea has the user select a part of the screen and writes its picture to path, as PNG, and
-// tells where it is. Cancelled, it writes nothing, as macOS's screencapture does, and tells nothing.
 func selectArea(path string) (*image.Rectangle, error) {
-	runtime.LockOSThread() // GTK, on the thread that started it
+	runtime.LockOSThread()
 	app, out := C.CString(appID()), C.CString(path)
 	defer C.free(unsafe.Pointer(app))
 	defer C.free(unsafe.Pointer(out))
@@ -37,10 +35,6 @@ func selectArea(path string) (*image.Rectangle, error) {
 	}
 }
 
-// screenAccess tells whether the user lets the app take pictures of the screen, under Wayland,
-// where the desktop asks them: "granted", else "unknown", a no included, since asking again
-// works; request has the desktop ask, which GNOME does only while the app has the focus, as in
-// the first-run guide.
 func screenAccess(request bool) string {
 	app := C.CString(appID())
 	defer C.free(unsafe.Pointer(app))
@@ -60,8 +54,6 @@ func screenAccess(request bool) string {
 	}
 }
 
-// appID is the ID the portals know the app by, which MyGo gives them: its desktop entry's, the
-// one that launched it, else its program's name.
 func appID() string {
 	for _, env := range []string{"GIO_LAUNCHED_DESKTOP_FILE", "BAMF_DESKTOP_FILE_HINT"} {
 		if p := os.Getenv(env); p != "" {

@@ -35,7 +35,6 @@ func TestStopAccountsForRuntimeReportsStillQueuedForUI(t *testing.T) {
 	c.Start()
 	f.flush(t, 1)
 	f.sessions[0].report(live.State{Phase: "listening", Stats: live.Stats{Lines: 5, Chars: 30}})
-	// Do not flush the app queue. Stop invalidates those UI updates but must keep their totals.
 	c.Stop()
 	if got := c.TodayStats(); got.Lines != 5 || got.Chars != 30 {
 		t.Fatalf("queued usage lost: %+v", got)

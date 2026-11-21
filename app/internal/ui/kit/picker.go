@@ -6,9 +6,6 @@ import (
 	"tomoru/internal/ui/assets"
 )
 
-// Picker shows value on the track a segmented control has, as tall, and opens a native menu that
-// build fills: "Listen to [Safari]", a setting's font. Name it with Label. Made wider, as in a
-// Control, its value keeps to the start and the chevron to the end.
 func Picker(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element {
 	p := Colors(c)
 	const h = 36
@@ -24,8 +21,6 @@ func Picker(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element {
 	})
 }
 
-// Choices fills a menu with options, named by name, value checked, choose taking another. An
-// option "" is a separator.
 func Choices(value string, options []string, name func(string) string, choose func(string)) func(m *ui.Menu) {
 	return func(m *ui.Menu) {
 		for _, o := range options {

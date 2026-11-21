@@ -31,7 +31,6 @@ func TestHistoryRetriesFailedWritesAcrossSessionRestart(t *testing.T) {
 		t.Fatal("repeated failure lost pending lines")
 	}
 
-	// Starting another session must retain the failed run and preserve the session boundary.
 	second := s.begin()
 	second.accept(live.LineEvent{Kind: live.LineCompleted, Line: live.Line{ID: 1, Src: "new session", Done: true}}, policy)
 	if err := os.Remove(blocked); err != nil {
@@ -67,7 +66,6 @@ func TestHistoryRetriesFailedWritesAcrossSessionRestart(t *testing.T) {
 			t.Fatalf("%q written %d times", text, counts[text])
 		}
 	}
-	// Draining again cannot repeat already acknowledged sentences.
 	s.drain()
 	if len(first.lines) != 0 || len(second.lines) != 0 {
 		t.Fatal("acknowledged lines returned")

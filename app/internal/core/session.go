@@ -12,7 +12,6 @@ import (
 	"tomoru/internal/models"
 )
 
-// Toggle starts translating, or stops it.
 func (c *Core) Toggle() {
 	if c.Running {
 		c.Stop()
@@ -21,9 +20,6 @@ func (c *Core) Toggle() {
 	}
 }
 
-// Start starts translating with the settings as they are. The translator gets ready first: a
-// local model loads in a few seconds, in the background. With the original alone there is none to
-// get ready, and no translation engine is asked for, nor needs setting up.
 func (c *Core) Start() {
 	if c.closed || c.work.ctx.Err() != nil {
 		return
@@ -68,7 +64,7 @@ func (c *Core) Start() {
 		policy, ok := ev.Metadata.(*historyPolicy)
 		if !ok {
 			policy = c.HistoryService.policy.Load()
-		} // adapters without metadata
+		}
 		record.accept(ev, policy)
 		c.work.Post(func() {
 			if c.HistoryService.recording == record {
@@ -80,14 +76,12 @@ func (c *Core) Start() {
 	spec, _ := asr.ByID(p.ASR)
 	served := spec.Model != nil && spec.Model.Served()
 	if !served && c.deps.ASRServer != nil {
-		c.deps.ASRServer.Stop() // its memory back, the model not in use
+		c.deps.ASRServer.Stop()
 	}
 	switch {
 	case spec.Cloud:
 		providers, api, hints := c.EngineService, c.API(p.ASR), c.hints()
 		request.Prepare = func(ctx context.Context, cfg *live.Config) error {
-			// Credential access may block; resolve it with the translator's background
-			// preparation, before the application thread starts the runtime.
 			cloud := providers.cloudConfig(api, "")
 			if err := ctx.Err(); err != nil {
 				return err
@@ -99,7 +93,6 @@ func (c *Core) Start() {
 	case served:
 		env := asr.Env{Server: c.deps.ASRServer, ModelPath: c.deps.Models.Path(p.ASR), Scene: c.hints()}
 		request.Prepare = func(ctx context.Context, cfg *live.Config) error {
-			// Loading the model takes seconds, warming it on a GPU the first time up to a minute.
 			env.Context = ctx
 			var err error
 			if cfg.Recognize, err = spec.New(env); err != nil {
@@ -111,9 +104,6 @@ func (c *Core) Start() {
 	c.SessionController.start(request)
 }
 
-// localRecognizer resolves a recognizer on this computer: a model tomoru-asr runs, downloaded, or
-// the system's, whose nil factory leaves recognition to the capture engine. A model llama-server
-// runs, downloaded, is made in the worker, as the cloud's with its credentials: nil here.
 func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 	s, ok := asr.ByID(id)
 	if !ok || s.Cloud {
@@ -142,9 +132,6 @@ func (c *Core) localRecognizer(id string) (asr.Factory, error) {
 	return s.New(env)
 }
 
-// MoveModels moves the local models into a folder of their own in dir (models.Destination), and
-// keeps them there. Translating stops while they
-// move, and the models' servers, which hold their files open, then goes on if it was on.
 func (c *Core) MoveModels(dir string) {
 	if c.closed || c.deps.Models == nil || c.deps.Models.Moving().Active {
 		return
@@ -174,15 +161,13 @@ func (c *Core) MoveModels(dir string) {
 	c.changed()
 }
 
-// Shutdown cancels every feature before waiting for application workers.
 func (c *Core) Shutdown() {
 	if c.closed {
 		return
 	}
 	c.closed = true
-	c.work.cancel() // invalidate queued callbacks before any feature begins shutting down
+	c.work.cancel()
 	c.stop()
-	// A stopped session may still have retryable output after a storage failure.
 	c.HistoryService.drain()
 	c.closeHistory()
 	c.StopSpeaking()
@@ -204,7 +189,6 @@ func (c *Core) Shutdown() {
 	c.SavePrefs()
 }
 
-// Stop stops translating, and the local models with it.
 func (c *Core) Stop() {
 	if c.stop() {
 		c.freeModels()
@@ -214,10 +198,6 @@ func (c *Core) Stop() {
 
 func (c *Core) stop() bool { return c.SessionController.stop() }
 
-// freeModels stops the local models' llama-servers, which give their memory back (8.6 GB for
-// Qwen3-ASR 1.7B and Index-Translate 9B), but for a picture's translation on one: starting again
-// loads them in 1 to 3 s from the system's file cache. Restarting, as when the languages change,
-// keeps them.
 func (c *Core) freeModels() {
 	c.EngineService.freeServer(c.ImageService.usesServer())
 	if c.deps.ASRServer != nil {
@@ -225,18 +205,14 @@ func (c *Core) freeModels() {
 	}
 }
 
-// RestartIfRunning restarts translating, which takes its languages, source, drafting and whether
-// it translates as it starts.
 func (c *Core) RestartIfRunning() {
 	if c.Running {
 		c.Start()
 	}
 }
 
-// SetSrc makes l the language spoken; choosing the target swaps them (lang.Choose).
 func (c *Core) SetSrc(l string) { c.setLang(&c.Prefs.Src, &c.Prefs.Tgt, l) }
 
-// SetTgt makes l the language to translate into; choosing the source swaps them.
 func (c *Core) SetTgt(l string) { c.setLang(&c.Prefs.Tgt, &c.Prefs.Src, l) }
 
 func (c *Core) setLang(side, other *string, l string) {
@@ -250,7 +226,6 @@ func (c *Core) setLang(side, other *string, l string) {
 	c.settingsChanged()
 }
 
-// Swap swaps the languages, if the recognition hears the target (CanSwap).
 func (c *Core) Swap() {
 	if !c.CanSwap() {
 		return
@@ -261,7 +236,6 @@ func (c *Core) Swap() {
 	c.settingsChanged()
 }
 
-// SetSource hears the app id, named name, or with "" all the system's sound.
 func (c *Core) SetSource(id, name string) {
 	if id == c.Prefs.Source {
 		return

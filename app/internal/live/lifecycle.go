@@ -5,7 +5,6 @@ import (
 	"slices"
 )
 
-// LineEventKind describes a committed sentence's lifecycle.
 type LineEventKind string
 
 const (
@@ -14,16 +13,9 @@ const (
 	LineCompleted LineEventKind = "completed"
 )
 
-// LineEvent is a complete copy of one sentence at a lifecycle transition. Each committed ID
-// receives exactly one completion, including a skipped translation (Err is ErrBehind) or a
-// cancellation (Err is context.Canceled). Progress and completion retain Src, Heard and
-// Draft even after State.Lines evicts the sentence. Events are serialized in transition order;
-// queue overflow can complete newer IDs before older translations. Consumers that write ordered
-// records should buffer by ID until preceding sentences complete.
 type LineEvent struct {
-	Kind LineEventKind
-	Line Line
-	// Metadata is the immutable value returned by Config.LineMetadata at commitment.
+	Kind     LineEventKind
+	Line     Line
 	Metadata any
 }
 
@@ -37,7 +29,6 @@ type notification struct {
 	state *State
 }
 
-// emitLine, emitState and signalReports run under s.mu.
 func (s *Session) emitLine(kind LineEventKind, line Line, metadata any) {
 	if s.cfg.OnLine == nil {
 		return
@@ -65,8 +56,6 @@ func (s *Session) signalReports() {
 	}
 }
 
-// reportLoop gives state and sentence consumers one ordered stream, without running consumer
-// code under the state lock. Reports are never dropped; callbacks must return promptly.
 func (s *Session) reportLoop() {
 	defer close(s.reportsDone)
 	for {
@@ -93,8 +82,6 @@ func (s *Session) reportLoop() {
 	}
 }
 
-// installProcesses also covers cancellation while a process is still starting. Constructors
-// may synchronously report events, so no session lock is held while calling them.
 func (s *Session) installProcesses(fin finalizer, procs ...stopper) {
 	s.procMu.Lock()
 	s.proc = fin
@@ -107,9 +94,6 @@ func (s *Session) installProcesses(fin finalizer, procs ...stopper) {
 	}
 }
 
-// Stop ends the session. Every unfinished committed sentence completes with its last translation
-// and draft preserved. It cancels translation and drafting, and requests all child processes to
-// stop. Stop is idempotent and can be called by a reporting callback.
 func (s *Session) Stop() { s.stop(nil) }
 
 func (s *Session) stop(err error) {
@@ -134,8 +118,6 @@ func (s *Session) stop(err error) {
 	}
 	s.mu.Unlock()
 
-	// installProcesses stops children added after cancellation. Stop is also called by the
-	// context watcher; child Stop implementations are required to be idempotent.
 	s.procMu.Lock()
 	procs := slices.Clone(s.procs)
 	s.procMu.Unlock()
@@ -144,9 +126,6 @@ func (s *Session) stop(err error) {
 	}
 }
 
-// Wait waits for cancellation, all translation and draft workers, child processes, and the final
-// reporting callback. Call Stop first, or cancel Config.Context. A translator must honor its
-// context. Wait must not be called from a reporting callback.
 func (s *Session) Wait() {
 	<-s.workersDone
 	s.procMu.Lock()

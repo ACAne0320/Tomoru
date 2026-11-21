@@ -19,8 +19,6 @@ import (
 	"tomoru/internal/engine"
 )
 
-// fakeService is the service: it starts the task, counts the audio, and answers with the results
-// given, a volatile one after the first audio and a final one after the second.
 func fakeService(t *testing.T, key string) (*httptest.Server, *[]map[string]any, *int) {
 	var run []map[string]any
 	audio := 0
@@ -80,8 +78,6 @@ func TestSession(t *testing.T) {
 		mu.Unlock()
 	})
 	defer s.Stop()
-	// The engine's time starts before the service's: its first audio is at 2 s, which the service
-	// hears after the lead's 0.2 s of silence.
 	s.Audio(audioAt(2))
 	s.Audio(audioAt(2.1))
 	var results []engine.Event
@@ -115,14 +111,12 @@ func TestSession(t *testing.T) {
 	if p["model"] != Models[0] || params["sample_rate"] != 16000.0 || params["format"] != "pcm" || params["language_hints"].([]any)[0] != "ja" {
 		t.Errorf("run-task %v", p)
 	}
-	// What it is told to expect: the names as hot words, and the scene as context.
 	vocab, _ := params["vocabulary"].(map[string]any)
 	ctxt, _ := p["input"].(map[string]any)["context"].([]any)
 	if vocab["一心"] != float64(weight) || len(vocab) != 2 || len(ctxt) != 1 ||
 		ctxt[0].(map[string]any)["content"].([]any)[0].(map[string]any)["text"] != "只狼的对话\n一心、葦名" {
 		t.Errorf("hints %v, %v", vocab, ctxt)
 	}
-	// Billed: the lead's silence and the two pieces of audio.
 	if sent := s.Sent(); sent < .399 || sent > .401 {
 		t.Errorf("sent %v s", sent)
 	}
@@ -133,12 +127,10 @@ func TestSession(t *testing.T) {
 	}
 }
 
-// TestIdle hangs up after idle seconds without voice, and calls again when voice starts, with
-// the preroll before it.
 func TestIdle(t *testing.T) {
 	var mu sync.Mutex
-	var calls []int // bytes of audio each call got
-	ended := 0      // calls hung up
+	var calls []int
+	ended := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c, err := websocket.Accept(w, r, nil)
 		if err != nil {
@@ -198,7 +190,6 @@ func TestIdle(t *testing.T) {
 	for i := range 105 {
 		s.Audio(audioAt(at(i)))
 	}
-	// 10 s of audio, the last ending at 10 s, went before the hang-up.
 	wait("hung up", func() bool { return ended == 1 })
 	if calls[0] != 2*lead+100*3200 {
 		t.Errorf("first call got %d bytes", calls[0])
@@ -210,7 +201,6 @@ func TestIdle(t *testing.T) {
 	for i := 120; i < 125; i++ {
 		s.Audio(audioAt(at(i)))
 	}
-	// The second call: the lead, the audio from 11.0, and what came after.
 	wait("called again", func() bool { return len(calls) == 2 && calls[1] == 2*lead+15*3200 })
 	wait("result", func() bool {
 		for _, ev := range evs {
@@ -238,17 +228,14 @@ func TestIdle(t *testing.T) {
 	}
 }
 
-// loudAt is 100 ms of sound, a song's with no voice detected in it, from t.
 func loudAt(t float64) engine.Event {
 	pcm := make([]byte, 3200)
 	for i := 0; i < len(pcm); i += 2 {
-		pcm[i+1] = 0x10 // 4096
+		pcm[i+1] = 0x10
 	}
 	return engine.Event{Type: "audio", T: t, PCM: base64.StdEncoding.EncodeToString(pcm)}
 }
 
-// TestIdleSound keeps the call while sound plays with no voice detected, as music, and calls
-// again when sound comes after it hung up.
 func TestIdleSound(t *testing.T) {
 	var mu sync.Mutex
 	calls, ended := 0, 0
@@ -288,7 +275,7 @@ func TestIdleSound(t *testing.T) {
 	defer s.Stop()
 	s.Voice(engine.Event{Type: "voice", On: false, T: 0})
 	for i := range 150 {
-		s.Audio(loudAt(float64(i) / 10)) // 15 s of a song
+		s.Audio(loudAt(float64(i) / 10))
 	}
 	time.Sleep(200 * time.Millisecond)
 	mu.Lock()
@@ -297,7 +284,7 @@ func TestIdleSound(t *testing.T) {
 	}
 	mu.Unlock()
 	for i := 150; i < 260; i++ {
-		s.Audio(audioAt(float64(i) / 10)) // 11 s of silence
+		s.Audio(audioAt(float64(i) / 10))
 	}
 	for deadline := time.Now().Add(3 * time.Second); ; time.Sleep(10 * time.Millisecond) {
 		mu.Lock()
@@ -314,8 +301,6 @@ func TestIdleSound(t *testing.T) {
 	s.Audio(engine.Event{Type: "audio", T: 26.1, PCM: base64.StdEncoding.EncodeToString(nextPCM)})
 	select {
 	case got := <-resumed:
-		// Lead silence, 0.5 s preroll, the sound that resumed the call once, and
-		// the following chunk, in order and without adding time to the audio clock.
 		want := make([]byte, 2*lead+5*3200)
 		first, _ := base64.StdEncoding.DecodeString(loudAt(26).PCM)
 		want = append(want, first...)
@@ -328,29 +313,19 @@ func TestIdleSound(t *testing.T) {
 	}
 }
 
-// TestSteady keeps only the sentence ends of the volatile texts the service settled on, as
-// Model Studio sent them for a Korean and a Japanese recording.
 func TestSteady(t *testing.T) {
 	for _, c := range []struct{ lang, prev, cur, want string }{
-		// A preview's end, joined to what follows.
 		{"ko", "현역 은퇴 잘 놀다.", "현역 은퇴 잘 놀다.다는 게.", "현역 은퇴 잘 놀다다는 게"},
-		// A settled end, with a space after it.
 		{"ko", "가셨다고 그렇죠. 저 뭐", "가셨다고 그렇죠. 저 뭐 좋은 곳으로", "가셨다고 그렇죠. 저 뭐 좋은 곳으로"},
-		// An end first seen, with the preview after it.
 		{"ko", "그리고 가운데서", "그리고 가운데서 어버하고. 옛날은 찦가.", "그리고 가운데서 어버하고 옛날은 찦가"},
-		// A sentence's first preview, in Chinese.
 		{"ko", "", "没差", ""},
 		{"ko", "", "뭐 자본지", "뭐 자본지"},
-		// Japanese: no spaces; an end and the letter after it as they were.
 		{"ja", "らしいです。でめちゃくちゃ厳", "らしいです。でめちゃくちゃ厳しくて", "らしいです。でめちゃくちゃ厳しくて"},
 		{"ja", "らしいです", "らしいです。でめちゃくちゃ厳", "らしいですでめちゃくちゃ厳"},
 		{"ja", "厳格な人で", "厳格な人で", "厳格な人で"},
-		// Chinese keeps its ends.
 		{"zh", "大家好", "大家好。今天我们。", "大家好。今天我们。"},
 		{"yue", "大家好", "大家好。今日我哋。", "大家好。今日我哋。"},
-		// Han characters go from any language not written with them.
 		{"es", "", "没差", ""},
-		// An end ending the text, sent again as it was: the speaker paused.
 		{"ja", "らしいです。", "らしいです。", "らしいです。"},
 		{"ko", "주주총회입니다.", "주주총회입니다.", "주주총회입니다."},
 		{"en", "Hello everyone. Wel", "Hello everyone. Welcome to the.", "Hello everyone. Welcome to the"},
@@ -405,8 +380,6 @@ func TestURL(t *testing.T) {
 	}
 }
 
-// TestReal connects to the real service with DASHSCOPE_API_KEY and DASHSCOPE_API_HOST, when they
-// are set.
 func TestReal(t *testing.T) {
 	key := os.Getenv("DASHSCOPE_API_KEY")
 	if key == "" {

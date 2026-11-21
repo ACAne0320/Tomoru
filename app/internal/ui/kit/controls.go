@@ -11,8 +11,6 @@ import (
 	"tomoru/locales"
 )
 
-// Swatches choose a color among colors, or any color with the well after them, which opens a
-// color picker. The well shows the color as it is, marked as chosen when it is none of colors.
 func Swatches(c *ui.Context, v *string, colors []string) {
 	ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
 		custom := true
@@ -37,9 +35,6 @@ func Swatches(c *ui.Context, v *string, colors []string) {
 	})
 }
 
-// Slider sets *v from lo to hi in whole steps, named label, its value and unit after it at the
-// end: a subtitle's size, or its opacity in "%". Grown, as in a Control, the track takes the room.
-// In a disabled row (SettingRowOff) it fades.
 func Slider(c *ui.Context, v *float64, lo, hi float64, unit, label string) ui.Element {
 	row := ui.Row(c).Gap(Space(2)).AlignItems(ui.Center)
 	if row.IsDisabled() {
@@ -48,14 +43,12 @@ func Slider(c *ui.Context, v *float64, lo, hi float64, unit, label string) ui.El
 	return row.Children(func() {
 		ui.Slider(c, v, lo, hi).Step(1).Grow(1).Label(label)
 		ui.Text(c, strconv.Itoa(int(*v))+unit).FontSize(TextControl).FontWeight(WeightBold).FontFeatures(Tabular).
-			TextColor(Colors(c).InkMuted).MinWidth(Space(10)).TextAlign(ui.End) // "100%": the tracks of a card end together
+			TextColor(Colors(c).InkMuted).MinWidth(Space(10)).TextAlign(ui.End)
 	})
 }
 
-// offOpacity fades a control of MyGo's own colors, which a disabled row can't make faint.
 const offOpacity = .45
 
-// hexOf is col as the settings keep it: #rrggbb, or #rrggbbaa when it is not opaque.
 func hexOf(col ui.Color) string {
 	if col.A == 255 {
 		return fmt.Sprintf("#%02x%02x%02x", col.R, col.G, col.B)
@@ -63,26 +56,21 @@ func hexOf(col ui.Color) string {
 	return fmt.Sprintf("#%02x%02x%02x%02x", col.R, col.G, col.B, col.A)
 }
 
-// Tag is a small label beside a name.
 func Tag(c *ui.Context, s string) ui.Element {
 	p := Colors(c)
 	return ui.Text(c, s).FontSize(TextMicro).FontWeight(WeightBold).TextColor(p.InkWarm).Background(p.Fill).Radius(99).Padding(1, Space(2))
 }
 
-// AccentTag is a Tag in the lantern's amber: a word for the one to pick, as Recommended.
 func AccentTag(c *ui.Context, s string) ui.Element {
 	p := Colors(c)
 	return ui.Text(c, s).FontSize(TextMicro).FontWeight(WeightBold).TextColor(p.LanternText).Background(p.LanternTint).Radius(99).Padding(1, Space(2))
 }
 
-// OkTag is a Tag in green: a word for what is ready, as Downloaded.
 func OkTag(c *ui.Context, s string) ui.Element {
 	p := Colors(c)
 	return ui.Text(c, s).FontSize(TextMicro).FontWeight(WeightBold).TextColor(p.OkText).Background(p.OkTint).Radius(99).Padding(1, Space(2))
 }
 
-// Progress is a progress bar that goes smoothly from one value to the next, as a download's comes
-// a few times a second.
 func Progress(c *ui.Context, value float64) ui.Element {
 	box := ui.Box(c)
 	v := box.AnimateTo("value", float32(value), ui.Animation{Duration: 400 * time.Millisecond, Ease: ui.Linear})

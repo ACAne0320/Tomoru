@@ -15,8 +15,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// Learning is the progress and suggestions shown by the learning dialog. Only application-thread
-// callbacks change it; worker inputs are separate immutable copies.
 type Learning struct {
 	Running     bool
 	Done, Total int
@@ -28,7 +26,6 @@ type Learning struct {
 	Finished    bool
 }
 
-// Retranslating is the progress of translating kept sessions with the current glossary.
 type Retranslating struct {
 	Running     bool
 	Done, Total int
@@ -49,26 +46,20 @@ type learningRequest struct {
 type retranslationRequest struct {
 	Paths   []string
 	Terms   []scene.Term
-	General bool // the terms are the general scene's
+	General bool
 	Ready   func(context.Context) (translate.Translator, error)
 	Err     error
 }
 
-// LearningService owns learning and history retranslation. The facade supplies snapshots and
-// factories; this service owns IO, model calls, cancellation, result ordering and view updates.
-// Public actions and view reads belong to the application thread, like Core's other services.
 type LearningService struct {
 	Learning                Learning
 	Retranslating           Retranslating
 	work                    *tasks
 	changed                 func()
-	rewritten               func() // application-thread notification after accepted successful rewrites
+	rewritten               func()
 	learning, retranslating *learningOperation
 }
 
-// A run token outlives its worker: successful results may still be queued on the application
-// thread after resource cleanup cancels ctx. Only explicit cancellation/replacement invalidates
-// those results. This separates resource cleanup from stale-result detection.
 type learningOperation struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
@@ -94,8 +85,6 @@ func (o *learningOperation) valid() bool {
 	return !o.stopped
 }
 
-// rewrite serializes the commit with cancellation. A write already underway may finish before
-// CancelRetranslating returns; after cancellation returns this run cannot change another file.
 func (o *learningOperation) rewrite(path string, entries []history.Entry) (bool, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
@@ -186,7 +175,6 @@ func (s *LearningService) startLearning(r learningRequest) {
 	})
 }
 
-// CancelLearning preserves suggestions already accepted on the application thread.
 func (s *LearningService) CancelLearning() {
 	if s.learning != nil {
 		s.learning.invalidate()
@@ -223,7 +211,7 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 	r.Terms = cloneTerms(r.Terms)
 	s.Retranslating = Retranslating{Running: true}
 	defer s.notify()
-	if r.Err == nil && r.Ready == nil { // the scene is gone
+	if r.Err == nil && r.Ready == nil {
 		s.Retranslating = Retranslating{Finished: true}
 		return
 	}
@@ -258,8 +246,6 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 			}
 			sessions = append(sessions, session{path: path, head: head, entries: entries})
 		}
-		// A session that showed the original alone only takes the names written right: the
-		// translator gets ready only for those translated.
 		var tr translate.Translator
 		if translates {
 			err := r.Err
@@ -332,7 +318,6 @@ func (s *LearningService) startRetranslating(r retranslationRequest) {
 	})
 }
 
-// CancelRetranslating keeps files already committed and prevents further writes or refreshes.
 func (s *LearningService) CancelRetranslating() {
 	if s.retranslating != nil {
 		s.retranslating.invalidate()
@@ -350,7 +335,6 @@ func (s *LearningService) ForgetRetranslating() {
 	s.notify()
 }
 
-// chunk cuts a session into at most learn.Chunk seconds and 60 nonempty lines.
 func chunk(entries []history.Entry) [][]learn.Line {
 	var out [][]learn.Line
 	var current []learn.Line
@@ -372,8 +356,6 @@ func chunk(entries []history.Entry) [][]learn.Line {
 	return out
 }
 
-// fix tells whether the glossary changes a line of a session: its translation, or, where nothing
-// was translated, the names written in it.
 func fix(g *scene.Glossary, entry history.Entry, head history.Head) bool {
 	src, terms := g.Apply(heard(entry))
 	if head.Untranslated {
@@ -389,7 +371,6 @@ func heard(entry history.Entry) string {
 	return entry.Src
 }
 
-// spokenIn is the language e was heard in, of lang.All, in a session of h; "" where not known.
 func spokenIn(e history.Entry, h history.Head) string {
 	if e.Lang != "" || h.Src == lang.Auto {
 		return e.Lang

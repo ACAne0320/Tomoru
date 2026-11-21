@@ -15,7 +15,7 @@ func TestHist(t *testing.T) {
 	for _, ms := range []int{150, 250, 350, 450, 2600} {
 		h.Add(time.Duration(ms) * time.Millisecond)
 	}
-	h.Add(-time.Second) // a clock that went back: none
+	h.Add(-time.Second)
 	if h.N != 6 || h.B[0] != 1 || h.B[1] != 1 || h.B[16] != 1 {
 		t.Errorf("counted %+v", h)
 	}
@@ -70,7 +70,6 @@ func TestLedger(t *testing.T) {
 	}
 }
 
-// TestLoadDay reads the file of a day's numbers the app kept before the ledger.
 func TestLoadDay(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "stats.json")
 	os.WriteFile(path, []byte(`{"Day": "2026-10-21", "Run": 29149, "Lines": 555, "Speech": 9000, "Chars": 12000}`), 0o644)

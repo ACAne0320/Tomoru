@@ -1,6 +1,3 @@
-// Package openai decodes stretches of speech with OpenAI's transcription API, POST
-// /v1/audio/transcriptions, or a service's that is compatible with it (docs/recognition.md). The
-// model punctuates what it hears, but times none of it; each decode is billed, by the audio sent.
 package openai
 
 import (
@@ -22,39 +19,25 @@ import (
 	"tomoru/internal/asr/batch"
 )
 
-// DefaultURL is OpenAI's API, without /v1.
 const DefaultURL = "https://api.openai.com"
 
-// Models are OpenAI's transcription models to choose, the default first. A compatible service
-// names its own.
 var Models = []string{"gpt-transcribe"}
 
-// Caps are how the API is run. A decode is billed by the audio it is sent, and takes a round trip
-// (1–1.8 s for 2–5 s of audio, 2.5 s for 10 s): a stretch is decoded once, as it ends, at a pause
-// of half a second, or the first pause past 5 s. Shorter, at 3 s, it lost context: errors 11.5 →
-// 12.9 %; at 8 s, as accurate, translations came 2–3 s later at p90 (docs/recognition.md, step
-// 5). How long each decode took tells package asr whether the network is slow.
 var Caps = batch.Caps{Gap: .5, Longest: 5, Untimed: true, Remote: true}
 
-// Config is a service to recognize with, and what to tell it to expect.
 type Config struct {
-	URL   string // the base, as https://api.openai.com, with or without /v1; "" for DefaultURL
-	Model string // "" for the first of Models
-	Key   string // the API key
-	// Keywords are words to expect, names: the first MaxKeywords. About describes what is heard,
-	// for live transcription.
+	URL      string
+	Model    string
+	Key      string
 	Keywords []string
 	About    string
 }
 
-// MaxKeywords are the most keywords a session is given, and maxAbout the most runes of About.
 const (
 	MaxKeywords = 100
 	maxAbout    = 500
 )
 
-// keywords are the config's keywords, as the API takes them: one line each, without < or >,
-// which it refuses.
 func (c Config) keywords() []string {
 	var out []string
 	for _, k := range c.Keywords {
@@ -66,11 +49,8 @@ func (c Config) keywords() []string {
 	return out
 }
 
-// ErrAuth is an API key the service refused.
 var ErrAuth = errors.New("openai: the API key was refused")
 
-// Error is a failure the service reported: its HTTP status, 0 for an event of a realtime session,
-// and its message.
 type Error struct {
 	Status  int
 	Message string
@@ -83,7 +63,6 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("openai: HTTP %d: %s", e.Status, e.Message)
 }
 
-// endpoint is the transcription API's address.
 func (c Config) endpoint() string {
 	u := strings.TrimRight(strings.TrimSpace(c.URL), "/")
 	if u == "" {
@@ -99,23 +78,19 @@ func (c Config) model() string {
 	return c.Model
 }
 
-// Decoder decodes with the service, giving it the language and what the stretch before said.
 type Decoder struct {
 	cfg    Config
-	lang   string // ISO-639-1, or "" to tell
+	lang   string
 	client *http.Client
-	prev   string // the end of the last decode's text, for the next to go on from
+	prev   string
 	done   chan struct{}
 	stop   sync.Once
 }
 
-// New decodes speech in lang with the service of cfg.
 func New(cfg Config, lang string) *Decoder {
 	return &Decoder{cfg: cfg, lang: iso639(lang), client: &http.Client{Timeout: 30 * time.Second}, done: make(chan struct{})}
 }
 
-// iso639 is the ISO-639-1 code the API takes for lang: "zh" for Traditional Chinese; "" for a
-// language without one (Cantonese, Filipino), which the model tells itself.
 func iso639(lang string) string {
 	base, _ := language.Make(lang).Base()
 	if s := base.String(); len(s) == 2 {
@@ -124,11 +99,8 @@ func iso639(lang string) string {
 	return ""
 }
 
-// prompt is how much of the text before a decode is given it: about a sentence or two.
 const prompt = 120
 
-// Decode decodes a stretch: its text in pieces, a character or a word each, untimed. A decode the
-// connection failed is tried once more.
 func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -157,7 +129,6 @@ func (d *Decoder) Decode(ctx context.Context, pcm []byte) ([]batch.Piece, error)
 	return batch.Pieces(text), nil
 }
 
-// tail is the last n runes of s, or so: from a space or a punctuation mark, where one is near.
 func tail(s string, n int) string {
 	s = strings.TrimSpace(s)
 	if utf8.RuneCountInString(s) <= n {
@@ -179,8 +150,6 @@ func (d *Decoder) transcribe(ctx context.Context, pcm []byte) (string, error) {
 	if d.lang != "" {
 		fields = append(fields, [2]string{"language", d.lang})
 	}
-	// gpt-transcribe takes keywords; the others are given them in the prompt, before the text
-	// before, as whisper-1 takes a prompt of keywords.
 	prompt, keywords := d.prev, d.cfg.keywords()
 	if d.cfg.model() == "gpt-transcribe" {
 		for _, k := range keywords {
@@ -230,7 +199,6 @@ func (d *Decoder) transcribe(ctx context.Context, pcm []byte) (string, error) {
 	return strings.TrimSpace(*out.Text), nil
 }
 
-// message is what an error's body says: OpenAI's {"error": {"message": …}}, or the body.
 func message(b []byte) string {
 	var e struct {
 		Error struct{ Message string }
@@ -248,7 +216,6 @@ func clip(s string) string {
 	return s
 }
 
-// Test transcribes a second of silence with the service, as the settings test it: how long it took.
 func Test(ctx context.Context, cfg Config) (time.Duration, error) {
 	d := New(cfg, "")
 	defer d.Stop()
@@ -257,13 +224,10 @@ func Test(ctx context.Context, cfg Config) (time.Duration, error) {
 	return time.Since(t), err
 }
 
-// Stop ends the decoder: a decode in flight is canceled.
 func (d *Decoder) Stop() { d.stop.Do(func() { close(d.done) }) }
 
-// Done is closed once the decoder has stopped.
 func (d *Decoder) Done() <-chan struct{} { return d.done }
 
-// Err is nil: a decode the service failed fails, and ends the runner with it.
 func (d *Decoder) Err() error { return nil }
 
 var _ batch.Decoder = (*Decoder)(nil)

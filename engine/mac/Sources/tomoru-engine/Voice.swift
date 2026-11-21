@@ -1,35 +1,27 @@
-// Voice activity: Silero VAD (v6, as a Core ML model) on the audio the recognizer hears, so that
-// the app's segmenter knows where the speaker pauses, which the recognizer says late or not at all
-// (Chinese clauses especially).
 import AVFoundation
 import CoreML
 import Foundation
 
-/// VoiceDetector tells when voice starts and stops, in seconds of the same audio the recognizer
-/// hears. It is fed on one queue at a time.
 final class VoiceDetector {
     static let rate = 16000.0
-    static let chunk = 512   // 32 ms
-    static let context = 64  // samples of the last chunk the model sees again
+    static let chunk = 512
+    static let context = 64
 
     let model: MLModel
     let onChange: (_ voice: Bool, _ at: Double) -> Void
-    let input: MLMultiArray  // 1 × (context + chunk)
+    let input: MLMultiArray
     var h: MLMultiArray, c: MLMultiArray
     var buffer: [Float] = []
     var last = [Float](repeating: 0, count: VoiceDetector.context)
-    var samples: Int64 = 0   // the samples processed: where the next chunk starts
+    var samples: Int64 = 0
     var converter: AVAudioConverter?
     let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: VoiceDetector.rate, channels: 1, interleaved: false)!
 
-    // Hysteresis: voice starts after two chunks at or over on, and stops after three under off,
-    // at the start of the first.
     let on: Float = 0.5, off: Float = 0.35
     var voice = false
-    var run = 0              // chunks in a row on the other side
-    var runStart: Int64 = 0  // where that run began
+    var run = 0
+    var runStart: Int64 = 0
 
-    /// The model beside the engine: bin/../vad/silero-vad.mlmodelc, as the app ships it.
     static func modelURL() -> URL? {
         guard let exe = Bundle.main.executableURL?.resolvingSymlinksInPath() else { return nil }
         let url = exe.deletingLastPathComponent().deletingLastPathComponent()
@@ -39,7 +31,7 @@ final class VoiceDetector {
 
     init(model url: URL, onChange: @escaping (Bool, Double) -> Void) throws {
         let config = MLModelConfiguration()
-        config.computeUnits = .cpuOnly  // a tiny model, 31 times a second: dispatching it costs more than it does
+        config.computeUnits = .cpuOnly
         model = try MLModel(contentsOf: url, configuration: config)
         self.onChange = onChange
         input = try MLMultiArray(shape: [1, NSNumber(value: Self.context + Self.chunk)], dataType: .float32)
@@ -48,7 +40,6 @@ final class VoiceDetector {
         for a in [h, c] { for i in 0..<a.count { a[i] = 0 } }
     }
 
-    /// feed takes a buffer of the tap, in its format.
     func feed(_ pcm: AVAudioPCMBuffer) {
         if converter == nil || converter!.inputFormat != pcm.format {
             converter = AVAudioConverter(from: pcm.format, to: format)
@@ -68,7 +59,6 @@ final class VoiceDetector {
         feed(Array(UnsafeBufferPointer(start: ch, count: Int(out.frameLength))))
     }
 
-    /// feed takes samples at 16 kHz, after those before.
     func feed(_ samples: [Float]) {
         buffer.append(contentsOf: samples)
         while buffer.count >= Self.chunk {

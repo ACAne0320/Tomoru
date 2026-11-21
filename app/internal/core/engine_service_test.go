@@ -39,7 +39,7 @@ func TestForgetEndpointTestCancelsAndRejectsLateResult(t *testing.T) {
 	release := make(chan struct{})
 	s.startTest("dialog", time.Minute, func(ctx context.Context) TestResult {
 		started <- ctx
-		<-release // A misbehaving provider still returns a successful result after cancellation.
+		<-release
 		return TestResult{Text: "late"}
 	}, nil)
 	ctx := <-started
@@ -55,7 +55,6 @@ func TestForgetEndpointTestCancelsAndRejectsLateResult(t *testing.T) {
 		t.Fatal("forgotten result reappeared")
 	}
 
-	// Forgetting after the worker already posted is equally final.
 	s.startTest("dialog", time.Minute, func(context.Context) TestResult { return TestResult{Text: "queued"} }, nil)
 	queued := takeEngineResult(t, posted)
 	s.ForgetTest("dialog")

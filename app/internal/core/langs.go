@@ -11,11 +11,6 @@ import (
 	"tomoru/internal/prefs"
 )
 
-// The languages to choose: to speak, those the recognition in use hears; to translate into, all.
-
-// SourceLangs are the languages the recognition in use hears, in the order of lang.All: the
-// system's as it says, a model's, the cloud's; lang.Auto first, where it tells which it hears. Any
-// may be spoken while the system has not said, and with no recognition chosen.
 func (c *Core) SourceLangs() []string { return c.spoken(c.Prefs.ASR) }
 
 func (c *Core) spoken(id string) []string {
@@ -29,8 +24,6 @@ func (c *Core) spoken(id string) []string {
 	return hears
 }
 
-// Hears are the languages recognition id hears that can be spoken, in the order of lang.All; nil
-// where that is not known: the system's before it says, or no recognition.
 func (c *Core) Hears(id string) []string {
 	s, ok := asr.ByID(id)
 	if !ok {
@@ -46,22 +39,14 @@ func (c *Core) Hears(id string) []string {
 	return slices.DeleteFunc(lang.Spoken(), func(l string) bool { return !slices.Contains(hears, l) })
 }
 
-// SpokenWith is the language spoken once recognition e is used: the one spoken now, if e hears it,
-// else the one fitLangs makes it.
 func (c *Core) SpokenWith(e Engine) string { return fitSrc(c.spoken(e.ID), c.Prefs.Src, c.Prefs.Tgt) }
 
-// TargetLangs are the languages to translate into: any of lang.All, as every translation engine
-// writes them.
 func (c *Core) TargetLangs() []string { return slices.Clone(lang.All) }
 
-// CanSwap tells whether the languages can be swapped: the recognition hears the target, and one
-// language is spoken, not lang.Auto, which nothing is translated into.
 func (c *Core) CanSwap() bool {
 	return c.Prefs.Src != lang.Auto && slices.Contains(c.SourceLangs(), c.Prefs.Tgt)
 }
 
-// fitLangs makes the spoken language one the recognition hears, if it is not, and tells whether it
-// changed it.
 func (c *Core) fitLangs() bool {
 	src := fitSrc(c.SourceLangs(), c.Prefs.Src, c.Prefs.Tgt)
 	if src == c.Prefs.Src {
@@ -71,8 +56,6 @@ func (c *Core) fitLangs() bool {
 	return true
 }
 
-// fitSrc is src if srcs has it, else English, else Japanese, else the first of srcs, but tgt; src
-// where none is left.
 func fitSrc(srcs []string, src, tgt string) string {
 	if slices.Contains(srcs, src) {
 		return src
@@ -85,8 +68,6 @@ func fitSrc(srcs []string, src, tgt string) string {
 	return src
 }
 
-// ListLangs asks the system which languages its recognition hears, once; the spoken language
-// becomes one of them if it is not.
 func (c *Core) ListLangs() {
 	if prefs.SystemASR() == "" || c.sysLangs != nil {
 		return
@@ -109,8 +90,6 @@ func (c *Core) ListLangs() {
 	}, "locales")
 }
 
-// sysLang is the language of a locale the system recognizes: its own, but Cantonese for zh-HK,
-// as Apple names it.
 func sysLang(locale string) string {
 	if locale == "zh-HK" {
 		return "yue"

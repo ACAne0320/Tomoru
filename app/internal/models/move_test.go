@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-// withTwo makes All a model of a file, a, and one in a directory of its own, b, both downloaded
-// into dir.
 func withTwo(t *testing.T, dir string) {
 	t.Helper()
 	a, b := []byte(strings.Repeat("a", 3000)), []byte(strings.Repeat("b", 5000))
@@ -40,7 +38,6 @@ func move(t *testing.T, m *Manager, to string) error {
 	}
 }
 
-// noRename has the manager rename as across disks: never.
 func noRename(m *Manager) {
 	m.rename = func(string, string) error { return errors.New("another disk") }
 }
@@ -80,7 +77,6 @@ func TestMove(t *testing.T) {
 	}
 }
 
-// TestMoveBack moves to a directory that has the models already: they are kept, not copied again.
 func TestMoveBack(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withTwo(t, from)
@@ -101,14 +97,12 @@ func TestMoveBack(t *testing.T) {
 	}
 }
 
-// TestMoveFails leaves everything as it was when a file can't be put in the new directory: the
-// files renamed and the files copied before it.
 func TestMoveFails(t *testing.T) {
 	for _, across := range []bool{false, true} {
 		t.Run(map[bool]string{false: "renamed", true: "copied"}[across], func(t *testing.T) {
 			from, to := t.TempDir(), t.TempDir()
 			withTwo(t, from)
-			os.MkdirAll(filepath.Join(to, "b-1", "b.onnx"), 0o755) // in the way
+			os.MkdirAll(filepath.Join(to, "b-1", "b.onnx"), 0o755)
 			m := NewManager(from, false, nil)
 			defer m.Close()
 			if across {
@@ -142,7 +136,6 @@ func TestMoveFails(t *testing.T) {
 	}
 }
 
-// TestMovePart moves what came in of a model, which a download goes on from there.
 func TestMovePart(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withModel(t, []byte("model"), sha([]byte("model")))
@@ -160,8 +153,6 @@ func TestMovePart(t *testing.T) {
 	}
 }
 
-// TestMoveHolds starts no download, deletes nothing and starts no other move while the models move,
-// and says what was there.
 func TestMoveHolds(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withTwo(t, from)
@@ -170,7 +161,7 @@ func TestMoveHolds(t *testing.T) {
 	srv, _ := server(nil, 100)
 	defer srv.Close()
 	redirect(m, srv)
-	m.Delete("b") // missing, to download
+	m.Delete("b")
 	inside, release := make(chan struct{}), make(chan struct{})
 	m.rename = func(a, b string) error {
 		select {
@@ -204,7 +195,6 @@ func TestMoveHolds(t *testing.T) {
 	}
 }
 
-// TestMoveStopsDownloads stops a download before moving, and moves what came in of it.
 func TestMoveStopsDownloads(t *testing.T) {
 	data := []byte(strings.Repeat("tomoru ", 1000))
 	withModel(t, data, sha(data))
@@ -236,8 +226,6 @@ func TestMoveStopsDownloads(t *testing.T) {
 	}
 }
 
-// TestMoveSameDir moves to the directory the models are in, by another name: nothing moves, and
-// nothing is removed as moved.
 func TestMoveSameDir(t *testing.T) {
 	from := t.TempDir()
 	withTwo(t, from)

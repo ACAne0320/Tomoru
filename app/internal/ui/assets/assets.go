@@ -1,6 +1,3 @@
-// Package assets are the images of the UI: the app's icon, the menu bar icon and the panel's
-// sticker, the toolbar's icons from Lucide (ISC license), and the sample picture the guide
-// translates.
 package assets
 
 import (
@@ -11,13 +8,9 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// samples are the sample game dialogue (samples.Dialogue) as pictures, by language: the guide's
-// TestSamplePictures draws them.
-//
 //go:embed samples/*.png
 var samples embed.FS
 
-// SamplePicture is the sample game dialogue in lang, a PNG; nil for a language it is not in.
 func SamplePicture(lang string) []byte {
 	b, _ := samples.ReadFile("samples/dialogue-" + lang + ".png")
 	return b
@@ -26,25 +19,15 @@ func SamplePicture(lang string) []byte {
 var (
 	//go:embed icon.png
 	AppIconPNG []byte
-	// AppIcon is the app's icon, to draw: a rounded square with its shadow, in a margin of about a
-	// tenth, as macOS icons are. It needs no corners or shadow of its own.
 	AppIcon, _ = ui.DecodeBitmap(AppIconPNG)
 	//go:embed sticker.png
 	stickerPNG []byte
-	// Sticker is the menu bar panel's: the mascot looking up at her penguin, who holds a lantern
-	// on her head, a sticker in its cream outline, clear around it.
 	Sticker, _ = ui.DecodeBitmap(stickerPNG)
 	//go:embed sticker-asleep.png
 	stickerAsleepPNG []byte
-	// StickerAsleep is Sticker with her and the penguin asleep, eyes closed; the rest is the same
-	// to the pixel, so the two can cross-fade.
 	StickerAsleep, _ = ui.DecodeBitmap(stickerAsleepPNG)
-	// StickerAspect is Sticker's width over its height.
-	StickerAspect = aspect(stickerPNG)
+	StickerAspect    = aspect(stickerPNG)
 
-	// TrayIdle and TrayOn are the menu bar icon, as templates: Tomoru peeking up, her head tilted
-	// and her ahoge up, her eyes shut while not translating and open while translating.
-	// scripts/tray-icons.swift makes them of tray-idle.svg and tray-on.svg.
 	//go:embed tray-idle.png
 	TrayIdle []byte
 	//go:embed tray-on.png
@@ -64,7 +47,6 @@ var (
 	Lock, Settings    = ui.MustParseSVG(lockSVG), ui.MustParseSVG(settingsSVG)
 	Pause, Play, Swap = ui.MustParseSVG(pauseSVG), ui.MustParseSVG(playSVG), ui.MustParseSVG(swapSVG)
 
-	// The first-run guide's.
 	//go:embed icons/volume-2.svg
 	soundSVG []byte
 	//go:embed icons/audio-lines.svg
@@ -84,7 +66,6 @@ var (
 	Cloud, Captions, Stop = ui.MustParseSVG(cloudSVG), ui.MustParseSVG(captionsSVG), ui.MustParseSVG(stopSVG)
 	Keyboard              = ui.MustParseSVG(keyboardSVG)
 
-	// The app's, drawn with kit's tokens (docs/design-system.md).
 	//go:embed icons/plus.svg
 	plusSVG []byte
 	//go:embed icons/arrow-right.svg
@@ -113,7 +94,6 @@ var (
 	folderSVG []byte
 	Folder    = ui.MustParseSVG(folderSVG)
 
-	// The settings window's sidebar.
 	//go:embed icons/house.svg
 	homeSVG []byte
 	//go:embed icons/languages.svg
@@ -142,7 +122,6 @@ var (
 	zapSVG []byte
 	Zap    = ui.MustParseSVG(zapSVG)
 
-	// The menu bar panel's foot: translating a part of the screen, the subtitles unlocked, quitting.
 	//go:embed icons/scan-text.svg
 	scanSVG []byte
 	//go:embed icons/lock-open.svg
@@ -156,7 +135,6 @@ var (
 	closeSVG []byte
 	Close    = ui.MustParseSVG(closeSVG)
 
-	// The picture's translation card's; a picture crossed out, a translation API reading none.
 	//go:embed icons/image.svg
 	imageSVG []byte
 	//go:embed icons/image-off.svg
@@ -170,18 +148,14 @@ var (
 	NoPicture     = ui.MustParseSVG(imageOffSVG)
 	ZoomIn        = ui.MustParseSVG(zoomInSVG)
 
-	// External opens a page in the browser: where a model is from.
 	//go:embed icons/arrow-up-right.svg
 	externalSVG []byte
 	External    = ui.MustParseSVG(externalSVG)
 
-	// Tray is the menu bar icon to draw, a template: black on clear; TrayAwake, translating, her
-	// eyes open.
 	Tray, _      = ui.DecodeBitmap(TrayIdle)
 	TrayAwake, _ = ui.DecodeBitmap(TrayOn)
 )
 
-// aspect is a PNG's width over its height.
 func aspect(b []byte) float32 {
 	cfg, err := png.DecodeConfig(bytes.NewReader(b))
 	if err != nil || cfg.Height == 0 {

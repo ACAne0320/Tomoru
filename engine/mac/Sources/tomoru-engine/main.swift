@@ -1,12 +1,3 @@
-// tomoru-engine: Tomoru's macOS engine. It hears the system's audio with a Core Audio tap,
-// recognizes speech with SpeechAnalyzer, and speaks docs/engine-protocol.md on stdin and stdout.
-//
-//	tomoru-engine listen --locale <bcp47> [--app <bundle id> | --file <audio>] [--vad <model.mlmodelc> | none] [--asr none]
-//	tomoru-engine locales
-//	tomoru-engine prepare --locale <bcp47>
-//	tomoru-engine speak --locale <bcp47> -- <sentence>...
-//	tomoru-engine access | request-access | screen-access | request-screen-access | apps
-//	tomoru-engine select --out <png>
 import Foundation
 
 setvbuf(stdout, nil, _IOLBF, 0)
@@ -30,8 +21,6 @@ case "access":
     exit(0)
 
 case "request-access":
-    // There is no call to ask: the system asks the first time a tap records. Start one and wait
-    // for the answer, a minute at most.
     if audioAccess() == "unknown" {
         let tap = TapCapture { _ in }
         DispatchQueue.global().async { try? tap.start(app: nil) }
@@ -83,7 +72,6 @@ case "speak":
 
 case "listen":
     guard let tag = option("--locale") else { usage() }
-    // Commands come on stdin; when it closes, the app has gone, and so does the engine.
     var listener: Listener?
     Thread.detachNewThread {
         do {
@@ -97,11 +85,9 @@ case "listen":
         exit(0)
     }
     signal(SIGINT) { _ in exit(0) }
-    // Voice detection: the model beside the engine, or --vad's; --vad none turns it off.
     var vad = VoiceDetector.modelURL()
     if let v = option("--vad") { vad = v == "none" ? nil : URL(fileURLWithPath: v) }
     if option("--asr") == "none" {
-        // Hearing only, for tomoru-asr or the cloud: finalize is their business.
         let h = Hearer(app: option("--app"), vad: vad, file: option("--file"))
         h.start()
         dispatchMain()

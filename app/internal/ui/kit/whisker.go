@@ -7,18 +7,12 @@ import (
 	"github.com/egoist/mygo/ui/chart"
 )
 
-// Whisker is a point of a WhiskerChart: the label under it, its typical value and the top of its
-// range, NaN for none, and what it says chosen.
 type Whisker struct {
 	Label   string
 	Mid, Hi float64
 	Tip     string
 }
 
-// WhiskerChart shows a value and its range over days, as a dot of the lantern's amber on a line up
-// to the top of the range, over the paper's lines; round values on its left, the highest with its
-// unit as format says it, and every few labels under them. The pointer, or the arrows once it has the focus, choose a point,
-// *chosen its index, -1 for none: the others dim, and its tip shows above it. Name it with label.
 func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64) string, chosen *int) ui.Element {
 	p := Colors(c)
 	labels := make([]string, len(ws))
@@ -84,8 +78,6 @@ func WhiskerChart(c *ui.Context, label string, ws []Whisker, format func(float64
 	}).Label(label).Height(chartHeight).GapX(Space(2)).GapY(Space(2))
 }
 
-// tipAlign keeps a tip over a point at x along a plot inside it: from the point to the right near
-// the left edge, to the left near the right edge, else centered on it.
 func tipAlign(x float32) ui.Align {
 	switch {
 	case x < .2:

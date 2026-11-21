@@ -21,8 +21,6 @@ import (
 	"tomoru/internal/translate"
 )
 
-// modelsDir is where the app keeps the local models: the folder its settings say they were moved
-// to, else where they are at first.
 func modelsDir() (string, error) {
 	if dir, err := os.UserConfigDir(); err == nil {
 		if p, err := prefs.Load(filepath.Join(dir, "Tomoru", "settings.json"), ""); err == nil && p.ModelsDir != "" {
@@ -32,11 +30,9 @@ func modelsDir() (string, error) {
 	return models.Dir()
 }
 
-// translator makes the translator of -mt, and what stops it at the end.
 func translator(mt, url, model string, roots ...string) (translate.Translator, func(), error) {
 	id, cloudModel, _ := strings.Cut(mt, ":")
 	if s, ok := core.MTServiceByID(id); ok {
-		// Its address and key from the environment, as a cloud recognizer's.
 		key := os.Getenv("TOKENHUB_API_KEY")
 		if key == "" {
 			return nil, nil, fmt.Errorf("-mt %s needs TOKENHUB_API_KEY", id)
@@ -82,8 +78,6 @@ func translator(mt, url, model string, roots ...string) (translate.Translator, f
 	return tr, srv.Stop, nil
 }
 
-// recognizer is the recognizer of -asr: its entry, what it is made with but the scene, which each
-// case has its own of, and what stops it at the end.
 func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error) {
 	id, model, _ := strings.Cut(name, ":")
 	switch id {
@@ -118,8 +112,6 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 		}
 	}
 	if spec.Key {
-		// The service's key and address, from the environment: DASHSCOPE_API_KEY and
-		// DASHSCOPE_API_HOST for Qwen's, OPENAI_API_KEY and OPENAI_BASE_URL for OpenAI's.
 		keyVar, urlVar := "DASHSCOPE_API_KEY", "DASHSCOPE_API_HOST"
 		if id == asr.OpenAI {
 			keyVar, urlVar = "OPENAI_API_KEY", "OPENAI_BASE_URL"
@@ -130,7 +122,6 @@ func recognizer(name string, roots ...string) (asr.Spec, asr.Env, func(), error)
 		}
 		env.Service = asr.Service{URL: os.Getenv(urlVar), Model: model, Key: key}
 	}
-	// Made once, to fail at once: a model llama-server runs loads now, for the cases after.
 	if _, err := spec.New(env); err != nil {
 		stop()
 		return spec, env, nil, err
