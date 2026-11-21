@@ -39,23 +39,23 @@ func (e ErrNoSpace) Error() string {
 }
 
 type Manager struct {
-	dir      string
-	china    bool
-	slow     int64
-	window   time.Duration
-	client   *http.Client
-	onChange func()
+	dir            string
+	mirrors        MirrorOrder
+	minMirrorSpeed int64
+	sampleInterval time.Duration
+	client         *http.Client
+	notices        chan struct{}
 
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
-	closed bool
-	mu     sync.Mutex
-	jobs   map[string]*job
-	errs   map[string]error
-	move   Move
-	held   map[string]Status
-	rename func(from, to string) error
+	ctx              context.Context
+	cancel           context.CancelFunc
+	wg               sync.WaitGroup
+	closed           bool
+	mu               sync.Mutex
+	jobs             map[string]*job
+	errs             map[string]error
+	move             Move
+	statusDuringMove map[string]Status
+	rename           func(from, to string) error
 }
 
 type job struct {
@@ -65,14 +65,29 @@ type job struct {
 	done, total int64
 }
 
-func NewManager(dir string, china bool, onChange func()) *Manager {
-	return NewManagerContext(context.Background(), dir, china, onChange)
+func NewManager(dir string, mirrors MirrorOrder, onChange func()) *Manager {
+	return NewManagerContext(context.Background(), dir, mirrors, onChange)
 }
 
-func NewManagerContext(parent context.Context, dir string, china bool, onChange func()) *Manager {
+func NewManagerContext(parent context.Context, dir string, mirrors MirrorOrder, onChange func()) *Manager {
 	ctx, cancel := context.WithCancel(parent)
-	return &Manager{dir: dir, china: china, slow: 1 << 20, window: 10 * time.Second, onChange: onChange, client: &http.Client{},
-		ctx: ctx, cancel: cancel, jobs: map[string]*job{}, errs: map[string]error{}, rename: os.Rename}
+	m := &Manager{dir: dir, mirrors: mirrors, minMirrorSpeed: 1 << 20, sampleInterval: 10 * time.Second, client: &http.Client{},
+		ctx: ctx, cancel: cancel, jobs: map[string]*job{}, errs: map[string]error{}, rename: os.Rename, notices: make(chan struct{}, 1)}
+	if onChange != nil {
+		go m.notify(onChange)
+	}
+	return m
+}
+
+func (m *Manager) notify(onChange func()) {
+	for {
+		select {
+		case <-m.notices:
+			onChange()
+		case <-m.ctx.Done():
+			return
+		}
+	}
 }
 
 func (m *Manager) Close() {
@@ -82,7 +97,13 @@ func (m *Manager) Close() {
 	m.mu.Unlock()
 	done := make(chan struct{})
 	go func() { m.wg.Wait(); close(done) }()
-	timer := time.NewTimer(2 * time.Second)
+	waitAtMost(done, shutdownWait)
+}
+
+const shutdownWait = 2 * time.Second
+
+func waitAtMost(done <-chan struct{}, d time.Duration) {
+	timer := time.NewTimer(d)
 	defer timer.Stop()
 	select {
 	case <-done:
@@ -95,13 +116,13 @@ func (m *Manager) Path(id string) string {
 	if len(mod.Files) == 0 {
 		return ""
 	}
-	return m.file(mod, mod.Files[0])
+	return m.file(mod, mod.MainFile())
 }
 
-func (m *Manager) VisionOf(path string) string {
+func (m *Manager) ProjectorOf(path string) string {
 	for _, mod := range All {
-		if mod.Vision != "" && m.Path(mod.ID) == path && m.Status(mod.ID).State == Ready {
-			return filepath.Join(m.Dir(), mod.Dir, mod.Vision)
+		if mod.Projector != "" && m.Path(mod.ID) == path && m.Status(mod.ID).State == Ready {
+			return filepath.Join(m.Dir(), mod.Dir, mod.Projector)
 		}
 	}
 	return ""
@@ -142,7 +163,7 @@ func (m *Manager) Status(id string) Status {
 	if j := m.jobs[id]; j != nil {
 		return Status{State: j.state, Done: j.done, Total: j.total}
 	}
-	if st, ok := m.held[id]; ok {
+	if st, ok := m.statusDuringMove[id]; ok {
 		return st
 	}
 	st := onDisk(m.dir, mod)
@@ -234,8 +255,11 @@ func (m *Manager) changed() {
 	m.mu.Lock()
 	closed := m.closed || m.ctx.Err() != nil
 	m.mu.Unlock()
-	if !closed && m.onChange != nil {
-		m.onChange()
+	if !closed {
+		select {
+		case m.notices <- struct{}{}:
+		default:
+		}
 	}
 }
 
@@ -298,9 +322,9 @@ func (m *Manager) fetchFile(ctx context.Context, mod Model, file File, part stri
 		have = 0
 	}
 	var last error
-	urls := mod.URLs(file, m.china)
+	urls := mod.URLs(file, m.mirrors)
 	for i, url := range urls {
-		slow := m.slow
+		slow := m.minMirrorSpeed
 		if i == len(urls)-1 {
 			slow = 0
 		}
@@ -325,7 +349,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 	requestCtx, cancel := context.WithCancelCause(ctx)
 	var received atomic.Int64
 	watchDone := make(chan struct{})
-	ticker := time.NewTicker(m.window)
+	ticker := time.NewTicker(m.sampleInterval)
 	go func() {
 		defer close(watchDone)
 		defer ticker.Stop()
@@ -337,7 +361,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 				return
 			case <-ticker.C:
 				n := received.Load()
-				if first && slow > 0 && float64(n)/m.window.Seconds() < float64(slow) {
+				if first && slow > 0 && float64(n)/m.sampleInterval.Seconds() < float64(slow) {
 					cancel(errSlow)
 					return
 				}

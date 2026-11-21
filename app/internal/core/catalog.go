@@ -77,7 +77,7 @@ func (c *Core) Recommended(e Engine) bool { return e.ID != "" && e.ID == c.recom
 func (c *Core) recommended(k Kind) string {
 	vram, _ := c.gpu()
 	for _, e := range c.Engines(k) {
-		if m := e.Model; m != nil && m.Rec && vram != 0 && c.Shortfall(*m) == (Shortfall{}) {
+		if m := e.Model; m != nil && m.Recommended && vram != 0 && c.Shortfall(*m) == (Shortfall{}) {
 			return e.ID
 		}
 	}
@@ -163,7 +163,7 @@ func (c *Core) Pick(f []Engine) (Engine, bool) {
 		}
 	}
 	for _, e := range found {
-		if e.Model != nil && e.Model.Rec {
+		if e.Model != nil && e.Model.Recommended {
 			return e, true
 		}
 	}
@@ -173,7 +173,7 @@ func (c *Core) Pick(f []Engine) (Engine, bool) {
 func (c *Core) Suggested(f []Engine) Engine {
 	runs := func(e Engine) bool { return e.Model == nil || c.Shortfall(*e.Model) == (Shortfall{}) }
 	for _, e := range f {
-		if e.Model != nil && e.Model.Rec && runs(e) {
+		if e.Model != nil && e.Model.Recommended && runs(e) {
 			return e
 		}
 	}

@@ -267,7 +267,7 @@ func (s *EngineService) imageEndpoint(id, serving string, endpoints []prefs.Endp
 		case serving != "" && serving != id:
 			return fail(ErrModelBusy), id
 		}
-		if m.Vision == "" || s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
+		if m.Projector == "" || s.models == nil || s.server == nil || s.models.Status(id).State != models.Ready {
 			return fail(ErrModelMissing), id
 		}
 		path, format := s.models.Path(id), modelFormat(m)

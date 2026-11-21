@@ -14,7 +14,7 @@ import (
 
 type Device struct {
 	Name   string
-	Memory uint64
+	Budget uint64
 }
 
 var deviceLine = regexp.MustCompile(`^\s+(\S+): (.+) \((\d+) MiB, \d+ MiB free\)$`)
@@ -38,7 +38,7 @@ func parseDevices(out []byte) []Device {
 			continue
 		}
 		if mib, err := strconv.ParseUint(m[3], 10, 64); err == nil && mib > 0 {
-			ds = append(ds, Device{Name: m[2], Memory: mib << 20})
+			ds = append(ds, Device{Name: m[2], Budget: mib << 20})
 		}
 	}
 	return ds

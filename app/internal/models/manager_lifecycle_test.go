@@ -20,7 +20,7 @@ func TestManagerCloseCancelsAndWaits(t *testing.T) {
 		close(stopped)
 	}))
 	defer srv.Close()
-	m := NewManager(t.TempDir(), false, func() { changes.Add(1) })
+	m := NewManager(t.TempDir(), HuggingFaceFirst, func() { changes.Add(1) })
 	redirect(m, srv)
 	m.Download("m")
 	select {
@@ -51,7 +51,7 @@ func TestManagerCloseCancelsAndWaits(t *testing.T) {
 func TestManagerParentCancellation(t *testing.T) {
 	withModel(t, []byte("model"), sha([]byte("model")))
 	ctx, cancel := context.WithCancel(context.Background())
-	m := NewManagerContext(ctx, t.TempDir(), false, nil)
+	m := NewManagerContext(ctx, t.TempDir(), HuggingFaceFirst, nil)
 	defer m.Close()
 	cancel()
 	m.Download("m")

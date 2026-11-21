@@ -47,7 +47,7 @@ func TestMove(t *testing.T) {
 		t.Run(map[bool]string{false: "rename", true: "copy"}[across], func(t *testing.T) {
 			from, to := t.TempDir(), filepath.Join(t.TempDir(), "elsewhere")
 			withTwo(t, from)
-			m := NewManager(from, false, nil)
+			m := NewManager(from, HuggingFaceFirst, nil)
 			defer m.Close()
 			if across {
 				noRename(m)
@@ -81,7 +81,7 @@ func TestMoveBack(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withTwo(t, from)
 	withTwo(t, to)
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	noRename(m)
 	before, _ := os.Stat(filepath.Join(to, "a.gguf"))
@@ -100,7 +100,7 @@ func TestMoveBack(t *testing.T) {
 func TestMoveRenameRefused(t *testing.T) {
 	from, to := t.TempDir(), filepath.Join(t.TempDir(), "elsewhere")
 	withTwo(t, from)
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	m.rename = func(a, b string) error { return &os.LinkError{Op: "rename", Old: a, New: b, Err: os.ErrPermission} }
 	if err := move(t, m, to); !errors.Is(err, os.ErrPermission) {
@@ -125,7 +125,7 @@ func TestMoveFails(t *testing.T) {
 			from, to := t.TempDir(), t.TempDir()
 			withTwo(t, from)
 			os.MkdirAll(filepath.Join(to, "b-1", "b.onnx"), 0o755)
-			m := NewManager(from, false, nil)
+			m := NewManager(from, HuggingFaceFirst, nil)
 			defer m.Close()
 			if across {
 				noRename(m)
@@ -162,7 +162,7 @@ func TestMovePart(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withModel(t, []byte("model"), sha([]byte("model")))
 	os.WriteFile(filepath.Join(from, "m.gguf.part"), []byte("mo"), 0o644)
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	if err := move(t, m, to); err != nil {
 		t.Fatal(err)
@@ -178,7 +178,7 @@ func TestMovePart(t *testing.T) {
 func TestMoveHolds(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 	withTwo(t, from)
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	srv, _ := server(nil, 100)
 	defer srv.Close()
@@ -229,7 +229,7 @@ func TestMoveStopsDownloads(t *testing.T) {
 		<-r.Context().Done()
 	}))
 	defer srv.Close()
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	redirect(m, srv)
 	m.Download("m")
@@ -255,7 +255,7 @@ func TestMoveSameDir(t *testing.T) {
 	if err := os.Symlink(from, alias); err != nil {
 		t.Skip("no symlinks:", err)
 	}
-	m := NewManager(from, false, nil)
+	m := NewManager(from, HuggingFaceFirst, nil)
 	defer m.Close()
 	if err := move(t, m, alias); err != nil {
 		t.Fatal(err)

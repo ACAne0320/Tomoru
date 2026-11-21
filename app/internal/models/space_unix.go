@@ -10,7 +10,7 @@ func enoughSpace(dir string, need int64) error {
 		return nil
 	}
 	free := int64(st.Bavail) * int64(st.Bsize)
-	if free < need+256<<20 {
+	if free < need+spaceHeadroom {
 		return ErrNoSpace{Need: need, Free: free}
 	}
 	return nil

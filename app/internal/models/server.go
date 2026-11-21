@@ -23,9 +23,9 @@ import (
 )
 
 type Server struct {
-	bin    string
-	Vision func(model string) string
-	Warm   func(ctx context.Context, url string) error
+	bin         string
+	projectorOf func(model string) string
+	warm        func(ctx context.Context, url string, picture bool) error
 
 	mu   sync.Mutex
 	cur  *process
@@ -44,7 +44,25 @@ type process struct {
 	warmed  chan struct{}
 }
 
-func NewServer(bin string, logs io.Writer) *Server { return &Server{bin: bin, logs: logs} }
+type ServerOption func(*Server)
+
+func WithProjectors(of func(model string) string) ServerOption {
+	return func(s *Server) { s.projectorOf = of }
+}
+
+func WithWarm(warm func(ctx context.Context, url string) error) ServerOption {
+	return func(s *Server) {
+		s.warm = func(ctx context.Context, url string, _ bool) error { return warm(ctx, url) }
+	}
+}
+
+func NewServer(bin string, logs io.Writer, opts ...ServerOption) *Server {
+	s := &Server{bin: bin, logs: logs, warm: warmChat}
+	for _, o := range opts {
+		o(s)
+	}
+	return s
+}
 
 func (s *Server) Ensure(ctx context.Context, path string) (string, error) {
 	return s.ensure(ctx, path, false)
@@ -59,8 +77,8 @@ func (s *Server) ensure(ctx context.Context, path string, sees bool) (string, er
 		return "", err
 	}
 	var vision string
-	if sees && s.Vision != nil {
-		vision = s.Vision(path)
+	if sees && s.projectorOf != nil {
+		vision = s.projectorOf(path)
 	}
 	s.mu.Lock()
 	if err := ctx.Err(); err != nil {
@@ -99,7 +117,7 @@ func (s *Server) ensure(ctx context.Context, path string, sees bool) (string, er
 	}
 	p.warming.Do(func() {
 		go func() {
-			if err := p.warm(s.Warm); err != nil && s.logs != nil {
+			if err := p.warm(s.warm); err != nil && s.logs != nil {
 				fmt.Fprintln(s.logs, "models: warming:", err)
 			}
 			close(p.warmed)
@@ -124,12 +142,7 @@ func (s *Server) stopLocked() {
 		p := s.cur
 		s.cur = nil
 		_ = p.cmd.Process.Kill()
-		timer := time.NewTimer(2 * time.Second)
-		defer timer.Stop()
-		select {
-		case <-p.done:
-		case <-timer.C:
-		}
+		waitAtMost(p.done, shutdownWait)
 	}
 }
 
@@ -214,7 +227,7 @@ func (p *process) wait(ctx context.Context) error {
 	}
 }
 
-func (p *process) warm(custom func(context.Context, string) error) error {
+func (p *process) warm(warm func(ctx context.Context, url string, picture bool) error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	go func() {
@@ -224,11 +237,12 @@ func (p *process) warm(custom func(context.Context, string) error) error {
 		case <-ctx.Done():
 		}
 	}()
-	if custom != nil {
-		return custom(ctx, p.url)
-	}
+	return warm(ctx, p.url, p.vision != "")
+}
+
+func warmChat(ctx context.Context, url string, picture bool) error {
 	content := any(warmText)
-	if p.vision != "" {
+	if picture {
 		content = []map[string]any{
 			{"type": "image_url", "image_url": map[string]string{"url": "data:image/png;base64," + warmPicture()}},
 			{"type": "text", "text": warmText},
@@ -241,7 +255,7 @@ func (p *process) warm(custom func(context.Context, string) error) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.url+"/v1/chat/completions", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url+"/v1/chat/completions", bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
