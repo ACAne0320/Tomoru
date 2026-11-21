@@ -54,16 +54,14 @@ func (s Secrets) Set(k string, v []byte) error { s[k] = v; return nil }
 func (s Secrets) Delete(k string) error        { delete(s, k); return nil }
 
 type Nav struct {
-	Went        []string
-	Shortcut    string
-	Image       string
-	PanelHeight int
+	Went     []string
+	Shortcut string
+	Image    string
 }
 
 func (n *Nav) OpenPanel() { n.Went = append(n.Went, "panel") }
 
 func (n *Nav) OpenPanelAbove(mygo.Rectangle)    { n.Went = append(n.Went, "panel") }
-func (n *Nav) FitPanel(h int)                   { n.PanelHeight = h }
 func (n *Nav) ShowSettings()                    { n.Went = append(n.Went, "settings") }
 func (n *Nav) ShowSettingsPage(p shared.Page)   { n.Went = append(n.Went, "settings "+string(p)) }
 func (n *Nav) ShowGuide()                       { n.Went = append(n.Went, "guide") }

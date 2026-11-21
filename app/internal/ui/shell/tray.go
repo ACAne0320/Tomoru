@@ -2,7 +2,7 @@ package shell
 
 import (
 	"runtime"
-	"strings"
+	"slices"
 
 	"github.com/egoist/mygo"
 
@@ -44,12 +44,14 @@ func (s *Shell) openTrayMenu() {
 
 func (s *Shell) setTrayMenu() {
 	m := s.trayMenu()
-	var b strings.Builder
+	var items []trayEntry
 	for _, it := range m.Items() {
-		b.WriteString(it.Label + "\t" + it.Accelerator + "\n")
+		items = append(items, trayEntry{it.Label, it.Accelerator})
 	}
-	if b.String() != s.trayItems {
-		s.trayItems = b.String()
+	if !slices.Equal(items, s.trayItems) {
+		s.trayItems = items
 		s.tray.SetMenu(m)
 	}
 }
+
+type trayEntry struct{ label, accelerator string }

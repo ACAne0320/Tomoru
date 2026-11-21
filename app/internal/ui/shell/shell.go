@@ -17,7 +17,7 @@ type Shell struct {
 	core      *core.Core
 	tray      *mygo.Tray
 	trayOn    bool
-	trayItems string
+	trayItems []trayEntry
 	overlay   *overlay.Overlay
 
 	shortcut      string
