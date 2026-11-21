@@ -28,7 +28,7 @@ struct tc_capture {
 
 static void ended(tc_capture *c, const char *why) {
 	pthread_mutex_lock(&c->mu);
-	if (c->state == 0) {
+	if (c->state == TC_RUNNING) {
 		c->state = TC_ENDED;
 		snprintf(c->why, sizeof c->why, "%s", why);
 	}
@@ -99,7 +99,7 @@ static void server_info(pa_context *ctx, const pa_server_info *i, void *data) {
 	(void)ctx;
 	if (!i || !i->default_sink_name || strcmp(i->default_sink_name, c->sink) == 0) return;
 	pthread_mutex_lock(&c->mu);
-	if (c->state == 0) c->state = TC_CHANGED;
+	if (c->state == TC_RUNNING) c->state = TC_CHANGED;
 	pthread_cond_broadcast(&c->cond);
 	pthread_mutex_unlock(&c->mu);
 }
@@ -237,7 +237,7 @@ int tc_read(tc_capture *c, int16_t *buf, int n, int ms) {
 		until.tv_nsec -= 1000000000;
 	}
 	pthread_mutex_lock(&c->mu);
-	while (c->len == 0 && c->state == 0)
+	while (c->len == 0 && c->state == TC_RUNNING)
 		if (pthread_cond_timedwait(&c->cond, &c->mu, &until) == ETIMEDOUT) break;
 	int r = c->len < n ? c->len : n;
 	if (r > 0) {
@@ -245,7 +245,7 @@ int tc_read(tc_capture *c, int16_t *buf, int n, int ms) {
 		memmove(c->pending, c->pending + r, (c->len - r) * sizeof(int16_t));
 		c->len -= r;
 	} else {
-		r = c->state;
+		r = c->state == TC_RUNNING ? TC_NONE : c->state;
 	}
 	pthread_mutex_unlock(&c->mu);
 	return r;

@@ -106,7 +106,7 @@ func (l *loopback) run(pid uint32, feed func([]int16), opened chan<- error, ende
 		}
 		if time.Since(check) >= time.Second {
 			if pid == 0 {
-				if hr := C.tc_default_changed(c); hr != 0 {
+				if hr := C.tc_default_changed(c); hr != C.TC_DEVICE_SAME {
 					if hr < 0 {
 						log.Printf("default playback device unavailable: %v", hresult(hr))
 					} else {

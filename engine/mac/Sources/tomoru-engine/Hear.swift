@@ -8,7 +8,6 @@ final class Hearer {
     let app: String?
     let vadModel: URL?
     var voice: VoiceDetector?
-    let voiceQ = DispatchQueue(label: "voice")
     let format = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: Hearer.rate, channels: 1, interleaved: true)!
     var converter: AVAudioConverter?
     var capture: AudioSource?
@@ -112,7 +111,7 @@ final class Hearer {
             emit(.audio(Double(sent) / Hearer.rate, b64))
             if let v = voice {
                 let x = chunk.map { Float($0) / 32768 }
-                voiceQ.async { v.feed(x) }
+                v.feed(x)
             }
             sent += Int64(Hearer.chunk)
             pending.removeFirst(Hearer.chunk)

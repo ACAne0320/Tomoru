@@ -59,7 +59,7 @@ func TestSharedProtocolFixtures(t *testing.T) {
 	if err := readCommands(bytes.NewReader(input), func(c Command) { got = append(got, c) }); err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 4 || got[1].Through != 1.234 || got[2].Type != "future-command" || got[3].Type != "decode" {
+	if len(got) != 4 || got[1].Type != "finalize" || got[2].Type != "future-command" || got[3].Type != "decode" {
 		t.Errorf("commands %+v", got)
 	}
 	if err := readCommands(strings.NewReader("{broken}\n"), func(Command) {}); err == nil {

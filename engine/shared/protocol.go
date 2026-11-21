@@ -97,9 +97,16 @@ func Fail(code, format string, args ...any) {
 }
 
 type Command struct {
-	Type    string  `json:"type"`
-	Through float64 `json:"through"`
+	Type string `json:"type"`
 }
+
+type Access string
+
+const (
+	AccessGranted Access = "granted"
+	AccessDenied  Access = "denied"
+	AccessUnknown Access = "unknown"
+)
 
 func readCommands(r io.Reader, apply func(Command)) error {
 	sc := bufio.NewScanner(r)

@@ -6,7 +6,6 @@ package main
 import "C"
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,18 +14,7 @@ import (
 	"tomoru-engine-shared"
 )
 
-func systemSource(app string) shared.Source {
-	if app != "" {
-		return oneApp{}
-	}
-	return monitor{}
-}
-
-type oneApp struct{}
-
-func (oneApp) Start(func([]int16)) error {
-	return errors.New("hearing one app alone is not supported on Linux yet")
-}
+func systemSource(string) shared.Source { return monitor{} }
 
 type monitor struct{}
 
@@ -72,6 +60,7 @@ func hear(c *C.tc_capture, feed func([]int16)) (changed bool) {
 		case n == C.TC_CHANGED:
 			log.Print("default output changed")
 			return true
+		case n == C.TC_NONE:
 		case n == C.TC_ENDED:
 			log.Printf("capture ended: %s", C.GoString(C.tc_why(c)))
 			return false

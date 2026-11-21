@@ -18,6 +18,8 @@ final class VoiceDetector {
     let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: VoiceDetector.rate, channels: 1, interleaved: false)!
 
     let on: Float = 0.5, off: Float = 0.35
+    let onAfter = 2, offAfter = 3
+    private let queue = DispatchQueue(label: "voice")
     var voice = false
     var run = 0
     var runStart: Int64 = 0
@@ -41,6 +43,14 @@ final class VoiceDetector {
     }
 
     func feed(_ pcm: AVAudioPCMBuffer) {
+        queue.async { self.convert(pcm) }
+    }
+
+    func feed(_ samples: [Float]) {
+        queue.async { self.chunk(samples) }
+    }
+
+    private func convert(_ pcm: AVAudioPCMBuffer) {
         if converter == nil || converter!.inputFormat != pcm.format {
             converter = AVAudioConverter(from: pcm.format, to: format)
         }
@@ -56,10 +66,10 @@ final class VoiceDetector {
             return pcm
         }
         guard err == nil, let ch = out.floatChannelData?[0] else { return }
-        feed(Array(UnsafeBufferPointer(start: ch, count: Int(out.frameLength))))
+        chunk(Array(UnsafeBufferPointer(start: ch, count: Int(out.frameLength))))
     }
 
-    func feed(_ samples: [Float]) {
+    private func chunk(_ samples: [Float]) {
         buffer.append(contentsOf: samples)
         while buffer.count >= Self.chunk {
             let x = Array(buffer.prefix(Self.chunk))
@@ -68,7 +78,7 @@ final class VoiceDetector {
         }
     }
 
-    func step(_ x: [Float]) {
+    private func step(_ x: [Float]) {
         let p = input.dataPointer.bindMemory(to: Float.self, capacity: input.count)
         for i in 0..<Self.context { p[i] = last[i] }
         for i in 0..<Self.chunk { p[Self.context + i] = x[i] }
@@ -90,7 +100,7 @@ final class VoiceDetector {
         }
         if run == 0 { runStart = start }
         run += 1
-        if run >= (voice ? 3 : 2) {
+        if run >= (voice ? offAfter : onAfter) {
             voice.toggle()
             run = 0
             onChange(voice, Double(runStart) / Self.rate)

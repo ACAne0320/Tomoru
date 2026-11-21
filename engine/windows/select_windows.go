@@ -10,17 +10,19 @@ import (
 	"os"
 	"runtime"
 	"unsafe"
+
+	"tomoru-engine-shared"
 )
 
-func selectArea(path string) (*image.Rectangle, error) {
+func selectArea(path string) (image.Rectangle, error) {
 	runtime.LockOSThread()
 	var px *C.uint8_t
 	var x, y, w, h C.int
 	switch r := C.tc_select(&px, &x, &y, &w, &h); {
 	case r < 0:
-		return nil, hresult(r)
-	case r == 0:
-		return nil, nil
+		return image.Rectangle{}, hresult(r)
+	case r == C.TC_SELECT_CANCELLED:
+		return image.Rectangle{}, shared.ErrCancelled
 	}
 	defer C.free(unsafe.Pointer(px))
 	src := unsafe.Slice((*byte)(unsafe.Pointer(px)), int(w)*int(h)*4)
@@ -30,13 +32,12 @@ func selectArea(path string) (*image.Rectangle, error) {
 	}
 	f, err := os.Create(path)
 	if err != nil {
-		return nil, err
+		return image.Rectangle{}, err
 	}
 	if err := png.Encode(f, img); err != nil {
 		f.Close()
 		os.Remove(path)
-		return nil, err
+		return image.Rectangle{}, err
 	}
-	at := image.Rect(int(x), int(y), int(x+w), int(y+h))
-	return &at, f.Close()
+	return image.Rect(int(x), int(y), int(x+w), int(y+h)), f.Close()
 }

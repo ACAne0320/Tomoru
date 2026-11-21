@@ -4,12 +4,17 @@
 
 #include "engine_windows.h"
 
+enum { MIN_DRAG = 4 };
+
+enum selecting { SEL_PENDING, SEL_TAKEN, SEL_CANCELLED };
+
 static struct {
 	int w, h;
 	HDC shot, dim, back;
 	uint8_t *pixels;
 	POINT from, to;
-	int dragging, done;
+	int dragging;
+	enum selecting done;
 } sel;
 
 static HBITMAP dib(HDC dc, int w, int h, void **bits) {
@@ -76,7 +81,7 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 			sel.dragging = 0;
 			ReleaseCapture();
 			RECT r = dragged();
-			sel.done = r.right - r.left >= 4 && r.bottom - r.top >= 4 ? 1 : -1;
+			sel.done = r.right - r.left >= MIN_DRAG && r.bottom - r.top >= MIN_DRAG ? SEL_TAKEN : SEL_CANCELLED;
 		}
 		return 0;
 	case WM_KEYDOWN:
@@ -86,7 +91,7 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_HOTKEY:
 	case WM_RBUTTONDOWN:
 	case WM_CLOSE:
-		sel.done = -1;
+		sel.done = SEL_CANCELLED;
 		return 0;
 	}
 	return DefWindowProcW(w, msg, wp, lp);
@@ -94,11 +99,7 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 
 long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	*bgra = NULL;
-	typedef BOOL(WINAPI * setAwareness)(HANDLE);
-	setAwareness set = (setAwareness)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetProcessDpiAwarenessContext");
-	if (set) {
-		set((HANDLE)-4);
-	}
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	memset(&sel, 0, sizeof sel);
 	int x = GetSystemMetrics(SM_XVIRTUALSCREEN), y = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	sel.w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -110,7 +111,7 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	sel.back = CreateCompatibleDC(screen);
 	HBITMAP shotBmp = dib(screen, sel.w, sel.h, &bits), dimBmp = dib(screen, sel.w, sel.h, &dimBits),
 		backBmp = dib(screen, sel.w, sel.h, &backBits);
-	long result = 0;
+	long result = TC_SELECT_CANCELLED;
 	if (!shotBmp || !dimBmp || !backBmp) {
 		result = E_OUTOFMEMORY;
 		goto out;
@@ -144,7 +145,7 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	SetForegroundWindow(w);
 	RegisterHotKey(w, 1, MOD_NOREPEAT, VK_ESCAPE);
 	MSG m;
-	while (!sel.done && GetMessageW(&m, NULL, 0, 0) > 0) {
+	while (sel.done == SEL_PENDING && GetMessageW(&m, NULL, 0, 0) > 0) {
 		TranslateMessage(&m);
 		DispatchMessageW(&m);
 	}
@@ -152,7 +153,7 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 	AllowSetForegroundWindow(ASFW_ANY);
 	DestroyWindow(w);
 
-	if (sel.done == 1) {
+	if (sel.done == SEL_TAKEN) {
 		RECT r = dragged();
 		IntersectRect(&r, &r, &(RECT){0, 0, sel.w, sel.h});
 		int cw = r.right - r.left, ch = r.bottom - r.top;
@@ -169,7 +170,7 @@ long tc_select(uint8_t **bgra, int *outX, int *outY, int *outW, int *outH) {
 		*outY = y + r.top;
 		*outW = cw;
 		*outH = ch;
-		result = 1;
+		result = TC_SELECTED;
 	}
 out:
 	DeleteDC(sel.shot);

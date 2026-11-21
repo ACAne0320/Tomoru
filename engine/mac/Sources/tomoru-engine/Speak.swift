@@ -1,7 +1,8 @@
 import AVFoundation
 import Foundation
 
-final class Speaker: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable {
+@MainActor
+final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     let synth = AVSpeechSynthesizer()
     var left = 0
 
@@ -21,10 +22,12 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable 
         send(.state("speaking"))
     }
 
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, didFinish u: AVSpeechUtterance) {
-        left -= 1
-        if left == 0 { exit(0) }
+    nonisolated func speechSynthesizer(_ s: AVSpeechSynthesizer, didFinish u: AVSpeechUtterance) {
+        MainActor.assumeIsolated {
+            left -= 1
+            if left == 0 { exit(0) }
+        }
     }
 
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, didCancel u: AVSpeechUtterance) { exit(0) }
+    nonisolated func speechSynthesizer(_ s: AVSpeechSynthesizer, didCancel u: AVSpeechUtterance) { exit(0) }
 }

@@ -12,14 +12,14 @@ import (
 
 type fakeRec struct{ lens []int }
 
-func (r *fakeRec) Decode(s []float32) ([]Piece, string) {
+func (r *fakeRec) Decode(s []float32) Decoded {
 	r.lens = append(r.lens, len(s))
 	d := float64(len(s)) / rate
 	var out []Piece
 	for i := 0; float64(i)*.1 < d; i++ {
-		out = append(out, Piece{Text: "あ", At: float64(i) * .1}, Piece{Text: " ", At: float64(i)*.1 + .05})
+		out = append(out, Piece{Text: "あ", AtSeconds: float64(i) * .1}, Piece{Text: " ", AtSeconds: float64(i)*.1 + .05})
 	}
-	return append(out, Piece{Text: "。", At: d}), "ja"
+	return Decoded{Pieces: append(out, Piece{Text: "。", AtSeconds: d}), HeardLang: "ja"}
 }
 
 func TestSharedProtocolFixtures(t *testing.T) {
