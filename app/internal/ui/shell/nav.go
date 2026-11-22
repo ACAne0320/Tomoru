@@ -10,6 +10,7 @@ import (
 	"tomoru/internal/core"
 	"tomoru/internal/prefs"
 	"tomoru/internal/ui/guide"
+	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/panel"
 	"tomoru/internal/ui/settings"
 	"tomoru/internal/ui/shared"
@@ -82,13 +83,16 @@ func (s *Shell) openSettings(page *shared.Page) {
 		s.pages = settings.New(s.core, s)
 		w := mygo.NewWindow(mygo.WindowOptions{
 			Title: locales.SettingsTitle(), Width: settings.Width, Height: settings.Height, MinWidth: settings.MinWidth, MinHeight: settings.MinHeight,
-			TitleBarStyle: mygo.TitleBarHidden,
-			StateKey:      "settings",
-			Content:       ui.View(s.pages.View),
+			TitleBarStyle:        mygo.TitleBarHidden,
+			TitleBarHeight:       kit.TitleBarHeight,
+			TrafficLightPosition: &mygo.Point{X: 20, Y: 20},
+			StateKey:             "settings",
+			Content:              ui.View(s.pages.View),
 		})
-		w.SetWindowButtonsTheme(mygo.ThemeDark)
-		if err := mygo.Theme.SetGTKCSS(`headerbar.mygo-window-controls button.titlebutton { color: #f6efe4; }`); err != nil {
-			log.Println("settings:", err)
+		if len(mygo.Theme.WindowButtons().Start) > 0 {
+			if err := mygo.Theme.SetGTKCSS(`headerbar.mygo-window-controls { margin: 8px 0 0 8px; }`); err != nil {
+				log.Println("settings:", err)
+			}
 		}
 		s.settings = w
 		w.OnClosed(func() {

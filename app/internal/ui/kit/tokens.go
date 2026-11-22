@@ -7,14 +7,14 @@ import (
 )
 
 type Palette struct {
-	Night, NightLine, NightText, NightTitle ui.Color
-	NavOn                                   ui.Color
-	Stage                                   ui.Color
-	SkyTop, SkyBottom                       ui.Color
-	Glass, GlassLine                        ui.Color
-	Starlight                               ui.Color
-	Shade                                   ui.Color
-	KeyLit                                  ui.Color
+	Night, NightText, NightTitle ui.Color
+	NavOn, NavLine               ui.Color
+	Stage                        ui.Color
+	SkyTop, SkyBottom            ui.Color
+	Glass, GlassLine             ui.Color
+	Starlight                    ui.Color
+	Shade                        ui.Color
+	KeyLit                       ui.Color
 
 	Paper                      ui.Color
 	Card                       ui.Color
@@ -59,8 +59,8 @@ type Shadow struct {
 func (s Shadow) Cast(e ui.Element) ui.Element { return e.Shadow(s.X, s.Y, s.Blur, s.Spread, s.Color) }
 
 var Light = Palette{
-	Night: ui.Hex("#1b1949"), NightLine: ui.Hex("#2c2970"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn:  ui.Hex("#fbf6ec"),
+	Night: ui.Hex("#1b1949"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
+	NavOn: ui.Hex("#232057"), NavLine: ui.Hex("#efe4cc"),
 	Stage:  ui.Hex("#15133d"),
 	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
@@ -97,8 +97,8 @@ var Light = Palette{
 }
 
 var Dark = Palette{
-	Night: ui.Hex("#0e0a2f"), NightLine: ui.Hex("#2a2766"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn:  ui.Hex("#222049"),
+	Night: ui.Hex("#0e0a2f"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
+	NavOn: ui.Hex("#312f61"), NavLine: ui.Hex("#2a2766"),
 	Stage:  ui.Hex("#0d0b2a"),
 	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
@@ -180,13 +180,13 @@ const (
 )
 
 const (
-	RadiusFrame = 18
-	RadiusCard  = 20
-	RadiusTile  = 16
-	RadiusField = 14
-	RadiusPaper = 14
-	RadiusInner = 10
-	RadiusMark  = 4
+	RadiusFrame   = 18
+	RadiusCard    = 20
+	RadiusTile    = 16
+	RadiusField   = 14
+	RadiusSidebar = 14
+	RadiusInner   = 10
+	RadiusMark    = 4
 )
 
 func Pill(h float32) float32 { return h / 2 }
