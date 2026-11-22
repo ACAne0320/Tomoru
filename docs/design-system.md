@@ -12,8 +12,9 @@ Tomoru is the app that "lights up" subtitles: its name is 灯る, and its mascot
 (ともる), holds a paper lantern; Rubi (ルビ), her penguin, sits on her head. The interface is a
 lantern's paper at night:
 
-- **The frame is the night**: indigo, from the mascot's hair. The sidebar sits on the night.
-- **The content is paper**: cream, from her hoodie. Every page's content is on the paper.
+- **The night marks the way**: indigo, from the mascot's hair: the panel's head, the sidebar's page shown.
+- **The content is paper**: cream, from her hoodie. Every page's content is on the paper; the settings
+  window is the paper, the same on every platform, its sidebar a sand card on it.
 - **The accent is the lantern's light**: amber, from the lantern. Only for the one most important
   action, the selected state and a few hints.
 - **Subtitles always sit in the night sky**: the subtitle preview's "stage" is deep blue, with a
@@ -54,11 +55,11 @@ Light values:
 
 | Token | Value | Use | `ui.Theme` |
 |---|---|---|---|
-| `Night` | `#1b1949` | Window frame, sidebar, panel header | |
-| `NightLine` | `#2c2970` | Frame outline | |
+| `Night` | `#1b1949` | Panel header | |
 | `NightText` | `#d3cff6` | Text and icons on the night | |
 | `NightTitle` | `#fbf3e2` | Titles on the night (the Tomoru wordmark) | |
-| `NavOn` | as `Paper` | The selected sidebar item's ground | |
+| `NavOn` | `#232057` | The selected sidebar item's ground, a piece of the night; its name `NightTitle`, its icon `Lantern` | |
+| `NavLine` | as `Line` | The sidebar card's outline (dark `#2a2766`, quieter than `Line`) | |
 | `Stage` | `#15133d` | The subtitle stage | |
 | `SkyTop` / `SkyBottom` | `#13123a` / `#33215c` | The night sky's gradient in the guide | |
 | `Glass` / `GlassLine` | white 8% / 14% | Glass panels on the stage | |
@@ -102,7 +103,7 @@ Light values:
 windows redraw when the system switches. The Appearance preference chooses system / light / dark
 (`Prefs.Appearance`), applied with `mygo.Theme.SetSource` before `App.Run`. Dark has values of its own,
 not the light ones turned over: four layers a step of lightness apart, `Night` `#0e0a2f` < `Sand`
-`#171537` < `Paper` `#222049` < `Card` `#312f61` (the sidebar's chosen page is `Paper`); tracks
+`#171537` < `Paper` `#222049` < `Card` `#312f61` (the sidebar's chosen page is `NavOn` `#312f61`); tracks
 sink (`Fill` `#181639`) and the chosen segment rises (`SegOn` `#4c4a88`); `Strong` is a brighter
 indigo, `#5455b6`, never the cream of `Ink`; the tint and the ramp warm from the indigo through
 mauve (`LanternTint` `#603d6b`, `Band` `#4c3155`, `Amber` `#181639` … `#f5a524`), never through
@@ -146,8 +147,8 @@ these. A number keeps its unit: sizes and memory join them with a no-break space
   - inputs, tracks, pickers: 14 (`RadiusField`);
   - segments, a stepper's buttons, small icon grounds, table cells: 10 (`RadiusInner`);
   - a chart's bars and tips, a mark in a line of text: 4 (`RadiusMark`);
-  - paper: 14;
-  - window frame: 18.
+  - the sidebar's card: 14 (`RadiusSidebar`);
+  - the menu bar panel: 18 (`RadiusFrame`).
   - One inside another is the outer less the padding between: a segment (10) in its track (14),
     4 in; an option row (16) in its card (20), 4 in.
 - **Outlines and shadows**:
@@ -229,8 +230,8 @@ The stage's stars and its glow don't move.
 
 | Component | Use | Built on |
 |---|---|---|
-| `AppFrame` | The settings window: night frame and paper, navigation on the left; the system title bar hidden | `Row`, `Column` |
-| `NavItem` | A sidebar item: icon and text; a paper pill when selected. The sidebar's width follows the longest page name in the current UI language, 184–252 (`kit.NavWidth`) | `ButtonBase` |
+| `AppFrame` | The settings window: the paper, the sidebar a sand card 8 in from its edges, the page beside it to the window's edges, its top fading out under a band of 36 once scrolled; no title bar on any platform: the window's buttons sit on the card at its start and on the paper at its end, which follow the appearance, the pages start 48 down everywhere, and the card's top and the band drag the window | `Row`, `Column` |
+| `NavItem` | A sidebar item: icon and text; a night pill when selected. The sidebar's width follows the longest page name in the current UI language, 184–252 (`kit.NavWidth`) | `ButtonBase` |
 | `Group` / `Groups` | A part of a page: its title (and a control at its end) above its card, outside it; `Groups` sets them side by side, `CardGap` apart, as tall as the tallest | |
 | `Card` / `RowsCard` / `OptionsCard` / `SandCard` | White card raised a little; the same for `SettingRow`s (padded only at the sides) and for `Options` and a `List` (rows 4 in); sand, sunk, for a note | |
 | `SplitCard` / `SplitList` / `SplitDetail` | A card of a list and the detail of what it shows: the list two fifths of it, on white, rows 4 in, a rule after it; the detail the rest, on white too, padded as a card | |
