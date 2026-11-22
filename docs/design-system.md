@@ -12,7 +12,7 @@ Tomoru is the app that "lights up" subtitles: its name is 灯る, and its mascot
 (ともる), holds a paper lantern; Rubi (ルビ), her penguin, sits on her head. The interface is a
 lantern's paper at night:
 
-- **The night marks the way**: indigo, from the mascot's hair: the panel's head, the sidebar's page shown.
+- **The night marks the way**: indigo, from the mascot's hair: the panel's head.
 - **The content is paper**: cream, from her hoodie. Every page's content is on the paper; the settings
   window is the paper, the same on every platform, its sidebar a sand card on it.
 - **The accent is the lantern's light**: amber, from the lantern. Only for the one most important
@@ -58,7 +58,6 @@ Light values:
 | `Night` | `#1b1949` | Panel header | |
 | `NightText` | `#d3cff6` | Text and icons on the night | |
 | `NightTitle` | `#fbf3e2` | Titles on the night (the Tomoru wordmark) | |
-| `NavOn` | `#232057` | The selected sidebar item's ground, a piece of the night; its name `NightTitle`, its icon `Lantern` | |
 | `NavLine` | as `Line` | The sidebar card's outline (dark `#2a2766`, quieter than `Line`) | |
 | `Stage` | `#15133d` | The subtitle stage | |
 | `SkyTop` / `SkyBottom` | `#13123a` / `#33215c` | The night sky's gradient in the guide | |
@@ -103,7 +102,7 @@ Light values:
 windows redraw when the system switches. The Appearance preference chooses system / light / dark
 (`Prefs.Appearance`), applied with `mygo.Theme.SetSource` before `App.Run`. Dark has values of its own,
 not the light ones turned over: four layers a step of lightness apart, `Night` `#0e0a2f` < `Sand`
-`#171537` < `Paper` `#222049` < `Card` `#312f61` (the sidebar's chosen page is `NavOn` `#312f61`); tracks
+`#171537` < `Paper` `#222049` < `Card` `#312f61`; tracks
 sink (`Fill` `#181639`) and the chosen segment rises (`SegOn` `#4c4a88`); `Strong` is a brighter
 indigo, `#5455b6`, never the cream of `Ink`; the tint and the ramp warm from the indigo through
 mauve (`LanternTint` `#603d6b`, `Band` `#4c3155`, `Amber` `#181639` … `#f5a524`), never through
@@ -231,7 +230,7 @@ The stage's stars and its glow don't move.
 | Component | Use | Built on |
 |---|---|---|
 | `AppFrame` | The settings window: the paper, the sidebar a sand card 8 in from its edges, the page beside it to the window's edges, its top fading out under a band of 36 once scrolled; no title bar on any platform: the window's buttons sit on the card at its start and on the paper at its end, which follow the appearance, the pages start 48 down everywhere, and the card's top and the band drag the window | `Row`, `Column` |
-| `NavItem` | A sidebar item: icon and text; a night pill when selected. The sidebar's width follows the longest page name in the current UI language, 184–252 (`kit.NavWidth`) | `ButtonBase` |
+| `NavItem` | A sidebar item: icon and text; when selected, a segment raised on the sand card (`SegOn`, `SegShadow`), its icon `LanternText`. The sidebar's width follows the longest page name in the current UI language, 184–252 (`kit.NavWidth`) | `ButtonBase` |
 | `Group` / `Groups` | A part of a page: its title (and a control at its end) above its card, outside it; `Groups` sets them side by side, `CardGap` apart, as tall as the tallest | |
 | `Card` / `RowsCard` / `OptionsCard` / `SandCard` | White card raised a little; the same for `SettingRow`s (padded only at the sides) and for `Options` and a `List` (rows 4 in); sand, sunk, for a note | |
 | `SplitCard` / `SplitList` / `SplitDetail` | A card of a list and the detail of what it shows: the list two fifths of it, on white, rows 4 in, a rule after it; the detail the rest, on white too, padded as a card | |
