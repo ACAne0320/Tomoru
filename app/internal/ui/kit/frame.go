@@ -91,8 +91,8 @@ func NavItem(c *ui.Context, on bool, icon *ui.SVG, label string) ui.Element {
 	ink, tint := p.Ink, p.InkMuted
 	switch {
 	case on:
-		b = b.Background(b.AnimateColor("face", p.NavOn, Fade)).FontWeight(WeightBold)
-		ink, tint = p.NightTitle, p.Lantern
+		b = p.SegShadow.Cast(b.Background(b.AnimateColor("face", p.SegOn, Fade)).FontWeight(WeightBold))
+		tint = p.LanternText
 	case b.Hovered():
 		b = b.Background(b.AnimateColor("face", p.Ink.Alpha(.06), Fade))
 	default:

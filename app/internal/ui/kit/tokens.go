@@ -8,7 +8,7 @@ import (
 
 type Palette struct {
 	Night, NightText, NightTitle ui.Color
-	NavOn, NavLine               ui.Color
+	NavLine                      ui.Color
 	Stage                        ui.Color
 	SkyTop, SkyBottom            ui.Color
 	Glass, GlassLine             ui.Color
@@ -60,9 +60,9 @@ func (s Shadow) Cast(e ui.Element) ui.Element { return e.Shadow(s.X, s.Y, s.Blur
 
 var Light = Palette{
 	Night: ui.Hex("#1b1949"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn: ui.Hex("#232057"), NavLine: ui.Hex("#efe4cc"),
-	Stage:  ui.Hex("#15133d"),
-	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
+	NavLine: ui.Hex("#efe4cc"),
+	Stage:   ui.Hex("#15133d"),
+	SkyTop:  ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
 	Starlight: ui.RGB(255, 255, 255), Shade: ui.RGB(0, 0, 0), KeyLit: ui.Hex("#4d8dff"),
 
@@ -98,9 +98,9 @@ var Light = Palette{
 
 var Dark = Palette{
 	Night: ui.Hex("#0e0a2f"), NightText: ui.Hex("#d3cff6"), NightTitle: ui.Hex("#fbf3e2"),
-	NavOn: ui.Hex("#312f61"), NavLine: ui.Hex("#2a2766"),
-	Stage:  ui.Hex("#0d0b2a"),
-	SkyTop: ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
+	NavLine: ui.Hex("#2a2766"),
+	Stage:   ui.Hex("#0d0b2a"),
+	SkyTop:  ui.Hex("#13123a"), SkyBottom: ui.Hex("#33215c"),
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
 	Starlight: ui.RGB(255, 255, 255), Shade: ui.RGB(0, 0, 0), KeyLit: ui.Hex("#4d8dff"),
 
