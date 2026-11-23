@@ -238,6 +238,7 @@ func TestGallery(t *testing.T) {
 		save(name, tt.Image())
 	}
 	tt.SetDark(false)
+	tt.Advance(time.Second)
 	tt.Frame()
 
 	labels := []string{"开始翻译", "暂停翻译", "取消", "从字幕记录学习", "稍后", "最终幻想7 重制版", "通用"}
@@ -313,6 +314,7 @@ func TestEmptyGallery(t *testing.T) {
 	dir := os.Getenv("TOMORU_GALLERY")
 	for _, dark := range []bool{false, true} {
 		tt.SetDark(dark)
+		tt.Advance(time.Second)
 		tt.Frame()
 		if dir == "" {
 			continue

@@ -89,14 +89,21 @@ func NavItem(c *ui.Context, on bool, icon *ui.SVG, label string) ui.Element {
 	b := ui.ButtonBase(c).Height(h).Padding(0, navItemPad).Gap(navItemGap).Radius(Pill(h)).FontSize(TextBody).
 		Justify(ui.Start).Role(ui.RoleTab).Selected(on).Cursor(ui.CursorPointer)
 	ink, tint := p.Ink, p.InkMuted
-	switch {
-	case on:
-		b = p.SegShadow.Cast(b.Background(b.AnimateColor("face", p.SegOn, Fade)).FontWeight(WeightBold))
+	hovered := b.Hovered()
+	face := AnimateColor(c, b, "face", Fade, func(p *Palette) ui.Color {
+		switch {
+		case on:
+			return p.SegOn
+		case hovered:
+			return p.Ink.Alpha(.06)
+		default:
+			return p.Ink.Alpha(0)
+		}
+	})
+	b = b.Background(face)
+	if on {
+		b = p.SegShadow.Cast(b.FontWeight(WeightBold))
 		tint = p.LanternText
-	case b.Hovered():
-		b = b.Background(b.AnimateColor("face", p.Ink.Alpha(.06), Fade))
-	default:
-		b = b.Background(b.AnimateColor("face", p.Ink.Alpha(0), Fade))
 	}
 	return b.TextColor(ink).Children(func() {
 		ui.Icon(c, icon).FontSize(IconSizeNav).TextColor(tint)

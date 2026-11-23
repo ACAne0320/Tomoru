@@ -26,13 +26,17 @@ func Segmented(c *ui.Context, selected *int, labels ...string) ui.Element {
 			case off:
 				s = s.TextColor(p.Faint).Cursor(ui.CursorDefault)
 			case i == *selected:
-				s = p.SegShadow.Cast(s.Background(s.AnimateColor("face", p.SegOn, Fade)).FontWeight(WeightMedium).TextColor(p.Ink))
+				face := AnimateColor(c, s, "face", Fade, func(p *Palette) ui.Color { return p.SegOn })
+				s = p.SegShadow.Cast(s.Background(face).FontWeight(WeightMedium).TextColor(p.Ink))
 			default:
-				col := p.SegOn.Alpha(0)
-				if s.Hovered() {
-					col = p.Fill.Mix(p.SegOn, .5)
-				}
-				s = s.Background(s.AnimateColor("face", col, Fade)).TextColor(p.Ink)
+				hovered := s.Hovered()
+				face := AnimateColor(c, s, "face", Fade, func(p *Palette) ui.Color {
+					if hovered {
+						return p.Fill.Mix(p.SegOn, .5)
+					}
+					return p.SegOn.Alpha(0)
+				})
+				s = s.Background(face).TextColor(p.Ink)
 			}
 			s.Children(func() { ui.Text(c, label).SingleLine() })
 		}

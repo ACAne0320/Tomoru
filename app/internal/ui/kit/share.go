@@ -18,14 +18,18 @@ func ShareRow(c *ui.Context, s Share, on bool) ui.Element {
 	}
 	b := ui.ButtonBase(c).Selected(on).Label(s.Name).Padding(Space(2)).Margin(0, -Space(2)).Radius(RadiusField).
 		Gap(Space(3)).AlignItems(ui.Center).Cursor(ui.CursorPointer)
-	face := ui.Transparent
-	switch {
-	case on:
-		face = p.Band
-	case b.Hovered():
-		face = p.Paper
-	}
-	return b.Background(b.AnimateColor("face", face, Fade)).Children(func() {
+	hovered := b.Hovered()
+	face := AnimateColor(c, b, "face", Fade, func(p *Palette) ui.Color {
+		switch {
+		case on:
+			return p.Band
+		case hovered:
+			return p.Paper
+		default:
+			return ui.Transparent
+		}
+	})
+	return b.Background(face).Children(func() {
 		ui.Box(c).Size(12, 12).Radius(4).Background(s.Color).Shrink(0)
 		ui.Column(c).Basis(Space(52)).Shrink(1).MinWidth(0).Children(func() {
 			ui.Text(c, s.Name).FontSize(TextBody).FontWeight(WeightBold).TextColor(ink).MaxLines(1).Tooltip(s.Name)

@@ -99,8 +99,11 @@ Light values:
 | `Apple` / `Qwen` / `QwenPale` / `Alibaba` | `#007aff` / `#615ced` / `#aeabf6` / `#ff6a00` | The engines' makers' colors, so an engine keeps its color in any chart: Apple's speech recognition, Qwen's (its cloud and Qwen3-ASR 1.7B; paler for 0.6B), SenseVoice (Alibaba's Tongyi Lab) | |
 | `Bilibili` | `#fb7299` `#d63f73` `#fdb2c9` | Index-Translate's, bilibili's pink: in the cloud, deeper for 9B, paler for 2B | |
 
-**Dark appearance**: by default it follows the system; UI code checks `c.Theme().Dark`, and
-windows redraw when the system switches. The Appearance preference chooses system / light / dark
+**Dark appearance**: by default it follows the system; UI code reads `kit.Colors(c)`, and
+windows cross-fade between `Light` and `Dark` in Oklab when the appearance changes: paper and
+surface layers lead over 260 ms through a faint twilight mauve waypoint (`themeSurfaceFade`) while
+ink follows 85 ms later over 200 ms (`themeInkFade`), empty-state illustrations cross-fade in step,
+and Reduce Motion switches directly. The Appearance preference chooses system / light / dark
 (`Prefs.Appearance`), applied with `mygo.Theme.SetSource` before `App.Run`. Dark has values of its own,
 not the light ones turned over: four layers a step of lightness apart, `Night` `#0e0a2f` < `Sand`
 `#171537` < `Paper` `#222049` < `Card` `#312f61`; tracks
@@ -177,7 +180,9 @@ All of it is in `kit/tokens.go`; nothing else picks its own durations.
   changes, clipping it on the way; what comes into it rises after `Settle` (200 ms), when the pane
   is about there, so text never meets its edge.
 - `Fade` 200 ms: colors and states changing in place (lit, dimmed). `FadeQuick` 120 ms: what goes
-  before what replaces it comes, so that the two never show over each other.
+  before what replaces it comes, so that the two never show over each other. Appearance switches
+  stagger surfaces (`themeSurfaceFade`, 260 ms, through a subtle twilight mauve) ahead of ink
+  (`themeInkFade`, 200 ms after 85 ms) in Oklab.
 - With the system's Reduce Motion on, everything switches directly.
 
 The guide's engine steps show the way of a sentence as one timeline: a light goes down from what

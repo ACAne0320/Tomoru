@@ -193,12 +193,17 @@ func (g *Guide) progress(c *ui.Context) {
 					kit.Caption(c, "›")
 				}
 				t := ui.Text(c, ph.name()).FontSize(kit.TextControl).SingleLine()
-				col := p.InkMuted
-				if i == phase {
-					col = p.Ink
+				on := i == phase
+				if on {
 					t.FontWeight(kit.WeightBold)
 				}
-				t.TextColor(t.AnimateColor("c", col, ui.Animation{Duration: 240 * time.Millisecond}))
+				col := kit.AnimateColor(c, t, "c", ui.Animation{Duration: 240 * time.Millisecond}, func(p *kit.Palette) ui.Color {
+					if on {
+						return p.Ink
+					}
+					return p.InkMuted
+				})
+				t.TextColor(col)
 			}
 		})
 		const h = 4

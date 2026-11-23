@@ -30,14 +30,18 @@ func fieldFace(c *ui.Context, in ui.Element) ui.Element {
 func CellInput(c *ui.Context, v *string) ui.Element {
 	p := Colors(c)
 	in := ui.TextInputBase(c, v).Height(Space(8)).Padding(0, Space(2)).Radius(RadiusInner).FontSize(TextBody).TextColor(p.Ink).MinWidth(0)
-	face, edge := p.Paper.Alpha(0), p.Lantern.Alpha(0)
-	switch {
-	case in.Focused():
-		face, edge = p.Paper, p.Lantern
-	case in.Hovered():
-		face = p.Paper
+	focused, hovered := in.Focused(), in.Hovered()
+	edge := p.Lantern.Alpha(0)
+	if focused {
+		edge = p.Lantern
 	}
-	return in.Background(in.AnimateColor("face", face, hover)).Border(1.5, edge)
+	face := AnimateColor(c, in, "face", hover, func(p *Palette) ui.Color {
+		if focused || hovered {
+			return p.Paper
+		}
+		return p.Paper.Alpha(0)
+	})
+	return in.Background(face).Border(1.5, edge)
 }
 
 func InUse(c *ui.Context) ui.Element {

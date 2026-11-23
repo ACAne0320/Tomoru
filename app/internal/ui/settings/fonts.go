@@ -103,14 +103,18 @@ func fontRow(c *ui.Context, name, sample, lang string, on bool) ui.Element {
 	p := kit.Colors(c)
 	b := ui.ButtonBase(c).Padding(kit.Space(3)).Gap(kit.Space(3)).Justify(ui.Start).AlignItems(ui.Center).Radius(kit.RadiusTile).
 		Role(ui.RoleRadio).Checked(on).Label(name).Cursor(ui.CursorPointer)
-	face := p.Band.Alpha(0)
-	switch {
-	case on:
-		face = p.Band
-	case b.Hovered():
-		face = p.Paper
-	}
-	return b.Background(b.AnimateColor("face", face, kit.Fade)).Children(func() {
+	hovered := b.Hovered()
+	face := kit.AnimateColor(c, b, "face", kit.Fade, func(p *kit.Palette) ui.Color {
+		switch {
+		case on:
+			return p.Band
+		case hovered:
+			return p.Paper
+		default:
+			return p.Band.Alpha(0)
+		}
+	})
+	return b.Background(face).Children(func() {
 		ui.Column(c).Grow(1).MinWidth(0).Gap(kit.Space(1)).Children(func() {
 			ui.Text(c, sample).Font(name).Lang(lang).FontSize(kit.TextTitle).LineHeight(1.5).Bold().TextColor(p.Ink).MaxLines(1)
 			kit.OneLine(c, name, kit.TextCaption, 0, p.InkMuted)

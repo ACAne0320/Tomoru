@@ -28,18 +28,22 @@ func PickTiles(c *ui.Context, selected *int, groups []TileGroup) ui.Element {
 					for _, t := range g.Tiles {
 						s := parts.Segment(i).Grow(1).Basis(0).MinWidth(0).Padding(Space(3)).Radius(RadiusField).
 							Cursor(ui.CursorPointer).Label(t.Label + " " + t.Value + " " + t.Unit)
-						face := p.Paper
-						switch {
-						case i == *selected:
-							face = p.Band
-						case s.Hovered():
-							face = p.Paper.Mix(p.Band, .5)
-						}
+						on, hovered := i == *selected, s.Hovered()
+						face := AnimateColor(c, s, "face", Fade, func(p *Palette) ui.Color {
+							switch {
+							case on:
+								return p.Band
+							case hovered:
+								return p.Paper.Mix(p.Band, .5)
+							default:
+								return p.Paper
+							}
+						})
 						size := float32(TextTitle)
 						if t.Strong {
 							size = TextStat
 						}
-						s.Background(s.AnimateColor("face", face, Fade)).Children(func() {
+						s.Background(face).Children(func() {
 							ui.Column(c).Grow(1).AlignSelf(ui.Stretch).Gap(Space(1)).Justify(ui.SpaceBetween).Children(func() {
 								ui.Text(c, t.Label).FontSize(TextCaption).TextColor(p.InkMuted).MaxLines(2)
 								ui.Row(c).Gap(Space(1)).AlignItems(ui.End).Children(func() {

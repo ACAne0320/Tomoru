@@ -37,11 +37,14 @@ func PickerField(c *ui.Context, value string, build func(m *ui.Menu)) ui.Element
 	const h = 40
 	b := ui.ButtonBase(c).Height(h).Padding(0, Space(3)).Gap(Space(2)).Radius(RadiusField).Justify(ui.SpaceBetween).
 		FontSize(TextBody).FontWeight(WeightBold).MinWidth(0).Border(1, p.Line).Cursor(ui.CursorPointer)
-	col := p.Card
-	if b.Hovered() || b.Pressed() {
-		col = p.Fill
-	}
-	return b.Background(b.AnimateColor("face", col, hover)).TextColor(p.Ink).Menu(build).Children(func() {
+	hot := b.Hovered() || b.Pressed()
+	col := AnimateColor(c, b, "face", hover, func(p *Palette) ui.Color {
+		if hot {
+			return p.Fill
+		}
+		return p.Card
+	})
+	return b.Background(col).TextColor(p.Ink).Menu(build).Children(func() {
 		ui.Text(c, value).MaxLines(1).MinWidth(0)
 		ui.Icon(c, assets.Chevron).FontSize(TextControl).TextColor(p.InkWarm)
 	})
@@ -68,11 +71,14 @@ func MenuRow(c *ui.Context, i int, lead func(), label, value string, after func(
 	if i > 0 {
 		b = b.BorderWidth(1, 0, 0).BorderColor(p.LineSoft)
 	}
-	col := p.Fill.Alpha(0)
-	if b.Hovered() || b.Pressed() {
-		col = p.Fill
-	}
-	return b.Background(b.AnimateColor("face", col, hover)).Menu(build).Children(func() {
+	hot := b.Hovered() || b.Pressed()
+	col := AnimateColor(c, b, "face", hover, func(p *Palette) ui.Color {
+		if hot {
+			return p.Fill
+		}
+		return p.Fill.Alpha(0)
+	})
+	return b.Background(col).Menu(build).Children(func() {
 		lead()
 		ui.Text(c, label).FontSize(TextControl).TextColor(p.InkMuted).MinWidth(Space(9)).SingleLine()
 		ui.Row(c).Grow(1).MinWidth(0).Gap(Space(2)).AlignItems(ui.Center).Children(func() {
