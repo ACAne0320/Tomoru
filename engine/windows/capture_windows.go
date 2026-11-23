@@ -1,5 +1,6 @@
 package main
 
+// #cgo CFLAGS: -D_WIN32_WINNT=0x0A00
 // #cgo LDFLAGS: -lole32 -lmmdevapi -luuid -luser32 -lgdi32 -ldwmapi -lversion -lshell32
 // #include <stdlib.h>
 // #include "engine_windows.h"
