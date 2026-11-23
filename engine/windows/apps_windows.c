@@ -3,9 +3,16 @@
 #include <mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <dwmapi.h>
+#include <appmodel.h>
+#include <shlobj.h>
+#include <knownfolders.h>
 #include <stdlib.h>
 
 #include "engine_windows.h"
+
+#ifndef APPLICATION_USER_MODEL_ID_MAX_LENGTH
+#define APPLICATION_USER_MODEL_ID_MAX_LENGTH 130
+#endif
 
 static const CLSID clsidEnumerator = {0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2e}};
 static const IID iidEnumerator = {0xa95664d2, 0x9614, 0x4f35, {0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6}};
@@ -113,22 +120,11 @@ int tc_windowed(unsigned long *pids, int cap) {
 	return ws.n;
 }
 
-int tc_describe(unsigned long pid, wchar_t *path, int pathcap, wchar_t *name, int namecap) {
-	path[0] = name[0] = 0;
-	HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-	if (!h) {
-		return -1;
-	}
-	DWORD size = pathcap;
-	BOOL ok = QueryFullProcessImageNameW(h, 0, path, &size);
-	CloseHandle(h);
-	if (!ok) {
-		return -1;
-	}
+static void fileDescription(const wchar_t *path, wchar_t *name, int namecap) {
 	DWORD ignored;
 	DWORD n = GetFileVersionInfoSizeW(path, &ignored);
 	if (n == 0) {
-		return 0;
+		return;
 	}
 	void *info = malloc(n);
 	if (info && GetFileVersionInfoW(path, 0, n, info)) {
@@ -147,5 +143,42 @@ int tc_describe(unsigned long pid, wchar_t *path, int pathcap, wchar_t *name, in
 		}
 	}
 	free(info);
+}
+
+static void packageName(HANDLE h, wchar_t *name, int namecap) {
+	wchar_t aumid[APPLICATION_USER_MODEL_ID_MAX_LENGTH];
+	UINT32 n = APPLICATION_USER_MODEL_ID_MAX_LENGTH;
+	if (GetApplicationUserModelId(h, &n, aumid) != ERROR_SUCCESS) {
+		return;
+	}
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	IShellItem *item = NULL;
+	if (FAILED(SHCreateItemInKnownFolder(&FOLDERID_AppsFolder, KF_FLAG_DEFAULT, aumid, &IID_IShellItem, (void **)&item))) {
+		return;
+	}
+	wchar_t *display = NULL;
+	if (SUCCEEDED(IShellItem_GetDisplayName(item, SIGDN_NORMALDISPLAY, &display))) {
+		lstrcpynW(name, display, namecap);
+		CoTaskMemFree(display);
+	}
+	IShellItem_Release(item);
+}
+
+int tc_describe(unsigned long pid, wchar_t *path, int pathcap, wchar_t *name, int namecap) {
+	path[0] = name[0] = 0;
+	HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+	if (!h) {
+		return -1;
+	}
+	DWORD size = pathcap;
+	if (!QueryFullProcessImageNameW(h, 0, path, &size)) {
+		CloseHandle(h);
+		return -1;
+	}
+	fileDescription(path, name, namecap);
+	if (name[0] == 0) {
+		packageName(h, name, namecap);
+	}
+	CloseHandle(h);
 	return 0;
 }
