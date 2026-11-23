@@ -37,7 +37,7 @@
 
 ### 字幕层
 
-17. `windowOptions`（`overlay/overlay.go`）建的窗口覆盖工作区再加 `below`，从不移动、不改大小；字幕块在里面移动。按文字大小定窗口时，句子一多它就和屏幕一样高，而窗口不能越过屏幕顶部来让底边上移。
+17. `windowOptions`（`overlay/overlay.go`）建的窗口覆盖工作区再加 `below`，字幕块按这块画布排布。在 macOS 上，`place`（`overlay/fit.go`）再把窗口收到所画内容的大小：栏的宽度，从最上面的字幕、提示或工具栏到字幕块底部，高度按 40 pt 取整，文字变化时很少需要改大小。什么都不画时不透明度为 0。截图的窗口选择（⌘⇧5）只要指针下有窗口的图层就选中它，不管透明与否，并截下整个窗口；MyGo 把窗口画在一个图层里，所以盖满屏幕的窗口每次都被选中，截下整个屏幕，而不透明度为 0 的窗口会被跳过（2026-11-23）。悬停时仍然收着，因为截图选择时指针停在字幕上也算悬停；拖动时 `moveAhead` 在排版之前先移动窗口，字幕块在窗口里的位置就不变；在这一帧之后才移动的话，窗口带着按旧位置画的一帧一起移动，字幕块会抖。字幕列的高度取画布的高度而不是窗口的：窗口顶边移动时，每行在父元素里的位置不变；取窗口高度时，它会从旧位置滑过来（位置过渡），每次悬停都闪一下。`anchorBottomLeft`（`overlay/fit_darwin.go`）把 MyGo 的 `CAMetalLayer` 的 `contentsGravity` 设为 `topLeft`，因为这个图层是翻转的，在屏幕上就是左下角：新尺寸的一帧画好之前，上一帧留在原处，不会被拉伸。窗口有子窗口（面板、提示）时不动，因为 AppKit 会带着子窗口一起移动。窗口不超出画布，所以句子再多也不会比屏幕高，以前按文字大小定的窗口就会这样。Windows 和 Linux 仍用整块窗口：它们的截图工具没有测过。
 18. `windowOptions` 同时设 `DisableFullScreen` 和 `SetVisibleOnAllWorkspaces`，MyGo 据此把它做成其他应用全屏空间的辅助窗口（egoist/mygo#309），这是 macOS 文档里显示在全屏应用之上的做法。
 19. `toolWindow`（`overlay/window_windows.go`）在字幕层第一次显示前把它设成工具窗口（`WS_EX_TOOLWINDOW`）。Chromium 系浏览器和 Electron 应用在被它们认为不透明的窗口盖住时停止绘制（`IsWindowVisibleAndFullyOpaque`，ui/gfx/win/hwnd_util.cc），又看不出 DirectComposition 的透明；在字幕层里拖动会把它带到前台，下面的视频变黑（2026-10-28）。工具窗口会被跳过，也不出现在 Alt+Tab 里。
 20. `toolWindow`（`overlay/window_linux.go`）调用 `gtk_window_set_accept_focus(false)`：X11 窗口管理器会把键盘交给被点击的窗口，或另一个窗口关闭时剩下的那个，字幕就会从视频那里抢走键盘，Tomoru 的其他窗口也会在它后面打开。点击和拖动照样收到。
@@ -79,6 +79,6 @@
 
 ## 证据
 
-- `app/internal/ui/overlay/overlay_test.go`：`TestWindowOverFullScreen`、`TestToolbarLine`、`TestInputRegion`、`TestParks`、`TestWakesWatcher`、`TestSceneMenu`、`TestUnlock`。
+- `app/internal/ui/overlay/overlay_test.go`：`TestWindowOverFullScreen`、`TestFitsDrawing`、`TestToolbarLine`、`TestInputRegion`、`TestParks`、`TestWakesWatcher`、`TestSceneMenu`、`TestUnlock`。
 - `app/internal/ui/subtitle/subtitle_test.go`：`TestVisible`、`TestFailure`、`TestBalance`。
 - `app/internal/ui/shared/names_test.go`：引擎名称，包括 `CloudName`。

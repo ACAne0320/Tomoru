@@ -410,3 +410,22 @@ func TestWakesWatcher(t *testing.T) {
 		t.Errorf("%d wakes waiting, not one", len(o.woken))
 	}
 }
+
+func TestFitsDrawing(t *testing.T) {
+	area := mygo.Rectangle{X: -320, Y: 33, Width: 1470, Height: 831}
+	o := &Overlay{area: area}
+	got := o.around(ui.Rect{X: 300, Y: 700, W: 900, H: 140})
+	if got.X != area.X+300-fitMargin || got.Width != 900+2*fitMargin {
+		t.Errorf("columns %d to %d, not the column's with a margin", got.X, got.X+got.Width)
+	}
+	if top := got.Y; top > 700-fitMargin || top <= 700-fitMargin-fitStep || got.Height%fitStep != 0 {
+		t.Errorf("top at %d, height %d: not a step above the drawing's", top, got.Height)
+	}
+	if bottom := got.Y + got.Height; bottom != 840+fitMargin {
+		t.Errorf("bottom at %d, not under the block's 840", bottom)
+	}
+	tall := o.around(ui.Rect{X: -100, Y: -400, W: 2000, H: 1500})
+	if whole := o.whole(); tall != whole {
+		t.Errorf("many sentences: %+v, not the canvas %+v", tall, whole)
+	}
+}
