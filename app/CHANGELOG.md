@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.2.3
+
+The settings window looks the same on every platform: the pages on cream paper, the sidebar a
+card on it. Switching between light and dark fades, the sky first and the text after it. Cloud
+recognition, the proxy and picture translation say what went wrong instead of quietly working
+around it.
+
+### Improved
+
+- The settings window is the paper on every platform, with no title band; the sidebar is a sand
+  card on it, the page shown raised on the card. The window's buttons follow the app's
+  appearance. ([#101](https://github.com/ACAne0320/Tomoru/pull/101),
+  [#157](https://github.com/ACAne0320/Tomoru/pull/157))
+- Colors each keep one job: empty pages are a dashed outline instead of a block; in dark,
+  pickers and segments sit a step lighter than what they are on, and the chosen row is indigo
+  rather than mauve; amber is kept for the main action, and switches and sliders take the
+  indigo. Section titles are a size larger, and each project in About's credits shows a link
+  icon. ([#158](https://github.com/ACAne0320/Tomoru/pull/158))
+- Switching between light and dark fades instead of jumping: the paper and cards darken or
+  brighten first, the text follows a moment later. With Reduce Motion on, it switches at once.
+  ([#163](https://github.com/ACAne0320/Tomoru/pull/163))
+- On Windows, apps from the Store show by the name Start gives them, as "Media Player", instead
+  of their file's name. ([#162](https://github.com/ACAne0320/Tomoru/pull/162))
+- The sound source menu keeps the app chosen in it as the list of apps changes while it is open.
+  ([#155](https://github.com/ACAne0320/Tomoru/pull/155))
+
+### Fixed
+
+- Qwen's cloud recognition stops and says the network can't keep up, instead of dropping audio
+  without a word. ([#132](https://github.com/ACAne0320/Tomoru/pull/132))
+- An invalid proxy address in Preferences makes cloud requests and downloads fail saying so,
+  instead of going without the proxy. ([#132](https://github.com/ACAne0320/Tomoru/pull/132))
+- A picture engine whose model or API was deleted, or that reads no pictures, stays chosen and
+  says to choose another, instead of switching to the cloud on its own.
+  ([#132](https://github.com/ACAne0320/Tomoru/pull/132))
+- Moving the models folder copies only across drives; any other error stops the move instead of
+  starting a copy. ([#132](https://github.com/ACAne0320/Tomoru/pull/132))
+- A picture asked again after a stall goes on a new connection, and so do the pictures after it,
+  instead of the stalled one. ([#132](https://github.com/ACAne0320/Tomoru/pull/132),
+  [#142](https://github.com/ACAne0320/Tomoru/pull/142))
+
 ## 0.2.2
 
 Subtitles that take two lines wrap them about the same length, as a film's do, and the notice over
