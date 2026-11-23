@@ -25,13 +25,29 @@ type artKey struct {
 
 var arts = map[artKey]*ui.SVG{}
 
-func Empty(c *ui.Context, art Art, text string, action func()) ui.Element {
-	key := artKey{art, c.Theme().Dark}
+func emptyArt(art Art, dark bool) *ui.SVG {
+	key := artKey{art, dark}
 	if arts[key] == nil {
-		arts[key] = ui.MustParseSVG([]byte(drawArt(art, Colors(c))))
+		p := &Light
+		if dark {
+			p = &Dark
+		}
+		arts[key] = ui.MustParseSVG([]byte(drawArt(art, p)))
 	}
+	return arts[key]
+}
+
+func Empty(c *ui.Context, art Art, text string, action func()) ui.Element {
+	t, _ := themeSteps(c)
 	return EmptyCard(c).AlignItems(ui.Center).Padding(Space(6), Space(5)).Children(func() {
-		ui.Image(c, arts[key]).Size(160, 120)
+		ui.Box(c).Size(160, 120).Children(func() {
+			if t < 1 {
+				ui.Image(c, emptyArt(art, false)).Absolute().Left(0).Top(0).Size(160, 120)
+			}
+			if t > 0 {
+				ui.Image(c, emptyArt(art, true)).Absolute().Left(0).Top(0).Size(160, 120).Opacity(t)
+			}
+		})
 		Caption(c, text).TextAlign(ui.Center)
 		if action != nil {
 			action()

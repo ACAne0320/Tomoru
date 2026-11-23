@@ -55,15 +55,19 @@ func List(c *ui.Context, items []ListItem) int {
 func listItem(c *ui.Context, t ListItem, tab bool) ui.Element {
 	p := Colors(c)
 	row := ui.Row(c).Padding(Space(3), Space(4)).Gap(Space(3)).AlignItems(ui.Center).Radius(RadiusTile)
-	face := p.Band.Alpha(0)
-	switch {
-	case t.Shown:
-		face = p.Band
-	case row.Hovered():
-		face = p.Paper
-	}
+	hovered := row.Hovered()
+	face := AnimateColor(c, row, "face", hover, func(p *Palette) ui.Color {
+		switch {
+		case t.Shown:
+			return p.Band
+		case hovered:
+			return p.Paper
+		default:
+			return p.Band.Alpha(0)
+		}
+	})
 	var b ui.Element
-	row.Background(row.AnimateColor("face", face, hover)).Children(func() {
+	row.Background(face).Children(func() {
 		b = ui.ButtonBase(c).Grow(1).MinWidth(0).Gap(Space(3)).Justify(ui.Start).AlignItems(ui.Center).
 			Label(t.Title).Cursor(ui.CursorPointer)
 		if tab {

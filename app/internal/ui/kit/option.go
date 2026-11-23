@@ -52,10 +52,12 @@ func Options(c *ui.Context, rows []Option) int {
 func optionRow(c *ui.Context, o Option) ui.Element {
 	p := Colors(c)
 	row := ui.Column(c).Padding(Space(3)).Gap(Space(2)).Radius(RadiusTile)
-	face := p.Band.Alpha(0)
-	if o.On {
-		face = p.Band
-	}
+	face := AnimateColor(c, row, "face", Fade, func(p *Palette) ui.Color {
+		if o.On {
+			return p.Band
+		}
+		return p.Band.Alpha(0)
+	})
 	text := func() {
 		ui.Column(c).Grow(1).MinWidth(0).Gap(Space(1)).Children(func() {
 			ui.Row(c).Gap(Space(2)).AlignItems(ui.Center).Wrap().Children(func() {
@@ -80,7 +82,7 @@ func optionRow(c *ui.Context, o Option) ui.Element {
 		})
 	}
 	var pick ui.Element
-	row.Background(row.AnimateColor("face", face, Fade)).Children(func() {
+	row.Background(face).Children(func() {
 		ui.Row(c).Gap(Space(3)).AlignItems(ui.Center).Children(func() {
 			if o.Off {
 				ui.Row(c).Grow(1).MinWidth(0).Gap(optGap).AlignItems(ui.Center).Children(func() {
@@ -125,14 +127,25 @@ func AddRow(c *ui.Context, label string) ui.Element {
 }
 
 func Dot(c *ui.Context, on bool) ui.Element {
-	p := Colors(c)
-	ring, col, heart := float32(2), p.DotRing, p.Card
+	ring := float32(2)
 	if on {
-		ring, col, heart = 6, p.Lantern, p.Starlight
+		ring = 6
 	}
 	dot := ui.Box(c).Size(dotSize, dotSize).Radius(Pill(dotSize)).Shrink(0)
 	a := ui.Animation{Duration: 180 * time.Millisecond}
-	return dot.Background(dot.AnimateColor("heart", heart, a)).Border(dot.AnimateTo("ring", ring, a), dot.AnimateColor("color", col, a))
+	heart := AnimateColor(c, dot, "heart", a, func(p *Palette) ui.Color {
+		if on {
+			return p.Starlight
+		}
+		return p.Card
+	})
+	col := AnimateColor(c, dot, "color", a, func(p *Palette) ui.Color {
+		if on {
+			return p.Lantern
+		}
+		return p.DotRing
+	})
+	return dot.Background(heart).Border(dot.AnimateTo("ring", ring, a), col)
 }
 
 func dotOff(c *ui.Context) ui.Element {

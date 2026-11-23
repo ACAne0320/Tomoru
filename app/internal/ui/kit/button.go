@@ -63,31 +63,47 @@ func face(p *Palette, kind Kind) (rest, hovered, pressed, ink ui.Color) {
 	return p.Raised, p.Raised.Mix(p.LineStrong, .5), p.LineStrong, p.Ink
 }
 
-func press(c *ui.Context, b ui.Element, kind Kind) ui.Element {
-	p := Colors(c)
+func pressColors(p *Palette, kind Kind, hovered, pressed bool) (col, ink, edge ui.Color) {
 	base := kind &^ destructive
-	rest, hovered, pressed, ink := face(p, base)
-	edge := p.RaisedLine
-	red := kind&destructive != 0 && (b.Hovered() || b.Pressed())
+	rest, hov, prs, ink := face(p, base)
+	edge = p.RaisedLine
+	red := kind&destructive != 0 && (hovered || pressed)
 	if kind&destructive != 0 && rest.A == 0 {
 		rest = p.CloseHover.Alpha(0)
 	}
-	col := rest
 	switch {
-	case red && b.Pressed():
-		col, ink, edge = p.CloseHover.Mix(p.Shade, .18), p.Starlight, p.CloseHover.Mix(p.Shade, .18)
+	case red && pressed:
+		return p.CloseHover.Mix(p.Shade, .18), p.Starlight, p.CloseHover.Mix(p.Shade, .18)
 	case red:
-		col, ink, edge = p.CloseHover, p.Starlight, p.CloseHover
-	case b.Pressed():
-		col = pressed
-	case b.Hovered():
-		col = hovered
+		return p.CloseHover, p.Starlight, p.CloseHover
+	case pressed:
+		return prs, ink, edge
+	case hovered:
+		return hov, ink, edge
 	}
+	return rest, ink, edge
+}
+
+func press(c *ui.Context, b ui.Element, kind Kind) ui.Element {
+	p := Colors(c)
+	base := kind &^ destructive
+	hovered, pressed := b.Hovered(), b.Pressed()
+	_, ink, edge := pressColors(p, kind, hovered, pressed)
 	if kind&destructive != 0 {
-		ink = b.AnimateColor("ink", ink, hover)
-		edge = b.AnimateColor("edge", edge, hover)
+		ink = AnimateColor(c, b, "ink", hover, func(p *Palette) ui.Color {
+			_, ink, _ := pressColors(p, kind, hovered, pressed)
+			return ink
+		})
+		edge = AnimateColor(c, b, "edge", hover, func(p *Palette) ui.Color {
+			_, _, edge := pressColors(p, kind, hovered, pressed)
+			return edge
+		})
 	}
-	b = b.Background(b.AnimateColor("face", col, hover)).TextColor(ink).Cursor(ui.CursorPointer)
+	col := AnimateColor(c, b, "face", hover, func(p *Palette) ui.Color {
+		col, _, _ := pressColors(p, kind, hovered, pressed)
+		return col
+	})
+	b = b.Background(col).TextColor(ink).Cursor(ui.CursorPointer)
 	if base == Plain {
 		b = p.RaisedShadow.Cast(b.Border(1, edge))
 	}

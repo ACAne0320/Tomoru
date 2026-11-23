@@ -45,14 +45,18 @@ func ChoiceList(c *ui.Context, label string, rows []Choice) (shown, used int) {
 func choiceRow(c *ui.Context, r Choice) (show, use bool) {
 	p := Colors(c)
 	row := ui.Column(c).Padding(Space(3)).Gap(Space(2)).Radius(RadiusTile)
-	face := p.Band.Alpha(0)
-	switch {
-	case r.Shown:
-		face = p.Shown
-	case row.Hovered():
-		face = p.Paper
-	}
-	row.Background(row.AnimateColor("face", face, hover)).Children(func() {
+	hovered := row.Hovered()
+	face := AnimateColor(c, row, "face", hover, func(p *Palette) ui.Color {
+		switch {
+		case r.Shown:
+			return p.Shown
+		case hovered:
+			return p.Paper
+		default:
+			return p.Band.Alpha(0)
+		}
+	})
+	row.Background(face).Children(func() {
 		ui.Row(c).Gap(optGap).AlignItems(ui.Center).Children(func() {
 			radio := ui.ButtonBase(c).Shrink(0).Radius(Pill(dotSize)).Role(ui.RoleRadio).Checked(r.On).Label(r.Use).Disabled(r.Off)
 			if !r.Off {

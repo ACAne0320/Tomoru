@@ -137,11 +137,136 @@ var Dark = Palette{
 	Bilibili: [3]ui.Color{ui.Hex("#fb7299"), ui.Hex("#ffa3c0"), ui.Hex("#c24d78")},
 }
 
+type themeSurfaceKey struct{}
+
+type themeInkKey struct{}
+
+type themeCacheKey struct{}
+
+type themeCache struct {
+	surface, ink float32
+	p            Palette
+}
+
+func themeSteps(c *ui.Context) (surface, ink float32) {
+	target := b2f(c.Theme().Dark)
+	root := c.Root()
+	return root.AnimateTo(themeSurfaceKey{}, target, themeSurfaceFade),
+		root.AnimateTo(themeInkKey{}, target, themeInkFade)
+}
+
 func Colors(c *ui.Context) *Palette {
-	if c.Theme().Dark {
+	surface, ink := themeSteps(c)
+	switch {
+	case surface <= 0 && ink <= 0:
+		return &Light
+	case surface >= 1 && ink >= 1:
 		return &Dark
 	}
-	return &Light
+	cache := ui.Local(c.Root(), themeCacheKey{}, func() themeCache { return themeCache{surface: -1, ink: -1} })
+	if cache.surface != surface || cache.ink != ink {
+		cache.surface, cache.ink = surface, ink
+		cache.p = mixPalette(&Light, &Dark, surface, ink)
+	}
+	return &cache.p
+}
+
+type darkColorKey struct{ key any }
+
+func AnimateColor(c *ui.Context, e ui.Element, key any, a ui.Animation, pick func(*Palette) ui.Color) ui.Color {
+	l := e.AnimateColor(key, pick(&Light), a)
+	d := e.AnimateColor(darkColorKey{key}, pick(&Dark), a)
+	t, _ := themeSteps(c)
+	switch {
+	case t <= 0:
+		return l
+	case t >= 1:
+		return d
+	}
+	return mixColor(l, d, t)
+}
+
+var duskTint = ui.Hex("#634168")
+
+func mixColor(a, b ui.Color, t float32) ui.Color {
+	if a == b || t <= 0 {
+		return a
+	}
+	if t >= 1 {
+		return b
+	}
+	return a.MixOklab(b, t)
+}
+
+func mixDusk(a, b ui.Color, t float32) ui.Color {
+	col := mixColor(a, b, t)
+	if a == b || t <= 0 || t >= 1 {
+		return col
+	}
+	bell := 4 * t * (1 - t)
+	return col.MixOklab(duskTint, .1*bell)
+}
+
+func mixShadow(a, b Shadow, t float32) Shadow {
+	lerp := func(x, y float32) float32 { return x + (y-x)*t }
+	return Shadow{
+		X:      lerp(a.X, b.X),
+		Y:      lerp(a.Y, b.Y),
+		Blur:   lerp(a.Blur, b.Blur),
+		Spread: lerp(a.Spread, b.Spread),
+		Color:  mixColor(a.Color, b.Color, t),
+	}
+}
+
+func mixPalette(a, b *Palette, surface, ink float32) Palette {
+	ms := func(x, y ui.Color) ui.Color { return mixColor(x, y, surface) }
+	md := func(x, y ui.Color) ui.Color { return mixDusk(x, y, surface) }
+	mi := func(x, y ui.Color) ui.Color { return mixColor(x, y, ink) }
+	p := Palette{
+		Night: ms(a.Night, b.Night), NightText: mi(a.NightText, b.NightText), NightTitle: mi(a.NightTitle, b.NightTitle),
+		NavLine: md(a.NavLine, b.NavLine),
+		Stage:   ms(a.Stage, b.Stage),
+		SkyTop:  ms(a.SkyTop, b.SkyTop), SkyBottom: ms(a.SkyBottom, b.SkyBottom),
+		Glass: ms(a.Glass, b.Glass), GlassLine: ms(a.GlassLine, b.GlassLine),
+		Starlight: ms(a.Starlight, b.Starlight), Shade: ms(a.Shade, b.Shade), KeyLit: ms(a.KeyLit, b.KeyLit),
+
+		Paper: md(a.Paper, b.Paper), Card: md(a.Card, b.Card), Sand: md(a.Sand, b.Sand), Fill: ms(a.Fill, b.Fill), SegOn: md(a.SegOn, b.SegOn),
+		Line: md(a.Line, b.Line), LineSoft: md(a.LineSoft, b.LineSoft), LineStrong: md(a.LineStrong, b.LineStrong),
+		EmptyLine: md(a.EmptyLine, b.EmptyLine),
+		Raised:    md(a.Raised, b.Raised), RaisedLine: md(a.RaisedLine, b.RaisedLine),
+
+		Ink: mi(a.Ink, b.Ink), InkMuted: mi(a.InkMuted, b.InkMuted), InkWarm: mi(a.InkWarm, b.InkWarm), Faint: mi(a.Faint, b.Faint),
+		Hatch: md(a.Hatch, b.Hatch), Pencil: mi(a.Pencil, b.Pencil), Lift: ms(a.Lift, b.Lift),
+
+		Lantern: ms(a.Lantern, b.Lantern), LanternHover: ms(a.LanternHover, b.LanternHover), LanternPressed: ms(a.LanternPressed, b.LanternPressed),
+		LanternInk: mi(a.LanternInk, b.LanternInk), LanternTint: ms(a.LanternTint, b.LanternTint), LanternText: mi(a.LanternText, b.LanternText),
+		Band: md(a.Band, b.Band), Shown: md(a.Shown, b.Shown), DotRing: ms(a.DotRing, b.DotRing), SwitchOff: ms(a.SwitchOff, b.SwitchOff),
+
+		Strong: ms(a.Strong, b.Strong), StrongInk: mi(a.StrongInk, b.StrongInk),
+
+		Ok: ms(a.Ok, b.Ok), OkText: mi(a.OkText, b.OkText), OkTint: ms(a.OkTint, b.OkTint),
+		CloudText: mi(a.CloudText, b.CloudText), CloudTint: ms(a.CloudTint, b.CloudTint),
+		Danger: mi(a.Danger, b.Danger), CloseHover: ms(a.CloseHover, b.CloseHover),
+
+		Scrim:        ms(a.Scrim, b.Scrim),
+		CardShadow:   mixShadow(a.CardShadow, b.CardShadow, surface),
+		SegShadow:    mixShadow(a.SegShadow, b.SegShadow, surface),
+		RaisedShadow: mixShadow(a.RaisedShadow, b.RaisedShadow, surface),
+
+		SubSrc: ms(a.SubSrc, b.SubSrc), SubTgt: ms(a.SubTgt, b.SubTgt),
+
+		Apple: ms(a.Apple, b.Apple), Qwen: ms(a.Qwen, b.Qwen), QwenPale: ms(a.QwenPale, b.QwenPale), Alibaba: ms(a.Alibaba, b.Alibaba),
+	}
+	for i := range p.Amber {
+		p.Amber[i] = ms(a.Amber[i], b.Amber[i])
+	}
+	for i := range p.Series {
+		p.Series[i] = ms(a.Series[i], b.Series[i])
+	}
+	for i := range p.Bilibili {
+		p.Bilibili[i] = ms(a.Bilibili[i], b.Bilibili[i])
+	}
+	return p
 }
 
 func Paper(c *ui.Context) {
@@ -204,9 +329,11 @@ const (
 )
 
 var (
-	Spring    = ui.Animation{Spring: ui.SpringOptions{Duration: 460 * time.Millisecond, Bounce: .08}}
-	Fade      = ui.Animation{Duration: 200 * time.Millisecond}
-	FadeQuick = ui.Animation{Duration: 120 * time.Millisecond}
+	Spring           = ui.Animation{Spring: ui.SpringOptions{Duration: 460 * time.Millisecond, Bounce: .08}}
+	Fade             = ui.Animation{Duration: 200 * time.Millisecond}
+	FadeQuick        = ui.Animation{Duration: 120 * time.Millisecond}
+	themeSurfaceFade = ui.Animation{Duration: 260 * time.Millisecond, Ease: ui.CubicBezier(.25, .1, .25, 1)}
+	themeInkFade     = ui.Animation{Duration: 200 * time.Millisecond, Delay: 85 * time.Millisecond, Ease: ui.CubicBezier(0, 0, .2, 1)}
 )
 
 const (
