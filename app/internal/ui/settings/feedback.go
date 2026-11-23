@@ -75,7 +75,7 @@ func (s *Settings) feedbackDialog(c *ui.Context) {
 
 func feedbackFacts(c *ui.Context, title string, facts []kit.Fact) ui.Element {
 	p := kit.Colors(c)
-	return ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Radius(kit.RadiusField).Background(p.Sand).Children(func() {
+	return ui.Column(c).Gap(kit.Space(2)).Padding(kit.Space(3), kit.Space(4)).Radius(kit.RadiusField).Background(p.Fill).Children(func() {
 		ui.Text(c, title).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(p.Ink)
 		for i, f := range facts {
 			ui.Row(c.Key(i)).Gap(kit.Space(3)).AlignItems(ui.Start).Children(func() {

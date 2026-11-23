@@ -188,7 +188,7 @@ func (s *Settings) glossary(c *ui.Context, sc *scene.Scene) {
 			art, text = kit.ArtTermsLearn, locales.NoTermsLearn()
 		}
 		if len(k.SceneList()) == 1 {
-			kit.SandCard(c).Children(func() { kit.Caption(c, text) })
+			kit.EmptyCard(c).Children(func() { kit.Caption(c, text) })
 		} else {
 			kit.Empty(c, art, text, nil)
 		}

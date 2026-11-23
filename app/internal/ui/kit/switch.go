@@ -12,7 +12,7 @@ func Switch(c *ui.Context, on *bool, label string) ui.Element {
 	sw := ui.SwitchBase(c, on).Size(w, h).Radius(Pill(h)).Label(label).Cursor(ui.CursorPointer)
 	pos := sw.AnimateTo("knob", b2f(*on), ui.Animation{Spring: ui.SpringOptions{Duration: 260 * time.Millisecond, Bounce: .15}})
 	off := p.SwitchOff
-	sw = sw.Background(off.Mix(p.Lantern, max(0, min(1, pos))))
+	sw = sw.Background(off.Mix(p.Strong, max(0, min(1, pos))))
 	rtl := c.Direction() == ui.RightToLeft
 	return sw.Draw(func(pt *ui.Painter, r ui.Rect) {
 		d := r.H - 2*in

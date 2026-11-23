@@ -30,7 +30,7 @@ func Empty(c *ui.Context, art Art, text string, action func()) ui.Element {
 	if arts[key] == nil {
 		arts[key] = ui.MustParseSVG([]byte(drawArt(art, Colors(c))))
 	}
-	return SandCard(c).AlignItems(ui.Center).Padding(Space(6), Space(5)).Children(func() {
+	return EmptyCard(c).AlignItems(ui.Center).Padding(Space(6), Space(5)).Children(func() {
 		ui.Image(c, arts[key]).Size(160, 120)
 		Caption(c, text).TextAlign(ui.Center)
 		if action != nil {
@@ -91,7 +91,7 @@ func drawArt(art Art, p *Palette) string {
 	case ArtTermsLearn:
 		d.object(16, 28, 56, 60, 10)
 		for _, l := range []struct{ y, at, w float32 }{{36, 8, 14}, {52, 22, 10}, {68, 4, 12}} {
-			d.bar(22, l.y, 40, 3, p.Fill)
+			d.bar(22, l.y, 40, 3, p.LineStrong)
 			d.bar(22+l.at, l.y, l.w, 3, p.Pencil)
 			d.bar(22, l.y+6, 30, 3.5, p.LineStrong)
 		}
@@ -191,7 +191,7 @@ func (d *sketch) player() {
 	for _, s := range []struct{ x, y, a float32 }{{27, 42, .5}, {70, 41, .4}, {62, 63, .35}} {
 		d.add(`<circle cx="%g" cy="%g" r="0.8" fill="%s" opacity="%g"/>`, s.x, s.y, rgbHex(p.Starlight), s.a)
 	}
-	d.bar(20, 76, 58, 3, p.Fill)
+	d.bar(20, 76, 58, 3, p.LineStrong)
 	d.bar(20, 76, 9, 3, p.Pencil)
 	d.icon(lucideArrow, 93, 58, 9, p.Pencil, 1.3)
 	d.lantern(lucidePlay, 49, 53, 8)

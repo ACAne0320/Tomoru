@@ -84,7 +84,7 @@ func (s *Settings) history(c *ui.Context) {
 		switch {
 		case !k.History.Loaded:
 		case len(k.History.Records) > 0:
-			kit.SandCard(c).Children(func() { kit.Caption(c, locales.HistorySceneEmpty()) })
+			kit.EmptyCard(c).Children(func() { kit.Caption(c, locales.HistorySceneEmpty()) })
 		case !k.Preferences().History:
 			kit.Empty(c, kit.ArtHistoryOff, locales.HistoryOff(), nil)
 		default:
