@@ -157,19 +157,19 @@ func CaptionLink(c *ui.Context, s, link, url string) ui.Element {
 }
 
 func Linked(c *ui.Context, s, link, url string, size float32, ink ui.Color) ui.Element {
-	amber := Colors(c).LanternText
+	linked := Colors(c).Ink
 	before, after, ok := strings.Cut(s, link)
 	switch {
 	case link == "" || !ok:
 		return ui.Text(c, s).FontSize(size).TextColor(ink)
 	case before == "" && after == "":
-		return ui.Link(c, link, url).FontSize(size).TextColor(amber)
+		return ui.Link(c, link, url).FontSize(size).TextColor(linked).Underline()
 	}
 	return ui.RichText(c).FontSize(size).TextColor(ink).Children(func() {
 		if before != "" {
 			ui.Text(c, before)
 		}
-		ui.Link(c, link, url).TextColor(amber)
+		ui.Link(c, link, url).TextColor(linked).Underline()
 		if after != "" {
 			ui.Text(c, after)
 		}

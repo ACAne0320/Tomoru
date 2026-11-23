@@ -43,7 +43,11 @@ func Slider(c *ui.Context, v *float64, lo, hi float64, unit, label string) ui.El
 	}
 	widest, _ := c.MeasureText(0, ui.Span{Text: widestSliderValue, Size: TextControl, Weight: WeightBold})
 	return row.Children(func() {
-		ui.Slider(c, v, lo, hi).Step(1).Grow(1).Label(label)
+		t := *c.Theme()
+		t.Accent = Colors(c).Strong
+		ui.Themed(c, &t).Background(ui.Transparent).Grow(1).Children(func() {
+			ui.Slider(c, v, lo, hi).Step(1).Label(label)
+		})
 		ui.Text(c, strconv.Itoa(int(*v))+unit).FontSize(TextControl).FontWeight(WeightBold).FontFeatures(Tabular).
 			TextColor(Colors(c).InkMuted).MinWidth(float32(math.Ceil(float64(widest)))).TextAlign(ui.End)
 	})

@@ -48,7 +48,7 @@ func (s *Settings) about(c *ui.Context) {
 		})
 	})
 	s.feedbackDialog(c)
-	kit.SandCard(c).Children(func() {
+	kit.Card(c).Children(func() {
 		ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
 			kit.Linked(c, locales.AboutLicense(), "GPL-3.0", core.Repo+"/blob/main/LICENSE", kit.TextBody, p.Ink).
 				FontWeight(kit.WeightMedium).Grow(1)
@@ -72,10 +72,13 @@ func (s *Settings) about(c *ui.Context) {
 				}
 				cell(text(w.role))
 				cell(func() {
-					ui.Link(c, w.name, w.url).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.LanternText)
+					ui.Row(c).Gap(kit.Space(1)).AlignItems(ui.Center).Children(func() {
+						ui.Link(c, w.name, w.url).FontSize(kit.TextBody).FontWeight(kit.WeightMedium).TextColor(p.Ink)
+						ui.Icon(c, assets.Opens).FontSize(kit.TextCaption).TextColor(p.InkMuted).Cursor(ui.CursorPointer).OnClick(func() { c.OpenURL(w.url) })
+					})
 				})
 				cell(func() {
-					ui.Link(c, w.owner, "https://github.com/"+w.owner).FontSize(kit.TextBody).TextColor(p.LanternText)
+					ui.Link(c, w.owner, "https://github.com/"+w.owner).FontSize(kit.TextBody).TextColor(p.InkMuted)
 				})
 				cell(text(w.license)).Padding(kit.Space(2), 0).Justify(ui.End)
 			}

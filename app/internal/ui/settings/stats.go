@@ -499,7 +499,7 @@ func statsLatency(c *ui.Context, e *statsEdit, total usage.Latency, was *usage.L
 			}
 		})
 		if !ok {
-			kit.SandCard(c).Children(func() { kit.Caption(c, locales.LatNone()) })
+			kit.EmptyCard(c).Children(func() { kit.Caption(c, locales.LatNone()) })
 			return
 		}
 		p90, _ := h.Quantile(.9)

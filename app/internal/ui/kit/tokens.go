@@ -22,6 +22,7 @@ type Palette struct {
 	Fill                       ui.Color
 	SegOn                      ui.Color
 	Line, LineSoft, LineStrong ui.Color
+	EmptyLine                  ui.Color
 	Raised, RaisedLine         ui.Color
 
 	Ink, InkMuted, InkWarm, Faint ui.Color
@@ -68,7 +69,8 @@ var Light = Palette{
 
 	Paper: ui.Hex("#fbf6ec"), Card: ui.Hex("#ffffff"), Sand: ui.Hex("#f4ead6"), Fill: ui.Hex("#f1e5cb"), SegOn: ui.Hex("#ffffff"),
 	Line: ui.Hex("#efe4cc"), LineSoft: ui.Hex("#f3ead8"), LineStrong: ui.Hex("#e6d8bb"),
-	Raised: ui.Hex("#ffffff"), RaisedLine: ui.Hex("#e6d8bb"),
+	EmptyLine: ui.Hex("#d5c5a3"),
+	Raised:    ui.Hex("#ffffff"), RaisedLine: ui.Hex("#e6d8bb"),
 
 	Ink: ui.Hex("#232057"), InkMuted: ui.Hex("#6b6590"), InkWarm: ui.Hex("#73644a"), Faint: ui.Hex("#9d9ab9"),
 	Hatch: ui.Hex("#efe4cc"), Pencil: ui.Hex("#aaa5c4"), Lift: ui.RGBA(58, 42, 16, .05),
@@ -104,17 +106,18 @@ var Dark = Palette{
 	Glass: ui.RGBA(255, 255, 255, .08), GlassLine: ui.RGBA(255, 255, 255, .14),
 	Starlight: ui.RGB(255, 255, 255), Shade: ui.RGB(0, 0, 0), KeyLit: ui.Hex("#4d8dff"),
 
-	Paper: ui.Hex("#222049"), Card: ui.Hex("#312f61"), Sand: ui.Hex("#171537"), Fill: ui.Hex("#181639"), SegOn: ui.Hex("#4c4a88"),
+	Paper: ui.Hex("#222049"), Card: ui.Hex("#312f61"), Sand: ui.Hex("#171537"), Fill: ui.RGBA(255, 255, 255, .07), SegOn: ui.Hex("#4c4a88"),
 	Line: ui.Hex("#414070"), LineSoft: ui.Hex("#3c3c65"), LineStrong: ui.Hex("#545489"),
-	Raised: ui.Hex("#3d3b73"), RaisedLine: ui.Hex("#545489"),
+	EmptyLine: ui.Hex("#545489"),
+	Raised:    ui.Hex("#3d3b73"), RaisedLine: ui.Hex("#545489"),
 
 	Ink: ui.Hex("#fbf3e2"), InkMuted: ui.Hex("#bbb9e0"), InkWarm: ui.Hex("#d9c9a3"), Faint: ui.Hex("#8784ac"),
 	Hatch: ui.Hex("#28255a"), Pencil: ui.Hex("#7a74b0"), Lift: ui.RGBA(0, 0, 0, .14),
 
 	Lantern: ui.Hex("#f5a524"), LanternHover: ui.Hex("#f8b445"), LanternPressed: ui.Hex("#e0931a"),
 	LanternInk: ui.Hex("#232057"), LanternTint: ui.Hex("#603d6b"), LanternText: ui.Hex("#ffc760"),
-	Amber: [6]ui.Color{ui.Hex("#181639"), ui.Hex("#53355c"), ui.Hex("#874463"), ui.Hex("#b95a4f"), ui.Hex("#de8035"), ui.Hex("#f5a524")},
-	Band:  ui.Hex("#4c3155"), Shown: ui.Hex("#3c3c65"), DotRing: ui.Hex("#626396"), SwitchOff: ui.Hex("#555681"),
+	Amber: [6]ui.Color{ui.RGBA(255, 255, 255, .06), ui.Hex("#53355c"), ui.Hex("#874463"), ui.Hex("#b95a4f"), ui.Hex("#de8035"), ui.Hex("#f5a524")},
+	Band:  ui.Hex("#46447f"), Shown: ui.Hex("#3c3c65"), DotRing: ui.Hex("#626396"), SwitchOff: ui.Hex("#555681"),
 
 	Strong: ui.Hex("#5455b6"), StrongInk: ui.Hex("#fbf3e2"),
 
@@ -158,6 +161,7 @@ const (
 	TextDisplay = 32
 	TextStat    = 26
 	TextTitle   = 22
+	TextGroup   = 17
 	TextSection = 15
 	TextBody    = 14
 	TextControl = 13

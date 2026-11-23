@@ -67,27 +67,28 @@ Light values:
 | `KeyLit` | `#4d8dff` | A key the guide saw pressed right | |
 | `Paper` | `#fbf6ec` | Page paper | `Background` |
 | `Card` | `#ffffff` | White cards, inputs | `Surface` |
-| `Sand` | `#f4ead6` | Sunk into the paper: list items, a note where a list is empty | |
+| `Sand` | `#f4ead6` | Sunk into the paper: the sidebar card, list items | |
 | `Fill` | `#f1e5cb` | The track of pickers, segmented controls and steppers; a disabled button's face | `SurfaceHover` |
 | `SegOn` | `#ffffff` | The chosen segment, raised on its track | |
 | `Line` | `#efe4cc` | Card outlines | `Border` |
 | `LineSoft` | `#f3ead8` | Dividers inside cards | |
 | `LineStrong` | `#e6d8bb` | Dashed boxes, pressed faces | |
+| `EmptyLine` | `#d5c5a3` | The dashed outline of an empty state or a note where a list is empty, a step deeper than `LineStrong` (dark as `LineStrong`) | |
 | `Raised` / `RaisedLine` | `#ffffff` / `#e6d8bb` | A plain button's face and outline, a step above its card | |
-| `Ink` | `#232057` | Body text, titles | `Text` |
+| `Ink` | `#232057` | Body text, titles, links (underlined) | `Text` |
 | `InkMuted` | `#6b6590` | Secondary text (5.0:1 on `Paper`, 4.5:1 on `Sand`) | |
 | `Faint` | `#9d9ab9` | What isn't there yet or can't be used: placeholders, a disabled button's label | `TextMuted` (MyGo draws placeholders in it) |
 | `InkWarm` | `#73644a` | Times and numbers on sand (4.8:1 on `Sand`) | |
 | `Hatch` / `Pencil` / `Lift` | `#efe4cc` / `#aaa5c4` / `#3a2a10` 5% | Empty states' drawings: the hatching of their ground, their icons and marks, the shadow under what stands on it | |
-| `Lantern` | `#f5a524` | Primary action, the chosen radio's dot, switch on | `Accent` |
+| `Lantern` | `#f5a524` | Primary action, the chosen radio's dot | `Accent` |
 | `LanternInk` | `#232057` | Text on amber | `AccentText` |
 | `LanternTint` | `#fff0d1` | Icon grounds, hint grounds, the "Learn names" button | |
-| `LanternText` | `#8a5200` | Amber text, links | |
+| `LanternText` | `#8a5200` | Amber text | |
 | `Amber` | `#f3ead8` `#fbefd6` `#fadda9` `#fcc771` `#f5a524` `#d27908` | The lantern's ramp, opaque, from none to most: a heatmap's days, a histogram's bars; `Dim` takes amber two steps down it, other colors toward the card, beside what is chosen. Never `Lantern.Alpha` | |
 | `Shown` | `#f4ead6` | The ground of the row a `ChoiceList` shows beside it, neutral: it may not be the one chosen | |
 | `Band` | `#fff3d9` | The chosen row's ground across the row: options, list items, tiles, shares | |
 | `DotRing` / `SwitchOff` | `#c9b997` / `#d1c3a6` | A radio's ring, a switch's track while off | |
-| `Strong` / `StrongInk` | `#232057` / `#fbf6ec` | A Strong button's face and label, a chosen chip | |
+| `Strong` / `StrongInk` | `#232057` / `#fbf6ec` | A Strong button's face and label, a chosen chip, a switch on, a slider's track | |
 | `Ok` | `#3fa463` / text `#2f6b45` / ground `#e7f3ea` | In use, ready, the "On device" tag | `Success` |
 | `Cloud` | text `#3b3592` / ground `#e8e6fb` | The "Cloud" tag | |
 | `Danger` | `#a4472f` | Delete | `Danger` |
@@ -103,9 +104,9 @@ windows redraw when the system switches. The Appearance preference chooses syste
 (`Prefs.Appearance`), applied with `mygo.Theme.SetSource` before `App.Run`. Dark has values of its own,
 not the light ones turned over: four layers a step of lightness apart, `Night` `#0e0a2f` < `Sand`
 `#171537` < `Paper` `#222049` < `Card` `#312f61`; tracks
-sink (`Fill` `#181639`) and the chosen segment rises (`SegOn` `#4c4a88`); `Strong` is a brighter
-indigo, `#5455b6`, never the cream of `Ink`; the tint and the ramp warm from the indigo through
-mauve (`LanternTint` `#603d6b`, `Band` `#4c3155`, `Amber` `#181639` … `#f5a524`), never through
+are white 7% (`Fill`), a step above whatever they lie on, and the chosen segment rises (`SegOn` `#4c4a88`); `Strong` is a brighter
+indigo, `#5455b6`, never the cream of `Ink`; the chosen row is indigo (`Band` `#46447f`), so it never reads as a warning beside green; the tint and the ramp warm from the indigo through
+mauve (`LanternTint` `#603d6b`, `Amber` white 6% … `#f5a524`), never through
 brown; shadows are black. Text is the cream of `NightTitle`, `Faint` `#8784ac`; the amber stays.
 
 ### Type
@@ -118,13 +119,14 @@ numbers don't wobble.
 | `Display` | 32 / 800 | Page titles (Translating, Subtitle style) |
 | `Stat` | 26 / 800 | Numbers in live statistics |
 | `Title` | 22 / 800 | Detail titles (a scene's name, a record's name), a dialog's, a step of the guide's |
-| `Section` | 15 / 700 | Group titles; a large button's label |
+| `Group` | 17 / 800 | Group titles |
+| `Section` | 15 / 700 | A large button's label |
 | `Body` | 14 / 400, 600, 700 | Body text, a setting's and an option's name |
 | `Control` | 13 / 600, 700 | Buttons, segments, pickers, chips, tables |
 | `Caption` | 12 | Descriptions, states, paths |
 | `Micro` | 11 | Tags (Built in, Recommended), count badges, a chart's ticks |
 
-Eight steps, named. A size between them is a ninth to name in `kit/tokens.go`, never arithmetic on
+Nine steps, named. A size between them is a tenth to name in `kit/tokens.go`, never arithmetic on
 these. A number keeps its unit: sizes and memory join them with a no-break space (`shared.Size`,
 `{gb} GB` in the catalogs), so `16 GB` never breaks.
 
@@ -232,7 +234,7 @@ The stage's stars and its glow don't move.
 | `AppFrame` | The settings window: the paper, the sidebar a sand card 8 in from its edges, the page beside it to the window's edges, its top fading out under a band of 36 once scrolled; no title bar on any platform: the window's buttons sit on the card at its start and on the paper at its end, which follow the appearance, the pages start 48 down everywhere, and the card's top and the band drag the window | `Row`, `Column` |
 | `NavItem` | A sidebar item: icon and text; when selected, a segment raised on the sand card (`SegOn`, `SegShadow`), its icon `LanternText`. The sidebar's width follows the longest page name in the current UI language, 184–252 (`kit.NavWidth`) | `ButtonBase` |
 | `Group` / `Groups` | A part of a page: its title (and a control at its end) above its card, outside it; `Groups` sets them side by side, `CardGap` apart, as tall as the tallest | |
-| `Card` / `RowsCard` / `OptionsCard` / `SandCard` | White card raised a little; the same for `SettingRow`s (padded only at the sides) and for `Options` and a `List` (rows 4 in); sand, sunk, for a note | |
+| `Card` / `RowsCard` / `OptionsCard` / `EmptyCard` | White card raised a little; the same for `SettingRow`s (padded only at the sides) and for `Options` and a `List` (rows 4 in); a dashed `EmptyLine` outline on the paper, nothing raised, for an empty state or a note where a list is empty | |
 | `SplitCard` / `SplitList` / `SplitDetail` | A card of a list and the detail of what it shows: the list two fifths of it, on white, rows 4 in, a rule after it; the detail the rest, on white too, padded as a card | |
 | `SettingRow` / `SettingRowUnder` / `SettingRowOff` | A setting: name and its one-line note left, control right, 52 or 64 tall; `SettingRowUnder` adds what goes under it across the row (a move's progress); `SettingRowOff` keeps a setting that does nothing for now in its place, greyed: its name `Faint`, its control disabled (a segmented control's labels faint with none raised, a slider faded). A `Control` puts a control in the 220-wide column the controls of a card line up in, a `Picker`, a `Segmented` or a size slider filling it, a field from its start; switches, steppers and buttons keep to the row's end. Cards side by side take `ControlCardWidth` as their basis, so they wrap before a name is cut | |
 | `PanelFrame` | The menu bar panel: night header, paper, footer; a flyout with the system's shadow, as tall as its content | the flyout `PopoverBase` lives in |
@@ -258,7 +260,7 @@ The stage's stars and its glow don't move.
 | `Segmented` | Background, edges, alignment, Qwen's model; every segment as wide as the widest, and, grown into a `Control`, sharing its width alike | `SegmentedBase` |
 | `Switch` | On and off, at the end of a `SettingRow` | `SwitchBase` |
 | `Stepper` | How many sentences show at once | `ButtonBase` ×2 |
-| `Slider` | A subtitle size or opacity: MyGo's `ui.Slider`, amber with `Paper`'s theme, its value and unit (`%` for opacity) at the column's end, in a column as wide as "100%", so the tracks of a card end together | `ui.Slider` |
+| `Slider` | A subtitle size or opacity: MyGo's `ui.Slider`, its track `Strong`, its value and unit (`%` for opacity) at the column's end, in a column as wide as "100%", so the tracks of a card end together | `ui.Slider` |
 | `SchemeSwatch` / `CustomSwatch` / `Swatches` | A color scheme's disc, 28 across, seven filling the `Control` column, named in its tooltip: "Aa" on the edge color, "A" in the original's color and "a" in the translation's; the last, "Custom", a disc of all hues, which shows the original, translation and edge colors under the cards; `Swatches`: a color of a list, or any from the system's picker with the well after them | `ButtonBase`, `ColorWell` |
 | `Options` | Radio rows in an `OptionsCard`, the settings' engines and the guide's alike: dot, name and tag, its description, the row's action at the end (Download, delete, cancel, Edit), dot and action centred on the name and description; under them, across the row, what `Below` builds (`OptionProgress`, a note); the chosen row on the `Band`, a rule between two not chosen; `Off`, one that can't be chosen yet: its dot dashed, only the dot a disabled radio, its text as legible; `Done`, a green tag (Downloaded); `Warn`, its description in red (what this computer lacks); `AddRow` ends a list with a plus where the dots are, "Add API" | `ButtonBase` (radio role) |
 | `ChoiceList` | A list of families, beside what it shows: under its heads (On device, Cloud), each row its radio, its name and tag over a line of its state (in red for what keeps it from working); in use is said by its radio alone, a download's bar under them; the radio uses it (dashed and disabled while nothing of it can be), the rest of the row shows it, on `Shown`. To assistive technology the rows are tabs, selected while shown, beside radio buttons named "Use …" | `ButtonBase` (tab and radio roles) |
@@ -337,7 +339,7 @@ Statistics; at the bottom, Preferences and About. The settings window opens at 1
 | History | Keep subtitles, a `SettingRow` in its card; once there are sessions, the scene filter with delete all (what the filter shows) at its end; a `List` of sessions by day, each its scene's name over its languages, lines and app; on the right its card: name, when and where from, then Learn names and Show in Finder, the delete apart at the end, and the bilingual lines, corrected names highlighted with "Recognized as '…', corrected by the glossary" beneath |
 | Statistics | Laid out as Screen Time: range (last 7 days / 30 days / all); Usage, one card of recognition or translation (switched at the end of its title, translation first): the total (listening hours or lines) with a day's average and speech time or characters beside it (and the pictures translated, on the translation side), and how much more or less than the 7 or 30 days before (not for all, nor with nothing before), a bar per day (or month) stacked by engine, and the engines as `ShareRow`s, each with `Facts` of what it did and how soon (clicking one shows it alone in the chart, the others dimmed; clicking it again shows all); listening time in hours, minutes or seconds throughout; then Latency: `PickTiles` of the five (what you wait; recognition's first words and settling; translation's first words and whole line), each with its median, to look into one; what it measures, and its median against the days before (faster in green, slower in red, about the same within 5% or 0.05 s); and its `Histogram`, or by day (or month) a `WhiskerChart`. Numbers only, never what was said |
 | Preferences | Appearance (system / light / dark), UI language; start on open, open at login, shortcuts |
-| About | The icon, name and tagline; a card of rows: the version with Check for updates…, the first-run guide with Run again, the logs with Show in Finder; then the license and credits in a sand card |
+| About | The icon, name and tagline; a card of rows: the version with Check for updates…, the first-run guide with Run again, the logs with Show in Finder; then the license and credits in a card, each project's name in ink with an external-link icon after it |
 | Menu bar panel | Header: the mascot's sticker, state, live statistics (the time, then the count with its unit, going on to a second line between the two, never inside one), Start / Pause; why translating stopped, if it did, in red, with the button that resolves it under it, as on Home; one card: the scene, its two languages and swap under it with no rule between (the scene keeps them), then, after a rule, the source; footer: a row of Quiet icon buttons, each named in its tooltip: Screenshot (translating a part of the screen, as its shortcut does; the panel steps out of the way first; its tooltip adds the shortcut), a rule, Move subtitles (their frame shows, to find and move them while no subtitles show; unlocks them first), the lock (open while unlocked; shut on the lantern's tint while locked, named for what a click does: Lock subtitles / Unlock subtitles), then at the far end Open Settings and Quit Tomoru (a power icon, red when hovered), apart from Pause so that quitting is never a slip. Show original and sentences at once are in Subtitle style, About in the menu bar icon's menu and the settings window. While listening, the source's icon is `Levels`, rising while a voice is heard: with no lines yet, it tells whether sound comes. The shortcuts are not spelled out, for want of room: hovering Start / Pause and Screenshot shows theirs |
 
 **First-run guide**: 800×580, paper on the left, the night sky stage on the right. Three phases,

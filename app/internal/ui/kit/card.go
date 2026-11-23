@@ -15,15 +15,15 @@ func RowsCard(c *ui.Context) ui.Element {
 	return Card(c).Padding(Space(1), cardPadX).Gap(0)
 }
 
-func SandCard(c *ui.Context) ui.Element {
+func EmptyCard(c *ui.Context) ui.Element {
 	p := Colors(c)
-	return ui.Column(c).Padding(Space(4), cardPadX).Gap(Space(3)).Radius(RadiusCard).Background(p.Sand)
+	return ui.Column(c).Padding(Space(4), cardPadX).Gap(Space(3)).Radius(RadiusCard).Border(cardBorder, p.EmptyLine).BorderStyle(ui.BorderDashed)
 }
 
 func Group(c *ui.Context, title string, trailing func(), card func(*ui.Context) ui.Element, body func()) ui.Element {
 	return ui.Column(c).Gap(GroupGap).MinWidth(0).Children(func() {
 		ui.Row(c).Gap(Space(3)).AlignItems(ui.Center).Height(groupTitle).Padding(0, Space(1)).Children(func() {
-			ui.Text(c, title).FontSize(TextSection).FontWeight(WeightBold).TextColor(Colors(c).Ink).Grow(1).MaxLines(1)
+			ui.Text(c, title).FontSize(TextGroup).FontWeight(WeightHeavy).TextColor(Colors(c).Ink).Grow(1).MaxLines(1)
 			if trailing != nil {
 				trailing()
 			}

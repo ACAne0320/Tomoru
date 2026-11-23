@@ -152,6 +152,10 @@ var (
 	externalSVG []byte
 	External    = ui.MustParseSVG(externalSVG)
 
+	//go:embed icons/external-link.svg
+	opensSVG []byte
+	Opens    = ui.MustParseSVG(opensSVG)
+
 	Tray, _      = ui.DecodeBitmap(TrayIdle)
 	TrayAwake, _ = ui.DecodeBitmap(TrayOn)
 )
