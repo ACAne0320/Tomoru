@@ -1,6 +1,6 @@
 package main
 
-// #cgo LDFLAGS: -lole32 -lmmdevapi -luuid -luser32 -lgdi32 -ldwmapi -lversion
+// #cgo LDFLAGS: -lole32 -lmmdevapi -luuid -luser32 -lgdi32 -ldwmapi -lversion -lshell32
 // #include <stdlib.h>
 // #include "engine_windows.h"
 import "C"
