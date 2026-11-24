@@ -115,14 +115,17 @@ func (s *Shell) ShowGuide() {
 		s.settings.Close()
 	}
 	if s.guide == nil {
-		opts := mygo.WindowOptions{
-			Title: locales.GuideTitle(), Width: guide.ContentWidth, Height: guide.ContentHeight, DisableResize: true, DisableMaximize: true,
-			Content: ui.View(guide.New(s.core, s).View),
-		}
-		if shared.Windows {
-			opts.TitleBarStyle, opts.TitleBarHeight, opts.Height = mygo.TitleBarHidden, guide.TitleBar, guide.ContentHeight+guide.TitleBar
-		}
-		w := mygo.NewWindow(opts)
+		w := mygo.NewWindow(mygo.WindowOptions{
+			Title:                locales.GuideTitle(),
+			Width:                guide.ContentWidth,
+			Height:               guide.ContentHeight,
+			DisableResize:        true,
+			DisableMaximize:      true,
+			TitleBarStyle:        mygo.TitleBarHidden,
+			TitleBarHeight:       kit.TitleBarHeight,
+			TrafficLightPosition: &mygo.Point{X: 20, Y: 20},
+			Content:              ui.View(guide.New(s.core, s).View),
+		})
 		s.guide = w
 		w.OnClosed(func() {
 			if s.guide == w {

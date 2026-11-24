@@ -8,15 +8,12 @@ import (
 
 	"tomoru/internal/core"
 	"tomoru/internal/prefs"
-	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
 	"tomoru/internal/ui/shared"
 	"tomoru/locales"
 )
 
 const ContentWidth, ContentHeight = 800, 580
-
-const TitleBar = 36
 
 const (
 	stepWelcome = iota
@@ -78,13 +75,13 @@ func (g *Guide) View(c *ui.Context) {
 	g.tryStep(c, g.Step == stepTry)
 	g.holdKeys()
 	bar := c.TitleBar()
+	top := kit.Space(4)
+	if bar.Right > 0 {
+		top = max(top, bar.Height)
+	}
 	ui.Column(c).Fill().Children(func() {
-		top := kit.Space(4)
-		if bar.Height > 0 {
-			titleBar(c, bar)
-			top = 0
-		}
-		g.steps(c, top)
+		ui.Box(c).Height(top).Shrink(0).DragWindow()
+		g.steps(c, top, bar)
 	})
 	g.commitStep(c)
 }
@@ -97,47 +94,50 @@ func (g *Guide) commitStep(c *ui.Context) {
 	}
 }
 
-func titleBar(c *ui.Context, bar ui.TitleBar) {
-	ui.Row(c).Height(bar.Height).Padding(0, bar.Right, 0, kit.Space(4)+bar.Left).Gap(kit.Space(2)).AlignItems(ui.Center).DragWindow().Children(func() {
-		ui.Image(c, assets.AppIcon).Size(22, 22).Margin(-2)
-		ui.Text(c, locales.GuideTitle()).FontSize(kit.TextCaption).FontWeight(kit.WeightBold).TextColor(kit.Colors(c).InkMuted)
-	})
-}
-
-func (g *Guide) steps(c *ui.Context, top float32) {
-	ui.Row(c).Grow(1).Padding(top, kit.Space(4), kit.Space(4)).Gap(kit.Space(4)).AlignItems(ui.Stretch).Children(func() {
-		ui.Column(c).Width(leftWidth).Padding(kit.Space(6), leftPadR, kit.Space(1), leftPadL).Gap(kit.Space(4)).Children(func() {
-			g.progress(c)
-			ui.Column(c).Grow(1).MinHeight(0).Justify(ui.Center).Children(func() {
-				kit.FadeScroll(c, &g.scroll, func() {
-					ui.Column(c).Gap(kit.Space(4)).Padding(0, 0, kit.RiseBy).Children(func() {
-						switch g.Step {
-						case stepWelcome:
-							g.welcome(c)
-						case stepPermission:
-							g.permission(c)
-						case stepRecognition:
-							g.recognition(c)
-						case stepTranslation:
-							g.translation(c)
-						case stepTry:
-							g.trying(c)
-						case stepPicture:
-							g.picture(c)
-						case stepShortcuts:
-							g.shortcuts(c)
-						case stepReady:
-							g.ready(c)
-						}
+func (g *Guide) steps(c *ui.Context, top float32, bar ui.TitleBar) {
+	head := kit.Space(6)
+	switch {
+	case bar.Right > 0:
+		head = kit.Space(3)
+	case bar.Bottom > 0:
+		head = max(head, bar.Bottom+kit.Space(4)-top)
+	}
+	ui.Row(c).Grow(1).Padding(0, kit.Space(4), kit.Space(4)).Gap(kit.Space(4)).AlignItems(ui.Stretch).Children(func() {
+		ui.Column(c).Width(leftWidth).Padding(0, leftPadR, kit.Space(1), leftPadL).Children(func() {
+			ui.Box(c).Height(head).Shrink(0).DragWindow()
+			ui.Column(c).Grow(1).MinHeight(0).Gap(kit.Space(4)).Children(func() {
+				g.progress(c)
+				ui.Column(c).Grow(1).MinHeight(0).Justify(ui.Center).Children(func() {
+					kit.FadeScroll(c, &g.scroll, func() {
+						ui.Column(c).Gap(kit.Space(4)).Padding(0, 0, kit.RiseBy).Children(func() {
+							switch g.Step {
+							case stepWelcome:
+								g.welcome(c)
+							case stepPermission:
+								g.permission(c)
+							case stepRecognition:
+								g.recognition(c)
+							case stepTranslation:
+								g.translation(c)
+							case stepTry:
+								g.trying(c)
+							case stepPicture:
+								g.picture(c)
+							case stepShortcuts:
+								g.shortcuts(c)
+							case stepReady:
+								g.ready(c)
+							}
+						})
 					})
 				})
-			})
-			ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
-				if g.Step > stepWelcome && kit.Button(c, kit.Plain, kit.Medium, nil, locales.Back()).Clicked() {
-					g.goTo(c, after(g.Step, -1))
-				}
-				ui.Spacer(c)
-				g.stepButton(c)
+				ui.Row(c).Gap(kit.Space(2)).AlignItems(ui.Center).Children(func() {
+					if g.Step > stepWelcome && kit.Button(c, kit.Plain, kit.Medium, nil, locales.Back()).Clicked() {
+						g.goTo(c, after(g.Step, -1))
+					}
+					ui.Spacer(c)
+					g.stepButton(c)
+				})
 			})
 		})
 		g.stage(c)
