@@ -51,10 +51,10 @@ already say the rest.
 13. `moveFiles` (`app/internal/models/move.go`): a target that is the same directory by another
     name, as in another case on macOS, moves nothing, and its files aren't removed as moved.
 14. `models.All` (`models.go`): Index-Translate ships as Q4_K_M, which in our tests made the same
-    mistakes as Q8_0 at less than two thirds of the size, with its vision projector in Q8_0. Hy-MT2,
-    Q4_K_M too, takes about as much memory as Index-Translate of its size with llama-server's flags
-    here (on an M5, 1380 MiB of Metal's memory for the 1.8B, 1389 for the 2B; 5043 for the 7B, 5257
-    for the 9B).
+    mistakes as Q8_0 at less than two thirds of the size, with its vision projector in Q8_0. Hy-MT3,
+    Q4_K_M too, takes a little more memory than Index-Translate of its size with llama-server's
+    flags here (on an M5, 1586 MiB of Metal's memory for the 1.8B, 1389 for the 2B; 5540 for the
+    7B, 5257 for the 9B), within the same needs ([ADR 011](011-hy-mt3-on-device.md)).
 15. `Server.start` (`app/internal/models/server.go`) runs llama-server with `--cache-ram 0`: the
     prompt cache grew its footprint to 7 GB over a few hundred lines, at no gain in speed.
 16. `Server.ensure` and `process.wait` (`server.go`): a server started again on the same port, to

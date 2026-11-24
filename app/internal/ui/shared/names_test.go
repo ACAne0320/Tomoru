@@ -55,6 +55,9 @@ func TestEngineName(t *testing.T) {
 			t.Errorf("%s by its ID: %q, want %q", id, got, want)
 		}
 	}
+	if got := EngineName(core.Engine{ID: "hy-mt2-7b"}); got != "Hy-MT2 7B" {
+		t.Errorf("a retired model in the statistics: %q", got)
+	}
 	if got := EngineName(core.Engine{ID: "cloud"}); got != CloudName {
 		t.Errorf("the cloud: %q", got)
 	}

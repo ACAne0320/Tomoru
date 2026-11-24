@@ -194,7 +194,7 @@ func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.T
 
 func TestAddEndpoint(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
-	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT2", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
+	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT3", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
 	if prefs.SystemASR() != "" {
 		wants = append(wants, locales.EngineApple())
 	}
@@ -646,11 +646,11 @@ func TestEndpointFormat(t *testing.T) {
 	if err := tt.Click(locales.EndpointFormatChat()); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate", "Hy-MT2"}; !slices.Equal(got, want) {
+	if got, want := tt.Menu(), []string{locales.EndpointFormatChat(), "Index-Translate", "Hy-MT"}; !slices.Equal(got, want) {
 		t.Fatalf("menu %q, want %q", got, want)
 	}
 	tt.Frame()
-	if err := tt.ChooseMenuItem("Hy-MT2"); err != nil {
+	if err := tt.ChooseMenuItem("Hy-MT"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()

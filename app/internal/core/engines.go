@@ -5,8 +5,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"log"
 	"slices"
 
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
@@ -66,6 +68,20 @@ func Successor(k Kind) string {
 		return prefs.SystemASR()
 	}
 	return "cloud"
+}
+
+func (c *Core) retireModels() {
+	if m, ok := models.RetiredByID(c.Prefs.MT); ok {
+		c.Prefs.MT = m.Successor
+		if c.SavePrefs() != nil {
+			return
+		}
+	}
+	if d := c.deps.Models; d != nil && !d.Moving().Active {
+		if err := models.RemoveRetired(d.Dir()); err != nil {
+			log.Println("models:", err)
+		}
+	}
 }
 
 func (c *Core) DeleteModel(id string) {

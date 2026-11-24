@@ -573,9 +573,9 @@ func TestSuggested(t *testing.T) {
 		mem       uint64
 		index, hy string
 	}{
-		{16 << 30, "local-9b", "hy-mt2-7b"},
-		{8 << 30, "local-2b", "hy-mt2-1.8b"},
-		{4 << 30, "local-2b", "hy-mt2-1.8b"},
+		{16 << 30, "local-9b", "hy-mt3-7b"},
+		{8 << 30, "local-2b", "hy-mt3-1.8b"},
+		{4 << 30, "local-2b", "hy-mt3-1.8b"},
 	} {
 		mem = tc.mem
 		if got, got2 := c.Suggested(index).ID, c.Suggested(hy).ID; got != tc.index || got2 != tc.hy {
@@ -633,7 +633,7 @@ func TestFamilies(t *testing.T) {
 		}
 		got = append(got, ids)
 	}
-	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt2-1.8b", "hy-mt2-7b"}, {"cloud-2b", "cloud-9b", "cloud"}, {HyMTCloud}, {"custom:a"}, {"custom:b"}}
+	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b"}, {"cloud-2b", "cloud-9b", "cloud"}, {HyMTCloud}, {"custom:a"}, {"custom:b"}}
 	if !slices.EqualFunc(got, want, slices.Equal) {
 		t.Errorf("translation's families %q, want %q", got, want)
 	}
@@ -645,7 +645,7 @@ func TestModelFormats(t *testing.T) {
 			t.Errorf("%s: no format %q", m.ID, m.Format)
 		}
 	}
-	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index, "hy-mt2-1.8b": translate.HyMT, "hy-mt2-7b": translate.HyMT} {
+	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index, "hy-mt3-1.8b": translate.HyMT, "hy-mt3-7b": translate.HyMT} {
 		c, f, _, _, _ := engineCore(t)
 		c.Download(id)
 		c.SetEngine(id)

@@ -13,7 +13,7 @@ Tomoru (灯る, “to light up”) captures system audio, not the microphone, re
 - The subtitle window stays on top. It can be dragged, resized, and locked so clicks pass through to the window behind it. Hiding it from screen recordings is a setting, off by default.
 - A draft translation can appear before a sentence ends, then be replaced by the full line.
 - Scenes hold a glossary: names stay consistent, and words recognition mishears can be corrected. Learning new names from subtitle history needs the user's own chat API.
-- Option+Shift+S on macOS, Alt+Shift+S on Windows and Linux, translates a region of the screen (unvoiced dialogue, signs, stream chat). Only that region is sent. Neither the picture nor the translation is kept. On-device picture translation works with the Index-Translate models; Hy-MT2 does not translate pictures. The default picture engine is Index-Translate in the cloud unless a local model or the user's own API is chosen.
+- Option+Shift+S on macOS, Alt+Shift+S on Windows and Linux, translates a region of the screen (unvoiced dialogue, signs, stream chat). Only that region is sent. Neither the picture nor the translation is kept. On-device picture translation works with the Index-Translate models; Hy-MT3 does not translate pictures. The default picture engine is Index-Translate in the cloud unless a local model or the user's own API is chosen.
 - Subtitle history is off by default. When on, it stays on the computer and can be deleted.
 - The interface is in English, Simplified Chinese, Traditional Chinese, Japanese, and Korean.
 
@@ -24,7 +24,7 @@ Tomoru (灯る, “to light up”) captures system audio, not the microphone, re
 - SenseVoice (on-device, CPU, 228 MB) hears Chinese, English, Japanese, Korean, and Cantonese.
 - Qwen3-ASR 0.6B and 1.7B (on-device, GPU) hear 30 languages. With SenseVoice or Qwen3-ASR the spoken language can be Auto-detect.
 - macOS can use Apple's on-device recognition, for the languages that system supports. Windows and Linux have no system recognition.
-- Cloud recognition uses an API key the user provides. Default cloud translation is Index-Translate and is free. On-device translation models are Index-Translate 2B and 9B, and Hy-MT2 1.8B and 7B.
+- Cloud recognition uses an API key the user provides. Default cloud translation is Index-Translate and is free. On-device translation models are Index-Translate 2B and 9B, and Hy-MT3 1.8B and 7B.
 
 ## Requirements
 

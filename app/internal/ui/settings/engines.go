@@ -459,8 +459,8 @@ func home(family string) (label, url string) {
 		return "GitHub", "https://github.com/QwenLM/Qwen3-ASR"
 	case "Index-Translate", "cloud":
 		return "GitHub", core.CloudRepo
-	case "Hy-MT2":
-		return "GitHub", "https://github.com/Tencent-Hunyuan/Hy-MT2"
+	case "Hy-MT3":
+		return "GitHub", "https://github.com/Tencent-Hunyuan/Hy-MT3"
 	case core.QwenCloud:
 		return locales.LinkModelStudio(), "https://help.aliyun.com/zh/model-studio/real-time-speech-recognition-user-guide"
 	case core.OpenAI:

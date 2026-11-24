@@ -346,8 +346,8 @@ func TestFamilyRows(t *testing.T) {
 	g.Step, g.pendingStep = stepTranslation, stepTranslation
 	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	large, _ := models.ByID("local-9b")
-	hy, _ := models.ByID("hy-mt2-7b")
-	for _, want := range []string{"Index-Translate", "Hy-MT2", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large)), "7B · " + shared.ModelNote(hy, models.Status{}, k.Runs(hy))} {
+	hy, _ := models.ByID("hy-mt3-7b")
+	for _, want := range []string{"Index-Translate", "Hy-MT3", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large)), "7B · " + shared.ModelNote(hy, models.Status{}, k.Runs(hy))} {
 		if !tt.HasText(want) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
