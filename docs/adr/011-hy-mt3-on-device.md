@@ -33,8 +33,9 @@ Hy-MT2 on Tencent Cloud's TokenHub. The 1.8B and 7B files have Hy-MT2's architec
    aren't moving, the Hy-MT2 files and their `.part` in the models folder are removed: nothing
    reads them any more. Settings that don't read back whole, as a file cut short or of a wrong
    type, are not rewritten at start and keep the files, for the user's choice is unknown; the
-   setting is changed in memory only, so nothing goes to the cloud, and in the snapshot of what
-   was saved too, so quitting doesn't write it. Only regular files of those
+   setting is changed in memory only, so nothing goes to the cloud, and what start filled in
+   (this change, the picture engine, the defaults) counts as saved, so quitting doesn't write it
+   over the file; what the user changes is saved as before. Only regular files of those
    names go, not a folder. Their
    names stay in `Retired` for the statistics, which still show Hy-MT2 by name and color.
 
@@ -49,7 +50,8 @@ and 5043), within the 8 GB and 16 GB, 4 GB and 8 GB of video memory, they are sa
 ## Evidence
 
 - `app/internal/core/retire_test.go`: both retired IDs, the settings unsaved, cut short,
-  mistyped or missing, the models moving, quitting after a mistyped one.
+  mistyped or missing, the models moving, quitting after a mistyped one, starting and quitting twice
+  after one cut short or missing.
 - `app/internal/models/models_test.go`: `TestRemoveRetired`.
 - `app/internal/ui/shared/names_test.go`: `TestEngineName`.
 - `bench/README.md`: runs `mtfull1125nostyle_hy-mt3-1.8b` and `mtfull1125nostyle_hy-mt3-7b` against

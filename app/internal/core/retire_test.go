@@ -149,3 +149,31 @@ func TestRetiredModelNotSavedAtExit(t *testing.T) {
 		t.Errorf("settings rewritten at exit: %.80s", b)
 	}
 }
+
+func TestUnreadSettingsKeptAcrossRuns(t *testing.T) {
+	old := models.Retired[1]
+	for name, settings := range map[string]string{"cut short": `{"MT": "` + old.ID + `", "Src": `, "missing": ""} {
+		t.Run(name, func(t *testing.T) {
+			path, dir := filepath.Join(t.TempDir(), "settings.json"), t.TempDir()
+			if settings != "" {
+				if err := os.WriteFile(path, []byte(settings), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			stale, _ := modelFiles(t, dir, old)
+			for range 2 {
+				p, _ := prefs.Load(path, "zh-Hans")
+				New(p, Deps{PrefsPath: path, Models: &fakeModels{ready: map[string]bool{}, dir: dir}, Server: &fakeServer{}, Secrets: fakeSecrets{},
+					Post: func(fn func()) { fn() }, EnginePath: func() (string, error) { return "/engine", nil }}).Shutdown()
+			}
+			if b, _ := os.ReadFile(path); string(b) != settings {
+				t.Errorf("settings rewritten: %.80s", b)
+			}
+			for _, f := range stale {
+				if !exists(f) {
+					t.Errorf("%s removed", filepath.Base(f))
+				}
+			}
+		})
+	}
+}

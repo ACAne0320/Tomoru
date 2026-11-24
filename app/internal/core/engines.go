@@ -77,7 +77,7 @@ func (c *Core) retireModels() {
 		c.Prefs.MT = m.Successor
 	}
 	if _, read := c.savedPrefs(); !read {
-		c.saved.MT = c.Prefs.MT
+		c.saved = c.Prefs.Clone()
 		return
 	}
 	if retired && c.SavePrefs() != nil {
