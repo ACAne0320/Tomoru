@@ -410,3 +410,30 @@ func TestServerVision(t *testing.T) {
 		t.Errorf("translating again: %s, %v; restarted %v", again, err, s.cur != p)
 	}
 }
+
+func TestRemoveRetired(t *testing.T) {
+	dir := t.TempDir()
+	small, large := Retired[0].MainFile().Name, Retired[1].MainFile().Name
+	files := []string{small, small + ".part", "notes.txt"}
+	for _, f := range files {
+		if err := os.WriteFile(filepath.Join(dir, f), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(dir, large), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := RemoveRetired(dir); err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range []string{small, small + ".part"} {
+		if _, err := os.Stat(filepath.Join(dir, f)); err == nil {
+			t.Errorf("%s kept", f)
+		}
+	}
+	for _, f := range []string{"notes.txt", large} {
+		if _, err := os.Stat(filepath.Join(dir, f)); err != nil {
+			t.Errorf("%s removed", f)
+		}
+	}
+}

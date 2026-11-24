@@ -100,3 +100,52 @@ func TestRetiredModelsKeptWhileMoving(t *testing.T) {
 		}
 	}
 }
+
+func TestRetiredModelsKeptUnlessSettingsRead(t *testing.T) {
+	old := models.Retired[0]
+	for name, settings := range map[string]string{
+		"cut short": `{"MT": "` + old.ID + `", "Src": `,
+		"mistyped":  `{"MT": "` + old.ID + `", "ImageMT": "cloud", "Src": 3}`,
+		"missing":   "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			path, dir := filepath.Join(t.TempDir(), "settings.json"), t.TempDir()
+			if settings != "" {
+				if err := os.WriteFile(path, []byte(settings), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			stale, _ := modelFiles(t, dir, old)
+			p, _ := prefs.Load(path, "zh-Hans")
+			c := New(p, Deps{PrefsPath: path, Models: &fakeModels{ready: map[string]bool{}, dir: dir}, Server: &fakeServer{}, Secrets: fakeSecrets{},
+				Post: func(fn func()) { fn() }, EnginePath: func() (string, error) { return "/engine", nil }})
+			if p.MT == old.ID && c.Prefs.MT != old.Successor {
+				t.Errorf("in use %q, want %q", c.Prefs.MT, old.Successor)
+			}
+			if b, _ := os.ReadFile(path); string(b) != settings {
+				t.Errorf("settings rewritten: %s", b)
+			}
+			for _, f := range stale {
+				if !exists(f) {
+					t.Errorf("%s removed", filepath.Base(f))
+				}
+			}
+		})
+	}
+}
+
+func TestRetiredModelNotSavedAtExit(t *testing.T) {
+	old := models.Retired[0]
+	path := filepath.Join(t.TempDir(), "settings.json")
+	settings := `{"MT": "` + old.ID + `", "ImageMT": "cloud", "Src": 3}`
+	if err := os.WriteFile(path, []byte(settings), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	p, _ := prefs.Load(path, "zh-Hans")
+	c := New(p, Deps{PrefsPath: path, Models: &fakeModels{ready: map[string]bool{}, dir: t.TempDir()}, Server: &fakeServer{}, Secrets: fakeSecrets{},
+		Post: func(fn func()) { fn() }, EnginePath: func() (string, error) { return "/engine", nil }})
+	c.Shutdown()
+	if b, _ := os.ReadFile(path); string(b) != settings {
+		t.Errorf("settings rewritten at exit: %.80s", b)
+	}
+}

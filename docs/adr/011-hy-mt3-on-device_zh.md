@@ -14,7 +14,7 @@
 2. 不提供 30B-A3B：它的 Q4_K_M 有 19.5 GB，超过了最大的本地模型需要的 16 GB。
 3. 腾讯云仍是 Hy-MT2（Plus、Pro、Lite）：我们没找到 TokenHub 是否提供 Hy-MT3、叫什么的公开资料。
 4. 保留 `hymtPrompt`（`app/internal/translate/translate.go`）：它就是 Hy-MT3 官方的中文个性化格式，任务的最后一条是官方的句子。解码仍是贪心（temperature 0），不用作者建议的采样（0.7、top-p 0.6、top-k 20）。格式改名为 Hy-MT，因为两代都用它。
-5. `models.Retired` 和 `Core.retireModels`（`app/internal/core/engines.go`）：启动时，设置里选的本机 Hy-MT2 换成同尺寸的 Hy-MT3，不替用户下载。如果不换，这个 ID 对不上任何引擎，字幕会在用户不知道的情况下发到 Index-Translate 云端。设置保存成功、模型也没在移动时，删除模型文件夹里的 Hy-MT2 文件和它们的 `.part`：已经没有地方读它们。它们的名字留在 `Retired` 里给统计页用，统计里仍按名字和颜色显示 Hy-MT2。
+5. `models.Retired` 和 `Core.retireModels`（`app/internal/core/engines.go`）：启动时，设置里选的本机 Hy-MT2 换成同尺寸的 Hy-MT3，不替用户下载。如果不换，这个 ID 对不上任何引擎，字幕会在用户不知道的情况下发到 Index-Translate 云端。从磁盘读回的设置文件里已经没有 Hy-MT2、模型也没在移动时，删除模型文件夹里的 Hy-MT2 文件和它们的 `.part`：已经没有地方读它们。设置文件读不完整时（比如被截断、类型不对），启动时不改写它，也不删文件，因为不知道用户选了什么；这时只在内存里换成 Hy-MT3，保证不会发到云端，并同步到「已保存」的快照，退出时也不会因此写盘。只删这些名字的普通文件，同名的文件夹不删。它们的名字留在 `Retired` 里给统计页用，统计里仍按名字和颜色显示 Hy-MT2。
 
 ## 后果
 
@@ -22,6 +22,7 @@
 
 ## 证据
 
-- `app/internal/core/retire_test.go`：两个退役 ID、设置没保存、模型在移动。
+- `app/internal/core/retire_test.go`：两个退役 ID、设置没保存、被截断、类型不对或不存在、模型在移动、类型不对时退出。
+- `app/internal/models/models_test.go`：`TestRemoveRetired`。
 - `app/internal/ui/shared/names_test.go`：`TestEngineName`。
 - `bench/README_zh.md`：运行 `mtfull1125nostyle_hy-mt3-1.8b` 和 `mtfull1125nostyle_hy-mt3-7b`，对比 `mtfull1107nostyle_hy-mt2-*`。

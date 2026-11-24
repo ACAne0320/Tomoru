@@ -29,8 +29,13 @@ Hy-MT2 on Tencent Cloud's TokenHub. The 1.8B and 7B files have Hy-MT2's architec
 5. `models.Retired` and `Core.retireModels` (`app/internal/core/engines.go`): at start a setting
    that names Hy-MT2 on the device names the Hy-MT3 of its size, which is not downloaded for the
    user. Left as it was, the ID matched no engine and the subtitles went to the Index-Translate
-   cloud unasked. Once the settings are saved, and while the models aren't moving, the Hy-MT2
-   files and their `.part` in the models folder are removed: nothing reads them any more. Their
+   cloud unasked. Once the settings file reads back, with no Hy-MT2 in it, and while the models
+   aren't moving, the Hy-MT2 files and their `.part` in the models folder are removed: nothing
+   reads them any more. Settings that don't read back whole, as a file cut short or of a wrong
+   type, are not rewritten at start and keep the files, for the user's choice is unknown; the
+   setting is changed in memory only, so nothing goes to the cloud, and in the snapshot of what
+   was saved too, so quitting doesn't write it. Only regular files of those
+   names go, not a folder. Their
    names stay in `Retired` for the statistics, which still show Hy-MT2 by name and color.
 
 ## Consequences
@@ -43,7 +48,9 @@ and 5043), within the 8 GB and 16 GB, 4 GB and 8 GB of video memory, they are sa
 
 ## Evidence
 
-- `app/internal/core/retire_test.go`: both retired IDs, the settings unsaved, the models moving.
+- `app/internal/core/retire_test.go`: both retired IDs, the settings unsaved, cut short,
+  mistyped or missing, the models moving, quitting after a mistyped one.
+- `app/internal/models/models_test.go`: `TestRemoveRetired`.
 - `app/internal/ui/shared/names_test.go`: `TestEngineName`.
 - `bench/README.md`: runs `mtfull1125nostyle_hy-mt3-1.8b` and `mtfull1125nostyle_hy-mt3-7b` against
   `mtfull1107nostyle_hy-mt2-*`.

@@ -137,6 +137,9 @@ func RemoveRetired(dir string) error {
 	for _, m := range Retired {
 		for _, f := range m.Files {
 			for _, path := range []string{filePath(dir, m, f), filePath(dir, m, f) + ".part"} {
+				if fi, err := os.Lstat(path); err != nil || !fi.Mode().IsRegular() {
+					continue
+				}
 				if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 					errs = append(errs, err)
 				}
