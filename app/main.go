@@ -72,7 +72,7 @@ func main() {
 		var k *core.Core
 		proxy.Install()
 		proxy.Set(p.NoProxy, p.ProxyURL)
-		deps := core.Deps{Context: ctx, Post: post, NoVoice: noVoice,
+		deps := core.Deps{Context: ctx, Post: post,
 			Proxy: proxy.Set, SystemProxy: func() string { return proxy.System("https://api.openai.com") },
 			EnginePath: func() (string, error) { return engine.Path(roots...) },
 			ASRPath:    func() (string, error) { return engine.ASRPath(roots...) }, PrefsPath: path, ScenesPath: scenesPath, HistoryDir: historyDir, StatsPath: statsPath, LogPath: logPath, LicensesDir: resource.Licenses(roots...), Version: mygo.App.Version(), OS: osVersion(), Login: mygo.App, Secrets: mygo.Secrets,

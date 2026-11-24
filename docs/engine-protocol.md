@@ -15,13 +15,13 @@ every platform. The app runs the engine as a child process and talks to it in JS
 
 The macOS engine is `engine/mac` (Swift: Core Audio tap + SpeechAnalyzer), built as
 `tomoru-engine` into `app/resources/darwin-arm64/bin/`. The Windows engine is `engine/windows`
-(Go, its calls into Windows in C: WASAPI's endpoint and process loopback, SAPI, and a window of its own to select
+(Go, its calls into Windows in C: WASAPI's endpoint and process loopback, waveOut playback, and a window of its own to select
 a part of the screen), built as `tomoru-engine.exe` into `app/resources/windows-amd64/bin/` by
 `scripts/build-engine-windows.sh`. The Linux engine is `engine/linux` (Go, its calls into
-PulseAudio's API and GTK in C: the default output's monitor, which PipeWire serves too, and a
+PulseAudio's API and GTK in C: the default output's monitor, which PipeWire serves too, playback for sample speech, and a
 window of its own to select a part of the screen, over a screenshot that the Screenshot portal
 takes under Wayland and the engine under X11), built as `tomoru-engine` into
-`app/resources/linux-amd64/bin/` by `scripts/build-engine-linux.sh`; it does not speak or list
+`app/resources/linux-amd64/bin/` by `scripts/build-engine-linux.sh`; it does not list
 apps yet. The two Go engines share `engine/shared`: the protocol, the
 command line, hearing and voice detection. Windows and Linux have no speech recognition for apps,
 so their engines only hear: `listen` needs `--asr none`, and `prepare` fails with
@@ -41,7 +41,7 @@ tomoru-engine listen --locale <bcp47> [--app <id> | --file <audio>] [--vad <mode
                                                      recognize until stdin closes; with --asr none, only hear
 tomoru-engine locales                                the locales recognition hears
 tomoru-engine prepare --locale <bcp47>               get recognition for a language ready
-tomoru-engine speak --locale <bcp47> -- <sentence>…  say sentences aloud with the system's voice
+tomoru-engine speak --file <wav>                     play a WAV sample through the default output
 tomoru-engine access                                 may the engine hear the system?
 tomoru-engine request-access                         have the system ask the user
 tomoru-engine screen-access                          may the app capture the screen (Screen Recording)?
@@ -85,9 +85,9 @@ Sent by `listen`, `prepare` and `speak` as they go:
   13–21 s on macOS, and no progress was reported.
 - `ready`: recognition is ready (`prepare` ends here).
 - `listening`: capture has started, and results will follow.
-- `speaking`: `speak` has started saying its sentences, one after another with a pause between
-  them, through the default output, where `listen` hears them as it hears a video. It exits once
-  they are said. The app's first-run guide tries translating with them.
+- `speaking`: `speak` has started playing the sample WAV through the default output, where `listen`
+  hears it as it hears a video. It exits once playback finishes. The app's first-run guide tries
+  translating with it.
 
 ### `result`
 
@@ -164,7 +164,6 @@ time goes on as the audio does.
 | `unsupported-locale` | recognition doesn't support the language |
 | `assets-failed` | the recognition assets didn't download |
 | `capture-failed` | capture stopped, or didn't start |
-| `no-voice` | the system has no voice to say the language (`speak`) |
 | `model-failed` | the recognition model could not be loaded (`tomoru-asr`) |
 | `internal` | anything else |
 

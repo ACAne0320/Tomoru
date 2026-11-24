@@ -25,7 +25,7 @@ var packageDependencies = map[string][]string{
 	"ui/kit":        {"ui/assets"},
 	"ui/shared":     {"core", "asr", "engine", "lang", "models", "prefs", "proxy", "scene", "ui/assets", "ui/kit"},
 	"ui/subtitle":   {"lang", "live", "prefs", "samples", "translate", "ui/kit"},
-	"ui/guide":      {"core", "engine", "lang", "live", "models", "prefs", "ui/assets", "ui/kit", "ui/shared", "ui/subtitle"},
+	"ui/guide":      {"core", "lang", "live", "models", "prefs", "ui/assets", "ui/kit", "ui/shared", "ui/subtitle"},
 	"ui/imagecard":  {"core", "translate", "ui/assets", "ui/kit", "ui/shared"},
 	"ui/overlay":    {"core", "prefs", "ui/assets", "ui/kit", "ui/shared", "ui/subtitle"},
 	"ui/panel":      {"core", "prefs", "ui/assets", "ui/kit", "ui/shared"},

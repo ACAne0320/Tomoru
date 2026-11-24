@@ -3297,22 +3297,6 @@ func (msgs Messages) TrySuccess() string {
 	return Catalog.Format(msgs.locale, "trySuccess", nil)
 }
 
-// SampleNoVoice says "This Mac has no {language} voice to say the sample. Play a video in {language} instead."
-// in the language the app shows.
-//
-// Guide, try step: the system has no voice to say the sample in the spoken
-// language.
-func SampleNoVoice(language string) string { return In(i18n.Locale()).SampleNoVoice(language) }
-
-// SampleNoVoice says "This Mac has no {language} voice to say the sample. Play a video in {language} instead."
-// in the language of msgs.
-//
-// Guide, try step: the system has no voice to say the sample in the spoken
-// language.
-func (msgs Messages) SampleNoVoice(language string) string {
-	return Catalog.Format(msgs.locale, "sampleNoVoice", map[string]any{"language": language})
-}
-
 // TryListening says "Listening…"
 // in the language the app shows.
 //
@@ -6977,22 +6961,6 @@ func ShortcutNeedsModifierWin() string { return In(i18n.Locale()).ShortcutNeedsM
 // Shortcut field, on Windows: a key alone cannot be a global shortcut.
 func (msgs Messages) ShortcutNeedsModifierWin() string {
 	return Catalog.Format(msgs.locale, "shortcutNeedsModifierWin", nil)
-}
-
-// SampleNoVoiceWin says "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings …"
-// in the language the app shows.
-//
-// Guide, try step, on Windows: the system has no voice to say the sample in
-// the spoken language.
-func SampleNoVoiceWin(language string) string { return In(i18n.Locale()).SampleNoVoiceWin(language) }
-
-// SampleNoVoiceWin says "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings …"
-// in the language of msgs.
-//
-// Guide, try step, on Windows: the system has no voice to say the sample in
-// the spoken language.
-func (msgs Messages) SampleNoVoiceWin(language string) string {
-	return Catalog.Format(msgs.locale, "sampleNoVoiceWin", map[string]any{"language": language})
 }
 
 // OpenPanel says "Show Panel"

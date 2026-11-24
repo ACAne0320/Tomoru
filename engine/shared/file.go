@@ -52,9 +52,21 @@ const (
 	waveExtensible = 0xfffe
 )
 
-func decodeWAV(b []byte) ([]int16, error) {
+func ReadWAV(path string) ([]int16, int, int, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	pcm, rate, channels, err := parseWAV(b)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("%s: %w", path, err)
+	}
+	return pcm, rate, channels, nil
+}
+
+func parseWAV(b []byte) ([]int16, int, int, error) {
 	if len(b) < 12 || string(b[:4]) != "RIFF" || string(b[8:12]) != "WAVE" {
-		return nil, errors.New("not a WAV file")
+		return nil, 0, 0, errors.New("not a WAV file")
 	}
 	var format, channels, bits uint16
 	var srcRate uint32
@@ -67,7 +79,7 @@ func decodeWAV(b []byte) ([]int16, error) {
 		switch id {
 		case "fmt ":
 			if len(body) < 16 {
-				return nil, errors.New("short fmt chunk")
+				return nil, 0, 0, errors.New("short fmt chunk")
 			}
 			format, channels = binary.LittleEndian.Uint16(body), binary.LittleEndian.Uint16(body[2:])
 			srcRate, bits = binary.LittleEndian.Uint32(body[4:]), binary.LittleEndian.Uint16(body[14:])
@@ -84,30 +96,46 @@ func decodeWAV(b []byte) ([]int16, error) {
 		p = p[next:]
 	}
 	if channels == 0 || srcRate == 0 || data == nil {
-		return nil, io.ErrUnexpectedEOF
+		return nil, 0, 0, io.ErrUnexpectedEOF
 	}
 	width := int(bits) / 8
 	if format == wavePCM && (width < 1 || width > 4) || format == waveFloat && width != 4 || format != wavePCM && format != waveFloat {
-		return nil, fmt.Errorf("unsupported format %d, %d bits", format, bits)
+		return nil, 0, 0, fmt.Errorf("unsupported format %d, %d bits", format, bits)
 	}
-	frame := width * int(channels)
-	mono := make([]float64, len(data)/frame)
+	count := len(data) / width
+	pcm := make([]int16, count)
+	for i := range pcm {
+		s := data[i*width:]
+		var v float64
+		switch {
+		case format == waveFloat:
+			v = float64(math.Float32frombits(binary.LittleEndian.Uint32(s)))
+		case width == 1:
+			v = (float64(s[0]) - 128) / 128
+		case width == 2:
+			pcm[i] = int16(binary.LittleEndian.Uint16(s))
+			continue
+		case width == 3:
+			v = float64(int32(uint32(s[0])<<8|uint32(s[1])<<16|uint32(s[2])<<24)) / (1 << 31)
+		default:
+			v = float64(int32(binary.LittleEndian.Uint32(s))) / (1 << 31)
+		}
+		pcm[i] = int16(max(-32768, min(32767, math.Round(v*32767))))
+	}
+	return pcm, int(srcRate), int(channels), nil
+}
+
+func decodeWAV(b []byte) ([]int16, error) {
+	pcm, srcRate, channels, err := parseWAV(b)
+	if err != nil {
+		return nil, err
+	}
+	frames := len(pcm) / channels
+	mono := make([]float64, frames)
 	for i := range mono {
 		var sum float64
-		for c := range int(channels) {
-			s := data[i*frame+c*width:]
-			switch {
-			case format == waveFloat:
-				sum += float64(math.Float32frombits(binary.LittleEndian.Uint32(s)))
-			case width == 1:
-				sum += (float64(s[0]) - 128) / 128
-			case width == 2:
-				sum += float64(int16(binary.LittleEndian.Uint16(s))) / 32768
-			case width == 3:
-				sum += float64(int32(uint32(s[0])<<8|uint32(s[1])<<16|uint32(s[2])<<24)) / (1 << 31)
-			default:
-				sum += float64(int32(binary.LittleEndian.Uint32(s))) / (1 << 31)
-			}
+		for c := range channels {
+			sum += float64(pcm[i*channels+c]) / 32768
 		}
 		mono[i] = sum / float64(channels)
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"tomoru/internal/core"
-	"tomoru/internal/engine"
 	"tomoru/internal/lang"
 	"tomoru/internal/live"
 	"tomoru/internal/models"
@@ -187,12 +186,7 @@ func (g *Guide) tryIntro(c *ui.Context, src string, saying bool) {
 		}
 	}
 	if err := k.SpeakErr; err != nil {
-		why := shared.ErrorText(err)
-		var e *engine.Error
-		if errors.As(err, &e) && e.Code == "no-voice" {
-			why = shared.MacOr(locales.SampleNoVoice(src), locales.SampleNoVoiceWin(src))
-		}
-		kit.Warning(c, why)
+		kit.Warning(c, shared.ErrorText(err))
 	}
 }
 

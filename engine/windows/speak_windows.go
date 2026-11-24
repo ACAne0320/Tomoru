@@ -5,40 +5,23 @@ import "C"
 
 import (
 	"log"
-	"runtime"
-	"time"
+	"path/filepath"
 	"unsafe"
-
-	"golang.org/x/sys/windows"
 
 	"tomoru-engine-shared"
 )
 
-func speak(locale string, lines []string) {
-	runtime.LockOSThread()
-	var name [256]uint16
-	switch hr := C.tc_speak_open(wide(locale), (*C.wchar_t)(unsafe.Pointer(&name[0])), C.int(len(name))); {
-	case hr == C.TC_NO_VOICE:
-		shared.Fail("no-voice", "no voice for %s", locale)
-	case hr < 0:
-		shared.Fail("internal", "SAPI: %v", hresult(hr))
-	}
-	log.Printf("speaking with %s", windows.UTF16ToString(name[:]))
-	shared.Send(shared.Event{Type: "state", State: "speaking"})
-	for i, line := range lines {
-		if i > 0 {
-			time.Sleep(600 * time.Millisecond)
-		}
-		if hr := C.tc_speak(wide(line)); hr < 0 {
-			shared.Fail("internal", "SAPI: %v", hresult(hr))
-		}
-	}
-}
-
-func wide(s string) *C.wchar_t {
-	p, err := windows.UTF16FromString(s)
+func speak(path string) {
+	samples, rate, channels, err := shared.ReadWAV(path)
 	if err != nil {
-		p = []uint16{0}
+		shared.Fail("internal", "speak: %v", err)
 	}
-	return (*C.wchar_t)(unsafe.Pointer(&p[0]))
+	log.Printf("speaking %s (%.1f s)", filepath.Base(path), float64(len(samples))/float64(rate*channels))
+	shared.Send(shared.Event{Type: "state", State: "speaking"})
+	if len(samples) == 0 {
+		return
+	}
+	if r := C.tc_play_pcm((*C.int16_t)(unsafe.Pointer(&samples[0])), C.int(len(samples)), C.int(rate), C.int(channels)); r != 0 {
+		shared.Fail("internal", "waveOut: error %d", r)
+	}
 }

@@ -1091,16 +1091,6 @@
   "@trySuccess": {
     "description": "Guide, try step: once all three checks pass."
   },
-  "sampleNoVoice": "This Mac has no {language} voice to say the sample. Play a video in {language} instead.",
-  "@sampleNoVoice": {
-    "description": "Guide, try step: the system has no voice to say the sample in the spoken language.",
-    "placeholders": {
-      "language": {
-        "type": "String",
-        "example": "Japanese"
-      }
-    }
-  },
   "tryListening": "Listening…",
   "@tryListening": {
     "description": "Guide, try step: in the preview, while nothing has been said yet."
@@ -2410,16 +2400,6 @@
   "shortcutNeedsModifierWin": "Include Ctrl, Alt or Win",
   "@shortcutNeedsModifierWin": {
     "description": "Shortcut field, on Windows: a key alone cannot be a global shortcut."
-  },
-  "sampleNoVoiceWin": "Windows has no {language} voice to say the sample. Play a video in {language} instead, or add the voice in Settings › Time & language › Speech.",
-  "@sampleNoVoiceWin": {
-    "description": "Guide, try step, on Windows: the system has no voice to say the sample in the spoken language.",
-    "placeholders": {
-      "language": {
-        "type": "String",
-        "example": "Japanese"
-      }
-    }
   },
   "openPanel": "Show Panel",
   "@openPanel": {

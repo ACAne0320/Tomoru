@@ -7,7 +7,6 @@ import (
 	"image"
 	"log"
 	"os"
-	"slices"
 )
 
 type Platform struct {
@@ -18,7 +17,7 @@ type Platform struct {
 	Source       func(app string) Source
 	HearsOneApp  bool
 	Apps         func()
-	Speak        func(locale string, lines []string)
+	Speak        func(path string)
 	Select       func(path string) (image.Rectangle, error)
 	ScreenAccess func(request bool) Access
 }
@@ -32,7 +31,7 @@ func Run(p Platform) {
 	log.SetPrefix("[engine] ")
 	Send(Event{Type: "hello", Protocol: 1, Engine: p.Engine, Version: version})
 	usage := func() {
-		fmt.Fprintf(os.Stderr, "usage: tomoru-engine listen --locale <bcp47> --asr none [--app %s | --file <wav>] [--vad <model> | none] | speak --locale <bcp47> -- <sentence>... | select --out <png> | access | request-access | screen-access | request-screen-access | apps\n", p.App)
+		fmt.Fprintf(os.Stderr, "usage: tomoru-engine listen --locale <bcp47> --asr none [--app %s | --file <wav>] [--vad <model> | none] | speak --file <wav> | select --out <png> | access | request-access | screen-access | request-screen-access | apps\n", p.App)
 		os.Exit(2)
 	}
 	if len(os.Args) < 2 {
@@ -59,19 +58,15 @@ func Run(p Platform) {
 
 	case "speak":
 		fs := flag.NewFlagSet(cmd, flag.ExitOnError)
-		locale := fs.String("locale", "", "the language to speak, BCP 47")
+		file := fs.String("file", "", "the WAV recording to play")
 		fs.Parse(args)
-		lines := fs.Args()
-		if i := slices.Index(args, "--"); i >= 0 {
-			lines = args[i+1:]
-		}
-		if *locale == "" || len(lines) == 0 {
+		if *file == "" {
 			usage()
 		}
 		if p.Speak == nil {
-			Fail("no-voice", "no voice for %s on %s", *locale, p.System)
+			Fail("internal", "speaking is not supported on %s", p.System)
 		}
-		p.Speak(*locale, lines)
+		p.Speak(*file)
 
 	case "select":
 		fs := flag.NewFlagSet(cmd, flag.ExitOnError)

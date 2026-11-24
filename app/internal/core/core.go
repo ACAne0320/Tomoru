@@ -53,7 +53,6 @@ type Deps struct {
 	LogPath             string
 	LicensesDir         string
 	Version, OS         string
-	NoVoice             bool
 	EnginePath, ASRPath func() (string, error)
 	StartSession        func(live.Config, func(live.State)) (Session, error)
 	RunEngine           func(ctx context.Context, bin string, args ...string) ([]engine.Event, error)

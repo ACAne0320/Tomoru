@@ -27,7 +27,7 @@
 | `engine/mac/` | Swift 音频采集与 Apple 识别引擎 |
 | `engine/shared/` | 独立 Go module；各 Go 引擎共用的部分：协议、命令行、收听音源或 WAV 文件、人声检测 |
 | `engine/windows/` | 独立 Go module（cgo）；Windows 音频采集（默认播放设备用 WASAPI 设备环回，指定应用用进程环回）、朗读和框选截图；不识别 |
-| `engine/linux/` | 独立 Go module（cgo）；用 PulseAudio 的 API 收听默认输出的监听源（PipeWire 也提供这套 API），在截图上用自己的 GTK 窗口框选（截图在 Wayland 下来自截图门户，在 X11 下来自根窗口）；不识别，暂不支持朗读和指定应用 |
+| `engine/linux/` | 独立 Go module（cgo）；用 PulseAudio 的 API 收听默认输出的监听源并播放示例语音（PipeWire 也提供这套 API），在截图上用自己的 GTK 窗口框选（截图在 Wayland 下来自截图门户，在 X11 下来自根窗口）；不识别，暂不支持指定应用 |
 | `engine/asr/` | 独立 Go module；`tomoru-asr`，用下载的模型解码一段段语音 |
 | `protocol/fixtures.json` | 三个协议实现共用的 wire fixtures |
 | `bench/` | 用例、评分和评测材料；运行产物不进入源码 |

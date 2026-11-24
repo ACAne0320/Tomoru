@@ -2,6 +2,4 @@
 
 package main
 
-const noVoice = false
-
 func useDesktop() {}

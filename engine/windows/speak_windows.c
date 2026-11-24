@@ -1,72 +1,45 @@
-#define COBJMACROS
 #include <windows.h>
-#include <sapi.h>
-#include <stdio.h>
+#include <mmsystem.h>
 
 #include "engine_windows.h"
 
-static const CLSID clsidSpVoice = {0x96749377, 0x3391, 0x11d2, {0x9e, 0xe3, 0x00, 0xc0, 0x4f, 0x79, 0x73, 0x96}};
-static const IID iidSpVoice = {0x6c44df74, 0x72b9, 0x4992, {0xa1, 0xec, 0xef, 0x99, 0x6e, 0x04, 0x22, 0xd4}};
-static const CLSID clsidSpObjectTokenCategory = {0xa910187f, 0x0c7a, 0x45ac, {0x92, 0xcc, 0x59, 0xed, 0xaf, 0xb7, 0x7b, 0x53}};
-static const IID iidSpObjectTokenCategory = {0x2d3d3845, 0x39af, 0x4850, {0xbb, 0xf9, 0x40, 0xb4, 0x97, 0x80, 0x01, 0x1d}};
-
-static const wchar_t *categories[] = {
-	L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech_OneCore\\Voices",
-	L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices",
-};
-
-static ISpVoice *voice;
-
-static ISpObjectToken *findVoice(const wchar_t *category, LCID lcid) {
-	ISpObjectTokenCategory *cat = NULL;
-	if (FAILED(CoCreateInstance(&clsidSpObjectTokenCategory, NULL, CLSCTX_ALL, &iidSpObjectTokenCategory, (void **)&cat))) {
-		return NULL;
+long tc_play_pcm(const int16_t *samples, int count, int rate, int channels) {
+	if (count <= 0) {
+		return MMSYSERR_NOERROR;
 	}
-	ISpObjectToken *token = NULL;
-	IEnumSpObjectTokens *tokens = NULL;
-	wchar_t want[32];
-	swprintf(want, 32, L"Language=%x", lcid);
-	if (SUCCEEDED(ISpObjectTokenCategory_SetId(cat, category, FALSE)) &&
-		SUCCEEDED(ISpObjectTokenCategory_EnumTokens(cat, want, NULL, &tokens))) {
-		if (IEnumSpObjectTokens_Next(tokens, 1, &token, NULL) != S_OK) {
-			token = NULL;
+	HANDLE done = CreateEventW(NULL, FALSE, FALSE, NULL);
+	if (!done) {
+		return MMSYSERR_NOMEM;
+	}
+	WAVEFORMATEX wf = {0};
+	wf.wFormatTag = WAVE_FORMAT_PCM;
+	wf.nChannels = (WORD)channels;
+	wf.nSamplesPerSec = (DWORD)rate;
+	wf.wBitsPerSample = 16;
+	wf.nBlockAlign = (WORD)(channels * 2);
+	wf.nAvgBytesPerSec = (DWORD)(rate * channels * 2);
+
+	HWAVEOUT out = NULL;
+	MMRESULT r = waveOutOpen(&out, WAVE_MAPPER, &wf, (DWORD_PTR)done, 0, CALLBACK_EVENT);
+	if (r != MMSYSERR_NOERROR) {
+		CloseHandle(done);
+		return (long)r;
+	}
+
+	WAVEHDR hdr = {0};
+	hdr.lpData = (LPSTR)samples;
+	hdr.dwBufferLength = (DWORD)((size_t)count * sizeof(int16_t));
+	r = waveOutPrepareHeader(out, &hdr, sizeof(hdr));
+	if (r == MMSYSERR_NOERROR) {
+		r = waveOutWrite(out, &hdr, sizeof(hdr));
+		if (r == MMSYSERR_NOERROR) {
+			while (!(hdr.dwFlags & WHDR_DONE)) {
+				WaitForSingleObject(done, 100);
+			}
 		}
-		IEnumSpObjectTokens_Release(tokens);
+		waveOutUnprepareHeader(out, &hdr, sizeof(hdr));
 	}
-	ISpObjectTokenCategory_Release(cat);
-	return token;
-}
-
-long tc_speak_open(const wchar_t *locale, wchar_t *name, int namecap) {
-	name[0] = 0;
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-		return hr;
-	}
-	LCID lcid = LocaleNameToLCID(locale, 0);
-	if (lcid == 0) {
-		return TC_NO_VOICE;
-	}
-	ISpObjectToken *token = NULL;
-	for (int i = 0; i < 2 && !token; i++) {
-		token = findVoice(categories[i], lcid);
-	}
-	if (!token) {
-		return TC_NO_VOICE;
-	}
-	wchar_t *desc = NULL;
-	if (SUCCEEDED(ISpObjectToken_GetStringValue(token, NULL, &desc)) && desc) {
-		lstrcpynW(name, desc, namecap);
-		CoTaskMemFree(desc);
-	}
-	hr = CoCreateInstance(&clsidSpVoice, NULL, CLSCTX_ALL, &iidSpVoice, (void **)&voice);
-	if (SUCCEEDED(hr)) {
-		hr = ISpVoice_SetVoice(voice, token);
-	}
-	ISpObjectToken_Release(token);
-	return hr;
-}
-
-long tc_speak(const wchar_t *text) {
-	return ISpVoice_Speak(voice, text, SPF_DEFAULT | SPF_IS_NOT_XML, NULL);
+	waveOutClose(out);
+	CloseHandle(done);
+	return (long)r;
 }

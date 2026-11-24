@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-const noVoice = true
-
 func useDesktop() {
 	if os.Getenv("WAYLAND_DISPLAY") == "" || os.Getenv("DISPLAY") == "" || os.Getenv("GDK_BACKEND") != "" {
 		return

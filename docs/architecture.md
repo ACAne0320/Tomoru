@@ -31,7 +31,7 @@ decisions behind each area are in [`adr/`](adr/), from [ADR 002](adr/002-live-se
 | `engine/mac/` | The Swift engine: audio capture and Apple's recognition |
 | `engine/shared/` | Its own Go module: what the Go engines share, the protocol, the command line, hearing a source or a WAV file, and voice detection |
 | `engine/windows/` | Its own Go module (cgo): Windows audio capture (WASAPI endpoint loopback for the default playback device, process loopback for a selected app), speaking and selecting a part of the screen; no recognition |
-| `engine/linux/` | Its own Go module (cgo): hearing the default output's monitor through PulseAudio's API, which PipeWire serves too, and selecting a part of the screen in a GTK window of its own, over a screenshot (the Screenshot portal under Wayland, the root window under X11); no recognition, and no speaking or apps yet |
+| `engine/linux/` | Its own Go module (cgo): hearing the default output's monitor and playing sample speech through PulseAudio's API, which PipeWire serves too, and selecting a part of the screen in a GTK window of its own, over a screenshot (the Screenshot portal under Wayland, the root window under X11); no recognition, and no apps yet |
 | `engine/asr/` | Its own Go module: `tomoru-asr`, which decodes stretches of speech with a downloaded model |
 | `protocol/fixtures.json` | Wire fixtures shared by the three protocol implementations |
 | `bench/` | Cases, scoring and benchmark material; run output stays out of the source |

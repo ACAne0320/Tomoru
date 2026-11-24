@@ -10,7 +10,7 @@ func option(_ name: String) -> String? {
 }
 
 func usage() -> Never {
-    FileHandle.standardError.write(Data("usage: tomoru-engine listen --locale <bcp47> [--app <bundle id>] | locales | prepare --locale <bcp47> | speak --locale <bcp47> -- <sentence>... | access | request-access | screen-access | request-screen-access | apps | select --out <png>\n".utf8))
+    FileHandle.standardError.write(Data("usage: tomoru-engine listen --locale <bcp47> [--app <bundle id>] | locales | prepare --locale <bcp47> | speak --file <wav> | access | request-access | screen-access | request-screen-access | apps | select --out <png>\n".utf8))
     exit(2)
 }
 
@@ -64,12 +64,12 @@ case "prepare":
     dispatchMain()
 
 case "speak":
-    guard let tag = option("--locale"), let i = args.firstIndex(of: "--"), i + 1 < args.count else { usage() }
+    guard let file = option("--file") else { usage() }
     signal(SIGINT) { _ in exit(0) }
-    let lines = Array(args[(i + 1)...])
+    signal(SIGTERM) { _ in exit(0) }
     let speaker = MainActor.assumeIsolated {
         let s = Speaker()
-        s.speak(lines, tag: tag)
+        s.speak(file)
         return s
     }
     withExtendedLifetime(speaker) { dispatchMain() }

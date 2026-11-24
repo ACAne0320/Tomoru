@@ -1,5 +1,10 @@
 package samples
 
+import "embed"
+
+//go:embed audio/*.wav
+var audioFS embed.FS
+
 var Lines = []map[string]string{
 	{"zh": "大家晚上好。", "ja": "皆さん、こんばんは。", "en": "Good evening, everyone.", "ko": "여러분, 안녕하세요.", "zh-Hant": "大家晚上好。"},
 	{"zh": "今天的直播会比平时长一点。", "ja": "今日の配信はいつもより少し長くなります。", "en": "Today's stream will run a bit longer than usual.", "ko": "오늘 방송은 평소보다 조금 길어질 거예요.", "zh-Hant": "今天的直播會比平常長一點。"},
@@ -16,8 +21,15 @@ var Lines = []map[string]string{
 const MixedScript = 8
 
 func Has(lang string) bool {
-	_, ok := Lines[0][lang]
-	return ok
+	return len(Audio(lang)) > 0
+}
+
+func Audio(lang string) []byte {
+	if lang == "zh-Hant" {
+		lang = "zh"
+	}
+	b, _ := audioFS.ReadFile("audio/" + lang + ".wav")
+	return b
 }
 
 func In(s map[string]string, lang string) string {
@@ -28,12 +40,4 @@ func In(s map[string]string, lang string) string {
 		return s["zh-Hant"]
 	}
 	return s["en"]
-}
-
-func Spoken(lang string) []string {
-	var out []string
-	for _, l := range Lines[:4] {
-		out = append(out, l[lang])
-	}
-	return out
 }

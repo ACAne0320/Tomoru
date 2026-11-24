@@ -27,4 +27,6 @@ enum tc_access { TC_ACCESS_FAILED = -1, TC_ACCESS_GRANTED = 1, TC_ACCESS_UNKNOWN
 
 enum tc_access tc_screen_access(const char *app, int request, char *why, int n);
 
+int tc_play_pcm(const int16_t *samples, int count, int rate, int channels, char *why, int n);
+
 #endif

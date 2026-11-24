@@ -284,6 +284,14 @@ func TestSpeak(t *testing.T) {
 	if c.Speaking || c.SpeakErr != nil {
 		t.Errorf("after stopping: speaking %v, error %v", c.Speaking, c.SpeakErr)
 	}
+	c.Prefs.Src, c.Prefs.Tgt = "auto", "zh"
+	if !c.HasSample() || c.sampleLang() != "ja" {
+		t.Errorf("auto->zh: has=%v lang=%q", c.HasSample(), c.sampleLang())
+	}
+	c.Prefs.Tgt = "ja"
+	if !c.HasSample() || c.sampleLang() != "en" {
+		t.Errorf("auto->ja: has=%v lang=%q", c.HasSample(), c.sampleLang())
+	}
 }
 
 func TestVoiceKeepsSubtitles(t *testing.T) {

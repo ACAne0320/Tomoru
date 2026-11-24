@@ -162,6 +162,14 @@ func TestDecodeWAV(t *testing.T) {
 	if _, err := decodeWAV([]byte("RIFF....WAVE")); err == nil {
 		t.Error("no chunks accepted")
 	}
+	p := t.TempDir() + "/sample.wav"
+	if err := os.WriteFile(p, wav(24000, 1, []int16{10, -20, 30}), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	pcm, rate, ch, err := ReadWAV(p)
+	if err != nil || rate != 24000 || ch != 1 || !reflect.DeepEqual(pcm, []int16{10, -20, 30}) {
+		t.Errorf("ReadWAV: pcm=%v rate=%d ch=%d err=%v", pcm, rate, ch, err)
+	}
 }
 
 type script struct {

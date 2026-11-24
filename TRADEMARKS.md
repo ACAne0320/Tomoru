@@ -8,8 +8,9 @@ Tomoru's source code is free software under the GNU General Public License, vers
 - the name "Tomoru" as the name of an app or service;
 - the Tomoru icons and logos (`app/internal/ui/assets/`: `icon.png`, `sticker.png`,
   `sticker-asleep.png` and the menu bar's `tray-*`; `app/icon/Tomoru.icns`);
-- the mascot characters, Tomoru (ともる) and her penguin Rubi (ルビ), and their artwork, among it
-  `.github/assets/banner-*.webp` and `.github/assets/mascot.webp`.
+- the mascot characters, Tomoru (ともる) and her penguin Rubi (ルビ), their artwork (among it
+  `.github/assets/banner-*.webp` and `.github/assets/mascot.webp`), and Tomoru's character voice
+  recordings (`app/internal/samples/audio/`).
 
 All rights to these are reserved.
 

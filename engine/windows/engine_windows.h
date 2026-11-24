@@ -15,9 +15,7 @@ int tc_playing(unsigned long *pids, int cap);
 int tc_windowed(unsigned long *pids, int cap);
 int tc_describe(unsigned long pid, wchar_t *path, int pathcap, wchar_t *name, int namecap);
 
-enum { TC_VOICE_FOUND = 0, TC_NO_VOICE = 1 };
-long tc_speak_open(const wchar_t *locale, wchar_t *name, int namecap);
-long tc_speak(const wchar_t *text);
+long tc_play_pcm(const int16_t *samples, int count, int rate, int channels);
 
 enum { TC_SELECT_CANCELLED = 0, TC_SELECTED = 1 };
 long tc_select(uint8_t **bgra, int *x, int *y, int *w, int *h);

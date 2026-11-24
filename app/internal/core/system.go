@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"log"
+	"os"
 	"runtime"
 	"slices"
 	"time"
@@ -105,22 +106,39 @@ func (c *Core) SetOpenAtLogin(on bool) {
 	c.changed()
 }
 
-func (c *Core) HasSample() bool { return !c.deps.NoVoice && samples.Has(c.Prefs.Src) }
+func (c *Core) sampleLang() string {
+	if c.Prefs.Src != lang.Auto {
+		return c.Prefs.Src
+	}
+	if c.Prefs.Tgt == "ja" {
+		return "en"
+	}
+	return "ja"
+}
+
+func (c *Core) HasSample() bool { return samples.Has(c.sampleLang()) }
 
 func (c *Core) Speak() {
 	c.StopSpeaking()
-	if !c.HasSample() {
+	wav := samples.Audio(c.sampleLang())
+	if len(wav) == 0 {
 		return
 	}
 	c.speakRun++
 	run := c.speakRun
 	ctx, cancel := context.WithTimeout(c.work.ctx, time.Minute)
 	c.Speaking, c.SpeakErr, c.speak = true, nil, cancel
-	args := append([]string{"speak", "--locale", lang.Locale(c.Prefs.Src), "--"}, samples.Spoken(c.Prefs.Src)...)
 	c.work.Go(func() {
 		bin, err := c.deps.EnginePath()
+		var path string
 		if err == nil {
-			_, err = c.deps.RunEngine(ctx, bin, args...)
+			path, err = writeSampleWAV(wav)
+		}
+		if path != "" {
+			defer os.Remove(path)
+		}
+		if err == nil {
+			_, err = c.deps.RunEngine(ctx, bin, "speak", "--file", path)
 		}
 		stopped := ctx.Err() != nil
 		cancel()
@@ -137,6 +155,24 @@ func (c *Core) Speak() {
 		})
 	})
 	c.changed()
+}
+
+func writeSampleWAV(wav []byte) (string, error) {
+	f, err := os.CreateTemp("", "tomoru-sample-*.wav")
+	if err != nil {
+		return "", err
+	}
+	path := f.Name()
+	if _, err := f.Write(wav); err != nil {
+		_ = f.Close()
+		_ = os.Remove(path)
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		_ = os.Remove(path)
+		return "", err
+	}
+	return path, nil
 }
 
 func (c *Core) StopSpeaking() {
