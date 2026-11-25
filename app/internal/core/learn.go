@@ -79,18 +79,49 @@ func (c *Core) retranslator(id string) (func(context.Context) (translate.Transla
 		return ready, err
 	}
 	return func(ctx context.Context) (translate.Translator, error) {
-		busy := make(chan bool, 1)
-		c.work.Post(func() { busy <- c.serverBusy(id) })
+		acquiring, cancel := context.WithCancel(ctx)
+		defer cancel()
+		claim := &serverClaim{id: id, yield: cancel}
+		claimed := make(chan bool, 1)
+		c.work.Post(func() {
+			if c.serverBusy(id) {
+				claimed <- false
+				return
+			}
+			c.claim = claim
+			claimed <- true
+		})
 		select {
-		case b := <-busy:
-			if b {
+		case ok := <-claimed:
+			if !ok {
 				return nil, ErrModelBusy
 			}
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
-		return ready(ctx)
+		tr, err := ready(acquiring)
+		c.work.Post(func() {
+			if c.claim == claim {
+				c.claim = nil
+			}
+		})
+		if err != nil && acquiring.Err() != nil && ctx.Err() == nil {
+			err = ErrModelBusy
+		}
+		return tr, err
 	}, nil
+}
+
+type serverClaim struct {
+	id    string
+	yield context.CancelFunc
+}
+
+func (c *Core) yieldServer(to string) {
+	if claim := c.claim; claim != nil && (to == "" || claim.id != to) {
+		claim.yield()
+		c.claim = nil
+	}
 }
 
 func (c *Core) serverBusy(id string) bool {

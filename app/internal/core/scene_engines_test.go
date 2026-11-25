@@ -192,7 +192,7 @@ func TestRetranslatingKeepsLiveServer(t *testing.T) {
 	c.SetSceneEngine(a, MT, "local-2b")
 	c.SetSceneEngine(b, MT, prefs.EndpointEngine(c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:9/v1", Model: "m"}, "sk-1")))
 	c.SetSceneEngine(d, MT, "local-9b")
-	acquire := func(scene string, local bool) error {
+	acquire := func(scene string) error {
 		t.Helper()
 		ready, err := c.retranslator(c.SceneActive(scene, MT))
 		if err != nil {
@@ -200,10 +200,7 @@ func TestRetranslatingKeepsLiveServer(t *testing.T) {
 		}
 		done := make(chan error, 1)
 		go func() { _, err := ready(context.Background()); done <- err }()
-		if local {
-			f.flush(t, 1)
-		}
-		return <-done
+		return waitFor(t, f, done)
 	}
 	cloud, err := c.retranslator(c.SceneActive(b, MT))
 	if err != nil {
@@ -216,18 +213,18 @@ func TestRetranslatingKeepsLiveServer(t *testing.T) {
 	if _, err := cloud(context.Background()); err != nil || srv.stops != stops {
 		t.Errorf("an API made before the subtitles started stopped their server: %v, %d stops", err, srv.stops-stops)
 	}
-	if err := acquire(b, false); err != nil || srv.stops != stops {
+	if err := acquire(b); err != nil || srv.stops != stops {
 		t.Errorf("an API stopped the live server: %v, %d stops", err, srv.stops-stops)
 	}
-	if err := acquire(d, true); !errors.Is(err, ErrModelBusy) {
+	if err := acquire(d); !errors.Is(err, ErrModelBusy) {
 		t.Errorf("another on-device model while subtitles run: %v", err)
 	}
-	if err := acquire(a, true); err != nil {
+	if err := acquire(a); err != nil {
 		t.Errorf("the model the subtitles use: %v", err)
 	}
 	c.Stop()
 	c.Image = ImageView{PNG: []byte{1}, Via: "local-9b", Running: true}
-	if err := acquire(a, true); !errors.Is(err, ErrModelBusy) {
+	if err := acquire(a); !errors.Is(err, ErrModelBusy) {
 		t.Errorf("another on-device model while a picture translates: %v", err)
 	}
 }
@@ -293,5 +290,69 @@ func TestSceneServiceKeyGone(t *testing.T) {
 	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
 	if c.SceneActive(id, ASR) != QwenCloud {
 		t.Errorf("key saved: %q", c.SceneActive(id, ASR))
+	}
+}
+
+type gatedServer struct {
+	*fakeServer
+	gated string
+	gate  chan struct{}
+}
+
+func (s *gatedServer) Ensure(ctx context.Context, path string) (string, error) {
+	if path == s.gated {
+		<-s.gate
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	return s.fakeServer.Ensure(ctx, path)
+}
+
+func waitFor(t *testing.T, f *fake, done <-chan error) error {
+	t.Helper()
+	var err error
+	f.until(t, func() bool {
+		select {
+		case err = <-done:
+			return true
+		default:
+			return false
+		}
+	})
+	return err
+}
+
+func (s *gatedServer) EnsureProjector(ctx context.Context, path string) (string, error) {
+	return s.Ensure(ctx, path)
+}
+
+func TestLiveStartedWhileRetranslatingWaits(t *testing.T) {
+	c, f, m := sceneEngineCore(t)
+	g := &gatedServer{fakeServer: &fakeServer{}, gated: m.Path("local-2b"), gate: make(chan struct{})}
+	c.deps.Server = g
+	c.EngineService = newEngineService(c.work, m, g, nil, c.deps.Secrets, c.changed)
+	m.ready["local-2b"], m.ready["local-9b"] = true, true
+	a, b := c.AddScene("A"), c.AddScene("B")
+	c.SetSceneEngine(a, MT, "local-2b")
+	c.SetSceneEngine(b, MT, "local-9b")
+	ready, err := c.retranslator(c.SceneActive(a, MT))
+	if err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { _, err := ready(context.Background()); done <- err }()
+	f.flush(t, 1)
+	c.SetScene(b)
+	c.Start()
+	f.flush(t, 1)
+	close(g.gate)
+	if err := waitFor(t, f, done); !errors.Is(err, ErrModelBusy) {
+		t.Errorf("retranslating took the server from live subtitles: %v", err)
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if !slices.Equal(g.ensured, []string{m.Path("local-9b")}) || !c.Running || c.serving() != "local-9b" {
+		t.Errorf("loaded %q, running %v, serving %q", g.ensured, c.Running, c.serving())
 	}
 }

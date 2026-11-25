@@ -138,6 +138,7 @@ type Core struct {
 
 	runSince   time.Time
 	runEngines usage.Engines
+	claim      *serverClaim
 	ledger     usage.Ledger
 }
 

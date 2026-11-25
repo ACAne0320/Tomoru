@@ -48,6 +48,9 @@ func (c *Core) Start() {
 	ready, local := c.EngineService.noTranslator(c.ImageService.usesServer()), false
 	if p.Translates() {
 		ready, local, err = c.translator(p.MT)
+		if local && err == nil {
+			c.yieldServer(p.MT)
+		}
 	}
 	c.syncHistoryPolicy()
 	record := c.HistoryService.begin()
