@@ -82,29 +82,32 @@ func (c *Core) retranslator(id string) (func(context.Context) (translate.Transla
 		acquiring, cancel := context.WithCancel(ctx)
 		defer cancel()
 		claim := &serverClaim{id: id, yield: cancel}
-		claimed := make(chan bool, 1)
-		c.work.Post(func() {
-			if c.serverBusy(id) {
-				claimed <- false
-				return
+		defer c.work.Post(func() {
+			if c.claim == claim {
+				c.claim = nil
 			}
-			c.claim = claim
-			claimed <- true
+		})
+		claimed := make(chan error, 1)
+		c.work.Post(func() {
+			switch {
+			case acquiring.Err() != nil:
+				claimed <- acquiring.Err()
+			case c.serverBusy(id):
+				claimed <- ErrModelBusy
+			default:
+				c.claim = claim
+				claimed <- nil
+			}
 		})
 		select {
-		case ok := <-claimed:
-			if !ok {
-				return nil, ErrModelBusy
+		case err := <-claimed:
+			if err != nil {
+				return nil, err
 			}
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
 		tr, err := ready(acquiring)
-		c.work.Post(func() {
-			if c.claim == claim {
-				c.claim = nil
-			}
-		})
 		if err != nil && acquiring.Err() != nil && ctx.Err() == nil {
 			err = ErrModelBusy
 		}

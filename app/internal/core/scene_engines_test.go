@@ -356,3 +356,65 @@ func TestLiveStartedWhileRetranslatingWaits(t *testing.T) {
 		t.Errorf("loaded %q, running %v, serving %q", g.ensured, c.Running, c.serving())
 	}
 }
+
+func TestCanceledRetranslationLeavesRetryClaim(t *testing.T) {
+	c, f, m := sceneEngineCore(t)
+	g := &gatedServer{fakeServer: &fakeServer{}, gated: m.Path("local-2b"), gate: make(chan struct{})}
+	c.deps.Server = g
+	c.EngineService = newEngineService(c.work, m, g, nil, c.deps.Secrets, c.changed)
+	m.ready["local-2b"], m.ready["local-9b"] = true, true
+	a, b := c.AddScene("A"), c.AddScene("B")
+	c.SetSceneEngine(a, MT, "local-2b")
+	c.SetSceneEngine(b, MT, "local-9b")
+	acquire := func(ctx context.Context) <-chan error {
+		ready, err := c.retranslator(c.SceneActive(a, MT))
+		if err != nil {
+			t.Fatal(err)
+		}
+		done := make(chan error, 1)
+		go func() { _, err := ready(ctx); done <- err }()
+		return done
+	}
+	posted := func(n int) []func() {
+		t.Helper()
+		for deadline := time.Now().Add(time.Second); time.Now().Before(deadline); time.Sleep(time.Millisecond) {
+			f.mu.Lock()
+			if len(f.posted) >= n {
+				fns := f.posted
+				f.posted = nil
+				f.mu.Unlock()
+				return fns
+			}
+			f.mu.Unlock()
+		}
+		t.Fatalf("fewer than %d posted", n)
+		return nil
+	}
+	old, cancel := context.WithCancel(context.Background())
+	first := acquire(old)
+	stale := posted(1)[0]
+	cancel()
+	if err := <-first; !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled: %v", err)
+	}
+	for _, fn := range posted(1) {
+		fn()
+	}
+	retry := acquire(context.Background())
+	posted(1)[0]()
+	stale()
+	late := make(chan error, 1)
+	c.SetScene(b)
+	c.Start()
+	f.flush(t, 1)
+	close(g.gate)
+	go func() { late <- <-retry }()
+	if err := waitFor(t, f, late); !errors.Is(err, ErrModelBusy) {
+		t.Errorf("the retry kept the server from live subtitles: %v", err)
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if !slices.Equal(g.ensured, []string{m.Path("local-9b")}) || c.serving() != "local-9b" {
+		t.Errorf("loaded %q, serving %q", g.ensured, c.serving())
+	}
+}
