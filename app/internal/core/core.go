@@ -211,6 +211,7 @@ func (c *Core) Network() (online, metered bool) {
 
 func (c *Core) Changed() {
 	c.usePending()
+	c.syncSession()
 	c.noteFinished()
 	c.changed()
 }

@@ -46,6 +46,7 @@ type EngineService struct {
 	secrets    Secrets
 	changed    func()
 	visions    map[api]prefs.Vision
+	keys       map[string]bool
 	imageCloud func() *translate.Endpoint
 	lastTest   int
 }
@@ -71,7 +72,7 @@ func modelFormat(m models.Model) *translate.Format {
 type engineTest struct{ cancel context.CancelFunc }
 
 func newEngineService(work *tasks, models Models, server, asrServer Server, secrets Secrets, changed func()) *EngineService {
-	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, visions: map[api]prefs.Vision{}, imageCloud: translate.Cloud, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
+	return &EngineService{Tests: map[string]TestResult{}, pending: map[Kind]string{}, tests: map[string]*engineTest{}, visions: map[api]prefs.Vision{}, keys: map[string]bool{}, imageCloud: translate.Cloud, work: work, models: models, server: server, asrServer: asrServer, secrets: secrets, changed: changed}
 }
 
 func (s *EngineService) notify() {
@@ -331,12 +332,26 @@ func (s *EngineService) readKey(name string) []byte {
 }
 
 func (s *EngineService) saveKey(name string, key []byte) bool {
-	return s.secrets != nil && s.secrets.Set(name, key) == nil
+	saved := s.secrets != nil && s.secrets.Set(name, key) == nil
+	if saved {
+		s.keys[name] = len(key) > 0
+	}
+	return saved
 }
 func (s *EngineService) deleteKey(name string) {
 	if s.secrets != nil {
 		s.secrets.Delete(name)
 	}
+	delete(s.keys, name)
+}
+
+func (s *EngineService) hasSecret(name string) bool {
+	has, ok := s.keys[name]
+	if !ok {
+		has = len(s.readKey(name)) > 0
+		s.keys[name] = has
+	}
+	return has
 }
 
 func (s *EngineService) ModelStatus(id string) models.Status {
@@ -372,13 +387,14 @@ func (s *EngineService) CancelDownload(id string) {
 	}
 }
 
-func (s *EngineService) deleteModel(id string) {
+func (s *EngineService) deleteModel(id string, keepServer bool) {
 	for kind, pending := range s.pending {
 		if pending == id {
 			delete(s.pending, kind)
 		}
 	}
 	switch m, _ := models.ByID(id); {
+	case keepServer:
 	case !m.ASR && s.server != nil:
 		s.server.Stop()
 	case m.Served() && s.asrServer != nil:
@@ -397,7 +413,7 @@ func (s *EngineService) chosen(kind Kind, current string) string {
 }
 func (s *EngineService) cancelPending(kind Kind) { delete(s.pending, kind) }
 func (s *EngineService) usable(e Engine, apis []prefs.Service) bool {
-	if !hasKey(e.ID, apis) {
+	if !hasKey(e.ID, apis) || needsKey(e.ID) && !s.hasSecret(apiKey(e.ID)) {
 		return false
 	}
 	return e.Model == nil || s.ModelStatus(e.ID).State == models.Ready

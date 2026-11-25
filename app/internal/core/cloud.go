@@ -146,9 +146,14 @@ func (c *Core) TestAPI(test string, a prefs.Service, key string) {
 	c.EngineService.testAPI(test, a, key)
 }
 
-func hasKey(id string, apis []prefs.Service) bool {
+func needsKey(id string) bool {
 	s, ok := asr.ByID(id)
-	if _, mt := MTServiceByID(id); !mt && (!ok || !s.Key) {
+	_, mt := MTServiceByID(id)
+	return mt || ok && s.Key
+}
+
+func hasKey(id string, apis []prefs.Service) bool {
+	if !needsKey(id) {
 		return true
 	}
 	for _, a := range apis {

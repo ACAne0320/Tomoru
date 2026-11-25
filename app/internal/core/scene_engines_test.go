@@ -1,10 +1,14 @@
 package core
 
 import (
+	"context"
+	"errors"
 	"slices"
 	"testing"
 
+	"tomoru/internal/lang"
 	"tomoru/internal/prefs"
+	"tomoru/internal/scene"
 	"tomoru/internal/translate"
 )
 
@@ -126,5 +130,115 @@ func TestUsableEngines(t *testing.T) {
 	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
 	if !has(ASR, QwenCloud) {
 		t.Error("a cloud service with its key")
+	}
+}
+
+func TestSceneRecognitionGoneFitsLanguage(t *testing.T) {
+	c, f, _ := sceneEngineCore(t)
+	id := c.AddScene("VTuber")
+	c.SetSceneEngine(id, ASR, "sensevoice-small")
+	c.UpdateScene(id, func(sc *scene.Scene) { sc.ASR, sc.Src, sc.Tgt = "sensevoice-small", lang.Auto, "zh" })
+	if err := c.SavePrefs(); err != nil {
+		t.Fatal(err)
+	}
+	c.Prefs.Scene, c.Prefs.Src, c.Prefs.Tgt = id, lang.Auto, "zh"
+	c.loadScenes()
+	if c.Active(ASR) != c.Prefs.ASR {
+		t.Fatalf("the scene's model is gone: %q", c.Active(ASR))
+	}
+	c.Start()
+	f.flush(t, 1)
+	if src := f.sessions[0].cfg.Src; src == lang.Auto || !slices.Contains(c.spoken(c.Prefs.ASR), src) {
+		t.Errorf("the default heard %q", src)
+	}
+}
+
+func TestSceneModelDownloadedAgain(t *testing.T) {
+	c, f, m := sceneEngineCore(t)
+	a, b := c.AddScene("A"), c.AddScene("B")
+	m.ready["local-2b"] = true
+	c.SetSceneEngine(a, MT, "local-2b")
+	c.SetSceneEngine(b, MT, "local-2b")
+	delete(m.ready, "local-2b")
+	c.SetScene(a)
+	c.Start()
+	f.flush(t, 1)
+	if c.runEngines.MT != "cloud" || c.serving() != "" {
+		t.Fatalf("missing: ran %q, serving %q", c.runEngines.MT, c.serving())
+	}
+	m.ready["local-2b"] = true
+	c.SetScene(b)
+	f.flush(t, 1)
+	if len(f.sessions) != 2 || c.runEngines.MT != "local-2b" || c.serving() != "local-2b" {
+		t.Fatalf("switched after downloading: %d sessions, ran %q, serving %q", len(f.sessions), c.runEngines.MT, c.serving())
+	}
+	delete(m.ready, "local-2b")
+	c.Changed()
+	f.flush(t, 1)
+	m.ready["local-2b"] = true
+	c.Changed()
+	f.flush(t, 1)
+	if len(f.sessions) != 4 || c.runEngines.MT != "local-2b" {
+		t.Errorf("downloaded while running: %d sessions, ran %q", len(f.sessions), c.runEngines.MT)
+	}
+}
+
+func TestRetranslatingKeepsLiveServer(t *testing.T) {
+	c, f, m := sceneEngineCore(t)
+	srv := c.deps.Server.(*fakeServer)
+	m.ready["local-2b"], m.ready["local-9b"] = true, true
+	a, b, d := c.AddScene("A"), c.AddScene("B"), c.AddScene("D")
+	c.SetSceneEngine(a, MT, "local-2b")
+	c.SetSceneEngine(b, MT, prefs.EndpointEngine(c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:9/v1", Model: "m"}, "sk-1")))
+	c.SetSceneEngine(d, MT, "local-9b")
+	c.SetScene(a)
+	c.Start()
+	f.flush(t, 1)
+	stops := srv.stops
+	ready, err := c.retranslator(c.SceneActive(b, MT))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ready(context.Background()); err != nil || srv.stops != stops {
+		t.Errorf("an API stopped the live server: %v, %d stops", err, srv.stops-stops)
+	}
+	if _, err := c.retranslator(c.SceneActive(d, MT)); !errors.Is(err, ErrModelBusy) {
+		t.Errorf("another on-device model: %v", err)
+	}
+}
+
+func TestDeletingDefaultKeepsSceneServer(t *testing.T) {
+	c, f, m := sceneEngineCore(t)
+	srv := c.deps.Server.(*fakeServer)
+	m.ready["local-2b"], m.ready["local-9b"] = true, true
+	c.SetEngine("local-2b")
+	id := c.AddScene("FF7")
+	c.SetSceneEngine(id, MT, "local-9b")
+	c.SetScene(id)
+	c.Start()
+	f.flush(t, 1)
+	stops := srv.stops
+	c.DeleteModel("local-2b")
+	if srv.stops != stops || len(f.sessions) != 1 || !c.Running || c.Prefs.MT != "cloud" {
+		t.Errorf("stopped %d times, %d sessions, running %v, default %q", srv.stops-stops, len(f.sessions), c.Running, c.Prefs.MT)
+	}
+	c.DeleteModel("local-9b")
+	f.flush(t, 1)
+	if srv.stops == stops || c.runEngines.MT != "cloud" {
+		t.Errorf("the scene's own deleted: %d stops, ran %q", srv.stops-stops, c.runEngines.MT)
+	}
+}
+
+func TestSceneServiceKeyGone(t *testing.T) {
+	c, _, _ := sceneEngineCore(t)
+	c.Prefs.ASRAPIs = []prefs.Service{{ID: QwenCloud, Key: true}}
+	id := c.AddScene("Stream")
+	c.UpdateScene(id, func(sc *scene.Scene) { sc.ASR = QwenCloud })
+	if slices.ContainsFunc(c.UsableEngines(ASR), func(e Engine) bool { return e.ID == QwenCloud }) || c.SceneActive(id, ASR) != c.Prefs.ASR {
+		t.Fatalf("no key in the keychain: %q", c.SceneActive(id, ASR))
+	}
+	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
+	if c.SceneActive(id, ASR) != QwenCloud {
+		t.Errorf("key saved: %q", c.SceneActive(id, ASR))
 	}
 }

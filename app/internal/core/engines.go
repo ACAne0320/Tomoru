@@ -7,6 +7,7 @@ import (
 	"errors"
 	"slices"
 
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
@@ -84,7 +85,7 @@ func (c *Core) DeleteModel(id string) {
 	if c.Prefs.ASR == id {
 		c.Prefs.ASR = Successor(ASR)
 	}
-	c.EngineService.deleteModel(id)
+	c.EngineService.deleteModel(id, c.keepsServer(id))
 	c.refit(was)
 	c.settingsChanged()
 }
@@ -112,7 +113,7 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if key != "" {
 		c.EngineService.saveKey(keyName(e.ID), []byte(key))
 	}
-	if c.Active(MT) == prefs.EndpointEngine(e.ID) {
+	if c.runningEngines()[1] == prefs.EndpointEngine(e.ID) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -164,4 +165,14 @@ func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
 func (c *Core) CancelChoice(k Kind, id string) {
 	c.CancelDownload(id)
 	c.Choose(k, c.InUse(k))
+}
+
+func (c *Core) keepsServer(deleted string) bool {
+	d, _ := models.ByID(deleted)
+	for _, id := range c.runningEngines() {
+		if m, ok := models.ByID(id); ok && id != deleted && m.ASR == d.ASR && (!m.ASR || m.Served()) {
+			return true
+		}
+	}
+	return false
 }

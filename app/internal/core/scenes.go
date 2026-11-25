@@ -29,14 +29,13 @@ func (c *Core) SetScene(id string) {
 		return
 	}
 	c.closeHistory()
-	was := c.activeEngines()
 	names := c.hints().Names
 	src, tgt := c.SceneService.selectScene(c.Prefs.Scene, id, c.Prefs.Src, c.Prefs.Tgt)
 	before := [2]string{c.Prefs.Src, c.Prefs.Tgt}
 	c.Prefs.Scene, c.Prefs.Src, c.Prefs.Tgt = id, src, tgt
 	c.fitLangs()
 	spec, _ := asr.ByID(c.Active(ASR))
-	if before != [2]string{c.Prefs.Src, c.Prefs.Tgt} || c.activeEngines() != was || spec.TakesScene && !slices.Equal(names, c.hints().Names) {
+	if before != [2]string{c.Prefs.Src, c.Prefs.Tgt} || c.inEffect() != c.runningEngines() || spec.TakesScene && !slices.Equal(names, c.hints().Names) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -156,15 +155,34 @@ func (c *Core) Active(k Kind) string { return c.SceneActive(c.Prefs.Scene, k) }
 
 func (c *Core) activeEngines() [2]string { return [2]string{c.Active(ASR), c.Active(MT)} }
 
-func (c *Core) refit(was [2]string) bool {
-	now := c.activeEngines()
-	if now == was {
-		return false
+func (c *Core) inEffect() [2]string {
+	e := c.activeEngines()
+	if !c.Prefs.Translates() {
+		e[1] = ""
 	}
-	if now[0] != was[0] {
+	return e
+}
+
+func (c *Core) runningEngines() [2]string {
+	if !c.Running {
+		return [2]string{}
+	}
+	return [2]string{c.runEngines.ASR, c.runEngines.MT}
+}
+
+func (c *Core) refit(was [2]string) bool {
+	if c.Active(ASR) != was[0] {
 		c.fitLangs()
 	}
-	c.RestartIfRunning()
+	return c.syncSession()
+}
+
+func (c *Core) syncSession() bool {
+	if !c.Running || c.inEffect() == c.runningEngines() {
+		return false
+	}
+	c.fitLangs()
+	c.Start()
 	return true
 }
 

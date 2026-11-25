@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"tomoru/internal/learn"
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
@@ -64,7 +65,19 @@ func (c *Core) Retranslate(paths []string, id string) {
 	r := retranslationRequest{Paths: paths}
 	if s, ok := c.sceneByID(id); ok {
 		r.Terms, r.General = s.Terms, s.IsGeneral()
-		r.Ready, _, r.Err = c.translator(c.SceneActive(id, MT))
+		r.Ready, r.Err = c.retranslator(c.SceneActive(id, MT))
 	}
 	c.LearningService.startRetranslating(r)
+}
+
+func (c *Core) retranslator(id string) (func(context.Context) (translate.Translator, error), error) {
+	if tr := c.deps.Translator; tr != nil {
+		return func(context.Context) (translate.Translator, error) { return tr, nil }, nil
+	}
+	serving := c.serving()
+	if _, local := models.ByID(id); local && serving != "" && serving != id {
+		return nil, ErrModelBusy
+	}
+	ready, _, err := c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs, c.ImageService.usesServer() || serving != "")
+	return ready, err
 }
