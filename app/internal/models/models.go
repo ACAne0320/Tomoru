@@ -14,6 +14,8 @@ type Model struct {
 	Files                 []File
 	Size                  int64
 	Repo, ModelScope, Rev string
+	Subdir                string
+	HuggingFaceOnly       bool
 	Needs                 Needs
 	Recommended           bool
 	ASR                   bool
@@ -107,6 +109,13 @@ var All = []Model{
 			{"Qwen3-ASR-1.7B-Q8_0.gguf", 2165034944, "58e22d0532d4eacaf034cfac17a6fed159f37c41390c710186783be439d1fc57"},
 			{"mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", 355709344, "46c1d533af3f354ceb37ce855dbceff7da7fa7cf1e6a523df3b13440bd164c0d"},
 		}},
+	{ID: "oruk-fourier-2b", Family: "Oruk Fourier", Label: "2B", Dir: "oruk-fourier-2b", Size: 1834423584 + 355710400, ASR: true, Runtime: RuntimeLlama, Langs: []string{"en"},
+		Repo: "oruk/oruk-fourier-2b", Rev: "e8735ccc1c92d36d747cfcd5722950474fb9238f", Subdir: "gguf/llama-cpp", HuggingFaceOnly: true, Needs: needsGB(4, 3),
+		Projector: "mmproj-Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf",
+		Files: []File{
+			{"Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf", 1834423584, "4a3a4761871be3a012c9473afc5ffa14ae301074e8c30cb244d7ccb51d122d89"},
+			{"mmproj-Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf", 355710400, "9e0652ccf07db1eafa841cceb1b0903636c1f8e91aba4a8c92408871dec99156"},
+		}},
 }
 
 func ByID(id string) (Model, bool) {
@@ -123,11 +132,18 @@ func (m Model) URLs(f File, order MirrorOrder) []string {
 	if rev == "" {
 		rev = "main"
 	}
+	remote := f.Name
+	if m.Subdir != "" {
+		remote = m.Subdir + "/" + f.Name
+	}
+	hf := "https://huggingface.co/" + m.Repo + "/resolve/" + rev + "/" + remote
+	if m.HuggingFaceOnly {
+		return []string{hf}
+	}
 	if msRepo == "" {
 		msRepo = m.Repo
 	}
-	hf := "https://huggingface.co/" + m.Repo + "/resolve/" + rev + "/" + f.Name
-	ms := "https://modelscope.cn/models/" + msRepo + "/resolve/master/" + f.Name
+	ms := "https://modelscope.cn/models/" + msRepo + "/resolve/master/" + remote
 	if order == ModelScopeFirst {
 		return []string{ms, hf}
 	}

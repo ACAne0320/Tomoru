@@ -236,6 +236,7 @@
   "errAsrModelMissing": "本機辨識模型還沒下載。請在 設定 › 辨識與翻譯 裡下載。",
   "engineQwenAsr": "Qwen ASR（阿里雲百煉）",
   "engineQwenAsrDescription": "按時長計費，靜音時不傳送",
+  "engineOrukFourierDescription": "Qwen3-ASR 1.7B 英語微調模型，僅限非商業用途（CC BY-NC 4.0）",
   "engineOpenAiDescription": "按傳送的語音時長計費，也可用相容 OpenAI 轉寫介面的服務",
   "asrCloudIntro": "API Key 在阿里雲百煉控制台建立。",
   "asrOpenAiIntro": "API Key 在 OpenAI 平台建立；也可以用相容其轉寫介面的服務的 Key。",

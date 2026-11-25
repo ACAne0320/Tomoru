@@ -156,6 +156,76 @@ func TestManifest(t *testing.T) {
 	}
 }
 
+func TestOrukFourier2BURLs(t *testing.T) {
+	mod, ok := ByID("oruk-fourier-2b")
+	if !ok {
+		t.Fatal("oruk-fourier-2b missing from catalog")
+	}
+	if !mod.ASR || !mod.Served() || mod.Recommended || !mod.HuggingFaceOnly || !slices.Equal(mod.Langs, []string{"en"}) {
+		t.Fatalf("unexpected metadata: %+v", mod)
+	}
+	want := []string{
+		"https://huggingface.co/oruk/oruk-fourier-2b/resolve/e8735ccc1c92d36d747cfcd5722950474fb9238f/gguf/llama-cpp/Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf",
+		"https://huggingface.co/oruk/oruk-fourier-2b/resolve/e8735ccc1c92d36d747cfcd5722950474fb9238f/gguf/llama-cpp/mmproj-Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf",
+	}
+	for i, f := range mod.Files {
+		for _, order := range []MirrorOrder{HuggingFaceFirst, ModelScopeFirst} {
+			got := mod.URLs(f, order)
+			if !slices.Equal(got, []string{want[i]}) {
+				t.Errorf("file %d order %v: got %v, want [%s]", i, order, got, want[i])
+			}
+		}
+	}
+	dir := t.TempDir()
+	mgr := NewManager(dir, HuggingFaceFirst, nil)
+	if got, wantPath := mgr.Path("oruk-fourier-2b"), filepath.Join(dir, "oruk-fourier-2b", "Qwen3-ASR-Oruk-Fourier-2B-Q8_0.gguf"); got != wantPath {
+		t.Errorf("Path = %q, want %q", got, wantPath)
+	}
+}
+
+func TestSubdirDownload(t *testing.T) {
+	modelBytes, projBytes := []byte(strings.Repeat("fourier ", 1024)), []byte("mmproj")
+	old := All
+	All = []Model{{
+		ID: "sub", Dir: "sub-dir", Size: int64(len(modelBytes) + len(projBytes)),
+		Repo: "oruk/oruk-fourier-2b", Rev: "rev1", Subdir: "gguf/llama-cpp", HuggingFaceOnly: true,
+		Projector: "proj.gguf",
+		Files: []File{
+			{"main.gguf", int64(len(modelBytes)), sha(modelBytes)},
+			{"proj.gguf", int64(len(projBytes)), sha(projBytes)},
+		},
+	}}
+	t.Cleanup(func() { All = old })
+	var seen []string
+	var mu sync.Mutex
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		seen = append(seen, r.URL.Path)
+		mu.Unlock()
+		switch r.URL.Path {
+		case "/oruk/oruk-fourier-2b/resolve/rev1/gguf/llama-cpp/main.gguf":
+			w.Write(modelBytes)
+		case "/oruk/oruk-fourier-2b/resolve/rev1/gguf/llama-cpp/proj.gguf":
+			w.Write(projBytes)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	dir := t.TempDir()
+	m := NewManager(dir, ModelScopeFirst, nil)
+	defer m.Close()
+	redirect(m, srv)
+	m.Download("sub")
+	wait(t, m, "sub", Ready)
+	if got := m.ProjectorOf(m.Path("sub")); got != filepath.Join(dir, "sub-dir", "proj.gguf") {
+		t.Errorf("ProjectorOf = %q", got)
+	}
+	if len(seen) != 2 {
+		t.Errorf("requests = %v", seen)
+	}
+}
+
 func TestSlowSource(t *testing.T) {
 	data := []byte(strings.Repeat("tomoru ", 200000))
 	withModel(t, data, sha(data))

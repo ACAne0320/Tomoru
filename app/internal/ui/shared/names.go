@@ -128,6 +128,8 @@ func FamilyNote(f []core.Engine) string {
 	switch e.Family() {
 	case "apple":
 		return locales.EngineAppleDescription()
+	case "Oruk Fourier":
+		return locales.EngineOrukFourierDescription()
 	case "cloud":
 		return locales.EngineCloudThanks()
 	case core.QwenCloud:

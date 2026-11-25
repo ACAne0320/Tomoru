@@ -1145,6 +1145,10 @@
   "@engineQwenAsrDescription": {
     "description": "Under the cloud speech recognition: what it sends where, and what it costs."
   },
+  "engineOrukFourierDescription": "English-only fine-tune of Qwen3-ASR 1.7B. Noncommercial use (CC BY-NC 4.0).",
+  "@engineOrukFourierDescription": {
+    "description": "Under Oruk Fourier in recognition engines: notes English-only scope and CC BY-NC 4.0 noncommercial license."
+  },
   "engineOpenAiDescription": "Billed by the length of the speech sent. Services compatible with OpenAI's transcription API work too.",
   "@engineOpenAiDescription": {
     "description": "Under OpenAI's speech recognition: what it costs, and that compatible services work."

@@ -236,6 +236,7 @@
   "errAsrModelMissing": "기기 내 음성 인식 모델을 아직 내려받지 않았어요. 설정 › 인식 및 번역에서 내려받으세요.",
   "engineQwenAsr": "Qwen ASR (알리바바 클라우드)",
   "engineQwenAsrDescription": "보낸 오디오 길이로 과금돼요. 아무 소리도 없을 때는 보내지 않아요.",
+  "engineOrukFourierDescription": "Qwen3-ASR 1.7B 영어 특화 파인튜닝 모델이에요. 비상업적 용도 전용(CC BY-NC 4.0).",
   "engineOpenAiDescription": "보낸 음성 길이로 과금돼요. OpenAI 전사 API와 호환되는 서비스도 쓸 수 있어요.",
   "asrCloudIntro": "API 키는 알리바바 클라우드 Model Studio 콘솔에서 만들어요.",
   "asrOpenAiIntro": "API 키는 OpenAI 플랫폼에서 만들어요. 전사 API와 호환되는 서비스의 키도 쓸 수 있어요.",

@@ -236,6 +236,7 @@
   "errAsrModelMissing": "本地识别模型还没下载。请在 设置 › 识别与翻译 里下载。",
   "engineQwenAsr": "Qwen ASR（阿里云百炼）",
   "engineQwenAsrDescription": "按时长计费，静音时不发送",
+  "engineOrukFourierDescription": "Qwen3-ASR 1.7B 英语微调模型，仅限非商业用途（CC BY-NC 4.0）",
   "engineOpenAiDescription": "按发送的语音时长计费，也可用兼容 OpenAI 转写接口的服务",
   "asrCloudIntro": "API Key 在阿里云百炼控制台创建。",
   "asrOpenAiIntro": "API Key 在 OpenAI 平台创建；也可以用兼容其转写接口的服务的 Key。",

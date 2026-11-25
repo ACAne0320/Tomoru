@@ -169,6 +169,7 @@ Want to contribute? See [CONTRIBUTING](CONTRIBUTING.md). Report security issues 
 | Translation (the on-device 1.8B / 7B models) | [Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) | [Tencent Hunyuan](https://github.com/Tencent-Hunyuan) |
 | Speech recognition | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [Alibaba's Qwen Audio team](https://github.com/QwenAudio) |
 | Speech recognition | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [Alibaba's Qwen team](https://github.com/QwenLM) |
+| Speech recognition (English, CC BY-NC 4.0) | [Oruk Fourier 2B](https://huggingface.co/oruk/oruk-fourier-2b) | [Oruk](https://oruk.ai) |
 | Speech recognition on macOS | [Apple speech recognition](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com) |
 | UI framework | [MyGo](https://github.com/egoist/mygo) | [EGOIST](https://github.com/egoist) |
 | Running on-device recognition | [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) | [k2-fsa](https://github.com/k2-fsa) |

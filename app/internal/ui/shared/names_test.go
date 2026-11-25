@@ -46,6 +46,7 @@ func TestEngineName(t *testing.T) {
 		"local-9b":         "Index-Translate 9B",
 		"sensevoice-small": "SenseVoice Small",
 		"qwen3-asr-1.7b":   "Qwen3-ASR 1.7B",
+		"oruk-fourier-2b":  "Oruk Fourier 2B",
 	} {
 		m, _ := models.ByID(id)
 		if got := EngineName(core.Engine{ID: id, Model: &m}); got != want {

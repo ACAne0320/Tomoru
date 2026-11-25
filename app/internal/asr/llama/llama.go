@@ -186,7 +186,10 @@ func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, e
 	}
 	var out struct {
 		Choices []struct {
-			Message      struct{ Content string }
+			Message struct {
+				Content          string
+				ReasoningContent string `json:"reasoning_content"`
+			}
 			FinishReason string `json:"finish_reason"`
 			Logprobs     struct{ Content []step }
 		}
@@ -195,10 +198,14 @@ func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, e
 		return reply{}, fmt.Errorf("llama: an answer without text: %.200s", b)
 	}
 	c := out.Choices[0]
-	head, _, _ := strings.Cut(c.Message.Content, "<asr_text>")
+	raw := c.Message.Content
+	if c.Message.ReasoningContent != "" && !strings.Contains(raw, "<asr_text>") {
+		raw = c.Message.ReasoningContent + "<asr_text>" + raw
+	}
+	head, _, _ := strings.Cut(raw, "<asr_text>")
 	a := reply{label: strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(head), "language")), sessionLogprobAtMost: d.sessionLogprobAtMost(c.Logprobs.Content)}
 	if c.FinishReason != "length" {
-		a.text = answer(c.Message.Content)
+		a.text = answer(raw)
 	}
 	return a, nil
 }

@@ -3475,6 +3475,22 @@ func (msgs Messages) EngineQwenAsrDescription() string {
 	return Catalog.Format(msgs.locale, "engineQwenAsrDescription", nil)
 }
 
+// EngineOrukFourierDescription says "English-only fine-tune of Qwen3-ASR 1.7B. Noncommercial use (CC BY-NC 4.0)."
+// in the language the app shows.
+//
+// Under Oruk Fourier in recognition engines: notes English-only scope and
+// CC BY-NC 4.0 noncommercial license.
+func EngineOrukFourierDescription() string { return In(i18n.Locale()).EngineOrukFourierDescription() }
+
+// EngineOrukFourierDescription says "English-only fine-tune of Qwen3-ASR 1.7B. Noncommercial use (CC BY-NC 4.0)."
+// in the language of msgs.
+//
+// Under Oruk Fourier in recognition engines: notes English-only scope and
+// CC BY-NC 4.0 noncommercial license.
+func (msgs Messages) EngineOrukFourierDescription() string {
+	return Catalog.Format(msgs.locale, "engineOrukFourierDescription", nil)
+}
+
 // EngineOpenAiDescription says "Billed by the length of the speech sent. Services compatible with OpenAI's transcription API work too."
 // in the language the app shows.
 //

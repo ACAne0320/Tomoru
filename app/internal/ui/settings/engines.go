@@ -457,6 +457,8 @@ func home(family string) (label, url string) {
 		return "GitHub", "https://github.com/QwenAudio/SenseVoice"
 	case "Qwen3-ASR":
 		return "GitHub", "https://github.com/QwenLM/Qwen3-ASR"
+	case "Oruk Fourier":
+		return "Hugging Face", "https://huggingface.co/oruk/oruk-fourier-2b"
 	case "Index-Translate", "cloud":
 		return "GitHub", core.CloudRepo
 	case "Hy-MT2":

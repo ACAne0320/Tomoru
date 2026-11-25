@@ -128,6 +128,7 @@ go tool mygo build            # 打包到 app/build/linux-amd64/
 | 翻译（本机 1.8B / 7B 模型） | [Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) | [腾讯混元](https://github.com/Tencent-Hunyuan) |
 | 语音识别 | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [阿里千问语音团队](https://github.com/QwenAudio) |
 | 语音识别 | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [阿里千问团队](https://github.com/QwenLM) |
+| 语音识别（英语，CC BY-NC 4.0） | [Oruk Fourier 2B](https://huggingface.co/oruk/oruk-fourier-2b) | [Oruk](https://oruk.ai) |
 | 语音识别（macOS） | [Apple 语音识别](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com.cn) |
 | 界面框架 | [MyGo](https://github.com/egoist/mygo) | [EGOIST](https://github.com/egoist) |
 | 运行本机识别模型 | [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) | [k2-fsa](https://github.com/k2-fsa) |

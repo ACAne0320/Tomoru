@@ -242,3 +242,33 @@ func TestUnfit(t *testing.T) {
 		t.Fatalf("pieces %+v after %d asks: %v", ps, n, err)
 	}
 }
+
+func TestReasoningContent(t *testing.T) {
+	n := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n++
+		if n == 1 {
+			w.Write([]byte(`{"choices":[{"finish_reason":"stop","message":{"reasoning_content":"language English","content":"Hello world."}}]}`))
+			return
+		}
+		w.Write([]byte(`{"choices":[{"finish_reason":"stop","message":{"reasoning_content":"language None","content":""}}]}`))
+	}))
+	defer srv.Close()
+	d := New(srv.URL, "auto", "")
+	defer d.Stop()
+	ps, err := d.Decode(context.Background(), make([]byte, 3200))
+	if err != nil || len(ps) == 0 || ps[0].Lang != "en" {
+		t.Fatalf("speech: %+v %v", ps, err)
+	}
+	var text strings.Builder
+	for _, p := range ps {
+		text.WriteString(p.Text)
+	}
+	if text.String() != "Hello world." {
+		t.Fatalf("text = %q, want %q", text.String(), "Hello world.")
+	}
+	silent, err := d.Decode(context.Background(), make([]byte, 3200))
+	if err != nil || len(silent) != 0 {
+		t.Fatalf("silence: %+v %v", silent, err)
+	}
+}

@@ -236,6 +236,7 @@
   "errAsrModelMissing": "オンデバイスの音声認識モデルがダウンロードされていません。設定 › 認識と翻訳 でダウンロードしてください。",
   "engineQwenAsr": "Qwen ASR（Alibaba Cloud）",
   "engineQwenAsrDescription": "送った音声の長さで課金されます。何も流れていないあいだは送信しません。",
+  "engineOrukFourierDescription": "Qwen3-ASR 1.7B の英語向けファインチューン。非商用利用のみ（CC BY-NC 4.0）。",
   "engineOpenAiDescription": "送った音声の長さで課金されます。OpenAI の文字起こし API と互換のサービスも使えます。",
   "asrCloudIntro": "API キーは Alibaba Cloud Model Studio のコンソールで作成します。",
   "asrOpenAiIntro": "API キーは OpenAI のプラットフォームで作成します。文字起こし API と互換のサービスのキーも使えます。",
