@@ -48,10 +48,78 @@ func TestHyMT2NotDownloaded(t *testing.T) {
 	}
 }
 
+func TestOneHyMTFamily(t *testing.T) {
+	c, _, m, _, _ := engineCore(t)
+	m.ready["hy-mt2-1.8b"], m.ready["hy-mt2-7b"] = true, true
+	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b", "hy-mt2-1.8b", "hy-mt2-7b"}}
+	if got := familyIDs(c); !slices.EqualFunc(got, want, slices.Equal) {
+		t.Errorf("local families %q, want %q", got, want)
+	}
+	if f := c.Families(MT)[1]; f[0].Family() != "Hy-MT" || f[len(f)-1].Family() != "Hy-MT" {
+		t.Errorf("families %q and %q", f[0].Family(), f[len(f)-1].Family())
+	}
+}
+
+func TestHyMT2NotSuggested(t *testing.T) {
+	c, _, m, _, _ := engineCore(t)
+	m.ready["hy-mt2-1.8b"], m.ready["hy-mt2-7b"] = true, true
+	mem := uint64(16 << 30)
+	c.deps.Memory = func() (uint64, bool) { return mem, true }
+	for _, tc := range []struct {
+		mem  uint64
+		want string
+	}{
+		{16 << 30, "hy-mt3-7b"},
+		{8 << 30, "hy-mt3-1.8b"},
+		{4 << 30, "hy-mt3-1.8b"},
+	} {
+		mem = tc.mem
+		if got := c.Suggested(c.Families(MT)[1]).ID; got != tc.want {
+			t.Errorf("%d GB: %q, want %q", tc.mem>>30, got, tc.want)
+		}
+	}
+	mem = 16 << 30
+	f := c.Families(MT)[1]
+	recommended := *f[3].Model
+	recommended.Recommended = true
+	f[3].Model = &recommended
+	if got := c.Suggested(f).ID; got != "hy-mt3-7b" {
+		t.Errorf("Hy-MT2 7B recommended: %q", got)
+	}
+}
+
+func TestPickHyMT(t *testing.T) {
+	c, _, m, _, _ := engineCore(t)
+	pick := func() string {
+		e, ok := c.Pick(c.Families(MT)[1])
+		if !ok {
+			return ""
+		}
+		return e.ID
+	}
+	m.ready["hy-mt2-7b"] = true
+	if got := pick(); got != "hy-mt2-7b" {
+		t.Errorf("only Hy-MT2 downloaded: %q", got)
+	}
+	m.ready["hy-mt3-1.8b"] = true
+	if got := pick(); got != "hy-mt3-1.8b" {
+		t.Errorf("Hy-MT3 1.8B and Hy-MT2 7B downloaded: %q", got)
+	}
+	m.ready["hy-mt3-7b"] = true
+	c.SetEngine("hy-mt2-7b")
+	if got := pick(); got != "hy-mt2-7b" {
+		t.Errorf("Hy-MT2 7B in use: %q", got)
+	}
+	c.SetEngine("cloud")
+	if got := pick(); got != "hy-mt3-7b" {
+		t.Errorf("all but Hy-MT2 1.8B downloaded: %q", got)
+	}
+}
+
 func TestHyMT2Downloaded(t *testing.T) {
 	c, _, m, _, _ := engineCore(t)
 	m.ready["hy-mt2-7b"] = true
-	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b"}, {"hy-mt2-7b"}}
+	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b", "hy-mt2-7b"}}
 	if got := familyIDs(c); !slices.EqualFunc(got, want, slices.Equal) {
 		t.Errorf("local families %q, want %q", got, want)
 	}
@@ -99,7 +167,7 @@ func TestDeleteHyMT2(t *testing.T) {
 	m.ready["hy-mt2-1.8b"], m.ready["hy-mt2-7b"] = true, true
 	c.SetEngine("hy-mt2-7b")
 	c.DeleteModel("hy-mt2-7b")
-	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b"}, {"hy-mt2-1.8b"}}
+	want := [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b", "hy-mt2-1.8b"}}
 	if got := familyIDs(c); !slices.EqualFunc(got, want, slices.Equal) {
 		t.Errorf("local families %q, want %q", got, want)
 	}
@@ -107,7 +175,8 @@ func TestDeleteHyMT2(t *testing.T) {
 		t.Errorf("after delete: in use %q, downloaded again %v", c.Prefs.MT, m.ready["hy-mt2-7b"])
 	}
 	c.DeleteModel("hy-mt2-1.8b")
-	if got := familyIDs(c); len(got) != 2 {
-		t.Errorf("both deleted: local families %q", got)
+	want = [][]string{{"local-2b", "local-9b"}, {"hy-mt3-1.8b", "hy-mt3-7b"}}
+	if got := familyIDs(c); !slices.EqualFunc(got, want, slices.Equal) {
+		t.Errorf("both deleted: local families %q, want %q", got, want)
 	}
 }

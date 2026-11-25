@@ -194,7 +194,7 @@ func enginesPage(t *testing.T, m *coretest.Models) (*core.Core, *Settings, *ui.T
 
 func TestAddEndpoint(t *testing.T) {
 	k, _, tt := enginesPage(t, nil)
-	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT3", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
+	wants := []string{locales.EngineIndexCloud(), "Index-Translate", "Hy-MT", locales.TagLocal(), locales.TagCloud(), locales.EngineCloudThanks()}
 	if prefs.SystemASR() != "" {
 		wants = append(wants, locales.EngineApple())
 	}
@@ -1223,74 +1223,198 @@ func TestFeedback(t *testing.T) {
 	}
 }
 
+func oddNames(tt *ui.Tester) []string {
+	var odd []string
+	for _, s := range tt.Texts() {
+		if strings.Contains(s, "Hy-MT Hy-MT") || strings.Contains(s, "· ·") || strings.Contains(s, "·  ·") {
+			odd = append(odd, s)
+		}
+	}
+	return odd
+}
+
+func metaOf(tt *ui.Tester, title string) string {
+	texts := tt.Texts()
+	if i := slices.Index(texts, title); i >= 0 && i+1 < len(texts) {
+		return texts[i+1]
+	}
+	return ""
+}
+
+func below(t *testing.T, tt *ui.Tester, names ...string) {
+	t.Helper()
+	y := float32(-1)
+	for _, name := range names {
+		r, ok := tt.Find(name)
+		if !ok || r.Y <= y {
+			t.Fatalf("%q at %v, out of %q: %q", name, r, names, tt.Texts())
+		}
+		y = r.Y
+	}
+}
+
+func TestHyMTFamily(t *testing.T) {
+	_, _, tt := enginesPage(t, &coretest.Models{St: map[string]models.Status{}})
+	if tt.HasText("Hy-MT3") || tt.HasText("Hy-MT2 1.8B") || tt.HasText("Hy-MT2 7B") {
+		t.Errorf("a size or generation listed: %q", tt.Texts())
+	}
+	if err := tt.Click("Hy-MT"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	below(t, tt, "Hy-MT3 1.8B", "Hy-MT3 7B")
+	if tt.HasText("Hy-MT2 1.8B") || tt.HasText("Hy-MT2 7B") || metaOf(tt, "Hy-MT") != locales.SizesNotDownloaded(2) {
+		t.Errorf("none downloaded: %q", tt.Texts())
+	}
+	if _, ok := tt.Find(locales.EngineHyMtCloud()); !ok {
+		t.Errorf("no %q: %q", locales.EngineHyMtCloud(), tt.Texts())
+	}
+	if err := tt.Click("GitHub"); err != nil {
+		t.Fatal(err)
+	}
+	if got := tt.OpenedURLs(); len(got) != 1 || got[0] != "https://github.com/Tencent-Hunyuan/Hy-MT3" {
+		t.Errorf("opened %q", got)
+	}
+	if odd := oddNames(tt); odd != nil {
+		t.Errorf("%q", odd)
+	}
+}
+
 func TestDownloadedHyMT2(t *testing.T) {
-	m := &coretest.Models{St: map[string]models.Status{}}
+	m := &coretest.Models{St: map[string]models.Status{"hy-mt2-7b": {State: models.Ready}}}
 	k, _, tt := enginesPage(t, m)
-	_, hasThree := tt.Find("Hy-MT3")
-	if _, hasTwo := tt.Find("Hy-MT2"); !hasThree || hasTwo {
-		t.Fatalf("no Hy-MT2 downloaded: %q", tt.Texts())
-	}
-	m.St["hy-mt2-1.8b"], m.St["hy-mt2-7b"] = models.Status{State: models.Ready}, models.Status{State: models.Ready}
-	k.Changed()
-	tt.Frame()
-	three, ok3 := tt.Find("Hy-MT3")
-	two, ok2 := tt.Find("Hy-MT2")
-	if !ok3 || !ok2 || three.Y >= two.Y {
-		t.Fatalf("Hy-MT3 at %v, Hy-MT2 at %v", three, two)
-	}
-	if err := tt.Click("Hy-MT2"); err != nil {
+	if err := tt.Click("Hy-MT"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if err := tt.Click(locales.UseEngine("Hy-MT2")); err != nil {
+	below(t, tt, "Hy-MT3 1.8B", "Hy-MT3 7B", "Hy-MT2 7B")
+	if _, ok := tt.Find("Hy-MT2 1.8B"); ok || metaOf(tt, "Hy-MT") != locales.SizesDownloaded(3, "Hy-MT2 7B") {
+		t.Errorf("Hy-MT2 7B downloaded: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.UseEngine("Hy-MT")); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if err := tt.Click("7B"); err != nil {
+	if k.Prefs.MT != "hy-mt2-7b" || metaOf(tt, "Hy-MT") != "Hy-MT2 7B" {
+		t.Fatalf("in use %q: %q", k.Prefs.MT, tt.Texts())
+	}
+	if odd := oddNames(tt); odd != nil {
+		t.Errorf("%q", odd)
+	}
+}
+
+func TestBothHyMTGenerations(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{"hy-mt3-7b": {State: models.Ready}, "hy-mt2-7b": {State: models.Ready}}}
+	k, _, tt := enginesPage(t, m)
+	if metaOf(tt, "Hy-MT") != locales.SizesDownloaded(3, "Hy-MT3 7B"+locales.ListSeparator()+"Hy-MT2 7B") {
+		t.Errorf("both downloaded: %q", tt.Texts())
+	}
+	if err := tt.Click(locales.UseEngine("Hy-MT")); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if k.Prefs.MT != "hy-mt2-7b" {
-		t.Fatalf("in use %q", k.Prefs.MT)
+	if k.Prefs.MT != "hy-mt3-7b" {
+		t.Errorf("in use %q", k.Prefs.MT)
 	}
-	small, _ := tt.Find("1.8B")
-	large, _ := tt.Find("7B")
-	del, ok := tt.Find(locales.Delete())
-	if !ok {
-		t.Fatalf("no delete: %q", tt.Texts())
+}
+
+func TestHyMT2TooLarge(t *testing.T) {
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = &coretest.Models{St: map[string]models.Status{"hy-mt2-7b": {State: models.Ready}}}
+		d.Memory = func() (uint64, bool) { return 8 << 30, true }
+	})
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1800)
+	if metaOf(tt, "Hy-MT") != locales.SizesDownloaded(3, "Hy-MT2 7B") {
+		t.Errorf("Hy-MT2 7B downloaded, too large: %q", tt.Texts())
 	}
-	tt.ClickAt(del.X+del.W/2, large.Y+(del.Y-small.Y)+del.H/2)
+	tt.Click(locales.UseEngine("Hy-MT"))
 	tt.Frame()
-	e, _ := k.Engine(core.MT, "hy-mt2-7b")
-	if !tt.HasText(locales.AskDeleteModel(shared.EngineName(e))) || !tt.HasText(locales.AskDeleteLegacyModelInUse(shared.CloudName)) || tt.HasText(locales.AskDeleteModelInUse(shared.CloudName, shared.Size(e.Model.Size))) {
-		t.Fatalf("not asked: %q", tt.Texts())
+	if k.Prefs.MT != "cloud" {
+		t.Errorf("in use %q", k.Prefs.MT)
 	}
-	tt.Key(0, ui.KeyTab)
-	tt.Key(0, ui.KeyEnter)
-	tt.Frame()
-	if _, ok := m.St["hy-mt2-7b"]; ok || k.Prefs.MT != "cloud" || len(m.Downloads) != 0 {
-		t.Fatalf("models %v, in use %q, downloads %q", m.St, k.Prefs.MT, m.Downloads)
+}
+
+func TestDeleteHyMT2InUse(t *testing.T) {
+	for _, clicked := range []bool{true, false} {
+		m := &coretest.Models{St: map[string]models.Status{"hy-mt2-1.8b": {State: models.Ready}, "hy-mt2-7b": {State: models.Ready}}}
+		k, s, tt := enginesPage(t, m)
+		if err := tt.Click("Hy-MT"); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+		small, _ := tt.Find("Hy-MT2 1.8B")
+		large, _ := tt.Find("Hy-MT2 7B")
+		del, ok := tt.Find(locales.Delete())
+		if !ok {
+			t.Fatalf("no delete: %q", tt.Texts())
+		}
+		k.Use(core.MT, "hy-mt2-7b")
+		if !clicked {
+			s.shown[core.MT] = ""
+		}
+		tt.Frame()
+		tt.ClickAt(del.X+del.W/2, large.Y+(del.Y-small.Y)+del.H/2)
+		tt.Frame()
+		if !tt.HasText(locales.AskDeleteModel("Hy-MT2 7B")) || !tt.HasText(locales.AskDeleteLegacyModelInUse(shared.CloudName)) {
+			t.Fatalf("clicked %v, not asked: %q", clicked, tt.Texts())
+		}
+		tt.Key(0, ui.KeyTab)
+		tt.Key(0, ui.KeyEnter)
+		tt.Frame()
+		tt.Frame()
+		if _, ok := m.St["hy-mt2-7b"]; ok || k.Prefs.MT != "cloud" || len(m.Downloads) != 0 {
+			t.Fatalf("clicked %v: models %v, in use %q, downloads %q", clicked, m.St, k.Prefs.MT, m.Downloads)
+		}
+		_, listed := tt.Find("Hy-MT2 7B")
+		if _, ok := k.Engine(core.MT, "hy-mt2-7b"); ok || listed || !tt.HasText(locales.ModelDeleted("Hy-MT2 7B")) {
+			t.Errorf("clicked %v, Hy-MT2 7B still listed: %q", clicked, tt.Texts())
+		}
+		_, kept := tt.Find("Hy-MT2 1.8B")
+		if thanks := tt.HasText(locales.EngineCloudThanks()); clicked != kept || clicked == thanks {
+			t.Errorf("clicked %v: Hy-MT shown %v, the cloud shown %v: %q", clicked, kept, thanks, tt.Texts())
+		}
+		if odd := oddNames(tt); odd != nil {
+			t.Errorf("%q", odd)
+		}
+		if !clicked {
+			continue
+		}
+		if err := tt.Click(locales.Delete()); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+		if !tt.HasText(locales.AskDeleteModel("Hy-MT2 1.8B")) || !tt.HasText(locales.AskDeleteLegacyModel()) {
+			t.Fatalf("not asked: %q", tt.Texts())
+		}
+		tt.Key(0, ui.KeyEscape)
+		tt.Frame()
+		if !k.Use(core.MT, "hy-mt2-1.8b") {
+			t.Errorf("Hy-MT2 1.8B not used: %q", k.Prefs.MT)
+		}
 	}
-	if _, ok := k.Engine(core.MT, "hy-mt2-7b"); ok {
-		t.Errorf("Hy-MT2 7B still an engine")
+}
+
+func TestHyMTNotForPictures(t *testing.T) {
+	st := map[string]models.Status{"local-2b": {State: models.Ready}}
+	for _, m := range models.All {
+		if strings.HasPrefix(m.ID, "hy-mt") {
+			st[m.ID] = models.Status{State: models.Ready}
+		}
 	}
-	if _, shown := tt.Find("7B"); shown {
-		t.Errorf("Hy-MT2 7B still listed: %q", tt.Texts())
+	k := coretest.NewWith(func(d *core.Deps) { d.Models = &coretest.Models{St: st} })
+	k.Prefs.ImageMT = "hy-mt2-7b"
+	s := New(k, &coretest.Nav{})
+	s.Tab = "engines"
+	tt := ui.NewTester(s.View, Width, 1800)
+	if _, ok := tt.Find("Hy-MT2 7B"); !ok {
+		t.Errorf("picture's engine: %q", tt.Texts())
 	}
-	if _, shown := tt.Find("1.8B"); !shown {
-		t.Fatalf("Hy-MT2 1.8B gone: %q", tt.Texts())
-	}
-	kept, _ := k.Engine(core.MT, "hy-mt2-1.8b")
-	if err := tt.Click(locales.Delete()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	if !tt.HasText(locales.AskDeleteModel(shared.EngineName(kept))) || !tt.HasText(locales.AskDeleteLegacyModel()) || tt.HasText(locales.AskDeleteModelDetail(shared.Size(kept.Model.Size))) {
-		t.Fatalf("not asked: %q", tt.Texts())
-	}
-	tt.Key(0, ui.KeyEscape)
-	tt.Frame()
-	if !k.Use(core.MT, "hy-mt2-1.8b") || k.Prefs.MT != "hy-mt2-1.8b" {
-		t.Errorf("Hy-MT2 1.8B not used: %q", k.Prefs.MT)
+	row, _ := tt.Find(locales.ImageEngine())
+	tt.ClickAt(Width-kit.Space(8)-kit.Space(5)-kit.Space(10), row.Y+row.H/2)
+	menu := tt.Menu()
+	if !slices.Contains(menu, "Index-Translate 2B") || slices.ContainsFunc(menu, func(s string) bool { return strings.Contains(s, "Hy-MT") }) {
+		t.Errorf("menu %q", menu)
 	}
 }

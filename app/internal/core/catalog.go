@@ -191,23 +191,30 @@ func (c *Core) Pick(f []Engine) (Engine, bool) {
 			return e, true
 		}
 	}
+	for i := len(found) - 1; i >= 0; i-- {
+		if !legacy(found[i]) {
+			return found[i], true
+		}
+	}
 	return found[len(found)-1], true
 }
 
 func (c *Core) Suggested(f []Engine) Engine {
 	runs := func(e Engine) bool { return e.Model == nil || c.Shortfall(*e.Model) == (Shortfall{}) }
 	for _, e := range f {
-		if e.Model != nil && e.Model.Recommended && runs(e) {
+		if e.Model != nil && e.Model.Recommended && runs(e) && !legacy(e) {
 			return e
 		}
 	}
 	for i := len(f) - 1; i >= 0; i-- {
-		if runs(f[i]) {
+		if runs(f[i]) && !legacy(f[i]) {
 			return f[i]
 		}
 	}
 	return f[0]
 }
+
+func legacy(e Engine) bool { return e.Model != nil && e.Model.Legacy }
 
 func (c *Core) InUse(k Kind) string {
 	if k == ASR {

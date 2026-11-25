@@ -105,7 +105,7 @@ func ModelNote(m models.Model, st models.Status, runs bool) string {
 
 func SizeNote(m models.Model) string {
 	switch m.ID {
-	case "local-2b", "hy-mt3-1.8b", "hy-mt2-1.8b", "qwen3-asr-0.6b":
+	case "local-2b", "hy-mt3-1.8b", "qwen3-asr-0.6b":
 		return locales.SizeQuicker()
 	case "local-9b", "hy-mt3-7b", "qwen3-asr-1.7b":
 		return locales.SizeMoreAccurate()

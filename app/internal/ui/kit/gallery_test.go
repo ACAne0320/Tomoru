@@ -93,7 +93,7 @@ func (g *gallery) view(c *ui.Context) {
 		section("FadeScroll", func() {
 			Card(c).Width(340).Height(120).Children(func() {
 				FadeScroll(c, &g.fade, func() {
-					for _, s := range []string{"本机", "Index-Translate", "Hy-MT3", "云端", "Index-Translate 35B", "你选择的云端服务会收到字幕的原文"} {
+					for _, s := range []string{"本机", "Index-Translate", "Hy-MT", "云端", "Index-Translate 35B", "你选择的云端服务会收到字幕的原文"} {
 						Caption(c, s)
 					}
 				})
@@ -174,7 +174,7 @@ func (g *gallery) view(c *ui.Context) {
 					{Key: "apple", Head: "本地", Title: "Apple 语音识别", Tag: "系统自带", Use: "使用 Apple", Meta: "延迟低，擅长日英韩"},
 					{Key: "sv", On: true, Title: "SenseVoice", Use: "使用 SenseVoice", Meta: "Small"},
 					{Key: "q3", Shown: true, Off: true, Title: "Qwen3-ASR", Tag: "推荐", Accent: true, Use: "使用 Qwen3-ASR", Meta: "下载中 · 0.6B"},
-					{Key: "hy", Off: true, Title: "Hy-MT3", Use: "使用 Hy-MT3", Meta: "下载中 · 7B", Downloading: true, Progress: .3},
+					{Key: "hy", Off: true, Title: "Hy-MT", Use: "使用 Hy-MT", Meta: "下载中 · Hy-MT3 7B", Downloading: true, Progress: .3},
 					{Key: "qc", Head: "云端", Off: true, Title: "Qwen ASR（阿里云）", Use: "使用 Qwen ASR", Meta: "填好 API Key 后可用"},
 					{Key: "fr", Title: "OpenAI", Use: "使用 OpenAI", Meta: "听不懂法语", Warn: true},
 				})
