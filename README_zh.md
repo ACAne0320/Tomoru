@@ -126,6 +126,7 @@ go tool mygo build            # 打包到 app/build/linux-amd64/
 |---|---|---|
 | 翻译（免费云端接口 2B / 9B / 35B、本机 2B / 9B 模型） | [Index-Translate](https://github.com/bilibili/Index-Translate) | [哔哩哔哩 Index 团队](https://huggingface.co/IndexTeam) |
 | 翻译（本机 1.8B / 7B 模型） | [Hy-MT3](https://github.com/Tencent-Hunyuan/Hy-MT3) | [腾讯混元](https://github.com/Tencent-Hunyuan) |
+| 翻译（以前下载过的本机 1.8B / 7B 模型） | [Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) | [腾讯混元](https://github.com/Tencent-Hunyuan) |
 | 语音识别 | [SenseVoice](https://github.com/QwenAudio/SenseVoice) | [阿里千问语音团队](https://github.com/QwenAudio) |
 | 语音识别 | [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) | [阿里千问团队](https://github.com/QwenLM) |
 | 语音识别（macOS） | [Apple 语音识别](https://developer.apple.com/documentation/speech/speechanalyzer) | [Apple](https://www.apple.com.cn) |

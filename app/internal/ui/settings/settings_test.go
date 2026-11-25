@@ -1222,3 +1222,75 @@ func TestFeedback(t *testing.T) {
 		t.Errorf("opened %q", got)
 	}
 }
+
+func TestDownloadedHyMT2(t *testing.T) {
+	m := &coretest.Models{St: map[string]models.Status{}}
+	k, _, tt := enginesPage(t, m)
+	_, hasThree := tt.Find("Hy-MT3")
+	if _, hasTwo := tt.Find("Hy-MT2"); !hasThree || hasTwo {
+		t.Fatalf("no Hy-MT2 downloaded: %q", tt.Texts())
+	}
+	m.St["hy-mt2-1.8b"], m.St["hy-mt2-7b"] = models.Status{State: models.Ready}, models.Status{State: models.Ready}
+	k.Changed()
+	tt.Frame()
+	three, ok3 := tt.Find("Hy-MT3")
+	two, ok2 := tt.Find("Hy-MT2")
+	if !ok3 || !ok2 || three.Y >= two.Y {
+		t.Fatalf("Hy-MT3 at %v, Hy-MT2 at %v", three, two)
+	}
+	if err := tt.Click("Hy-MT2"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if err := tt.Click(locales.UseEngine("Hy-MT2")); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if err := tt.Click("7B"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if k.Prefs.MT != "hy-mt2-7b" {
+		t.Fatalf("in use %q", k.Prefs.MT)
+	}
+	small, _ := tt.Find("1.8B")
+	large, _ := tt.Find("7B")
+	del, ok := tt.Find(locales.Delete())
+	if !ok {
+		t.Fatalf("no delete: %q", tt.Texts())
+	}
+	tt.ClickAt(del.X+del.W/2, large.Y+(del.Y-small.Y)+del.H/2)
+	tt.Frame()
+	e, _ := k.Engine(core.MT, "hy-mt2-7b")
+	if !tt.HasText(locales.AskDeleteModel(shared.EngineName(e))) || !tt.HasText(locales.AskDeleteLegacyModelInUse(shared.CloudName)) || tt.HasText(locales.AskDeleteModelInUse(shared.CloudName, shared.Size(e.Model.Size))) {
+		t.Fatalf("not asked: %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyTab)
+	tt.Key(0, ui.KeyEnter)
+	tt.Frame()
+	if _, ok := m.St["hy-mt2-7b"]; ok || k.Prefs.MT != "cloud" || len(m.Downloads) != 0 {
+		t.Fatalf("models %v, in use %q, downloads %q", m.St, k.Prefs.MT, m.Downloads)
+	}
+	if _, ok := k.Engine(core.MT, "hy-mt2-7b"); ok {
+		t.Errorf("Hy-MT2 7B still an engine")
+	}
+	if _, shown := tt.Find("7B"); shown {
+		t.Errorf("Hy-MT2 7B still listed: %q", tt.Texts())
+	}
+	if _, shown := tt.Find("1.8B"); !shown {
+		t.Fatalf("Hy-MT2 1.8B gone: %q", tt.Texts())
+	}
+	kept, _ := k.Engine(core.MT, "hy-mt2-1.8b")
+	if err := tt.Click(locales.Delete()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(locales.AskDeleteModel(shared.EngineName(kept))) || !tt.HasText(locales.AskDeleteLegacyModel()) || tt.HasText(locales.AskDeleteModelDetail(shared.Size(kept.Model.Size))) {
+		t.Fatalf("not asked: %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if !k.Use(core.MT, "hy-mt2-1.8b") || k.Prefs.MT != "hy-mt2-1.8b" {
+		t.Errorf("Hy-MT2 1.8B not used: %q", k.Prefs.MT)
+	}
+}

@@ -192,7 +192,6 @@ func New(p prefs.Prefs, d Deps) *Core {
 	c.useProxy()
 	c.saved = c.Prefs.Clone()
 	c.chooseImageEngineOnce()
-	c.retireModels()
 	if d.Login != nil {
 		c.AtLogin = d.Login.OpenAtLogin()
 	}

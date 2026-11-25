@@ -352,6 +352,9 @@ func TestFamilyRows(t *testing.T) {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
 	}
+	if _, shown := tt.Find("Hy-MT2"); shown {
+		t.Errorf("Hy-MT2 not downloaded, shown: %q", tt.Texts())
+	}
 	if n := strings.Count(strings.Join(tt.Texts(), "\n"), locales.TagRecommended()); n != 1 {
 		t.Errorf("%d recommended: %q", n, tt.Texts())
 	}

@@ -5,11 +5,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"log"
-	"os"
 	"slices"
 
-	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
@@ -69,37 +66,6 @@ func Successor(k Kind) string {
 		return prefs.SystemASR()
 	}
 	return "cloud"
-}
-
-func (c *Core) retireModels() {
-	m, retired := models.RetiredByID(c.Prefs.MT)
-	if retired {
-		c.Prefs.MT = m.Successor
-	}
-	if _, read := c.savedPrefs(); !read {
-		c.saved = c.Prefs.Clone()
-		return
-	}
-	if retired && c.SavePrefs() != nil {
-		return
-	}
-	saved, read := c.savedPrefs()
-	if _, still := models.RetiredByID(saved.MT); !read || still {
-		return
-	}
-	if d := c.deps.Models; d != nil && !d.Moving().Active {
-		if err := models.RemoveRetired(d.Dir()); err != nil {
-			log.Println("models:", err)
-		}
-	}
-}
-
-func (c *Core) savedPrefs() (prefs.Prefs, bool) {
-	if _, err := os.Stat(c.deps.PrefsPath); err != nil {
-		return prefs.Prefs{}, false
-	}
-	p, err := prefs.Load(c.deps.PrefsPath, "")
-	return p, err == nil
 }
 
 func (c *Core) DeleteModel(id string) {

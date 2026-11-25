@@ -47,9 +47,9 @@ func (e Engine) Source() Source {
 	return SourceSystem
 }
 
-func (c *Core) Engines(k Kind) []Engine { return engineCatalog(k, c.Prefs.Endpoints) }
+func (c *Core) Engines(k Kind) []Engine { return c.EngineService.catalog(k, c.Prefs.Endpoints) }
 
-func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
+func (s *EngineService) catalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 	var es []Engine
 	if k == ASR {
 		for _, s := range asr.Specs() {
@@ -58,7 +58,7 @@ func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 		return es
 	}
 	for i := range models.All {
-		if m := &models.All[i]; !m.ASR {
+		if m := &models.All[i]; !m.ASR && (!m.Legacy || s.ModelStatus(m.ID).State == models.Ready) {
 			es = append(es, Engine{ID: m.ID, Kind: MT, Model: m})
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -411,29 +412,36 @@ func TestServerVision(t *testing.T) {
 	}
 }
 
-func TestRemoveRetired(t *testing.T) {
+func TestLegacyModels(t *testing.T) {
+	var requests atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { requests.Add(1) }))
+	defer srv.Close()
 	dir := t.TempDir()
-	small, large := Retired[0].MainFile().Name, Retired[1].MainFile().Name
-	files := []string{small, small + ".part", "notes.txt"}
-	for _, f := range files {
-		if err := os.WriteFile(filepath.Join(dir, f), []byte("x"), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := os.Mkdir(filepath.Join(dir, large), 0o755); err != nil {
+	m := NewManager(dir, HuggingFaceFirst, nil)
+	defer m.Close()
+	redirect(m, srv)
+	small, _ := ByID("hy-mt2-1.8b")
+	f := small.MainFile()
+	if err := os.WriteFile(filepath.Join(dir, f.Name), nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveRetired(dir); err != nil {
+	if err := os.Truncate(filepath.Join(dir, f.Name), f.Size); err != nil {
 		t.Fatal(err)
 	}
-	for _, f := range []string{small, small + ".part"} {
-		if _, err := os.Stat(filepath.Join(dir, f)); err == nil {
-			t.Errorf("%s kept", f)
-		}
+	if st := m.Status("hy-mt2-1.8b"); st.State != Ready {
+		t.Fatalf("downloaded Hy-MT2 1.8B: %+v", st)
 	}
-	for _, f := range []string{"notes.txt", large} {
-		if _, err := os.Stat(filepath.Join(dir, f)); err != nil {
-			t.Errorf("%s removed", f)
-		}
+	for _, id := range []string{"hy-mt2-7b", "hy-mt2-1.8b"} {
+		m.Download(id)
+	}
+	if st := m.Status("hy-mt2-7b"); st.State != Missing || requests.Load() != 0 {
+		t.Fatalf("Hy-MT2 7B downloaded: %+v, %d requests", st, requests.Load())
+	}
+	if err := m.Delete("hy-mt2-1.8b"); err != nil {
+		t.Fatal(err)
+	}
+	m.Download("hy-mt2-1.8b")
+	if st := m.Status("hy-mt2-1.8b"); st.State != Missing || requests.Load() != 0 {
+		t.Fatalf("Hy-MT2 1.8B after delete: %+v, %d requests", st, requests.Load())
 	}
 }

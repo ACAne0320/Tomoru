@@ -461,6 +461,8 @@ func home(family string) (label, url string) {
 		return "GitHub", core.CloudRepo
 	case "Hy-MT3":
 		return "GitHub", "https://github.com/Tencent-Hunyuan/Hy-MT3"
+	case "Hy-MT2":
+		return "GitHub", "https://github.com/Tencent-Hunyuan/Hy-MT2"
 	case core.QwenCloud:
 		return locales.LinkModelStudio(), "https://help.aliyun.com/zh/model-studio/real-time-speech-recognition-user-guide"
 	case core.OpenAI:
@@ -499,20 +501,23 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs
 		kit.Caption(c, locales.Verifying())
 	case models.Ready:
 		del := kit.DeleteButton(c, kit.Small, locales.Delete())
-		question, size := locales.AskDeleteModel(shared.EngineName(e)), shared.Size(e.Model.Size)
+		question, detail := locales.AskDeleteModel(shared.EngineName(e)), locales.AskDeleteModelDetail(shared.Size(e.Model.Size))
+		if e.Model.Legacy {
+			detail = locales.AskDeleteLegacyModel()
+		}
 		remove := func(c *ui.Context) {
 			k.DeleteModel(e.ID)
 			c.Toast(locales.ModelDeleted(shared.EngineName(e)))
 		}
 		if del.Clicked() {
 			if k.InUse(e.Kind) == e.ID {
-				s.ask(question, s.takingOver(e.Kind, size), remove)
+				s.ask(question, s.takingOver(e.Kind, *e.Model), remove)
 			} else {
 				s.confirmingDeleteModel = e.ID
 			}
 		}
 		open := s.confirmingDeleteModel == e.ID
-		if kit.Popconfirm(c, del, &open, question, locales.AskDeleteModelDetail(size), locales.Delete()) {
+		if kit.Popconfirm(c, del, &open, question, detail, locales.Delete()) {
 			remove(c)
 		}
 		if !open && s.confirmingDeleteModel == e.ID {
@@ -521,10 +526,14 @@ func (s *Settings) download(c *ui.Context, e core.Engine, st models.Status, runs
 	}
 }
 
-func (s *Settings) takingOver(k core.Kind, size string) string {
+func (s *Settings) takingOver(k core.Kind, m models.Model) string {
+	size := shared.Size(m.Size)
 	next, ok := s.core.Engine(k, core.Successor(k))
-	if !ok || next.ID == "" {
+	switch {
+	case !ok || next.ID == "":
 		return locales.AskDeleteModelLast(size)
+	case m.Legacy:
+		return locales.AskDeleteLegacyModelInUse(shared.EngineName(next))
 	}
 	return locales.AskDeleteModelInUse(shared.EngineName(next), size)
 }

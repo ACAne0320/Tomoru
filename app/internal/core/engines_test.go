@@ -645,7 +645,7 @@ func TestModelFormats(t *testing.T) {
 			t.Errorf("%s: no format %q", m.ID, m.Format)
 		}
 	}
-	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index, "hy-mt3-1.8b": translate.HyMT, "hy-mt3-7b": translate.HyMT} {
+	for id, want := range map[string]*translate.Format{"local-2b": translate.Index, "local-9b": translate.Index, "hy-mt3-1.8b": translate.HyMT, "hy-mt3-7b": translate.HyMT, "hy-mt2-1.8b": translate.HyMT, "hy-mt2-7b": translate.HyMT} {
 		c, f, _, _, _ := engineCore(t)
 		c.Download(id)
 		c.SetEngine(id)

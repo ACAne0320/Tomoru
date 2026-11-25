@@ -51,7 +51,7 @@
     },
     "mt": {
       "title": "翻訳のモデル",
-      "body": "<table><thead><tr><th>モデル</th><th>サイズ</th><th>Mac のメモリ / Windows と Linux の VRAM</th><th>画面上の文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>できる</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>できる</td></tr><tr><td>Hy-MT3 1.8B</td><td>1.3 GB</td><td>8 GB / 4 GB</td><td>できない</td></tr><tr><td>Hy-MT3 7B</td><td>4.8 GB</td><td>16 GB / 8 GB</td><td>できない</td></tr></tbody></table><p>大きいほど正確で、小さいほど速いです。Mac の GPU はシステムとメモリを共有するので、見るのはメモリです。Windows と Linux ではモデルがグラフィックボード上で動くので、見るのはその VRAM です。数値は目安で、容量が足りないときはアプリが知らせます。</p>"
+      "body": "<table><thead><tr><th>モデル</th><th>サイズ</th><th>Mac のメモリ / Windows と Linux の VRAM</th><th>画面上の文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>できる</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>できる</td></tr><tr><td>Hy-MT3 1.8B</td><td>1.3 GB</td><td>8 GB / 4 GB</td><td>できない</td></tr><tr><td>Hy-MT3 7B</td><td>4.8 GB</td><td>16 GB / 8 GB</td><td>できない</td></tr></tbody></table><p>大きいほど正確で、小さいほど速いです。Mac の GPU はシステムとメモリを共有するので、見るのはメモリです。Windows と Linux ではモデルがグラフィックボード上で動くので、見るのはその VRAM です。数値は目安で、容量が足りないときはアプリが知らせます。</p><p>以前ダウンロードした Hy-MT2 1.8B と 7B はそのまま使えます。アプリではもう提供していないので、削除するとアプリから再ダウンロードすることはできません。</p>"
     },
     "where": {
       "title": "モデルの保存場所",

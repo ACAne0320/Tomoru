@@ -95,7 +95,7 @@ Light values:
 | `Scrim` | night 42% | Dims the window under a dialog, in the night's indigo rather than grey | |
 | `CardShadow` / `SegShadow` / `RaisedShadow` | `0 10 24 −14` warm brown 22% / `0 1 3` 18% / `0 1 2` 8% | A card raised a little, a chosen segment, a plain button | |
 | `SubSrc` / `SubTgt` | `#f4f2ff` / `#f5a524` | Original and translation on the stage, as the "Amber" scheme colors them: the translation in the lantern's amber (the subtitles' default is "Ice", immersive and outlined) | |
-| `Series` | `#f5a524` `#8a5200` `#e8cf9f` `#4a3a24` | A chart's series of no color of their own: on the statistics page, one's own APIs and OpenAI's recognition, each by its id, and the models of a maker with no color here (Hy-MT3, and Hy-MT2 in older records) by their family, its sizes in neighboring colors, so always the same; what no engine was noted of is `LineStrong` | |
+| `Series` | `#f5a524` `#8a5200` `#e8cf9f` `#4a3a24` | A chart's series of no color of their own: on the statistics page, one's own APIs and OpenAI's recognition, each by its id, and the models of a maker with no color here (Hy-MT3 and Hy-MT2) by their family, its sizes in neighboring colors, so always the same; what no engine was noted of is `LineStrong` | |
 | `Apple` / `Qwen` / `QwenPale` / `Alibaba` | `#007aff` / `#615ced` / `#aeabf6` / `#ff6a00` | The engines' makers' colors, so an engine keeps its color in any chart: Apple's speech recognition, Qwen's (its cloud and Qwen3-ASR 1.7B; paler for 0.6B), SenseVoice (Alibaba's Tongyi Lab) | |
 | `Bilibili` | `#fb7299` `#d63f73` `#fdb2c9` | Index-Translate's, bilibili's pink: in the cloud, deeper for 9B, paler for 2B | |
 
@@ -349,7 +349,7 @@ Statistics; at the bottom, Preferences and About. The settings window opens at 1
 
 **First-run guide**: 800×580, paper on the left, the night sky stage on the right. Three phases,
 "Set up › Try it › Start", with the phase's name at the top and an amber progress bar beneath.
-Eight steps: welcome and languages, permission, speech recognition, translation (each one choice, a family a row, as the settings list them: recognition only on this device, the system's, SenseVoice and Qwen3-ASR, the cloud's being set up in Settings; translation "On device" then "Cloud", Index-Translate and Hy-MT3, then Index-Translate 35B, chosen to begin with; Recommended as in the settings. A family's size is picked for the user, its size to recommend where this computer runs it, else the largest it runs, else the smallest; choosing a model not downloaded downloads it, and it is used once it is in, as in the settings it is not. A model's row says its size's name and its size, then for SenseVoice that it runs on the CPU, with no GPU needed, and for Qwen3-ASR and the translation models the memory they need, the GPU's on Windows (Qwen3-ASR's also that it runs on the GPU); under the cloud's, what it receives; the stage lights the engine the step chooses); try subtitles, the
+Eight steps: welcome and languages, permission, speech recognition, translation (each one choice, a family a row, as the settings list them: recognition only on this device, the system's, SenseVoice and Qwen3-ASR, the cloud's being set up in Settings; translation "On device" then "Cloud", Index-Translate and Hy-MT3, Hy-MT2 too where downloaded before, then Index-Translate 35B, chosen to begin with; Recommended as in the settings. A family's size is picked for the user, its size to recommend where this computer runs it, else the largest it runs, else the smallest; choosing a model not downloaded downloads it, and it is used once it is in, as in the settings it is not. A model's row says its size's name and its size, then for SenseVoice that it runs on the CPU, with no GPU needed, and for Qwen3-ASR and the translation models the memory they need, the GPU's on Windows (Qwen3-ASR's also that it runs on the GPU); under the cloud's, what it receives; the stage lights the engine the step chooses); try subtitles, the
 start/pause shortcut, select-to-translate (can be skipped; once on, two checks one after the other: press the shortcut, then press it again and select the sample dialogue on the stage, which is translated for real, its translation under the check; until then the stage says to select it); ready.
 
 - The permission page has one row per permission, checked once granted; on the right, "Your
@@ -408,7 +408,8 @@ after a few seconds of a still pointer, so a pointer left over a video wakes not
 
 Deleting what can be undone doesn't ask: it happens at once, and a toast offers Undo (scenes,
 names, sessions, translation APIs). Deleting a local model can't be undone, so it asks first and
-says how much will have to be downloaded again: `kit.Popconfirm` by its button, or `kit.Confirm`
+says how much will have to be downloaded again, or, for a model no longer offered (Hy-MT2), that it
+can't be: `kit.Popconfirm` by its button, or `kit.Confirm`
 when the model is in use, which also says what takes over. Both have the question, Cancel (focused
 by default) and a red Delete.
 

@@ -16,7 +16,7 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 
 - **快速集**用于日常检查（重构、小的行为改动）：每种语言一段有标准答案的，只跑前 2 分钟。只有真的需要看数字时才跑全量：加新模型、断句或性能有大的改动。对比改动时，用同样的用例、换一个 `-name` 先跑一遍改动前的。
 - 引擎用 `listen --file` 按原速“播放”每段录音，不用外放，也不需要录音权限；session 和 app 里的完全一样（断句、抢先翻译都开着）。所以每段要跑满它的时长，`-j` 决定同时跑几段。
-- `-asr`：`apple`、`sensevoice`、`qwen3-asr-0.6b`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud[:模型]`（`Index-Translate-9B`、`Index-Translate-2B`）、翻译模型的 ID（`local-2b`、`local-9b`、`hy-mt3-1.8b`、`hy-mt3-7b`）、`hy-mt-cloud[:模型]`（腾讯云 TokenHub 上的 Hy-MT2，读 `TOKENHUB_API_KEY`，按 token 计费），或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
+- `-asr`：`apple`、`sensevoice`、`qwen3-asr-0.6b`、`qwen3-asr-1.7b`、`qwen-cloud[:模型]`（读 `DASHSCOPE_API_KEY`，按时长计费）、`openai[:模型]`（实时转写；填 `gpt-live-transcribe` 以外的模型时走转写接口；读 `OPENAI_API_KEY`，兼容服务另读 `OPENAI_BASE_URL`；按时长计费）。`-mt`：`cloud[:模型]`（`Index-Translate-9B`、`Index-Translate-2B`）、翻译模型的 ID（`local-2b`、`local-9b`、`hy-mt3-1.8b`、`hy-mt3-7b`；`hy-mt2-1.8b`、`hy-mt2-7b` 不再提供下载，以前下载过才能用）、`hy-mt-cloud[:模型]`（腾讯云 TokenHub 上的 Hy-MT2，读 `TOKENHUB_API_KEY`，按 token 计费），或 `chat` 加 `-mt-url`、`-mt-model`（key 读 `MT_API_KEY`）。
 - `-auto` 让识别自己判断听到的语言，和 app 里的「自动检测」一样，而不是告诉它这段的语言：适用于 `sensevoice` 和 `qwen3-asr-*`。每行新字幕会记下它的语言（`lang`）。
 - 结果在 `runs/<名字>/`（不进仓库）：每段一个 JSON，记下字幕每一次变化的时间和内容；`score.py` 写出 `score.md`。同名再跑会把新的段并进去，可以分批跑。
 - 本地引擎同时跑太多段会互相抢 CPU，延迟变差：SenseVoice 建议 `-j 6` 以内，本地翻译模型 `-j 1`。
@@ -173,7 +173,7 @@ Apple 的延迟（2026-10-17 试过，都没采用）：SpeechTranscriber 大约
 
 Hy-MT2 的提示词里不要求“口语化字幕”：像 Index-Translate 那样要求时，1.8B 得 38.1、7B 得 36.1，7B 会在讲座里加“呗”“啦”（运行 `mtfull1107_hy-mt2-*`）。
 
-本机的 Hy-MT2 换成 Hy-MT3 后（2026-11-25，同一台 M5、同一批字幕和提示词，一次只跑一个模型；运行 `mtfull1125nostyle_hy-mt3-*`）。1263 句全部译出，打分的都是同样的 14 段：
+在 Hy-MT2 前面加入 Hy-MT3 后（2026-11-25，同一台 M5、同一批字幕和提示词，一次只跑一个模型；运行 `mtfull1125nostyle_hy-mt3-*`）。1263 句全部译出，打分的都是同样的 14 段：
 
 | 翻译 | chrF | 每句秒 |
 |---|---|---|

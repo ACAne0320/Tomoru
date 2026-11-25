@@ -45,10 +45,14 @@ func (s *fakeSession) Stop() {
 func (s *fakeSession) Close() { s.Stop() }
 
 func newCore(t *testing.T) (*Core, *fake) {
-	f := &fake{answers: map[string][]engine.Event{}}
 	p := prefs.Default("zh-Hans")
 	p.ASR = "apple"
-	c := New(p, Deps{
+	return newCoreWith(t, p, func(*Deps) {})
+}
+
+func newCoreWith(t *testing.T, p prefs.Prefs, with func(*Deps)) (*Core, *fake) {
+	f := &fake{answers: map[string][]engine.Event{}}
+	d := Deps{
 		Post: func(fn func()) {
 			f.mu.Lock()
 			f.posted = append(f.posted, fn)
@@ -86,8 +90,9 @@ func newCore(t *testing.T) (*Core, *fake) {
 			f.ran = append(f.ran, args[0])
 			return f.answers[args[0]], nil
 		},
-	})
-	return c, f
+	}
+	with(&d)
+	return New(p, d), f
 }
 
 func (f *fake) flush(t *testing.T, n int) {

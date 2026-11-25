@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -23,7 +22,7 @@ type Model struct {
 	Format                string
 	Projector             string
 	NoAbout               bool
-	Successor             string
+	Legacy                bool
 }
 
 func (m Model) Name() string { return m.Family + " " + m.Label }
@@ -87,6 +86,16 @@ var All = []Model{
 		Files: []File{
 			{"Hy-MT3-7B-Q4_K_M.gguf", 5145531232, "e08a5098918c6615e1a84fbe714637237bfdc832e17761bdde4bb65878eb17c9"},
 		}},
+	{ID: "hy-mt2-1.8b", Family: "Hy-MT2", Label: "1.8B", Size: 1133080448, Repo: "tencent/Hy-MT2-1.8B-GGUF", Needs: needsGB(8, 4), Legacy: true,
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-1.8B-GGUF", Rev: "a0c709d9fac510f2c807aa3af52872340dc37a4a", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT2-1.8B-Q4_K_M.gguf", 1133080448, "dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699"},
+		}},
+	{ID: "hy-mt2-7b", Family: "Hy-MT2", Label: "7B", Size: 4624648896, Repo: "tencent/Hy-MT2-7B-GGUF", Needs: needsGB(16, 8), Legacy: true,
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-7B-GGUF", Rev: "ab8472660ac61fac25f1af43fac2599d52a8a775", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT2-7B-Q4_K_M.gguf", 4624648896, "9f96256500f3fc1ab4d64336b58f52a949a95ad7516b0c229476eef782f9f77b"},
+		}},
 	{ID: "sensevoice-small", Family: "SenseVoice", Label: "Small", Dir: "sensevoice-small-2024-07-17", Size: 239233841 + 315894, ASR: true, Runtime: RuntimeSherpa, Langs: []string{"zh", "en", "ja", "ko", "yue"},
 		Repo:       "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",
 		Rev:        "2365baeacb507f821a0c8120fcee3d484dba7a07",
@@ -111,42 +120,13 @@ var All = []Model{
 		}},
 }
 
-var Retired = []Model{
-	{ID: "hy-mt2-1.8b", Family: "Hy-MT2", Label: "1.8B", Successor: "hy-mt3-1.8b", Files: []File{{Name: "Hy-MT2-1.8B-Q4_K_M.gguf"}}},
-	{ID: "hy-mt2-7b", Family: "Hy-MT2", Label: "7B", Successor: "hy-mt3-7b", Files: []File{{Name: "Hy-MT2-7B-Q4_K_M.gguf"}}},
-}
-
-func ByID(id string) (Model, bool) { return find(All, id) }
-
-func RetiredByID(id string) (Model, bool) { return find(Retired, id) }
-
-func find(ms []Model, id string) (Model, bool) {
-	for _, m := range ms {
+func ByID(id string) (Model, bool) {
+	for _, m := range All {
 		if m.ID == id {
 			return m, true
 		}
 	}
 	return Model{}, false
-}
-
-func RemoveRetired(dir string) error {
-	if dir == "" {
-		return nil
-	}
-	var errs []error
-	for _, m := range Retired {
-		for _, f := range m.Files {
-			for _, path := range []string{filePath(dir, m, f), filePath(dir, m, f) + ".part"} {
-				if fi, err := os.Lstat(path); err != nil || !fi.Mode().IsRegular() {
-					continue
-				}
-				if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
-					errs = append(errs, err)
-				}
-			}
-		}
-	}
-	return errors.Join(errs...)
 }
 
 func (m Model) URLs(f File, order MirrorOrder) []string {

@@ -24,7 +24,7 @@ Tomoru (灯る, “to light up”) captures system audio, not the microphone, re
 - SenseVoice (on-device, CPU, 228 MB) hears Chinese, English, Japanese, Korean, and Cantonese.
 - Qwen3-ASR 0.6B and 1.7B (on-device, GPU) hear 30 languages. With SenseVoice or Qwen3-ASR the spoken language can be Auto-detect.
 - macOS can use Apple's on-device recognition, for the languages that system supports. Windows and Linux have no system recognition.
-- Cloud recognition uses an API key the user provides. Default cloud translation is Index-Translate and is free. On-device translation models are Index-Translate 2B and 9B, and Hy-MT3 1.8B and 7B.
+- Cloud recognition uses an API key the user provides. Default cloud translation is Index-Translate and is free. On-device translation models to download in the app are Index-Translate 2B and 9B, and Hy-MT3 1.8B and 7B. Hy-MT2 1.8B and 7B, if downloaded before, stay usable; the app no longer downloads them.
 
 ## Requirements
 

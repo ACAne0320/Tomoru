@@ -28,7 +28,7 @@ cd .. && uv run bench/score.py apple_cloud_1017-1030 sensevoice_cloud_1017-1100 
 - `-asr`: `apple`, `sensevoice`, `qwen3-asr-0.6b`, `qwen3-asr-1.7b`, `qwen-cloud[:model]` (reads
   `DASHSCOPE_API_KEY`, billed by duration), `openai[:model]` (live transcription; with another model than
   `gpt-live-transcribe`, the transcription API; reads `OPENAI_API_KEY`, and `OPENAI_BASE_URL` for a
-  compatible service; billed by duration). `-mt`: `cloud[:model]` (`Index-Translate-9B`, `Index-Translate-2B`), a translation model's ID (`local-2b`, `local-9b`, `hy-mt3-1.8b`, `hy-mt3-7b`), `hy-mt-cloud[:model]` (Hy-MT2 on Tencent Cloud's TokenHub, reads `TOKENHUB_API_KEY`, billed by tokens), or `chat` with `-mt-url` and `-mt-model` (the
+  compatible service; billed by duration). `-mt`: `cloud[:model]` (`Index-Translate-9B`, `Index-Translate-2B`), a translation model's ID (`local-2b`, `local-9b`, `hy-mt3-1.8b`, `hy-mt3-7b`; `hy-mt2-1.8b`, `hy-mt2-7b` once downloaded before, as they no longer are), `hy-mt-cloud[:model]` (Hy-MT2 on Tencent Cloud's TokenHub, reads `TOKENHUB_API_KEY`, billed by tokens), or `chat` with `-mt-url` and `-mt-model` (the
   key from `MT_API_KEY`).
 - `-auto` has recognition tell the language it hears, as Auto-detect does in the app, instead of
   being told the case's: for `sensevoice` and `qwen3-asr-*`. Each new line's language is recorded
@@ -241,7 +241,7 @@ With Hy-MT2 added (2026-11-07, an M5, the same human subtitles, one model at a t
 Hy-MT2 is not asked for colloquial subtitles: asked, as Index-Translate is, it scored 38.1 (1.8B)
 and 36.1 (7B), the 7B putting 呗 and 啦 into lectures (runs `mtfull1107_hy-mt2-*`).
 
-Hy-MT3 replaced Hy-MT2 on the device (2026-11-25, the same M5, subtitles and prompt, one model at
+With Hy-MT3 added before Hy-MT2 (2026-11-25, the same M5, subtitles and prompt, one model at
 a time; runs `mtfull1125nostyle_hy-mt3-*`). All 1263 sentences translated, the same 14 cases
 scored:
 

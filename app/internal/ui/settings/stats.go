@@ -342,14 +342,8 @@ func engineColor(p *kit.Palette, id string) ui.Color {
 		return p.Bilibili[0]
 	}
 	key, size := id, 0
-	m, ok := models.ByID(id)
-	list := models.All
-	if !ok {
-		m, ok = models.RetiredByID(id)
-		list = models.Retired
-	}
-	if ok {
-		for _, o := range list {
+	if m, ok := models.ByID(id); ok {
+		for _, o := range models.All {
 			if o.ID == id {
 				break
 			}
