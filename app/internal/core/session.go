@@ -25,6 +25,7 @@ func (c *Core) Start() {
 		return
 	}
 	c.stop()
+	c.EngineService.forgetKeys()
 	c.fitLangs()
 	p := c.effective()
 	c.runSince, c.runEngines = c.now(), engines(p)

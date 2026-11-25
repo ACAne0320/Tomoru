@@ -47,6 +47,7 @@ type EngineService struct {
 	changed    func()
 	visions    map[api]prefs.Vision
 	keys       map[string]bool
+	keysAt     time.Time
 	imageCloud func() *translate.Endpoint
 	lastTest   int
 }
@@ -346,12 +347,20 @@ func (s *EngineService) deleteKey(name string) {
 }
 
 func (s *EngineService) hasSecret(name string) bool {
+	if time.Since(s.keysAt) > RefreshEvery {
+		s.forgetKeys()
+	}
 	has, ok := s.keys[name]
 	if !ok {
 		has = len(s.readKey(name)) > 0
 		s.keys[name] = has
 	}
 	return has
+}
+
+func (s *EngineService) forgetKeys() {
+	clear(s.keys)
+	s.keysAt = time.Now()
 }
 
 func (s *EngineService) ModelStatus(id string) models.Status {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"slices"
 	"testing"
+	"time"
 
 	"tomoru/internal/lang"
 	"tomoru/internal/prefs"
@@ -191,19 +192,71 @@ func TestRetranslatingKeepsLiveServer(t *testing.T) {
 	c.SetSceneEngine(a, MT, "local-2b")
 	c.SetSceneEngine(b, MT, prefs.EndpointEngine(c.SaveEndpoint(prefs.Endpoint{Name: "Mine", URL: "http://127.0.0.1:9/v1", Model: "m"}, "sk-1")))
 	c.SetSceneEngine(d, MT, "local-9b")
+	acquire := func(scene string, local bool) error {
+		t.Helper()
+		ready, err := c.retranslator(c.SceneActive(scene, MT))
+		if err != nil {
+			return err
+		}
+		done := make(chan error, 1)
+		go func() { _, err := ready(context.Background()); done <- err }()
+		if local {
+			f.flush(t, 1)
+		}
+		return <-done
+	}
+	cloud, err := c.retranslator(c.SceneActive(b, MT))
+	if err != nil {
+		t.Fatal(err)
+	}
 	c.SetScene(a)
 	c.Start()
 	f.flush(t, 1)
 	stops := srv.stops
-	ready, err := c.retranslator(c.SceneActive(b, MT))
-	if err != nil {
-		t.Fatal(err)
+	if _, err := cloud(context.Background()); err != nil || srv.stops != stops {
+		t.Errorf("an API made before the subtitles started stopped their server: %v, %d stops", err, srv.stops-stops)
 	}
-	if _, err := ready(context.Background()); err != nil || srv.stops != stops {
+	if err := acquire(b, false); err != nil || srv.stops != stops {
 		t.Errorf("an API stopped the live server: %v, %d stops", err, srv.stops-stops)
 	}
-	if _, err := c.retranslator(c.SceneActive(d, MT)); !errors.Is(err, ErrModelBusy) {
-		t.Errorf("another on-device model: %v", err)
+	if err := acquire(d, true); !errors.Is(err, ErrModelBusy) {
+		t.Errorf("another on-device model while subtitles run: %v", err)
+	}
+	if err := acquire(a, true); err != nil {
+		t.Errorf("the model the subtitles use: %v", err)
+	}
+	c.Stop()
+	c.Image = ImageView{PNG: []byte{1}, Via: "local-9b", Running: true}
+	if err := acquire(a, true); !errors.Is(err, ErrModelBusy) {
+		t.Errorf("another on-device model while a picture translates: %v", err)
+	}
+}
+
+func TestSceneServiceKeyRemovedWhileOpen(t *testing.T) {
+	c, f, _ := sceneEngineCore(t)
+	sec := c.deps.Secrets.(fakeSecrets)
+	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
+	id := c.AddScene("Stream")
+	c.SetSceneEngine(id, ASR, QwenCloud)
+	if c.SceneActive(id, ASR) != QwenCloud {
+		t.Fatalf("key saved: %q", c.SceneActive(id, ASR))
+	}
+	clear(sec)
+	c.SetScene(id)
+	c.Start()
+	f.flush(t, 1)
+	if c.runEngines.ASR != c.Prefs.ASR || c.Active(ASR) != c.Prefs.ASR {
+		t.Errorf("started without the key: ran %q", c.runEngines.ASR)
+	}
+	c.SaveAPI(prefs.Service{ID: QwenCloud}, "sk-1")
+	f.flush(t, 1)
+	if c.Active(ASR) != QwenCloud || c.runEngines.ASR != QwenCloud {
+		t.Fatalf("key saved again: %q, ran %q", c.Active(ASR), c.runEngines.ASR)
+	}
+	clear(sec)
+	c.EngineService.keysAt = c.EngineService.keysAt.Add(-RefreshEvery - time.Second)
+	if slices.ContainsFunc(c.UsableEngines(ASR), func(e Engine) bool { return e.ID == QwenCloud }) {
+		t.Error("the picker still offers a service whose key was removed")
 	}
 }
 

@@ -74,10 +74,28 @@ func (c *Core) retranslator(id string) (func(context.Context) (translate.Transla
 	if tr := c.deps.Translator; tr != nil {
 		return func(context.Context) (translate.Translator, error) { return tr, nil }, nil
 	}
-	serving := c.serving()
-	if _, local := models.ByID(id); local && serving != "" && serving != id {
-		return nil, ErrModelBusy
+	ready, _, err := c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs, true)
+	if _, local := models.ByID(id); !local || err != nil {
+		return ready, err
 	}
-	ready, _, err := c.EngineService.translator(id, c.Prefs.Endpoints, c.Prefs.MTAPIs, c.ImageService.usesServer() || serving != "")
-	return ready, err
+	return func(ctx context.Context) (translate.Translator, error) {
+		busy := make(chan bool, 1)
+		c.work.Post(func() { busy <- c.serverBusy(id) })
+		select {
+		case b := <-busy:
+			if b {
+				return nil, ErrModelBusy
+			}
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+		return ready(ctx)
+	}, nil
+}
+
+func (c *Core) serverBusy(id string) bool {
+	if serving := c.serving(); serving != "" && serving != id {
+		return true
+	}
+	return c.ImageService.usesServer() && c.Image.Via != id
 }
