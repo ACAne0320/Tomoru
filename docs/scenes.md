@@ -20,10 +20,11 @@ the scene, and the next viewing uses them.
 | Default scene | "General", always first. Its names go with whatever is watched, so they are only matched as said, for translation: recognition is not told them, and they have no misheard spellings ("cloud" heard for Claude in one video is "cloud" said in the next). Learning from its records adds the names to a new scene unless the user picks General or another one |
 | Scene description | Sent with each sentence to the translation model, and background for the LLM that scans; not to the on-device 2B model (it put the description's names in sentences that never mentioned them). See [the 2026-10-28 experiment](#experiment-2026-10-28-the-scene-description-in-the-translation-prompt) |
 | Languages | A scene keeps the language heard and the target language: switching to a scene switches languages, and changing languages in a scene saves them to it |
+| Engines | The recognition and translation chosen in Speech & translation are the defaults. A scene can choose its own of either, from those that can run now (downloaded, with their key); unchosen, it follows the default, as the default changes. If its own is deleted or can't run, the default is used and the scene says so; the choice is kept, so downloading the model again brings it back |
 | Learning | **Not while watching**: nothing pops up during viewing. Scanning happens only when the user chooses "Learn names" on the history; the results are listed as suggestions, all checked, added to the scene once confirmed, and can be undone. Unchecked ones are remembered and not suggested again |
 | Scan chunks | Records are split every 120 seconds or 60 sentences, one request per chunk |
 | The scanning LLM | An OpenAI-compatible API the user connected (the same list as custom translation APIs, chat-format ones only), chosen in the learning dialog; the last choice is remembered |
-| Retranslating | After adopting, the records can be retranslated with the new glossary and written back to the history, with the current translation engine |
+| Retranslating | After adopting, the records can be retranslated with the new glossary and written back to the history, with the scene's translation engine |
 | History | Local only, off by default, turned on by the user. A settings page shows and manages it |
 
 ## Data
@@ -38,6 +39,7 @@ type Scene struct {
 	Name     string
 	About    string // the description: sent with each sentence to the translator (but 2B), and to the model that learns names
 	Src, Tgt string // the languages, "" until the scene is first used
+	ASR, MT  string // its own recognition and translation, by engine ID; "" follows the default
 	Terms    []Term
 	Rejected []string // suggestions the user didn't take, as heard: not suggested again
 }
@@ -51,7 +53,10 @@ type Term struct {
 }
 ```
 
-The related `Prefs` fields: `Scene` (the scene in use, by ID; `""` for General), `History` (keep
+Older files have no `ASR` or `MT`: their scenes follow the defaults. Each session, the
+retranslating and the feedback report use the engines in effect (`Core.Active`, `Core.SceneActive`).
+
+The related `Prefs` fields: `ASR` and `MT` (the defaults), `Scene` (the scene in use, by ID; `""` for General), `History` (keep
 the subtitles, default false) and `Learn` (the API that learns names, as last chosen).
 
 ### History
@@ -144,7 +149,7 @@ The list and contents are read in the background.
   turns thinking off and retries without parameters the server rejects; 2-minute timeout. No
   reliance on `response_format`: the JSON is cut out of the reply.
 - **Retranslating**: only sentences the glossary matches are retranslated, the rest stay; the
-  original is rewritten with the glossary and translated with the entries, with the current
+  original is rewritten with the glossary and translated with the entries, with the scene's
   translation engine, and written back to the file. A session whose subtitles showed the original
   only just has its names written right: nothing is translated, and no engine is needed for it.
 

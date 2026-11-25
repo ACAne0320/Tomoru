@@ -250,9 +250,9 @@ func (c *Core) use(e Engine) {
 		c.SetEngine(e.ID)
 	case ASR:
 		if e.ID != c.Prefs.ASR {
+			was := c.activeEngines()
 			c.Prefs.ASR = e.ID
-			c.fitLangs()
-			c.RestartIfRunning()
+			c.refit(was)
 		}
 	}
 }

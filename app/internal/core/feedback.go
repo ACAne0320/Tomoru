@@ -18,7 +18,8 @@ const maxIssueURL = 4000
 func (c *Core) Versions() (app, os string) { return c.deps.Version, c.deps.OS }
 
 func (c *Core) setup() (version, system, engines string) {
-	p := &c.Prefs
+	effective := c.effective()
+	p := &effective
 	version = c.deps.Version
 	system = c.deps.OS + " (" + runtime.GOARCH + ")"
 	if mem, known := c.memory(); known {

@@ -1,9 +1,11 @@
 package scene
 
 import (
+	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"tomoru/internal/translate"
@@ -93,5 +95,28 @@ func TestGeneral(t *testing.T) {
 	}
 	if _, terms := g.Apply("Claude Code"); len(terms) != 1 {
 		t.Errorf("%v", terms)
+	}
+}
+
+func TestLoadEngines(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "scenes.json")
+	old := `[{"ID":"","Name":"","About":"","Src":"ja","Tgt":"zh","Terms":null},{"ID":"ff7","Name":"FF7","About":"","Src":"ja","Tgt":"zh","Terms":null}]`
+	if err := os.WriteFile(path, []byte(old), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	ss, err := Load(path)
+	if err != nil || len(ss) != 2 || ss[0].ASR != "" || ss[0].MT != "" || ss[1].ASR != "" || ss[1].MT != "" {
+		t.Fatalf("an older file: %+v %v", ss, err)
+	}
+	ss[1].ASR, ss[1].MT = "sensevoice-small", "local-2b"
+	if err := Save(path, ss); err != nil {
+		t.Fatal(err)
+	}
+	b, _ := os.ReadFile(path)
+	if strings.Count(string(b), `"ASR"`) != 1 || strings.Count(string(b), `"MT"`) != 1 {
+		t.Errorf("following the default writes no engines:\n%s", b)
+	}
+	if ss, err = Load(path); err != nil || ss[1].ASR != "sensevoice-small" || ss[1].MT != "local-2b" || ss[0].ASR != "" {
+		t.Errorf("%+v %v", ss, err)
 	}
 }

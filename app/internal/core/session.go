@@ -25,13 +25,13 @@ func (c *Core) Start() {
 		return
 	}
 	c.stop()
-	c.runSince, c.runEngines = c.now(), engines(c.Prefs)
+	p := c.effective()
+	c.runSince, c.runEngines = c.now(), engines(p)
 	bin, err := c.deps.EnginePath()
 	if err != nil {
 		c.SessionController.start(sessionRequest{Err: err})
 		return
 	}
-	p := c.Preferences()
 	recognize, err := c.localRecognizer(p.ASR)
 	switch {
 	case p.ASR == "":
@@ -45,7 +45,7 @@ func (c *Core) Start() {
 	}
 	ready, local := c.EngineService.noTranslator(c.ImageService.usesServer()), false
 	if p.Translates() {
-		ready, local, err = c.translator(c.Prefs.MT)
+		ready, local, err = c.translator(p.MT)
 	}
 	c.syncHistoryPolicy()
 	record := c.HistoryService.begin()
@@ -56,7 +56,7 @@ func (c *Core) Start() {
 			cfg.Finalizer = spec.Finalizer(p.Src)
 		}
 	}
-	if m, local := models.ByID(c.Prefs.MT); !local || !m.NoAbout {
+	if m, local := models.ByID(p.MT); !local || !m.NoAbout {
 		cfg.About = c.sceneAbout
 	}
 	cfg.LineMetadata = func() any { return c.HistoryService.policy.Load() }

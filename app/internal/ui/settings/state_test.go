@@ -2,6 +2,7 @@ package settings
 
 import (
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/egoist/mygo/i18n"
@@ -9,6 +10,7 @@ import (
 
 	"tomoru/internal/core"
 	"tomoru/internal/core/coretest"
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/shared"
@@ -200,5 +202,38 @@ func TestUILanguageBackToSystem(t *testing.T) {
 	}
 	if got := k.Preferences().UILang; got != "" {
 		t.Fatalf("UI language %q, want the system's", got)
+	}
+}
+
+func TestSceneEngines(t *testing.T) {
+	st := &coretest.Models{St: map[string]models.Status{"local-2b": {State: models.Ready}}}
+	k := coretest.NewWith(func(d *core.Deps) { d.Models = st })
+	id := k.AddScene("FF7")
+	name := func(kind core.Kind, engine string) string {
+		e, _ := k.Engine(kind, engine)
+		return shared.EngineName(e)
+	}
+	s := New(k, &coretest.Nav{})
+	s.Tab, s.sceneEdit.scene = "scenes", id
+	tt := ui.NewTester(s.View, Width, 1400)
+	auto := locales.SceneEngineDefault(name(core.MT, k.InUse(core.MT)))
+	if err := tt.Click(auto); err != nil {
+		t.Fatalf("%v: %q", err, tt.Texts())
+	}
+	menu := tt.Menu()
+	if !slices.Contains(menu, name(core.MT, "local-2b")) || slices.Contains(menu, name(core.MT, "local-9b")) {
+		t.Fatalf("menu %q", menu)
+	}
+	if err := tt.ChooseMenuItem(name(core.MT, "local-2b")); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if k.SceneEngine(id, core.MT) != "local-2b" || !tt.HasText(name(core.MT, "local-2b")) {
+		t.Fatalf("chose %q, texts %q", k.SceneEngine(id, core.MT), tt.Texts())
+	}
+	k.DeleteModel("local-2b")
+	tt.Frame()
+	if !tt.HasText(auto) || !tt.HasText(locales.SceneEngineUnavailable(name(core.MT, "local-2b"))) || k.SceneActive(id, core.MT) != k.InUse(core.MT) {
+		t.Errorf("deleted: texts %q", tt.Texts())
 	}
 }

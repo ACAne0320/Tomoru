@@ -55,8 +55,10 @@ func (c *Core) SetImageEngine(id string) {
 }
 
 func (c *Core) serving() string {
-	if _, local := models.ByID(c.Prefs.MT); local && c.Running && c.Prefs.Translates() {
-		return c.Prefs.MT
+	if mt := c.Active(MT); c.Running && c.Prefs.Translates() {
+		if _, local := models.ByID(mt); local {
+			return mt
+		}
 	}
 	return ""
 }

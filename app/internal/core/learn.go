@@ -64,7 +64,7 @@ func (c *Core) Retranslate(paths []string, id string) {
 	r := retranslationRequest{Paths: paths}
 	if s, ok := c.sceneByID(id); ok {
 		r.Terms, r.General = s.Terms, s.IsGeneral()
-		r.Ready, _, r.Err = c.translator(c.Prefs.MT)
+		r.Ready, _, r.Err = c.translator(c.SceneActive(id, MT))
 	}
 	c.LearningService.startRetranslating(r)
 }

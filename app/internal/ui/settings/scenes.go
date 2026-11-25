@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"tomoru/internal/core"
 	"tomoru/internal/scene"
 	"tomoru/internal/ui/assets"
 	"tomoru/internal/ui/kit"
@@ -138,9 +139,14 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) {
 		src, tgt := k.SceneLangs(id)
 		setSrc := func(l string) { k.SetSceneSrc(id, l) }
 		setTgt := func(l string) { k.SetSceneTgt(id, l) }
-		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SourceLangs()), shared.LangName, setSrc)).Label(locales.SpokenLanguage()).Shrink(1)
+		kit.Picker(c, shared.LangName(src), kit.Choices(src, shared.LangChoices(k.SceneSourceLangs(id)), shared.LangName, setSrc)).Label(locales.SpokenLanguage()).Shrink(1)
 		ui.Icon(c, assets.Arrow).FontSize(kit.TextBody).TextColor(p.InkWarm)
 		kit.Picker(c, shared.LangName(tgt), kit.Choices(tgt, shared.LangChoices(k.TargetLangs()), shared.LangName, setTgt)).Label(locales.TranslateInto()).Shrink(1)
+	})
+	ui.Column(c).Gap(kit.Space(2)).Children(func() {
+		section(c, locales.SceneEngines(), nil, nil)
+		s.sceneEngine(c, id, core.ASR, locales.EnginesAsr())
+		s.sceneEngine(c, id, core.MT, locales.EnginesMt())
 	})
 	if id != "" {
 		ui.Column(c).Gap(kit.Space(2)).Children(func() {
@@ -150,6 +156,41 @@ func (s *Settings) sceneDetail(c *ui.Context, sc *scene.Scene) {
 		})
 	}
 	s.glossary(c, sc)
+}
+
+func (s *Settings) sceneEngine(c *ui.Context, id string, kind core.Kind, label string) {
+	k := s.core
+	name := func(engine string) string {
+		e, ok := k.Engine(kind, engine)
+		if !ok {
+			e.ID = engine
+		}
+		return shared.EngineName(e)
+	}
+	chosen, active := k.SceneEngine(id, kind), k.SceneActive(id, kind)
+	follows := chosen == "" || chosen != active
+	auto := locales.SceneEngineDefault(name(k.InUse(kind)))
+	value := auto
+	if !follows {
+		value = name(chosen)
+	}
+	ui.Row(c).Gap(kit.Space(3)).AlignItems(ui.Center).Children(func() {
+		ui.Text(c, label).FontSize(kit.TextBody).TextColor(kit.Colors(c).Ink).Grow(1).MaxLines(1)
+		kit.Picker(c, value, func(m *ui.Menu) {
+			if m.Item(auto).Checked(follows).Chosen() && chosen != "" {
+				k.SetSceneEngine(id, kind, "")
+			}
+			m.Separator()
+			for _, e := range k.UsableEngines(kind) {
+				if m.Item(shared.EngineName(e)).Checked(!follows && e.ID == chosen).Chosen() && e.ID != chosen {
+					k.SetSceneEngine(id, kind, e.ID)
+				}
+			}
+		}).Label(label).Shrink(1)
+	})
+	if chosen != "" && follows {
+		kit.Caption(c, locales.SceneEngineUnavailable(name(chosen)))
+	}
 }
 
 func section(c *ui.Context, label string, after, end func()) {
