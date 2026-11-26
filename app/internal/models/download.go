@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -318,7 +319,7 @@ func (m *Manager) downloadFile(ctx context.Context, mod Model, file File, j *job
 }
 
 func (m *Manager) fetchFile(ctx context.Context, mod Model, file File, part string, j *job, before int64) error {
-	f, err := os.OpenFile(part, os.O_CREATE|os.O_WRONLY, 0o644)
+	f, err := os.OpenFile(part, os.O_CREATE|os.O_RDWR, 0o644)
 	if err != nil {
 		return err
 	}
@@ -392,6 +393,19 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 		}
 		return err
 	}
+	if have > 0 {
+		same, err := m.startMatches(requestCtx, url, f, size)
+		if err != nil {
+			return have, requestError(err)
+		}
+		if !same {
+			if err := f.Truncate(0); err != nil {
+				return have, err
+			}
+			have = 0
+			m.set(func() { j.done = before })
+		}
+	}
 	req, err := http.NewRequestWithContext(requestCtx, "GET", url, nil)
 	if err != nil {
 		return have, err
@@ -453,6 +467,46 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 		return have, fmt.Errorf("models: %s ended at %d of %d bytes", url, have, size)
 	}
 	return have, nil
+}
+
+const startCompared = 64 << 10
+
+func (m *Manager) startMatches(ctx context.Context, url string, f *os.File, size int64) (bool, error) {
+	fi, err := f.Stat()
+	if err != nil {
+		return false, err
+	}
+	n := min(fi.Size(), startCompared)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("Range", fmt.Sprintf("bytes=0-%d", n-1))
+	resp, err := m.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusPartialContent:
+		if total := rangeTotal(resp.Header.Get("Content-Range")); total >= 0 && total != size {
+			return false, otherFile(url, total, size)
+		}
+	case http.StatusOK:
+		if resp.ContentLength >= 0 && resp.ContentLength != size {
+			return false, otherFile(url, resp.ContentLength, size)
+		}
+	default:
+		return false, fmt.Errorf("models: %s: %s", url, resp.Status)
+	}
+	theirs, ours := make([]byte, n), make([]byte, n)
+	if _, err := io.ReadFull(resp.Body, theirs); err != nil {
+		return false, err
+	}
+	if _, err := f.ReadAt(ours, 0); err != nil {
+		return false, err
+	}
+	return bytes.Equal(ours, theirs), nil
 }
 
 func otherFile(url string, got, want int64) error {

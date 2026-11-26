@@ -21,7 +21,7 @@
 9. `app/internal/usage/interval_test.go` 导入 `time/tzdata`，让系统没有时区数据库时（如 Windows）也能加载测试用到的时区。
 10. `models.Dir`（`app/internal/models/models.go`）把模型放在用户的本地数据目录（`~/Library/Application Support`、`%LocalAppData%`、`$XDG_DATA_HOME` 或 `~/.local/share`）下的 `Tomoru/models`。不放在应用里，因为更新会整体替换它；不放在缓存里，因为清理工具会清空它；也不放在 MyGo 的用户数据目录，它在 Windows 上是漫游配置文件，在 Linux 上是 `~/.config`。
 11. `Model.URLs`（`models.go`）对中国用户先试 ModelScope，因为那里 Hugging Face 慢或无法访问；其他地区先试 Hugging Face；两者都留在列表中。每个源都固定在含有 `models.All` 所列文件的提交上（`Rev`、`MSRev`），从不用分支：2026 年 11 月 ggml-org 上传了新的 Qwen3-ASR 文件，ModelScope 的副本随之更新，它的 `master` 给出的文件大小和 SHA-256 都和清单不同，而清单在 Hugging Face 上仍固定在旧的上传（#169）。换到新的上传时，固定的提交和清单一起改；只改了元数据时（如 Qwen3-ASR），旧文件留在 `Model.Older` 里，仍算已下载，没人需要再下一遍同样的权重。
-12. `Manager.fetchFile` 和 `fetch`（`app/internal/models/download.go`）：不是最后一个的下载源，若前 10 秒平均低于 1 MB/s，就让给下一个，下一个从同一字节续传。任何源在整整 10 秒没有进展（包括等待响应头）后放弃；最后一个源只要有进展，再慢也继续，整个下载没有总期限。`fetchFile` 返回前关闭 `.part` 文件：Windows 不能重命名或删除打开着的文件。响应表明文件大小不同的源，在写入任何内容前就让给下一个；发来的字节比文件多的源会清空 `.part`：那些字节属于另一个文件，否则下一个源会被要求给出超过文件末尾的范围。
+12. `Manager.fetchFile` 和 `fetch`（`app/internal/models/download.go`）：不是最后一个的下载源，若前 10 秒平均低于 1 MB/s，就让给下一个，下一个从同一字节续传。任何源在整整 10 秒没有进展（包括等待响应头）后放弃；最后一个源只要有进展，再慢也继续，整个下载没有总期限。`fetchFile` 返回前关闭 `.part` 文件：Windows 不能重命名或删除打开着的文件。响应表明文件大小不同的源，在写入任何内容前就让给下一个；发来的字节比文件多的源会清空 `.part`：那些字节属于另一个文件，否则下一个源会被要求给出超过文件末尾的范围。从 `.part` 续传前，`startMatches` 先向源要前 64 KiB，和 `.part` 的开头不同就从头下载：在大小相同或更小的旧上传上开始的 `.part`（如 0.2.3 的 Qwen3-ASR），否则要等整个下载完才发现损坏。
 13. `moveFiles`（`app/internal/models/move.go`）：目标是换了名字的同一个目录（例如 macOS 上大小写不同）时，什么也不移动，也不把其中的文件当作已移走而删除。
 14. `models.All`（`models.go`）：Index-Translate 以 Q4_K_M 发布，在我们的测试中它与 Q8_0 犯同样的错误，体积不到三分之二，视觉投影器为 Q8_0。Hy-MT2 同样是 Q4_K_M，在这里的 llama-server 参数下，占用内存与同尺寸的 Index-Translate 相当（M5 上 Metal 内存：1.8B 1380 MiB，2B 1389；7B 5043，9B 5257）。Hy-MT3 也是 Q4_K_M，占用稍多（1.8B 1586 MiB，7B 5540），需要的内存不变（[ADR 011](011-hy-mt3-on-device_zh.md)）。
 15. `Server.start`（`app/internal/models/server.go`）以 `--cache-ram 0` 运行 llama-server：提示缓存在几百行内让占用涨到 7 GB，速度却没有提升。
@@ -37,6 +37,6 @@
 - `app/internal/applog/applog_test.go`：`TestAnd`。
 - `app/internal/history/history_test.go`：`TestUndo`、`TestDeleteWhileRecording`、`TestRemovedWhileRecording`。
 - `app/internal/usage/interval_test.go`：跳过或重复午夜的时区，以及被跳过的日期。
-- `app/internal/models/models_test.go`：`TestSlowSource`、`TestStalledSource`、`TestLastSourceKeepsSlowProgress`、`TestMirrorWithAnotherFile`、`TestPinnedRevisions`、`TestOlderFiles`、`TestServerVision`。
+- `app/internal/models/models_test.go`：`TestSlowSource`、`TestStalledSource`、`TestLastSourceKeepsSlowProgress`、`TestMirrorWithAnotherFile`、`TestResumeAnotherUpload`、`TestPinnedRevisions`、`TestOlderFiles`、`TestServerVision`。
 - `app/internal/models/move_test.go`：`TestMoveSameDir`。
 - `app/internal/models/server_test.go`：`TestWarm`、`TestWarmExit`。
