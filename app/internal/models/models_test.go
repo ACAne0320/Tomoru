@@ -41,14 +41,37 @@ func server(data []byte, fails int) (*httptest.Server, *int) {
 			http.Error(w, "busy", http.StatusServiceUnavailable)
 			return
 		}
-		from := 0
-		if rg := r.Header.Get("Range"); rg != "" {
-			from, _ = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(rg, "bytes="), "-"))
-			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", from, len(data)-1, len(data)))
-			w.WriteHeader(http.StatusPartialContent)
-		}
-		w.Write(data[from:])
+		serve(w, r, data, true)
 	})), &n
+}
+
+func serve(w http.ResponseWriter, r *http.Request, data []byte, sized bool) {
+	from, to := 0, len(data)-1
+	rg, ranged := strings.CutPrefix(r.Header.Get("Range"), "bytes=")
+	if ranged {
+		a, b, _ := strings.Cut(rg, "-")
+		from, _ = strconv.Atoi(a)
+		if n, err := strconv.Atoi(b); err == nil {
+			to = min(n, to)
+		}
+		if from >= len(data) {
+			http.Error(w, "", http.StatusRequestedRangeNotSatisfiable)
+			return
+		}
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", from, to, len(data)))
+	}
+	if sized {
+		w.Header().Set("Content-Length", strconv.Itoa(to+1-from))
+	}
+	if ranged {
+		w.WriteHeader(http.StatusPartialContent)
+	}
+	w.Write(data[from : to+1])
+}
+
+func comparing(r *http.Request) bool {
+	_, end, _ := strings.Cut(r.Header.Get("Range"), "-")
+	return end != ""
 }
 
 func wait(t *testing.T, m *Manager, id string, want State) Status {
@@ -162,12 +185,7 @@ func TestSlowSource(t *testing.T) {
 	withModel(t, data, sha(data))
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/models/") {
-			from := 0
-			if rg := r.Header.Get("Range"); rg != "" {
-				from, _ = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(rg, "bytes="), "-"))
-				w.WriteHeader(http.StatusPartialContent)
-			}
-			w.Write(data[from:])
+			serve(w, r, data, true)
 			return
 		}
 		for i := 0; i < len(data); i += 100 {
@@ -207,6 +225,10 @@ func TestStalledSource(t *testing.T) {
 			stopped := make(chan struct{})
 			mirrorRange := make(chan string, 1)
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if comparing(r) {
+					serve(w, r, data, true)
+					return
+				}
 				if !strings.HasPrefix(r.URL.Path, "/models/") {
 					if tc.headers {
 						w.WriteHeader(http.StatusPartialContent)
@@ -218,8 +240,7 @@ func TestStalledSource(t *testing.T) {
 					return
 				}
 				mirrorRange <- r.Header.Get("Range")
-				w.WriteHeader(http.StatusPartialContent)
-				w.Write(data[have+tc.bytes:])
+				serve(w, r, data, true)
 			}))
 			defer srv.Close()
 			m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
@@ -294,22 +315,7 @@ func TestMirrorWithAnotherFile(t *testing.T) {
 				if strings.HasPrefix(r.URL.Path, "/models/") {
 					body = other
 				}
-				from := 0
-				if rg := r.Header.Get("Range"); rg != "" {
-					from, _ = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(rg, "bytes="), "-"))
-					if from >= len(body) {
-						http.Error(w, "", http.StatusRequestedRangeNotSatisfiable)
-						return
-					}
-					w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", from, len(body)-1, len(body)))
-				}
-				if tc.length {
-					w.Header().Set("Content-Length", strconv.Itoa(len(body)-from))
-				}
-				if from > 0 {
-					w.WriteHeader(http.StatusPartialContent)
-				}
-				w.Write(body[from:])
+				serve(w, r, body, tc.length)
 			}))
 			defer srv.Close()
 			m := NewManager(t.TempDir(), ModelScopeFirst, nil)
@@ -324,6 +330,76 @@ func TestMirrorWithAnotherFile(t *testing.T) {
 				t.Errorf("downloaded %d bytes, want %d", len(got), len(data))
 			}
 		})
+	}
+}
+
+func TestResumeAnotherUpload(t *testing.T) {
+	data := []byte(strings.Repeat("the new upload ", 20000))
+	before := []byte(strings.Repeat("an old upload ", 20000))
+	withModel(t, data, sha(data))
+	var mu sync.Mutex
+	var ranges []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		ranges = append(ranges, r.Header.Get("Range"))
+		mu.Unlock()
+		serve(w, r, data, true)
+	}))
+	defer srv.Close()
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
+	defer m.Close()
+	redirect(m, srv)
+	os.WriteFile(m.Path("m")+".part", before[:100000], 0o644)
+	m.Download("m")
+	if st := wait(t, m, "m", Ready); st.Err != nil {
+		t.Fatalf("%+v", st)
+	}
+	if got, _ := os.ReadFile(m.Path("m")); string(got) != string(data) {
+		t.Errorf("downloaded %d bytes, want the new upload", len(got))
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if !slices.Equal(ranges, []string{fmt.Sprintf("bytes=0-%d", startCompared-1), ""}) {
+		t.Errorf("ranges %q", ranges)
+	}
+}
+
+func TestSlowStartCompared(t *testing.T) {
+	data := []byte(strings.Repeat("a model sent slowly ", 5))
+	withModel(t, data, sha(data))
+	const have = 40
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/models/") {
+			http.Error(w, "unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		if !comparing(r) {
+			serve(w, r, data, true)
+			return
+		}
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes 0-%d/%d", have-1, len(data)))
+		w.WriteHeader(http.StatusPartialContent)
+		for _, b := range data[:have] {
+			if _, err := w.Write([]byte{b}); err != nil {
+				return
+			}
+			w.(http.Flusher).Flush()
+			select {
+			case <-r.Context().Done():
+				return
+			case <-time.After(20 * time.Millisecond):
+			}
+		}
+	}))
+	defer srv.Close()
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
+	defer m.Close()
+	m.sampleInterval = 100 * time.Millisecond
+	redirect(m, srv)
+	os.WriteFile(m.Path("m")+".part", data[:have], 0o644)
+	m.Download("m")
+	if st := wait(t, m, "m", Ready); st.Err != nil {
+		t.Errorf("%+v", st)
 	}
 }
 
