@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.4
+
+Hy-MT3 translates on the device, and each scene can choose its own recognition and translation.
+Qwen3-ASR downloads again on systems in Chinese.
+
+### New
+
+- Hy-MT3 1.8B and 7B translate on the device, ahead of Hy-MT2 in one Hy-MT family: closer to
+  human subtitles, and a little sooner. A Hy-MT2 already downloaded stays and works as before; the
+  app no longer downloads it. ([#166](https://github.com/ACAne0320/Tomoru/pull/166))
+- Each scene can choose its own recognition and translation in Settings › Scenes, say a local
+  model for a game and the cloud for a stream. A scene that chooses nothing follows Speech &
+  translation, and one whose choice can't run now uses it and says so.
+  ([#167](https://github.com/ACAne0320/Tomoru/pull/167))
+
+### Improved
+
+- Play a sample in the guide speaks in Tomoru's own voice, in Japanese, Chinese, English or
+  Korean, instead of the system's, which had no voice where a language pack was missing; it now
+  plays on Linux too. ([12d0f3d](https://github.com/ACAne0320/Tomoru/commit/12d0f3d))
+- The first-run guide has no system title bar on macOS either.
+  ([b1c1f6f](https://github.com/ACAne0320/Tomoru/commit/b1c1f6f))
+
+### Fixed
+
+- Qwen3-ASR downloads again where ModelScope comes first: since its files were updated, the
+  download stopped near the end with "416 Requested Range Not Satisfiable" and started over. It
+  now downloads the latest files, and files downloaded before keep working.
+  ([#170](https://github.com/ACAne0320/Tomoru/pull/170))
+
 ## 0.2.3
 
 The settings window looks the same on every platform: the pages on cream paper, the sidebar a
