@@ -88,9 +88,10 @@ func TestDecode(t *testing.T) {
 			Role    string
 			Content json.RawMessage
 		}
-		Grammar     string
-		Logprobs    bool
-		TopLogprobs int `json:"top_logprobs"`
+		Grammar         string
+		Logprobs        bool
+		TopLogprobs     int    `json:"top_logprobs"`
+		ReasoningFormat string `json:"reasoning_format"`
 	}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&got)
@@ -107,8 +108,8 @@ func TestDecode(t *testing.T) {
 	if len(got.Messages) == 2 {
 		json.Unmarshal(got.Messages[0].Content, &system)
 	}
-	if len(got.Messages) != 2 || got.Messages[0].Role != "system" || system != "一心, 葦名" || got.Messages[1].Role != "user" || got.Grammar != "" || !got.Logprobs || got.TopLogprobs != topLogprobs {
-		t.Fatalf("messages %d, system %q, grammar %q, logprobs %v %d", len(got.Messages), system, got.Grammar, got.Logprobs, got.TopLogprobs)
+	if len(got.Messages) != 2 || got.Messages[0].Role != "system" || system != "一心, 葦名" || got.Messages[1].Role != "user" || got.Grammar != "" || !got.Logprobs || got.TopLogprobs != topLogprobs || got.ReasoningFormat != "none" {
+		t.Fatalf("messages %d, system %q, grammar %q, logprobs %v %d, reasoning %q", len(got.Messages), system, got.Grammar, got.Logprobs, got.TopLogprobs, got.ReasoningFormat)
 	}
 	got.Messages = got.Messages[1:]
 	var parts []struct {

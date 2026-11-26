@@ -80,7 +80,7 @@ wasn't faster, so the CPU is used.
 
 | ID | Model | Files | Size | Sources |
 |---|---|---|---|---|
-| `sensevoice-small` | SenseVoice Small int8 (`2024-07-17`) | `model.int8.onnx`, `tokens.txt` | 228 MB | Hugging Face `csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17` (sherpa-onnx's own); ModelScope `pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue`, with the same SHA-256 for every file |
+| `sensevoice-small` | SenseVoice Small int8 (`2024-07-17`) | `model.int8.onnx`, `tokens.txt` | 228 MB | Hugging Face `csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17` (sherpa-onnx's own); ModelScope `pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue`, each pinned to a commit with the same SHA-256 for every file |
 
 - ⚠️ The `int8-2025-09-09` version can't be used: with sherpa-onnx 1.13.8 every result is labeled
   Cantonese, and Japanese and Korean come out garbled.

@@ -274,6 +274,105 @@ func TestLastSourceKeepsSlowProgress(t *testing.T) {
 	wait(t, m, "m", Ready)
 }
 
+func TestMirrorWithAnotherFile(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		have   int
+		length bool
+	}{
+		{"whole", 0, true},
+		{"whole-unsized", 0, false},
+		{"rest", 1000, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data := []byte(strings.Repeat("tomoru ", 100000))
+			other := append([]byte("a newer upload "), data...)
+			withModel(t, data, sha(data))
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body := data
+				if strings.HasPrefix(r.URL.Path, "/models/") {
+					body = other
+				}
+				from := 0
+				if rg := r.Header.Get("Range"); rg != "" {
+					from, _ = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(rg, "bytes="), "-"))
+					if from >= len(body) {
+						http.Error(w, "", http.StatusRequestedRangeNotSatisfiable)
+						return
+					}
+					w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", from, len(body)-1, len(body)))
+				}
+				if tc.length {
+					w.Header().Set("Content-Length", strconv.Itoa(len(body)-from))
+				}
+				if from > 0 {
+					w.WriteHeader(http.StatusPartialContent)
+				}
+				w.Write(body[from:])
+			}))
+			defer srv.Close()
+			m := NewManager(t.TempDir(), ModelScopeFirst, nil)
+			defer m.Close()
+			redirect(m, srv)
+			if tc.have > 0 {
+				os.WriteFile(m.Path("m")+".part", data[:tc.have], 0o644)
+			}
+			m.Download("m")
+			wait(t, m, "m", Ready)
+			if got, _ := os.ReadFile(m.Path("m")); string(got) != string(data) {
+				t.Errorf("downloaded %d bytes, want %d", len(got), len(data))
+			}
+		})
+	}
+}
+
+func TestOlderFiles(t *testing.T) {
+	data, before := []byte("the new upload"), []byte("the old one")
+	old := All
+	All = []Model{{ID: "m", Files: []File{{"m.gguf", int64(len(data)), sha(data)}}, Older: []File{{"m.gguf", int64(len(before)), sha(before)}}, Size: int64(len(data)), Repo: "r"}}
+	t.Cleanup(func() { All = old })
+	asked := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { asked = true; w.Write(data) }))
+	defer srv.Close()
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
+	defer m.Close()
+	redirect(m, srv)
+	os.WriteFile(m.Path("m"), before, 0o644)
+	if st := m.Status("m"); st.State != Ready || st.Done != st.Total {
+		t.Fatalf("old upload: %+v", st)
+	}
+	m.Download("m")
+	if got, _ := os.ReadFile(m.Path("m")); asked || string(got) != string(before) {
+		t.Errorf("downloaded again: %v, %q", asked, got)
+	}
+	os.WriteFile(m.Path("m"), []byte("neither"), 0o644)
+	if st := m.Status("m"); st.State != Missing {
+		t.Errorf("another file: %+v", st)
+	}
+}
+
+func TestOlderNamesFiles(t *testing.T) {
+	for _, m := range All {
+		for _, o := range m.Older {
+			if !slices.ContainsFunc(m.Files, func(f File) bool { return f.Name == o.Name && f.Size != o.Size }) {
+				t.Errorf("%s: older %s is none of its files", m.ID, o.Name)
+			}
+		}
+	}
+}
+
+func TestPinnedRevisions(t *testing.T) {
+	commit := func(rev string) bool {
+		_, err := hex.DecodeString(rev)
+		return len(rev) == 40 && err == nil
+	}
+	for _, m := range All {
+		if !commit(m.Rev) || !commit(m.MSRev) {
+			t.Errorf("%s: Hugging Face %q, ModelScope %q", m.ID, m.Rev, m.MSRev)
+		}
+	}
+}
+
 func TestChecksum(t *testing.T) {
 	data := []byte("not the model")
 	withModel(t, data, sha([]byte("the model")))

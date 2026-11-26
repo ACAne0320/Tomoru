@@ -41,13 +41,22 @@ already say the rest.
     empty; not in MyGo's user data directory, which is the roaming profile on Windows and
     `~/.config` on Linux.
 11. `Model.URLs` (`models.go`) tries ModelScope first for a user in China, where Hugging Face is
-    slow or out of reach, and Hugging Face first elsewhere; both stay in the list.
+    slow or out of reach, and Hugging Face first elsewhere; both stay in the list. Each source is
+    pinned to the commit (`Rev`, `MSRev`) that has the files `models.All` lists, never a branch: in
+    November 2026 ggml-org uploaded new Qwen3-ASR files, ModelScope's copy followed, and its
+    `master` served files of another size and SHA-256 than the catalog's, still pinned on Hugging
+    Face to the old upload (#169). Moving to a new upload changes the pins and the catalog together;
+    when only its metadata changed, as for Qwen3-ASR, the old files stay in `Model.Older` and count
+    as downloaded, so nobody downloads the same weights again.
 12. `Manager.fetchFile` and `fetch` (`app/internal/models/download.go`): a source other than the
     last gives way to the next when its first 10 s came at under 1 MB/s, and the next goes on from
     the same byte. Every source gives up after a full 10 s with no progress, waiting for headers
     included; the last goes on however slow while it makes progress, and the download has no
     deadline. `fetchFile` closes the `.part` file before it returns: Windows renames and removes no
-    file that is open.
+    file that is open. A source whose response says the file has another size gives way before
+    anything is written, and one that sends more bytes than the file has empties the `.part`: its
+    bytes belong to another file, and the next source would otherwise be asked for a range past
+    the end.
 13. `moveFiles` (`app/internal/models/move.go`): a target that is the same directory by another
     name, as in another case on macOS, moves nothing, and its files aren't removed as moved.
 14. `models.All` (`models.go`): Index-Translate ships as Q4_K_M, which in our tests made the same
@@ -80,6 +89,7 @@ Each llama-server start costs one warm-up request, short once the driver has its
   `TestRemovedWhileRecording`.
 - `app/internal/usage/interval_test.go`: zones that skip or repeat midnight, and a skipped date.
 - `app/internal/models/models_test.go`: `TestSlowSource`, `TestStalledSource`,
-  `TestLastSourceKeepsSlowProgress`, `TestServerVision`.
+  `TestLastSourceKeepsSlowProgress`, `TestMirrorWithAnotherFile`, `TestPinnedRevisions`, `TestOlderFiles`,
+  `TestServerVision`.
 - `app/internal/models/move_test.go`: `TestMoveSameDir`.
 - `app/internal/models/server_test.go`: `TestWarm`, `TestWarmExit`.
