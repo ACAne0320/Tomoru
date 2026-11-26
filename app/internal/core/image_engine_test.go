@@ -82,7 +82,7 @@ func TestImageEngineMenu(t *testing.T) {
 	if got, want := ids(), []string{"cloud-2b", "cloud-9b", "cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("nothing downloaded: %q, want %q", got, want)
 	}
-	m.ready["local-2b"], m.ready["sensevoice-small"], m.ready["hy-mt2-1.8b"] = true, true, true
+	m.ready["local-2b"], m.ready["sensevoice-small"], m.ready["hy-mt3-1.8b"] = true, true, true
 	if got, want := ids(), []string{"local-2b", "cloud-2b", "cloud-9b", "cloud", "custom:new", "custom:sees"}; !slices.Equal(got, want) {
 		t.Errorf("2B downloaded: %q, want %q", got, want)
 	}
@@ -316,14 +316,14 @@ func TestEndpointNoPictures(t *testing.T) {
 		t.Fatalf("test %+v, %d pictures sent", r, pictures.Load())
 	}
 	if body, _ := line.Load().(string); !strings.Contains(body, "【待翻译文本】") {
-		t.Errorf("not asked as Hy-MT2: %.300s", body)
+		t.Errorf("not asked as Hy-MT: %.300s", body)
 	}
 	c.SaveEndpoint(e, "")
 	if c.Prefs.ImageMT != prefs.EndpointEngine(id) {
-		t.Errorf("saved as Hy-MT2: pictures with %q", c.Prefs.ImageMT)
+		t.Errorf("saved as Hy-MT: pictures with %q", c.Prefs.ImageMT)
 	}
 	if im := translatePicture(t, c, f); !errors.Is(im.Err, ErrNoVision) || pictures.Load() != 0 {
-		t.Errorf("saved as Hy-MT2, a picture: %+v, %d sent", im, pictures.Load())
+		t.Errorf("saved as Hy-MT, a picture: %+v, %d sent", im, pictures.Load())
 	}
 }
 

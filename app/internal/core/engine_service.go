@@ -415,7 +415,7 @@ func (s *EngineService) readyPending(endpoints []prefs.Endpoint, apis []prefs.Se
 	var ready []Engine
 	for kind, id := range s.pending {
 		found := false
-		for _, e := range engineCatalog(kind, endpoints) {
+		for _, e := range s.catalog(kind, endpoints) {
 			if e.ID != id {
 				continue
 			}

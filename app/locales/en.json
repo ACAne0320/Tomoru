@@ -1915,6 +1915,20 @@
       }
     }
   },
+  "askDeleteLegacyModel": "It can't be downloaded again.",
+  "@askDeleteLegacyModel": {
+    "description": "Under askDeleteModel, for a model no longer offered for download (an older one kept because it was downloaded before): once deleted it is gone for good."
+  },
+  "askDeleteLegacyModelInUse": "It's in use now, and {name} takes over. It can't be downloaded again.",
+  "@askDeleteLegacyModelInUse": {
+    "description": "Under askDeleteModel, for a model in use that is no longer offered for download: what takes over from it, and that once deleted it is gone for good.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate"
+      }
+    }
+  },
   "askDiscard": "Discard your changes?",
   "@askDiscard": {
     "description": "Asks, in a dialog's buttons' place, before closing it with changes not saved."

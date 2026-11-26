@@ -346,11 +346,14 @@ func TestFamilyRows(t *testing.T) {
 	g.Step, g.pendingStep = stepTranslation, stepTranslation
 	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
 	large, _ := models.ByID("local-9b")
-	hy, _ := models.ByID("hy-mt2-7b")
-	for _, want := range []string{"Index-Translate", "Hy-MT2", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large)), "7B · " + shared.ModelNote(hy, models.Status{}, k.Runs(hy))} {
-		if !tt.HasText(want) {
+	hy, _ := models.ByID("hy-mt3-7b")
+	for _, want := range []string{"Index-Translate", "Hy-MT", "9B · " + shared.ModelNote(large, models.Status{}, k.Runs(large)), "Hy-MT3 7B · " + shared.ModelNote(hy, models.Status{}, k.Runs(hy))} {
+		if _, ok := tt.Find(want); !ok {
 			t.Errorf("no %q in %q", want, tt.Texts())
 		}
+	}
+	if tt.HasText("Hy-MT2") {
+		t.Errorf("Hy-MT2 not downloaded, shown: %q", tt.Texts())
 	}
 	if n := strings.Count(strings.Join(tt.Texts(), "\n"), locales.TagRecommended()); n != 1 {
 		t.Errorf("%d recommended: %q", n, tt.Texts())
@@ -360,5 +363,33 @@ func TestFamilyRows(t *testing.T) {
 	small, _ := models.ByID("local-2b")
 	if !tt.HasText("2B · " + shared.ModelNote(small, models.Status{}, k.Runs(small))) {
 		t.Errorf("8 GB: %q", tt.Texts())
+	}
+}
+
+func TestHyMTRow(t *testing.T) {
+	k := coretest.NewWith(func(d *core.Deps) {
+		d.Models = &coretest.Models{St: map[string]models.Status{"hy-mt2-1.8b": {State: models.Ready}, "hy-mt2-7b": {State: models.Ready}}}
+		d.GPU = func() (uint64, bool) { return 12 << 30, true }
+		d.Memory = func() (uint64, bool) { return 16 << 30, true }
+	})
+	g := New(k, &coretest.Nav{})
+	g.Step, g.pendingStep = stepTranslation, stepTranslation
+	tt := ui.NewTester(g.View, ContentWidth, ContentHeight)
+	three, _ := models.ByID("hy-mt3-7b")
+	if _, ok := tt.Find("Hy-MT"); !ok || !tt.HasText("Hy-MT3 7B · "+shared.ModelNote(three, models.Status{}, k.Runs(three))) || tt.HasText("Hy-MT2") {
+		t.Errorf("Hy-MT2 downloaded: %q", tt.Texts())
+	}
+	if !k.Use(core.MT, "hy-mt2-7b") {
+		t.Fatal("Hy-MT2 7B not used")
+	}
+	tt.Frame()
+	two, _ := models.ByID("hy-mt2-7b")
+	if !tt.HasText("Hy-MT2 7B · "+shared.ModelNote(two, models.Status{State: models.Ready}, k.Runs(two))) || tt.HasText("Hy-MT3 7B") || k.Prefs.MT != "hy-mt2-7b" {
+		t.Errorf("Hy-MT2 7B chosen: in use %q, %q", k.Prefs.MT, tt.Texts())
+	}
+	for _, s := range tt.Texts() {
+		if strings.Contains(s, "Hy-MT Hy-MT") || strings.Contains(s, "· ·") || strings.Contains(s, "·  ·") {
+			t.Errorf("%q", s)
+		}
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strings"
 )
 
 type Model struct {
@@ -25,9 +26,15 @@ type Model struct {
 	Format            string
 	Projector         string
 	NoAbout           bool
+	Legacy            bool
 }
 
-func (m Model) Name() string { return m.Family + " " + m.Label }
+func (m Model) Name() string {
+	if strings.HasPrefix(m.Label, m.Family) {
+		return m.Label
+	}
+	return m.Family + " " + m.Label
+}
 
 func (m Model) Served() bool { return m.ASR && m.Runtime == RuntimeLlama }
 
@@ -82,12 +89,22 @@ var All = []Model{
 			{"Index-Translate-9B.Q4_K_M.gguf", 5780090304, "9cc6758b0007f4cbf42ea3400768cbff91ae74ef8d640e467158348426d33713"},
 			{"Index-Translate-9B.mmproj-Q8_0.gguf", 620690272, "0c654bbb219cea5dbb80656ec506e308c82b06aac7287f7636b9b6d06a44b957"},
 		}},
-	{ID: "hy-mt2-1.8b", Family: "Hy-MT2", Label: "1.8B", Size: 1133080448, Repo: "tencent/Hy-MT2-1.8B-GGUF", Needs: needsGB(8, 4),
+	{ID: "hy-mt3-1.8b", Family: "Hy-MT", Label: "Hy-MT3 1.8B", Size: 1348432160, Repo: "tencent/Hy-MT3-1.8B-GGUF", Needs: needsGB(8, 4),
+		ModelScope: "Tencent-Hunyuan/Hy-MT3-1.8B-GGUF", Rev: "4c4370b31f13ccac4ac71133e3a0967c88cc792c", MSRev: "7fcd657c45bf4dbff14080a75d091730b6f938f3", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT3-1.8B-Q4_K_M.gguf", 1348432160, "bae6e591103654ff43ef0de7d1492f6e6df1f955505f6bb2cc52e86fc399a942"},
+		}},
+	{ID: "hy-mt3-7b", Family: "Hy-MT", Label: "Hy-MT3 7B", Size: 5145531232, Repo: "tencent/Hy-MT3-7B-GGUF", Needs: needsGB(16, 8),
+		ModelScope: "Tencent-Hunyuan/Hy-MT3-7B-GGUF", Rev: "f7f0f5c2d4be781b49ec2cbb4a37a9588e5f0b41", MSRev: "f880d3e50feadc995ee8a8734b082c9e557002fb", Format: "hy-mt",
+		Files: []File{
+			{"Hy-MT3-7B-Q4_K_M.gguf", 5145531232, "e08a5098918c6615e1a84fbe714637237bfdc832e17761bdde4bb65878eb17c9"},
+		}},
+	{ID: "hy-mt2-1.8b", Family: "Hy-MT", Label: "Hy-MT2 1.8B", Size: 1133080448, Repo: "tencent/Hy-MT2-1.8B-GGUF", Needs: needsGB(8, 4), Legacy: true,
 		ModelScope: "Tencent-Hunyuan/Hy-MT2-1.8B-GGUF", Rev: "a0c709d9fac510f2c807aa3af52872340dc37a4a", MSRev: "e97e6af0ec0950385644d7c0a8e5c899071f722b", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT2-1.8B-Q4_K_M.gguf", 1133080448, "dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699"},
 		}},
-	{ID: "hy-mt2-7b", Family: "Hy-MT2", Label: "7B", Size: 4624648896, Repo: "tencent/Hy-MT2-7B-GGUF", Needs: needsGB(16, 8),
+	{ID: "hy-mt2-7b", Family: "Hy-MT", Label: "Hy-MT2 7B", Size: 4624648896, Repo: "tencent/Hy-MT2-7B-GGUF", Needs: needsGB(16, 8), Legacy: true,
 		ModelScope: "Tencent-Hunyuan/Hy-MT2-7B-GGUF", Rev: "ab8472660ac61fac25f1af43fac2599d52a8a775", MSRev: "47b1dd35c1f984e23ec7b3c72e5d01620dce8f40", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT2-7B-Q4_K_M.gguf", 4624648896, "9f96256500f3fc1ab4d64336b58f52a949a95ad7516b0c229476eef782f9f77b"},
