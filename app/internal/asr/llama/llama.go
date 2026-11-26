@@ -148,7 +148,7 @@ func (d *Decoder) ask(ctx context.Context, pcm []byte, grammar string) (reply, e
 		"data": base64.StdEncoding.EncodeToString(batch.WAV(pcm)), "format": "wav"}}
 	messages := []map[string]any{{"role": "system", "content": d.context}, {"role": "user", "content": []any{audio}}}
 	limit := tokensMore + tokensPerSecond*len(pcm)/(2*rate)
-	request := map[string]any{"messages": messages, "temperature": 0, "max_tokens": limit, "cache_prompt": false}
+	request := map[string]any{"messages": messages, "temperature": 0, "max_tokens": limit, "cache_prompt": false, "reasoning_format": "none"}
 	if grammar != "" {
 		request["grammar"] = grammar
 	} else if d.current.code != "" {

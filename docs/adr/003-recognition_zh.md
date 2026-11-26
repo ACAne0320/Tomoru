@@ -17,7 +17,7 @@
 5. `forced`（`batch.go`）：`Stop` 等待 runner 结束 `finishing`（5 秒）再加 1 秒，然后停掉解码器、结束进行中的解码，使卡死的 llama-server 不会让会话或正在退出的应用永远等下去。
 6. `Runner.early`（`batch.go`）把提前定稿切在句末标点与下一片之间的中点：一片的时间约在其中间，切在那里会丢掉下一个词的开头。
 7. `tokensPerSecond` 和 `tokensMore`（`app/internal/asr/llama/llama.go`）：Qwen3-ASR 每秒音频 12 个 token 再加 16 的上限，是对照真实语音定的：一段英文和中文访谈的 1,400 次解码中，语音每秒 3.6 个 token，第 99 百分位为 7。达到这个长度的回答是模型自说自话，例如在欢呼声上（3 秒欢呼写出 250 次 "Congratulations!"）。
-8. `Decoder.ask`（`llama.go`）总是发送 system 消息，没有上下文时为空：没有它，模型更常把噪声当成语音。
+8. `Decoder.ask`（`llama.go`）总是发送 system 消息，没有上下文时为空：没有它，模型更常把噪声当成语音。它还要求 `reasoning_format: none`：2026-11-21 上传的 Qwen3-ASR 文件的 chat template 以 `<asr_text>` 结束推理，llama-server 于是把 `language Japanese` 放进 `reasoning_content`，每个回答都没了语言，因而成了空的。加上这个参数后，新旧文件在四种语言的 20 段上给出相同的文字，指定语言和自动检测都一样。
 9. `TestErrors`（`app/internal/asr/openai/openai_test.go`）接受测得为 0 的往返时间：Windows 的时钟精度粗，本地往返可能读成 0。
 10. `Realtime.volatile`（`app/internal/asr/openai/realtime.go`）只发送到第一个已提交但文本未到的轮次为止的流式文本。短轮次的文本会晚到一秒，下一轮从 volatile 文本提交的句子曾排到它前面（《只狼》的「狼よ、」出现在它开头的那句之后）。
 11. `MaxVocabulary` 和 `weight`（`app/internal/asr/qwencloud/qwencloud.go`）：热词最多 100 个（服务允许 2000 个），权重为其 1 到 5 级中的 4（50 用于至多 50 个词的列表）。
@@ -32,6 +32,6 @@
 
 - `app/internal/asr/apple/apple_test.go`：`TestStill`、`TestClausePause`。
 - `app/internal/asr/batch/batch_test.go`：`TestBehind`、`TestStopStuck`、`TestEarly`。
-- `app/internal/asr/llama/llama_test.go`：`TestBound`。
+- `app/internal/asr/llama/llama_test.go`：`TestBound`、`TestDecode`。
 - `app/internal/asr/openai/realtime_test.go`：`TestRealtimeOrder`。
 - `app/internal/asr/qwencloud/qwencloud_test.go`：`TestIdleSound`、`TestAuth`。

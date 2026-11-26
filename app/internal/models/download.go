@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -148,7 +150,7 @@ func filePath(dir string, mod Model, f File) string { return filepath.Join(dir, 
 func have(dir string, mod Model) (done int64, all bool) {
 	all = true
 	for _, f := range mod.Files {
-		if fi, err := os.Stat(filePath(dir, mod, f)); err == nil && fi.Size() == f.Size {
+		if fi, err := os.Stat(filePath(dir, mod, f)); err == nil && mod.complete(f, fi.Size()) {
 			done += f.Size
 			continue
 		}
@@ -292,7 +294,7 @@ func (m *Manager) download(ctx context.Context, mod Model, j *job) error {
 
 func (m *Manager) downloadFile(ctx context.Context, mod Model, file File, j *job, before int64) error {
 	path := m.file(mod, file)
-	if fi, err := os.Stat(path); err == nil && fi.Size() == file.Size {
+	if fi, err := os.Stat(path); err == nil && mod.complete(file, fi.Size()) {
 		return nil
 	}
 	part := path + ".part"
@@ -404,7 +406,13 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusPartialContent:
+		if total := rangeTotal(resp.Header.Get("Content-Range")); total >= 0 && total != size {
+			return have, otherFile(url, total, size)
+		}
 	case http.StatusOK:
+		if resp.ContentLength >= 0 && resp.ContentLength != size {
+			return have, otherFile(url, resp.ContentLength, size)
+		}
 		have = 0
 		if err := f.Truncate(0); err != nil {
 			return have, err
@@ -419,6 +427,9 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 	var told time.Time
 	for {
 		n, rerr := resp.Body.Read(buf)
+		if have+int64(n) > size {
+			return 0, errors.Join(fmt.Errorf("models: %s sends more than %d bytes", url, size), f.Truncate(0))
+		}
 		if n > 0 {
 			if _, err := f.Write(buf[:n]); err != nil {
 				return have, err
@@ -442,6 +453,22 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 		return have, fmt.Errorf("models: %s ended at %d of %d bytes", url, have, size)
 	}
 	return have, nil
+}
+
+func otherFile(url string, got, want int64) error {
+	return fmt.Errorf("models: %s is %d bytes, not %d", url, got, want)
+}
+
+func rangeTotal(contentRange string) int64 {
+	_, total, ok := strings.Cut(contentRange, "/")
+	if !ok {
+		return -1
+	}
+	n, err := strconv.ParseInt(total, 10, 64)
+	if err != nil {
+		return -1
+	}
+	return n
 }
 
 func (m *Manager) set(f func()) {

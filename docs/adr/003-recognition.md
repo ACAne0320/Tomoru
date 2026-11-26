@@ -37,7 +37,11 @@ record only what [recognition](../recognition.md), [local ASR](../local-asr.md) 
    that long is the model going on by itself, as over cheering ("Congratulations!" 250 times for
    3 s).
 8. `Decoder.ask` (`llama.go`) always sends a system message, empty with no context: without one
-   the model took noise for speech more often.
+   the model took noise for speech more often. It also asks for `reasoning_format: none`: the
+   chat template of the Qwen3-ASR files uploaded on 2026-11-21 ends reasoning at `<asr_text>`, and
+   llama-server then put `language Japanese` in `reasoning_content`, which left every answer
+   without its language and so empty. With the flag, old and new files gave the same text on 20
+   stretches in four languages, told the language and Auto-detect alike.
 9. `TestErrors` (`app/internal/asr/openai/openai_test.go`) accepts a measured round trip of 0:
    Windows' clock is coarse enough for a local one to read as 0.
 10. `Realtime.volatile` (`app/internal/asr/openai/realtime.go`) sends streamed text only up to the
@@ -63,6 +67,6 @@ Qwen cloud connects, and bills, from the start of each session until it first ha
 
 - `app/internal/asr/apple/apple_test.go`: `TestStill`, `TestClausePause`.
 - `app/internal/asr/batch/batch_test.go`: `TestBehind`, `TestStopStuck`, `TestEarly`.
-- `app/internal/asr/llama/llama_test.go`: `TestBound`.
+- `app/internal/asr/llama/llama_test.go`: `TestBound`, `TestDecode`.
 - `app/internal/asr/openai/realtime_test.go`: `TestRealtimeOrder`.
 - `app/internal/asr/qwencloud/qwencloud_test.go`: `TestIdleSound`, `TestAuth`.

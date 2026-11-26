@@ -282,13 +282,13 @@ Qwen3-ASR 0.6B，2026-11-07 加入，给显存不够跑 1.7B 的 GPU：适配器
 | `apple` | 流式 | 在引擎里。`asr/apple` 的 `Finalizer` 告诉会话何时让引擎 `finalize`：临时结果 1.3 s 不变时；中文的分句结束得晚，在 0.2 s 的停顿处也定稿（原来断句器 `VoiceCuts` 做的事） |
 | `qwen-cloud` | 流式 | `cloudasr` 挪到 `asr/qwencloud`；静音挂断挪到 `asr`，所有计费的适配器共用 |
 | `sensevoice-small` | 整段 | `tomoru-asr serve`，自动检测时 `--lang auto`；有时间；临时解码间隔 0.4 s；Gap 和 Longest 按实测（现在 0.5 s、12 s；改用引擎的检测器前是 0.25 s，见 local-asr_zh.md） |
-| `qwen3-asr-0.6b`、`qwen3-asr-1.7b` | 整段 | llama-server 加载模型的音频投影器，用 chat 接口把这段作为 `input_audio` WAV 发过去；回复是 `language Japanese<asr_text>…`；语言由模型自己说，它确定不是会话的语言时照用（见“别的语言”），否则用语法把语言限定为会话的语言或 `None`（没有人声）再解一次；自动检测见“听到的语言”；始终带 system 消息（模型训练时的格式），放场景里的名字，没有就留空；`max_tokens` 按这一段的时长给（每秒 12 个，另加 16 个），用完的回答丢掉；没有时间。只用 GPU：CPU 跟不上 |
+| `qwen3-asr-0.6b`、`qwen3-asr-1.7b` | 整段 | llama-server 加载模型的音频投影器，用 chat 接口把这段作为 `input_audio` WAV 发过去，带 `reasoning_format: none`；回复是 `language Japanese<asr_text>…`；语言由模型自己说，它确定不是会话的语言时照用（见“别的语言”），否则用语法把语言限定为会话的语言或 `None`（没有人声）再解一次；自动检测见“听到的语言”；始终带 system 消息（模型训练时的格式），放场景里的名字，没有就留空；`max_tokens` 按这一段的时长给（每秒 12 个，另加 16 个），用完的回答丢掉；没有时间。只用 GPU：CPU 跟不上 |
 | `openai` | 流式 | 默认实时转写：WebSocket 会话，24 kHz，轮次由引擎的语音检测切分，每轮提交；`…transcription.delta` 作为临时结果，`…completed` 作为定稿，按条目提交的顺序，因为定稿可能乱序到达；计费 |
 | `openai` 填了别的模型 | 整段 | `POST {base}/v1/audio/transcriptions`，multipart WAV；`model`、`language`、`prompt`（上一段）；不做临时解码（每次解码都花钱且要往返）；Gap 0.5 s，Longest 5 s，降低延迟 |
 
 ### 两个 llama-server
 
-`models.Server` 只跑一个模型；本地识别加本地翻译的会话需要两个。app 为每个用途各保留一个服务，各用一个端口，选中时启动并预热（识别用一秒静音请求一次）。模型文件来自 `ggml-org/Qwen3-ASR-1.7B-GGUF`，Hugging Face 和 ModelScope 上同名，两边的 SHA-256 一致，也和上面实测用的文件一致（`Qwen3-ASR-1.7B-Q8_0.gguf` 2065 MB，`mmproj-Qwen3-ASR-1.7B-Q8_0.gguf` 339 MB）。`models.Model` 加 `Runtime`（`sherpa` 或 `llama`）和实测的 `Needs`：Qwen3-ASR 1.7B Q8_0 在 Mac 上 3.1 GB 内存，在 Windows 上 2.6 GB 显存；引擎页已经会给翻译模型显示这些。两个本地模型一起用时，8 GB 显存留给游戏的就不多了，引擎页要说明。
+`models.Server` 只跑一个模型；本地识别加本地翻译的会话需要两个。app 为每个用途各保留一个服务，各用一个端口，选中时启动并预热（识别用一秒静音请求一次）。模型文件来自 `ggml-org/Qwen3-ASR-1.7B-GGUF`，Hugging Face 和 ModelScope 上同名，两边都固定在 2026-11-21 的上传，SHA-256 一致；权重和上面实测用的文件相同，只改了名字和 chat template（`Qwen3-ASR-1.7B-Q8_0.gguf` 2065 MB，`mmproj-Qwen3-ASR-1.7B-Q8_0.gguf` 339 MB）。`models.Model` 加 `Runtime`（`sherpa` 或 `llama`）和实测的 `Needs`：Qwen3-ASR 1.7B Q8_0 在 Mac 上 3.1 GB 内存，在 Windows 上 2.6 GB 显存；引擎页已经会给翻译模型显示这些。两个本地模型一起用时，8 GB 显存留给游戏的就不多了，引擎页要说明。
 
 ### 设置
 

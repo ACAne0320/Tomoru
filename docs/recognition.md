@@ -466,7 +466,7 @@ Qwen3-ASR decodes a stretch whole; a slow GPU, decoding less often, sees it more
 | `apple` | Stream | In the engine. `asr/apple`'s `Finalizer` tells the session when to have the engine `finalize`: once the hypothesis has stood 1.3 s, and in Chinese, whose clauses it ends late, at 0.2 s pauses too (what the segmenter's `VoiceCuts` did) |
 | `qwen-cloud` | Stream | `cloudasr` moved to `asr/qwencloud`; the hang-up on silence moves to `asr` for every billed adapter |
 | `sensevoice-small` | Batch | `tomoru-asr serve`, `--lang auto` for Auto-detect; Timed; Volatile 0.4 s; Gap and Longest by measurement (now 0.5 s, 12 s; 0.25 s before the engine's detector, see local-asr.md) |
-| `qwen3-asr-0.6b`, `qwen3-asr-1.7b` | Batch | llama-server with the model's audio projector, chat API with the stretch as `input_audio` WAV; the reply is `language Japanese<asr_text>…`; the model tells the language, kept when it is sure that is not the session's (see Another language), else decoded again with a grammar limiting the language to the session's or `None`, no speech; for Auto-detect, see The language heard; a system message always, as the model was trained, with the scene's names or empty; `max_tokens` by the stretch's length (12 a second and 16), and an answer that uses them all is dropped; untimed. GPU only: on the CPU it falls behind |
+| `qwen3-asr-0.6b`, `qwen3-asr-1.7b` | Batch | llama-server with the model's audio projector, chat API with the stretch as `input_audio` WAV and `reasoning_format: none`; the reply is `language Japanese<asr_text>…`; the model tells the language, kept when it is sure that is not the session's (see Another language), else decoded again with a grammar limiting the language to the session's or `None`, no speech; for Auto-detect, see The language heard; a system message always, as the model was trained, with the scene's names or empty; `max_tokens` by the stretch's length (12 a second and 16), and an answer that uses them all is dropped; untimed. GPU only: on the CPU it falls behind |
 | `openai` | Stream | Realtime transcription by default: a WebSocket session, 24 kHz, turns by the engine's voice detection, each committed; `…transcription.delta` as volatile, `…completed` as final, in the commit order of items, as completions may come out of order; billed |
 | `openai` with another model | Batch | `POST {base}/v1/audio/transcriptions`, multipart WAV; `model`, `language`, `prompt` (the stretch before); Volatile 0 (each decode costs money and a round trip); Gap 0.5 s, Longest 5 s, for latency |
 
@@ -475,8 +475,9 @@ Qwen3-ASR decodes a stretch whole; a slow GPU, decoding less often, sees it more
 `models.Server` runs one model; a session with local recognition and local translation needs two.
 The app keeps a server per role, each on its own port, started and warmed (one request with a
 second of silence for recognition) when chosen. Its files come from `ggml-org/Qwen3-ASR-1.7B-GGUF`,
-by that name on both Hugging Face and ModelScope, the same SHA-256 on both and as the files measured
-above (`Qwen3-ASR-1.7B-Q8_0.gguf` 2065 MB, `mmproj-Qwen3-ASR-1.7B-Q8_0.gguf` 339 MB). `models.Model`
+by that name on both Hugging Face and ModelScope, each pinned to the upload of 2026-11-21 with the
+same SHA-256 on both; its weights are those of the files measured above, only its name and chat
+template changed (`Qwen3-ASR-1.7B-Q8_0.gguf` 2065 MB, `mmproj-Qwen3-ASR-1.7B-Q8_0.gguf` 339 MB). `models.Model`
 gets `Runtime` (`sherpa` or `llama`) and its measured `Needs`: 3.1 GB of memory on a Mac, 2.6 GB of VRAM on Windows for
 Qwen3-ASR 1.7B Q8_0, which the engines page already shows for translation models. Both local
 models together leave little of 8 GB of VRAM to a game; the page says so.

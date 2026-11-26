@@ -5,25 +5,28 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 )
 
 type Model struct {
-	ID                    string
-	Family, Label         string
-	Dir                   string
-	Files                 []File
-	Size                  int64
-	Repo, ModelScope, Rev string
-	Needs                 Needs
-	Recommended           bool
-	ASR                   bool
-	Runtime               Runtime
-	Langs                 []string
-	Format                string
-	Projector             string
-	NoAbout               bool
-	Legacy                bool
+	ID                string
+	Family, Label     string
+	Dir               string
+	Files             []File
+	Older             []File
+	Size              int64
+	Repo, Rev         string
+	ModelScope, MSRev string
+	Needs             Needs
+	Recommended       bool
+	ASR               bool
+	Runtime           Runtime
+	Langs             []string
+	Format            string
+	Projector         string
+	NoAbout           bool
+	Legacy            bool
 }
 
 func (m Model) Name() string {
@@ -36,6 +39,10 @@ func (m Model) Name() string {
 func (m Model) Served() bool { return m.ASR && m.Runtime == RuntimeLlama }
 
 func (m Model) MainFile() File { return m.Files[0] }
+
+func (m Model) complete(f File, size int64) bool {
+	return size == f.Size || slices.ContainsFunc(m.Older, func(o File) bool { return o.Name == f.Name && o.Size == size })
+}
 
 type Runtime string
 
@@ -70,35 +77,35 @@ var Qwen3ASRLangs = []string{
 }
 
 var All = []Model{
-	{ID: "local-2b", Family: "Index-Translate", Label: "2B", Size: 1312164352 + 361518144, Repo: "IndexTeam/Index-Translate-2B-GGUF", Needs: needsGB(8, 4), NoAbout: true,
+	{ID: "local-2b", Family: "Index-Translate", Label: "2B", Size: 1312164352 + 361518144, Repo: "IndexTeam/Index-Translate-2B-GGUF", Rev: "3a0eca6ce931d88d00614d427ab3ed8ff0743902", MSRev: "b92a7c7bf499a6f05da1a66fab8549da3de5b603", Needs: needsGB(8, 4), NoAbout: true,
 		Format: "index", Projector: "Index-Translate-2B.mmproj-Q8_0.gguf",
 		Files: []File{
 			{"Index-Translate-2B.Q4_K_M.gguf", 1312164352, "044b313d29342bd3b2c77cbb64023ca0d209bd9b3247763f9d162767ef2d746a"},
 			{"Index-Translate-2B.mmproj-Q8_0.gguf", 361518144, "b100ca29aaf437461d0b22ada7492d5d2dfeaa15959e329c4267598ddebe446d"},
 		}},
-	{ID: "local-9b", Family: "Index-Translate", Label: "9B", Size: 5780090304 + 620690272, Repo: "IndexTeam/Index-Translate-9B-GGUF", Needs: needsGB(16, 8), Recommended: true,
+	{ID: "local-9b", Family: "Index-Translate", Label: "9B", Size: 5780090304 + 620690272, Repo: "IndexTeam/Index-Translate-9B-GGUF", Rev: "645939fbab839a656f1bc39975a872bc8ad749f8", MSRev: "e97205e0e68986a643eab5ebfd75cebeb67234d0", Needs: needsGB(16, 8), Recommended: true,
 		Format: "index", Projector: "Index-Translate-9B.mmproj-Q8_0.gguf",
 		Files: []File{
 			{"Index-Translate-9B.Q4_K_M.gguf", 5780090304, "9cc6758b0007f4cbf42ea3400768cbff91ae74ef8d640e467158348426d33713"},
 			{"Index-Translate-9B.mmproj-Q8_0.gguf", 620690272, "0c654bbb219cea5dbb80656ec506e308c82b06aac7287f7636b9b6d06a44b957"},
 		}},
 	{ID: "hy-mt3-1.8b", Family: "Hy-MT", Label: "Hy-MT3 1.8B", Size: 1348432160, Repo: "tencent/Hy-MT3-1.8B-GGUF", Needs: needsGB(8, 4),
-		ModelScope: "Tencent-Hunyuan/Hy-MT3-1.8B-GGUF", Rev: "4c4370b31f13ccac4ac71133e3a0967c88cc792c", Format: "hy-mt",
+		ModelScope: "Tencent-Hunyuan/Hy-MT3-1.8B-GGUF", Rev: "4c4370b31f13ccac4ac71133e3a0967c88cc792c", MSRev: "7fcd657c45bf4dbff14080a75d091730b6f938f3", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT3-1.8B-Q4_K_M.gguf", 1348432160, "bae6e591103654ff43ef0de7d1492f6e6df1f955505f6bb2cc52e86fc399a942"},
 		}},
 	{ID: "hy-mt3-7b", Family: "Hy-MT", Label: "Hy-MT3 7B", Size: 5145531232, Repo: "tencent/Hy-MT3-7B-GGUF", Needs: needsGB(16, 8),
-		ModelScope: "Tencent-Hunyuan/Hy-MT3-7B-GGUF", Rev: "f7f0f5c2d4be781b49ec2cbb4a37a9588e5f0b41", Format: "hy-mt",
+		ModelScope: "Tencent-Hunyuan/Hy-MT3-7B-GGUF", Rev: "f7f0f5c2d4be781b49ec2cbb4a37a9588e5f0b41", MSRev: "f880d3e50feadc995ee8a8734b082c9e557002fb", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT3-7B-Q4_K_M.gguf", 5145531232, "e08a5098918c6615e1a84fbe714637237bfdc832e17761bdde4bb65878eb17c9"},
 		}},
 	{ID: "hy-mt2-1.8b", Family: "Hy-MT", Label: "Hy-MT2 1.8B", Size: 1133080448, Repo: "tencent/Hy-MT2-1.8B-GGUF", Needs: needsGB(8, 4), Legacy: true,
-		ModelScope: "Tencent-Hunyuan/Hy-MT2-1.8B-GGUF", Rev: "a0c709d9fac510f2c807aa3af52872340dc37a4a", Format: "hy-mt",
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-1.8B-GGUF", Rev: "a0c709d9fac510f2c807aa3af52872340dc37a4a", MSRev: "e97e6af0ec0950385644d7c0a8e5c899071f722b", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT2-1.8B-Q4_K_M.gguf", 1133080448, "dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699"},
 		}},
 	{ID: "hy-mt2-7b", Family: "Hy-MT", Label: "Hy-MT2 7B", Size: 4624648896, Repo: "tencent/Hy-MT2-7B-GGUF", Needs: needsGB(16, 8), Legacy: true,
-		ModelScope: "Tencent-Hunyuan/Hy-MT2-7B-GGUF", Rev: "ab8472660ac61fac25f1af43fac2599d52a8a775", Format: "hy-mt",
+		ModelScope: "Tencent-Hunyuan/Hy-MT2-7B-GGUF", Rev: "ab8472660ac61fac25f1af43fac2599d52a8a775", MSRev: "47b1dd35c1f984e23ec7b3c72e5d01620dce8f40", Format: "hy-mt",
 		Files: []File{
 			{"Hy-MT2-7B-Q4_K_M.gguf", 4624648896, "9f96256500f3fc1ab4d64336b58f52a949a95ad7516b0c229476eef782f9f77b"},
 		}},
@@ -106,21 +113,30 @@ var All = []Model{
 		Repo:       "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",
 		Rev:        "2365baeacb507f821a0c8120fcee3d484dba7a07",
 		ModelScope: "pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue",
+		MSRev:      "73eca47697f980daa3d16112404174b6b950b514",
 		Files: []File{
 			{"model.int8.onnx", 239233841, "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"},
 			{"tokens.txt", 315894, "f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc"},
 		}},
-	{ID: "qwen3-asr-0.6b", Family: "Qwen3-ASR", Label: "0.6B", Dir: "qwen3-asr-0.6b", Size: 804749248 + 214392480, ASR: true, Runtime: RuntimeLlama, Langs: Qwen3ASRLangs,
-		Repo: "ggml-org/Qwen3-ASR-0.6B-GGUF", Rev: "928ab958557df9aa2ef1c93e0e83c7ad0933fae2", Needs: needsGB(2, 2),
+	{ID: "qwen3-asr-0.6b", Family: "Qwen3-ASR", Label: "0.6B", Dir: "qwen3-asr-0.6b", Size: 804749536 + 214392544, ASR: true, Runtime: RuntimeLlama, Langs: Qwen3ASRLangs,
+		Repo: "ggml-org/Qwen3-ASR-0.6B-GGUF", Rev: "b98bf4381df3b400b929dcaff0dc83b6dafe221b", MSRev: "0d9f3fc743e072629872858883bca089035aff1e", Needs: needsGB(2, 2),
 		Projector: "mmproj-Qwen3-ASR-0.6B-Q8_0.gguf",
 		Files: []File{
+			{"Qwen3-ASR-0.6B-Q8_0.gguf", 804749536, "05c9e10cecb37f6fc0cac0e786195dba82f12c15021f0b8a09473dbf3b6f090d"},
+			{"mmproj-Qwen3-ASR-0.6B-Q8_0.gguf", 214392544, "3b5e371a03e7d14bc1b5a66f38ff3c5eec3a99b3f96deb72b3814da9adafb16d"},
+		},
+		Older: []File{
 			{"Qwen3-ASR-0.6B-Q8_0.gguf", 804749248, "bca259818b50ca7c4c05e9bdb35a5dc04fa039653a6d6f3f0f331f96f6aa1971"},
 			{"mmproj-Qwen3-ASR-0.6B-Q8_0.gguf", 214392480, "41a342b5e4c514e968cb756de6cd1b7be39eff43c44c57a2ef5fc6522e36603d"},
 		}},
-	{ID: "qwen3-asr-1.7b", Family: "Qwen3-ASR", Label: "1.7B", Dir: "qwen3-asr-1.7b", Size: 2165034944 + 355709344, ASR: true, Runtime: RuntimeLlama, Langs: Qwen3ASRLangs,
-		Repo: "ggml-org/Qwen3-ASR-1.7B-GGUF", Rev: "36a678687ba7d07a74ca70ccb0e36902e005fb80", Needs: needsGB(4, 3), Recommended: true,
+	{ID: "qwen3-asr-1.7b", Family: "Qwen3-ASR", Label: "1.7B", Dir: "qwen3-asr-1.7b", Size: 2165035232 + 355709376, ASR: true, Runtime: RuntimeLlama, Langs: Qwen3ASRLangs,
+		Repo: "ggml-org/Qwen3-ASR-1.7B-GGUF", Rev: "3b2c29585c2180452ccb14d3b6b58127f352400d", MSRev: "cb3c7bffeb9af54ad88cf0e7a7168f25f6aa1827", Needs: needsGB(4, 3), Recommended: true,
 		Projector: "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf",
 		Files: []File{
+			{"Qwen3-ASR-1.7B-Q8_0.gguf", 2165035232, "cd5f5ce9d7c9c03ff47d54d7f2726e63a39e61e3001640c5d08b6e4d3aed1e6d"},
+			{"mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", 355709376, "24eaf9a96fa94fe36ed0c1de68d44cccdb3f2229ee614e5b1b5bab951bc37883"},
+		},
+		Older: []File{
 			{"Qwen3-ASR-1.7B-Q8_0.gguf", 2165034944, "58e22d0532d4eacaf034cfac17a6fed159f37c41390c710186783be439d1fc57"},
 			{"mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", 355709344, "46c1d533af3f354ceb37ce855dbceff7da7fa7cf1e6a523df3b13440bd164c0d"},
 		}},
@@ -136,15 +152,12 @@ func ByID(id string) (Model, bool) {
 }
 
 func (m Model) URLs(f File, order MirrorOrder) []string {
-	rev, msRepo := m.Rev, m.ModelScope
-	if rev == "" {
-		rev = "main"
-	}
+	msRepo := m.ModelScope
 	if msRepo == "" {
 		msRepo = m.Repo
 	}
-	hf := "https://huggingface.co/" + m.Repo + "/resolve/" + rev + "/" + f.Name
-	ms := "https://modelscope.cn/models/" + msRepo + "/resolve/master/" + f.Name
+	hf := "https://huggingface.co/" + m.Repo + "/resolve/" + m.Rev + "/" + f.Name
+	ms := "https://modelscope.cn/models/" + msRepo + "/resolve/" + m.MSRev + "/" + f.Name
 	if order == ModelScopeFirst {
 		return []string{ms, hf}
 	}

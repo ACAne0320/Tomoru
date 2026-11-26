@@ -44,7 +44,7 @@ SenseVoice 是离线模型，所以用"VAD 切段 + 周期重解码"模拟流式
 
 | ID | 模型 | 文件 | 大小 | 来源 |
 |---|---|---|---|---|
-| `sensevoice-small` | SenseVoice Small int8（`2024-07-17`） | `model.int8.onnx`、`tokens.txt` | 228 MB | Hugging Face `csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`（sherpa-onnx 官方）；ModelScope `pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue`，两边文件的 SHA-256 一致 |
+| `sensevoice-small` | SenseVoice Small int8（`2024-07-17`） | `model.int8.onnx`、`tokens.txt` | 228 MB | Hugging Face `csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`（sherpa-onnx 官方）；ModelScope `pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue`，两边各固定在一个提交上，文件的 SHA-256 一致 |
 
 - ⚠️ 不能用 `int8-2025-09-09` 版：配 sherpa-onnx 1.13.8 时所有结果都会标成粤语，日语、韩语输出乱码。
 - 模型清单从"一个模型一个文件"改成"一个模型多个文件"，每个文件单独校验 SHA-256、断点续传。识别模型放在 `models/<id>/` 子目录里。
