@@ -364,6 +364,45 @@ func TestResumeAnotherUpload(t *testing.T) {
 	}
 }
 
+func TestSlowStartCompared(t *testing.T) {
+	data := []byte(strings.Repeat("a model sent slowly ", 5))
+	withModel(t, data, sha(data))
+	const have = 40
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/models/") {
+			http.Error(w, "unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		if !comparing(r) {
+			serve(w, r, data, true)
+			return
+		}
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes 0-%d/%d", have-1, len(data)))
+		w.WriteHeader(http.StatusPartialContent)
+		for _, b := range data[:have] {
+			if _, err := w.Write([]byte{b}); err != nil {
+				return
+			}
+			w.(http.Flusher).Flush()
+			select {
+			case <-r.Context().Done():
+				return
+			case <-time.After(20 * time.Millisecond):
+			}
+		}
+	}))
+	defer srv.Close()
+	m := NewManager(t.TempDir(), HuggingFaceFirst, nil)
+	defer m.Close()
+	m.sampleInterval = 100 * time.Millisecond
+	redirect(m, srv)
+	os.WriteFile(m.Path("m")+".part", data[:have], 0o644)
+	m.Download("m")
+	if st := wait(t, m, "m", Ready); st.Err != nil {
+		t.Errorf("%+v", st)
+	}
+}
+
 func TestOlderFiles(t *testing.T) {
 	data, before := []byte("the new upload"), []byte("the old one")
 	old := All

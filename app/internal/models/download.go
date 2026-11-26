@@ -394,7 +394,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 		return err
 	}
 	if have > 0 {
-		same, err := m.startMatches(requestCtx, url, f, size)
+		same, err := m.startMatches(requestCtx, url, f, size, &received)
 		if err != nil {
 			return have, requestError(err)
 		}
@@ -471,7 +471,7 @@ func (m *Manager) fetch(ctx context.Context, url string, f *os.File, have, size 
 
 const startCompared = 64 << 10
 
-func (m *Manager) startMatches(ctx context.Context, url string, f *os.File, size int64) (bool, error) {
+func (m *Manager) startMatches(ctx context.Context, url string, f *os.File, size int64, received *atomic.Int64) (bool, error) {
 	fi, err := f.Stat()
 	if err != nil {
 		return false, err
@@ -500,13 +500,24 @@ func (m *Manager) startMatches(ctx context.Context, url string, f *os.File, size
 		return false, fmt.Errorf("models: %s: %s", url, resp.Status)
 	}
 	theirs, ours := make([]byte, n), make([]byte, n)
-	if _, err := io.ReadFull(resp.Body, theirs); err != nil {
+	if _, err := io.ReadFull(counted{resp.Body, received}, theirs); err != nil {
 		return false, err
 	}
 	if _, err := f.ReadAt(ours, 0); err != nil {
 		return false, err
 	}
 	return bytes.Equal(ours, theirs), nil
+}
+
+type counted struct {
+	r io.Reader
+	n *atomic.Int64
+}
+
+func (c counted) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n.Add(int64(n))
+	return n, err
 }
 
 func otherFile(url string, got, want int64) error {

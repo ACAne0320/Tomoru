@@ -59,6 +59,7 @@ already say the rest.
     the end. Before going on from a `.part`, `startMatches` asks the source for its first 64 KiB
     and starts over if they differ from the part's: a part begun on an older upload of the same
     size or less, as 0.2.3's Qwen3-ASR, would otherwise come out damaged after the whole download.
+    Those bytes count as progress, so a slow last source still gets through them.
 13. `moveFiles` (`app/internal/models/move.go`): a target that is the same directory by another
     name, as in another case on macOS, moves nothing, and its files aren't removed as moved.
 14. `models.All` (`models.go`): Index-Translate ships as Q4_K_M, which in our tests made the same
@@ -93,6 +94,6 @@ Each llama-server start costs one warm-up request, short once the driver has its
 - `app/internal/usage/interval_test.go`: zones that skip or repeat midnight, and a skipped date.
 - `app/internal/models/models_test.go`: `TestSlowSource`, `TestStalledSource`,
   `TestLastSourceKeepsSlowProgress`, `TestMirrorWithAnotherFile`, `TestResumeAnotherUpload`,
-  `TestPinnedRevisions`, `TestOlderFiles`, `TestServerVision`.
+  `TestSlowStartCompared`, `TestPinnedRevisions`, `TestOlderFiles`, `TestServerVision`.
 - `app/internal/models/move_test.go`: `TestMoveSameDir`.
 - `app/internal/models/server_test.go`: `TestWarm`, `TestWarmExit`.
