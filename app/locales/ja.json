@@ -376,6 +376,8 @@
   "askDeleteModelDetail": "また使うには再ダウンロード（{size}）が必要です。",
   "askDeleteModelInUse": "使用中のため、削除すると {name} に切り替わります。また使うには再ダウンロード（{size}）が必要です。",
   "askDeleteModelLast": "使用中のため、削除すると別の認識を設定するまで音声を聞き取れません。また使うには再ダウンロード（{size}）が必要です。",
+  "askDeleteLegacyModel": "もう一度ダウンロードすることはできません。",
+  "askDeleteLegacyModelInUse": "使用中のため、削除すると {name} に切り替わります。もう一度ダウンロードすることはできません。",
   "askDiscard": "変更を破棄しますか？",
   "keepEditing": "編集を続ける",
   "discard": "破棄",

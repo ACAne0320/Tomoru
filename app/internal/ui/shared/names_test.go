@@ -46,6 +46,10 @@ func TestEngineName(t *testing.T) {
 		"local-9b":         "Index-Translate 9B",
 		"sensevoice-small": "SenseVoice Small",
 		"qwen3-asr-1.7b":   "Qwen3-ASR 1.7B",
+		"hy-mt3-1.8b":      "Hy-MT3 1.8B",
+		"hy-mt3-7b":        "Hy-MT3 7B",
+		"hy-mt2-1.8b":      "Hy-MT2 1.8B",
+		"hy-mt2-7b":        "Hy-MT2 7B",
 	} {
 		m, _ := models.ByID(id)
 		if got := EngineName(core.Engine{ID: id, Model: &m}); got != want {
@@ -55,11 +59,30 @@ func TestEngineName(t *testing.T) {
 			t.Errorf("%s by its ID: %q, want %q", id, got, want)
 		}
 	}
+	for _, m := range models.All {
+		if got := m.Name(); strings.Contains(got, "Hy-MT Hy-MT") || !strings.HasPrefix(m.Label, m.Family) && got != m.Family+" "+m.Label {
+			t.Errorf("%s: %q", m.ID, got)
+		}
+	}
 	if got := EngineName(core.Engine{ID: "cloud"}); got != CloudName {
 		t.Errorf("the cloud: %q", got)
 	}
 	if got := EngineName(core.Engine{ID: "custom:gone"}); got != locales.EngineDeleted() {
 		t.Errorf("a deleted API: %q", got)
+	}
+}
+
+func TestSizeNote(t *testing.T) {
+	for id, want := range map[string]string{
+		"hy-mt3-1.8b": locales.SizeQuicker(),
+		"hy-mt3-7b":   locales.SizeMoreAccurate(),
+		"hy-mt2-1.8b": "",
+		"hy-mt2-7b":   "",
+	} {
+		m, _ := models.ByID(id)
+		if got := SizeNote(m); got != want {
+			t.Errorf("%s: %q, want %q", id, got, want)
+		}
 	}
 }
 

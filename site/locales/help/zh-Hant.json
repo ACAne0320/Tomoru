@@ -51,7 +51,7 @@
     },
     "mt": {
       "title": "翻譯模型",
-      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>Mac 記憶體 / Windows、Linux 顯示記憶體</th><th>翻譯螢幕文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>能</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>能</td></tr><tr><td>Hy-MT2 1.8B</td><td>1.1 GB</td><td>8 GB / 4 GB</td><td>不能</td></tr><tr><td>Hy-MT2 7B</td><td>4.3 GB</td><td>16 GB / 8 GB</td><td>不能</td></tr></tbody></table><p>大的更準，小的更快。Mac 的顯示卡和系統共用記憶體，所以看記憶體；Windows 和 Linux 上模型在顯示卡上執行，看的是顯示記憶體。這些是估計值，電腦不夠時 app 會提示。</p>"
+      "body": "<table><thead><tr><th>模型</th><th>大小</th><th>Mac 記憶體 / Windows、Linux 顯示記憶體</th><th>翻譯螢幕文字</th></tr></thead><tbody><tr><td>Index-Translate 2B</td><td>1.6 GB</td><td>8 GB / 4 GB</td><td>能</td></tr><tr><td>Index-Translate 9B</td><td>6.0 GB</td><td>16 GB / 8 GB</td><td>能</td></tr><tr><td>Hy-MT3 1.8B</td><td>1.3 GB</td><td>8 GB / 4 GB</td><td>不能</td></tr><tr><td>Hy-MT3 7B</td><td>4.8 GB</td><td>16 GB / 8 GB</td><td>不能</td></tr></tbody></table><p>大的更準，小的更快。Mac 的顯示卡和系統共用記憶體，所以看記憶體；Windows 和 Linux 上模型在顯示卡上執行，看的是顯示記憶體。這些是估計值，電腦不夠時 app 會提示。</p><p>以前下載過的 Hy-MT2 1.8B 和 7B 可以繼續用。app 裡已不再提供，刪除後無法在 app 裡重新下載。</p>"
     },
     "where": {
       "title": "模型存在哪裡",

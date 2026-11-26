@@ -67,14 +67,14 @@ Pictures have an engine of their own (`Preferences.ImageMT`), apart from the sub
 (`Preferences.MT`): some engines read no pictures, as most text-only APIs a user adds. It is
 always an explicit choice, in Speech & translation › Picture translation, from a menu of the
 engines that read pictures now (`Core.ImageEngines`), under Cloud and On device as in the engines' list: Index-Translate in the cloud in each size, 2B, 9B and 35B (35B the
-default; the service's model list says only 35B reads pictures, but each does, 2026-11-10), the local models with a vision projector once downloaded (Index-Translate 2B and 9B; Hy-MT2 has none, nor has its service on Tencent Cloud), and the user's APIs but those whose test found
-they read none and those prompted as Hy-MT2, a model that reads none (`Format.ReadsPictures`). The picture's shortcut is in that group too, as in Preferences.
+default; the service's model list says only 35B reads pictures, but each does, 2026-11-10), the local models with a vision projector once downloaded (Index-Translate 2B and 9B; Hy-MT3 has none, nor has Hy-MT2 on Tencent Cloud), and the user's APIs but those whose test found
+they read none and those prompted as Hy-MT, a format whose models read none (`Format.ReadsPictures`). The picture's shortcut is in that group too, as in Preferences.
 
 - **Settings from before**: an empty `ImageMT` is set once, at launch, from `MT` where that reads
   pictures (a local model with a vision projector, an API not found to read none), else the cloud. In the first-run guide,
   choosing the translation engine chooses it for pictures too, where it reads them.
 - **Testing an API**: the add/edit API dialog's Test sends, alongside the sample sentence, a small
-  picture of it (`testPicture`); to an API prompted as Hy-MT2 it sends none
+  picture of it (`testPicture`); to an API prompted as Hy-MT it sends none
   (`translate.ErrNoPictures`), and the result says it reads none. When the sentence comes back, the picture's answer says whether
   the API reads pictures: translated, it does; a client error (400 at DeepSeek) or 500 (a
   llama-server without a vision projector) and it does not, but not 429 or a gateway or busy server's 502–504; anything else, not known. The

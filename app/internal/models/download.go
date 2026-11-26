@@ -190,7 +190,7 @@ func onDisk(dir string, mod Model) Status {
 
 func (m *Manager) Download(id string) {
 	mod, ok := ByID(id)
-	if !ok {
+	if !ok || mod.Legacy {
 		return
 	}
 	if m.Status(id).State != Missing {
