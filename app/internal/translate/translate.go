@@ -58,7 +58,7 @@ var (
 		askNoThinking: true,
 	}
 	HyMT = &Format{
-		ID: "hy-mt", Name: "Hy-MT2",
+		ID: "hy-mt", Name: "Hy-MT",
 		prompt: func(r Request) []message { return []message{{"user", hymtPrompt(r)}} },
 	}
 )

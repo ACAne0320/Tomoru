@@ -61,6 +61,6 @@ The release check still rejects a local `replace` of MyGo.
   the Feather MIT notice. Use the same version's notice when refreshing icons.
 
 The runtime notices do not grant rights to redistribute downloaded SenseVoice,
-Index-Translate or Hy-MT2 weights, or externally sourced benchmark media. Review their
+Index-Translate or Hy-MT3 weights, or externally sourced benchmark media. Review their
 own model cards and licenses before redistributing those files. Ordinary model
 downloads and local benchmark inputs remain separate from the release archive.

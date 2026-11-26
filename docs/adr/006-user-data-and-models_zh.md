@@ -23,7 +23,7 @@
 11. `Model.URLs`（`models.go`）对中国用户先试 ModelScope，因为那里 Hugging Face 慢或无法访问；其他地区先试 Hugging Face；两者都留在列表中。
 12. `Manager.fetchFile` 和 `fetch`（`app/internal/models/download.go`）：不是最后一个的下载源，若前 10 秒平均低于 1 MB/s，就让给下一个，下一个从同一字节续传。任何源在整整 10 秒没有进展（包括等待响应头）后放弃；最后一个源只要有进展，再慢也继续，整个下载没有总期限。`fetchFile` 返回前关闭 `.part` 文件：Windows 不能重命名或删除打开着的文件。
 13. `moveFiles`（`app/internal/models/move.go`）：目标是换了名字的同一个目录（例如 macOS 上大小写不同）时，什么也不移动，也不把其中的文件当作已移走而删除。
-14. `models.All`（`models.go`）：Index-Translate 以 Q4_K_M 发布，在我们的测试中它与 Q8_0 犯同样的错误，体积不到三分之二，视觉投影器为 Q8_0。Hy-MT2 同样是 Q4_K_M，在这里的 llama-server 参数下，占用内存与同尺寸的 Index-Translate 相当（M5 上 Metal 内存：1.8B 1380 MiB，2B 1389；7B 5043，9B 5257）。
+14. `models.All`（`models.go`）：Index-Translate 以 Q4_K_M 发布，在我们的测试中它与 Q8_0 犯同样的错误，体积不到三分之二，视觉投影器为 Q8_0。Hy-MT2 同样是 Q4_K_M，在这里的 llama-server 参数下，占用内存与同尺寸的 Index-Translate 相当（M5 上 Metal 内存：1.8B 1380 MiB，2B 1389；7B 5043，9B 5257）。Hy-MT3 也是 Q4_K_M，占用稍多（1.8B 1586 MiB，7B 5540），需要的内存不变（[ADR 011](011-hy-mt3-on-device_zh.md)）。
 15. `Server.start`（`app/internal/models/server.go`）以 `--cache-ram 0` 运行 llama-server：提示缓存在几百行内让占用涨到 7 GB，速度却没有提升。
 16. `Server.ensure` 和 `process.wait`（`server.go`）：为加载视觉投影器而在同一端口重启的服务器，若拿不回该端口，就换一个端口启动。`wait` 通过 `/v1/models` 确认应答的是我们的服务器和我们的模型：其间可能有别的程序占用了该端口。
 17. `process.warm`（`server.go`）每次启动都用一个与应用请求相同形式的请求预热服务器（一句话；有投影器时再加一张图片）。GPU 第一次运行时，Vulkan 要花 10 到 40 秒构建程序，驱动会把它们存在磁盘上，但应用无从得知是否已经存过。该请求有自己的 2 分钟 context，调用方放弃后仍会完成，让下次启动不必重新构建；失败只会让第一次翻译变慢。

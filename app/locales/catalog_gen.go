@@ -5605,6 +5605,44 @@ func (msgs Messages) AskDeleteModelLast(size string) string {
 	return Catalog.Format(msgs.locale, "askDeleteModelLast", map[string]any{"size": size})
 }
 
+// AskDeleteLegacyModel says "It can't be downloaded again."
+// in the language the app shows.
+//
+// Under askDeleteModel, for a model no longer offered for download (an
+// older one kept because it was downloaded before): once deleted it is gone
+// for good.
+func AskDeleteLegacyModel() string { return In(i18n.Locale()).AskDeleteLegacyModel() }
+
+// AskDeleteLegacyModel says "It can't be downloaded again."
+// in the language of msgs.
+//
+// Under askDeleteModel, for a model no longer offered for download (an
+// older one kept because it was downloaded before): once deleted it is gone
+// for good.
+func (msgs Messages) AskDeleteLegacyModel() string {
+	return Catalog.Format(msgs.locale, "askDeleteLegacyModel", nil)
+}
+
+// AskDeleteLegacyModelInUse says "It's in use now, and {name} takes over. It can't be downloaded again."
+// in the language the app shows.
+//
+// Under askDeleteModel, for a model in use that is no longer offered for
+// download: what takes over from it, and that once deleted it is gone for
+// good.
+func AskDeleteLegacyModelInUse(name string) string {
+	return In(i18n.Locale()).AskDeleteLegacyModelInUse(name)
+}
+
+// AskDeleteLegacyModelInUse says "It's in use now, and {name} takes over. It can't be downloaded again."
+// in the language of msgs.
+//
+// Under askDeleteModel, for a model in use that is no longer offered for
+// download: what takes over from it, and that once deleted it is gone for
+// good.
+func (msgs Messages) AskDeleteLegacyModelInUse(name string) string {
+	return Catalog.Format(msgs.locale, "askDeleteLegacyModelInUse", map[string]any{"name": name})
+}
+
 // AskDiscard says "Discard your changes?"
 // in the language the app shows.
 //

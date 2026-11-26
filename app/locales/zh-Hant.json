@@ -379,6 +379,8 @@
   "askDeleteModelDetail": "之後要用需要重新下載（{size}）。",
   "askDeleteModelInUse": "它正在使用，刪除後改用 {name}。之後要用需要重新下載（{size}）。",
   "askDeleteModelLast": "它正在使用，刪除後在另設一個之前沒有辨識可用。之後要用需要重新下載（{size}）。",
+  "askDeleteLegacyModel": "刪除後不能再下載。",
+  "askDeleteLegacyModelInUse": "它正在使用，刪除後改用 {name}，而且不能再下載。",
   "askDiscard": "放棄變更？",
   "keepEditing": "繼續編輯",
   "discard": "放棄",

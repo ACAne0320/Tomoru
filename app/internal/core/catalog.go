@@ -47,9 +47,9 @@ func (e Engine) Source() Source {
 	return SourceSystem
 }
 
-func (c *Core) Engines(k Kind) []Engine { return engineCatalog(k, c.Prefs.Endpoints) }
+func (c *Core) Engines(k Kind) []Engine { return c.EngineService.catalog(k, c.Prefs.Endpoints) }
 
-func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
+func (s *EngineService) catalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 	var es []Engine
 	if k == ASR {
 		for _, s := range asr.Specs() {
@@ -58,7 +58,7 @@ func engineCatalog(k Kind, endpoints []prefs.Endpoint) []Engine {
 		return es
 	}
 	for i := range models.All {
-		if m := &models.All[i]; !m.ASR {
+		if m := &models.All[i]; !m.ASR && (!m.Legacy || s.ModelStatus(m.ID).State == models.Ready) {
 			es = append(es, Engine{ID: m.ID, Kind: MT, Model: m})
 		}
 	}
@@ -191,23 +191,30 @@ func (c *Core) Pick(f []Engine) (Engine, bool) {
 			return e, true
 		}
 	}
+	for i := len(found) - 1; i >= 0; i-- {
+		if !legacy(found[i]) {
+			return found[i], true
+		}
+	}
 	return found[len(found)-1], true
 }
 
 func (c *Core) Suggested(f []Engine) Engine {
 	runs := func(e Engine) bool { return e.Model == nil || c.Shortfall(*e.Model) == (Shortfall{}) }
 	for _, e := range f {
-		if e.Model != nil && e.Model.Recommended && runs(e) {
+		if e.Model != nil && e.Model.Recommended && runs(e) && !legacy(e) {
 			return e
 		}
 	}
 	for i := len(f) - 1; i >= 0; i-- {
-		if runs(f[i]) {
+		if runs(f[i]) && !legacy(f[i]) {
 			return f[i]
 		}
 	}
 	return f[0]
 }
+
+func legacy(e Engine) bool { return e.Model != nil && e.Model.Legacy }
 
 func (c *Core) InUse(k Kind) string {
 	if k == ASR {

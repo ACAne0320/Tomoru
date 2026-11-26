@@ -109,7 +109,7 @@ func TestEngineServiceOwnsDeferredSelection(t *testing.T) {
 	s, _ := engineServiceHarness(t)
 	s.models = &fakeModels{ready: map[string]bool{}}
 	var local Engine
-	for _, e := range engineCatalog(MT, nil) {
+	for _, e := range s.catalog(MT, nil) {
 		if e.ID == "local-2b" {
 			local = e
 		}
