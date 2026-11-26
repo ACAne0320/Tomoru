@@ -52,6 +52,8 @@ func TestGallery(t *testing.T) {
 	} {
 		k.AddTerm(ff7, t)
 	}
+	k.SetSceneEngine(ff7, core.ASR, "sensevoice-small")
+	k.UpdateScene(ff7, func(sc *scene.Scene) { sc.MT = "local-9b" })
 	k.AddScene("雷军演讲")
 	k.SetScene(ff7)
 	start := time.Date(now.Year(), now.Month(), now.Day(), 21, 4, 0, 0, time.Local)

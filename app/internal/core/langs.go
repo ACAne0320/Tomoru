@@ -11,7 +11,7 @@ import (
 	"tomoru/internal/prefs"
 )
 
-func (c *Core) SourceLangs() []string { return c.spoken(c.Prefs.ASR) }
+func (c *Core) SourceLangs() []string { return c.spoken(c.Active(ASR)) }
 
 func (c *Core) spoken(id string) []string {
 	hears := c.Hears(id)

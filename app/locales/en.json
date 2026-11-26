@@ -1761,6 +1761,30 @@
   "@sceneLangs": {
     "description": "A scene's languages, spoken and translated into."
   },
+  "sceneEngines": "Speech & translation",
+  "@sceneEngines": {
+    "description": "A scene's own speech recognition and translation, chosen apart from the defaults."
+  },
+  "sceneEngineDefault": "Default ({name})",
+  "@sceneEngineDefault": {
+    "description": "First choice of a scene's recognition or translation picker: use the one chosen in Speech & translation, named in the brackets.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 35B"
+      }
+    }
+  },
+  "sceneEngineUnavailable": "{name} can't be used now, so the default is used.",
+  "@sceneEngineUnavailable": {
+    "description": "Under a scene's recognition or translation picker, when the one it chose was deleted or can't run.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Index-Translate 35B"
+      }
+    }
+  },
   "learnFromRecords": "Learn from History",
   "@learnFromRecords": {
     "description": "Button of a scene: learns names from its sessions kept."

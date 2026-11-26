@@ -5163,6 +5163,56 @@ func (msgs Messages) SceneLangs() string {
 	return Catalog.Format(msgs.locale, "sceneLangs", nil)
 }
 
+// SceneEngines says "Speech & translation"
+// in the language the app shows.
+//
+// A scene's own speech recognition and translation, chosen apart from the
+// defaults.
+func SceneEngines() string { return In(i18n.Locale()).SceneEngines() }
+
+// SceneEngines says "Speech & translation"
+// in the language of msgs.
+//
+// A scene's own speech recognition and translation, chosen apart from the
+// defaults.
+func (msgs Messages) SceneEngines() string {
+	return Catalog.Format(msgs.locale, "sceneEngines", nil)
+}
+
+// SceneEngineDefault says "Default ({name})"
+// in the language the app shows.
+//
+// First choice of a scene's recognition or translation picker: use the one
+// chosen in Speech & translation, named in the brackets.
+func SceneEngineDefault(name string) string { return In(i18n.Locale()).SceneEngineDefault(name) }
+
+// SceneEngineDefault says "Default ({name})"
+// in the language of msgs.
+//
+// First choice of a scene's recognition or translation picker: use the one
+// chosen in Speech & translation, named in the brackets.
+func (msgs Messages) SceneEngineDefault(name string) string {
+	return Catalog.Format(msgs.locale, "sceneEngineDefault", map[string]any{"name": name})
+}
+
+// SceneEngineUnavailable says "{name} can't be used now, so the default is used."
+// in the language the app shows.
+//
+// Under a scene's recognition or translation picker, when the one it chose
+// was deleted or can't run.
+func SceneEngineUnavailable(name string) string {
+	return In(i18n.Locale()).SceneEngineUnavailable(name)
+}
+
+// SceneEngineUnavailable says "{name} can't be used now, so the default is used."
+// in the language of msgs.
+//
+// Under a scene's recognition or translation picker, when the one it chose
+// was deleted or can't run.
+func (msgs Messages) SceneEngineUnavailable(name string) string {
+	return Catalog.Format(msgs.locale, "sceneEngineUnavailable", map[string]any{"name": name})
+}
+
 // LearnFromRecords says "Learn from History"
 // in the language the app shows.
 //

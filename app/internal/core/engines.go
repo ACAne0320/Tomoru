@@ -7,6 +7,7 @@ import (
 	"errors"
 	"slices"
 
+	"tomoru/internal/models"
 	"tomoru/internal/prefs"
 	"tomoru/internal/translate"
 )
@@ -35,11 +36,12 @@ func (c *Core) SetEngine(id string) {
 	if id == c.Prefs.MT {
 		return
 	}
+	was := c.activeEngines()
 	c.Prefs.MT = id
 	if !c.Prefs.Onboarded {
 		c.Prefs.ImageMT = imageEngineFrom(id, c.Prefs.Endpoints)
 	}
-	c.RestartIfRunning()
+	c.refit(was)
 	c.settingsChanged()
 }
 
@@ -72,15 +74,19 @@ func (c *Core) DeleteModel(id string) {
 	if c.EngineService.models == nil {
 		return
 	}
+	was := c.activeEngines()
 	if c.Prefs.MT == id {
-		c.SetEngine(Successor(MT))
+		c.EngineService.cancelPending(MT)
+		c.Prefs.MT = Successor(MT)
+		if !c.Prefs.Onboarded {
+			c.Prefs.ImageMT = imageEngineFrom(c.Prefs.MT, c.Prefs.Endpoints)
+		}
 	}
 	if c.Prefs.ASR == id {
 		c.Prefs.ASR = Successor(ASR)
-		c.fitLangs()
-		c.RestartIfRunning()
 	}
-	c.EngineService.deleteModel(id)
+	c.EngineService.deleteModel(id, c.keepsServer(id))
+	c.refit(was)
 	c.settingsChanged()
 }
 
@@ -107,7 +113,7 @@ func (c *Core) SaveEndpoint(e prefs.Endpoint, key string) string {
 	if key != "" {
 		c.EngineService.saveKey(keyName(e.ID), []byte(key))
 	}
-	if c.Prefs.MT == prefs.EndpointEngine(e.ID) {
+	if c.runningEngines()[1] == prefs.EndpointEngine(e.ID) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -120,11 +126,12 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 		return func() {}
 	}
 	e, mt := c.Prefs.Endpoints[i], prefs.EndpointEngine(id)
+	was := c.activeEngines()
 	key := c.EngineService.readKey(keyName(id))
 	c.Prefs.Endpoints = slices.Delete(c.Prefs.Endpoints, i, i+1)
 	c.EngineService.deleteKey(keyName(id))
 	c.EngineService.forgetTest(id)
-	if c.Prefs.MT == mt {
+	if !c.refit(was) && was[1] == mt {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -132,11 +139,12 @@ func (c *Core) DeleteEndpoint(id string) (undo func()) {
 		if _, ok := c.Prefs.Endpoint(id); ok {
 			return
 		}
+		was := c.activeEngines()
 		c.Prefs.Endpoints = slices.Insert(c.Prefs.Endpoints, min(i, len(c.Prefs.Endpoints)), e)
 		if key != nil {
 			c.EngineService.saveKey(keyName(id), key)
 		}
-		if c.Prefs.MT == mt && !c.Running && errors.Is(c.Err, ErrNoEndpoint) {
+		if !c.refit(was) && c.Prefs.MT == mt && !c.Running && errors.Is(c.Err, ErrNoEndpoint) {
 			c.Start()
 		}
 		c.settingsChanged()
@@ -157,4 +165,14 @@ func (c *Core) TestEndpoint(test string, e prefs.Endpoint, key string) {
 func (c *Core) CancelChoice(k Kind, id string) {
 	c.CancelDownload(id)
 	c.Choose(k, c.InUse(k))
+}
+
+func (c *Core) keepsServer(deleted string) bool {
+	d, _ := models.ByID(deleted)
+	for _, id := range c.runningEngines() {
+		if m, ok := models.ByID(id); ok && id != deleted && m.ASR == d.ASR && (!m.ASR || m.Served()) {
+			return true
+		}
+	}
+	return false
 }

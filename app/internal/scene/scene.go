@@ -24,6 +24,8 @@ type Scene struct {
 	Name     string
 	About    string
 	Src, Tgt string
+	ASR      string `json:",omitempty"`
+	MT       string `json:",omitempty"`
 	Terms    []Term
 	Rejected []string `json:",omitempty"`
 }

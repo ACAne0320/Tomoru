@@ -117,6 +117,7 @@ func (c *Core) API(id string) prefs.Service {
 }
 
 func (c *Core) SaveAPI(a prefs.Service, key string) {
+	was := c.activeEngines()
 	a.Key = c.API(a.ID).Key
 	if key != "" && c.EngineService.saveKey(apiKey(a.ID), []byte(key)) {
 		a.Key = true
@@ -131,7 +132,7 @@ func (c *Core) SaveAPI(a prefs.Service, key string) {
 	default:
 		c.Prefs.ASRAPIs = append(c.Prefs.ASRAPIs, a)
 	}
-	if c.Prefs.ASR == a.ID || c.Prefs.MT == a.ID {
+	if !c.refit(was) && (was[0] == a.ID || was[1] == a.ID) {
 		c.RestartIfRunning()
 	}
 	c.settingsChanged()
@@ -145,9 +146,14 @@ func (c *Core) TestAPI(test string, a prefs.Service, key string) {
 	c.EngineService.testAPI(test, a, key)
 }
 
-func hasKey(id string, apis []prefs.Service) bool {
+func needsKey(id string) bool {
 	s, ok := asr.ByID(id)
-	if _, mt := MTServiceByID(id); !mt && (!ok || !s.Key) {
+	_, mt := MTServiceByID(id)
+	return mt || ok && s.Key
+}
+
+func hasKey(id string, apis []prefs.Service) bool {
+	if !needsKey(id) {
 		return true
 	}
 	for _, a := range apis {

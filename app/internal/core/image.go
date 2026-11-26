@@ -55,8 +55,9 @@ func (c *Core) SetImageEngine(id string) {
 }
 
 func (c *Core) serving() string {
-	if _, local := models.ByID(c.Prefs.MT); local && c.Running && c.Prefs.Translates() {
-		return c.Prefs.MT
+	mt := c.runningEngines()[1]
+	if _, local := models.ByID(mt); local {
+		return mt
 	}
 	return ""
 }
@@ -104,6 +105,9 @@ func (c *Core) TranslateImage(pic []byte) {
 		r.via, r.open = c.Prefs.ImageMT, func(context.Context) (*translate.Endpoint, error) { return e, nil }
 	} else {
 		r.open, r.via = c.EngineService.imageEndpoint(c.Prefs.ImageMT, c.serving(), c.Prefs.Endpoints)
+		if _, local := models.ByID(r.via); local && (c.serving() == "" || c.serving() == r.via) {
+			c.yieldServer("")
+		}
 	}
 	c.ImageService.translate(pic, tgt, terms, r)
 }

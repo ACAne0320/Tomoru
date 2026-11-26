@@ -138,6 +138,7 @@ type Core struct {
 
 	runSince   time.Time
 	runEngines usage.Engines
+	claim      *serverClaim
 	ledger     usage.Ledger
 }
 
@@ -211,6 +212,7 @@ func (c *Core) Network() (online, metered bool) {
 
 func (c *Core) Changed() {
 	c.usePending()
+	c.syncSession()
 	c.noteFinished()
 	c.changed()
 }
