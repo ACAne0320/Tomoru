@@ -106,7 +106,15 @@ repeated here.
     closes, so the subtitles would take it from the video and Tomoru's other windows would open
     behind them. Clicks and drags still arrive.
 21. `hasGlass` (`overlay/glass_darwin.go`) looks up `NSGlassEffectView` on first use behind a
-    `sync.Once`, not at the program's start, when AppKit is not loaded yet.
+    `sync.Once`, not at the program's start, when AppKit is not loaded yet. `holdGlass`
+    (`overlay/overlay.go`) keeps a 1 pt clear glass at the window's corner from its first frame:
+    on macOS 26, once a process has a window hidden from capture (`sharingType = none`), glass
+    added to a window already on screen draws black on the display, though screenshots show it
+    right, unless a glass view has stayed in that window since. So with Hide from capture on, the
+    adjust frame was black (#175). Measured with AppKit and MyGo windows outside Tomoru
+    (2026-11-28): setting `sharingType` again, hiding and showing the window, changing its alpha
+    or opacity and redrawing do not bring the glass back; glass in the window from its first frame
+    keeps later glass right, and removing it lets the black back. The glass at 1 pt is not seen.
 22. `watchPointer` (`overlay/handles.go`) polls the cursor every 50 ms, because a window that lets
     clicks through hears no pointer. The block takes the mouse only once the pointer rests on it
     for 400 ms and it shows something, so passing by does nothing. Where the pointer is seen only

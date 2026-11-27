@@ -177,6 +177,7 @@ var (
 func (o *Overlay) View(c *ui.Context) {
 	k, p := o.core, o.core.Preferences()
 	c.Root().Background(ui.Transparent)
+	holdGlass(c)
 	hover, peek := o.hover && !p.Locked, o.showingUnlock && p.Locked
 	entries := subtitle.Visible(k.State, k.Since, p)
 	now := c.Now()
@@ -339,6 +340,12 @@ func (o *Overlay) View(c *ui.Context) {
 	o.place(c, show || adjusting || hover || peek || note.title != "" || toast,
 		ui.Rect{X: canvasLeft, Y: drawn.top, W: width, H: drawn.bottom - drawn.top})
 	o.lastTop = winTop
+}
+
+func holdGlass(c *ui.Context) {
+	if hasGlass() {
+		ui.Box(c.Key("held glass")).Absolute().Left(0).Top(0).Width(1).Height(1).Material(onGlass{})
+	}
 }
 
 func (o *Overlay) fitToText(c *ui.Context, top float32) {

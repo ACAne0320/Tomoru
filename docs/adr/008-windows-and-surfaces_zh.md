@@ -41,7 +41,7 @@
 18. `windowOptions` 同时设 `DisableFullScreen` 和 `SetVisibleOnAllWorkspaces`，MyGo 据此把它做成其他应用全屏空间的辅助窗口（egoist/mygo#309），这是 macOS 文档里显示在全屏应用之上的做法。
 19. `toolWindow`（`overlay/window_windows.go`）在字幕层第一次显示前把它设成工具窗口（`WS_EX_TOOLWINDOW`）。Chromium 系浏览器和 Electron 应用在被它们认为不透明的窗口盖住时停止绘制（`IsWindowVisibleAndFullyOpaque`，ui/gfx/win/hwnd_util.cc），又看不出 DirectComposition 的透明；在字幕层里拖动会把它带到前台，下面的视频变黑（2026-10-28）。工具窗口会被跳过，也不出现在 Alt+Tab 里。
 20. `toolWindow`（`overlay/window_linux.go`）调用 `gtk_window_set_accept_focus(false)`：X11 窗口管理器会把键盘交给被点击的窗口，或另一个窗口关闭时剩下的那个，字幕就会从视频那里抢走键盘，Tomoru 的其他窗口也会在它后面打开。点击和拖动照样收到。
-21. `hasGlass`（`overlay/glass_darwin.go`）在第一次用到时才通过 `sync.Once` 查找 `NSGlassEffectView`，而不是在程序启动时，那时 AppKit 还没加载。
+21. `hasGlass`（`overlay/glass_darwin.go`）在第一次用到时才通过 `sync.Once` 查找 `NSGlassEffectView`，而不是在程序启动时，那时 AppKit 还没加载。`holdGlass`（`overlay/overlay.go`）从第一帧起在窗口角上保留一块 1 pt 的透明玻璃：在 macOS 26 上，进程一旦有不让录屏的窗口（`sharingType = none`），往已在屏幕上的窗口里加的玻璃在显示器上是黑的，截图里却正常，除非这个窗口从那以前一直留着一块玻璃。所以打开录屏时隐藏后，调整位置的框是黑的（#175）。在 Tomoru 之外用 AppKit 和 MyGo 窗口测过（2026-11-28）：重新设 `sharingType`、隐藏再显示窗口、改透明度或不透明、重绘，都不能让玻璃恢复；窗口从第一帧起有玻璃，之后加的玻璃就正常，把它去掉黑色又回来。1 pt 的玻璃看不出来。
 22. `watchPointer`（`overlay/handles.go`）每 50 毫秒查询一次光标位置，因为让点击穿透的窗口收不到指针事件。只有指针在字幕块上停留 400 毫秒、且块里有内容时，块才接收鼠标，路过不触发。在只能看到自己窗口上指针的环境（`pointerUnseen`，Wayland），未锁定的块只要有内容就接收鼠标，并相信自己的悬停状态，直到指针静止 3 秒，因为 XWayland 不会告诉 X11 窗口指针离开去了 Wayland 窗口；锁定时那里无法显示锁。
 23. 没有可抓的东西时 `watchPointer` 停下：定时器停止，直到 `View` 或 `SetLocked` 唤醒它，窗口忽略鼠标且不设输入区域，因为空的区域仍会让 MyGo 在 macOS 上跟踪每次鼠标移动、在 Windows 上每个系统时钟周期查询一次。按 50 毫秒空转时应用占一个核的 1.4%，停下后 0.0%（2026-11-20）。停下时先忽略鼠标再清除区域，唤醒时先设区域再接收鼠标：忽略优先于区域，没有区域等于整个窗口，反过来的顺序会有一瞬间拦下所有点击。
 24. `capsule`（`overlay/handles.go`）让工具栏比字幕块深 12%：系统的玻璃对胶囊这么薄的面板提亮得更多，整块都是弯曲的边缘。同样深浅时，工具栏测得 (160, 154, 167)，字幕块 (134, 125, 145)（2026-10-21）。
