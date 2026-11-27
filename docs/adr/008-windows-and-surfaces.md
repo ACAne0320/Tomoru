@@ -73,10 +73,25 @@ repeated here.
 
 ### Overlay
 
-17. `windowOptions` (`overlay/overlay.go`) makes a window that covers the work area plus `below`
-    and never moves or resizes; the subtitle block moves inside it. A window sized to its text grew
-    as tall as the screen with many sentences, and a window can't go above the screen's top to keep
-    its bottom up.
+17. `windowOptions` (`overlay/overlay.go`) makes a window that covers the work area plus `below`,
+    and the subtitle block is laid out on that canvas. On macOS, `place` (`overlay/fit.go`) then
+    fits the window to what it draws: the column's width, from the topmost line, notice or toolbar
+    down to the block, its height in 40 pt steps so changing text rarely resizes it. With nothing
+    drawn its opacity is 0. The screenshot picker (⌘⇧5) takes a window wherever it has a layer
+    under the pointer, transparent or not, and captures all of it; MyGo draws a window into one
+    layer, so a window over the whole screen was picked on every click, and gave the whole screen,
+    while a window at opacity 0 is passed over (2026-11-23). Hovering stays fitted, as the
+    picker's pointer resting on the subtitles makes them hovered. A drag moves the window first,
+    in `moveAhead` before the frame lays out, so the block's place in the window holds: moved after
+    the frame, the window carried a frame drawn for where it had been, and the block shook. The captions column takes the canvas's height, not the window's: a line's place in
+    its parent then holds when the window's top moves, where with the window's height it slid from
+    the old place (a position transition), a flash at each hover. `anchorBottomLeft`
+    (`overlay/fit_darwin.go`) sets the `contentsGravity` of MyGo's `CAMetalLayer` to `topLeft`,
+    the bottom left on screen as the layer is flipped: until the frame for a new size draws, the
+    last one stays in place instead of stretching to it. The window holds still while it has a child window
+    (the panel, a tooltip), which AppKit moves with it. It stays within the canvas, so many
+    sentences can't make it taller than the screen, as a window sized to its text once did.
+    Windows and Linux keep the whole window: their screenshot tools were not measured.
 18. `windowOptions` sets `DisableFullScreen` with `SetVisibleOnAllWorkspaces`, which MyGo turns
     into an auxiliary of other apps' full-screen Spaces (egoist/mygo#309), the way macOS documents
     for showing over them.
@@ -180,7 +195,7 @@ are only tested by hand.
 
 ## Evidence
 
-- `app/internal/ui/overlay/overlay_test.go`: `TestWindowOverFullScreen`, `TestToolbarLine`,
+- `app/internal/ui/overlay/overlay_test.go`: `TestWindowOverFullScreen`, `TestFitsDrawing`, `TestToolbarLine`,
   `TestInputRegion`, `TestParks`, `TestWakesWatcher`, `TestSceneMenu`, `TestUnlock`.
 - `app/internal/ui/subtitle/subtitle_test.go`: `TestVisible`, `TestFailure`, `TestBalance`.
 - `app/internal/ui/shared/names_test.go`: the engines' names, `CloudName` among them.

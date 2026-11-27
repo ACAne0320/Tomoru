@@ -28,17 +28,19 @@ type Overlay struct {
 
 	pointerShared
 
-	adjustUntil      time.Time
-	hover            bool
-	showingUnlock    bool
-	hoverH           float32
-	toastUntil       time.Time
-	sampleUntil      time.Time
-	resize           *resize
-	textTopLastFrame float32
-	barW             float32
-	noticeCount      int
-	noted            time.Time
+	adjustUntil   time.Time
+	hover         bool
+	showingUnlock bool
+	hoverH        float32
+	toastUntil    time.Time
+	sampleUntil   time.Time
+	resize        *resize
+	textTop       float32
+	barW          float32
+	noticeCount   int
+	noted         time.Time
+
+	fit
 }
 
 type pointerShared struct {
@@ -58,8 +60,9 @@ func New(k *core.Core, nav shared.Nav) *Overlay {
 	o.display = displayNamed(mygo.Screen.Displays(), k.Preferences().Screen)
 	o.area = o.display.WorkArea
 	o.locked.Store(k.Preferences().Locked)
-	area := o.area
-	o.win = mygo.NewWindow(windowOptions(area, ui.View(o.View)))
+	o.frame = o.whole()
+	o.asked = placement{frame: o.frame}
+	o.win = mygo.NewWindow(windowOptions(o.area, ui.View(o.View)))
 	toolWindow(o.win)
 	looksActive(o.win)
 	o.win.SetVisibleOnAllWorkspaces(true)
@@ -111,8 +114,10 @@ func (o *Overlay) moveTo(d mygo.Display) {
 		return
 	}
 	o.display, o.area = d, d.WorkArea
+	o.frame, o.fitted = o.whole(), false
+	o.asked = placement{frame: o.frame, hidden: o.hidden}
 	if o.win != nil {
-		o.win.SetBounds(mygo.Rectangle{X: d.WorkArea.X, Y: d.WorkArea.Y, Width: d.WorkArea.Width, Height: d.WorkArea.Height + below})
+		o.win.SetBounds(o.frame)
 	}
 }
 
@@ -195,8 +200,11 @@ func (o *Overlay) View(c *ui.Context) {
 	if g := show || adjusting; o.grabbable.Swap(g) != g && g {
 		o.wake()
 	}
+	o.moveAhead(p)
 	ww, wh := c.Size()
-	left, width := float32(p.AreaX-p.AreaW/2)*ww, float32(p.AreaW)*ww
+	fw, ox, oy := o.canvas(ww)
+	canvasLeft, width := float32(p.AreaX-p.AreaW/2)*fw, float32(p.AreaW)*fw
+	left := canvasLeft - ox
 	minH := subtitle.SlotHeight(p, 1, true) + 16
 	note := o.notice(c)
 	if shown := !show && note.title != ""; !shown {
@@ -205,11 +213,13 @@ func (o *Overlay) View(c *ui.Context) {
 		o.noticeCount++
 		o.noted = c.Now()
 	}
-	bottom := float32(o.area.Y + int(wh) - o.blockBottom())
+	winTop, blockBottom := float32(o.area.Y+oy), float32(o.blockBottom())
+	bottom := winTop + wh - blockBottom
+	canvasH := winTop + wh - float32(o.area.Y)
 
 	h := minH
-	if show && o.textTopLastFrame != 0 {
-		h = max(h, min(wh-bottom-o.textTopLastFrame+8, wh-bottom-26))
+	if show && o.textTop != 0 {
+		h = max(h, min(blockBottom-o.textTop+8, canvasH-bottom-26))
 	}
 	switch {
 	case !hover && !peek:
@@ -221,6 +231,8 @@ func (o *Overlay) View(c *ui.Context) {
 		h = o.hoverH
 	}
 	var hit ui.Rect
+	var drawn span
+	toast := false
 	column := ui.Box(c.Key("column")).Absolute().Left(left).Width(width).Top(0).Bottom(0)
 	column.Children(func() {
 		if hasGlass() && (hover || adjusting) {
@@ -240,10 +252,12 @@ func (o *Overlay) View(c *ui.Context) {
 				clip = wh - bottom - h
 			}
 			ui.Box(c).Absolute().Left(0).Right(0).Top(clip).Bottom(0).Clip().Children(func() {
-				ui.Column(c.Key("captions")).Absolute().Left(12).Right(12).Bottom(bottom + 8).Height(wh).
+				ui.Column(c.Key("captions")).Absolute().Left(12).Right(12).Bottom(bottom + 8).Height(canvasH).
 					Justify(ui.End).Gap(8).Transition(appears).Children(func() {
 					if sample > 0 {
-						ui.Row(c).Justify(ui.Center).Margin(0, 0, 4, 0).Children(func() { pill(c, o.sampleNote()) })
+						r := ui.Row(c).Justify(ui.Center).Margin(0, 0, 4, 0)
+						drawn.add(o.top(r, blockBottom-h-40), blockBottom)
+						r.Children(func() { pill(c, o.sampleNote()) })
 					}
 					bareBelow := float32(subtitle.NoBlock)
 					if hover {
@@ -271,7 +285,7 @@ func (o *Overlay) View(c *ui.Context) {
 			}
 		})
 		hit = block.Bounds()
-		barBottom := min(bottom+h+8, wh-toolbarH)
+		barBottom := min(bottom+h+8, canvasH-toolbarH)
 		var bar, lock ui.Rect
 		if !p.Locked {
 			if r := o.toolbar(c, barBottom, hover).Bounds(); hover {
@@ -284,6 +298,13 @@ func (o *Overlay) View(c *ui.Context) {
 			hit.H += hit.Y - bar.Y
 			hit.Y = bar.Y
 		}
+		if hover || peek {
+			o.chromeUntil = now.Add(fitLinger)
+		}
+		if until := o.chromeUntil.Sub(now); until > 0 {
+			c.After(until)
+			drawn.add(winTop+wh-barBottom-toolbarH, blockBottom)
+		}
 		noteBottom := barBottom + (toolbarH-30)/2
 		if !show && note.title != "" {
 			up := float32(0)
@@ -292,11 +313,13 @@ func (o *Overlay) View(c *ui.Context) {
 			}
 			lift := column.AnimateTo("lift", up, ui.Animation{Spring: ui.SpringOptions{Duration: 420 * time.Millisecond}})
 			noteBottom += lift * (toolbarH + 8)
-			ui.Row(c).Absolute().Left(0).Right(0).Bottom(noteBottom).Justify(ui.Center).Children(func() {
-				o.notePill(c, note)
-			})
+			r := ui.Row(c).Absolute().Left(0).Right(0).Bottom(noteBottom).Justify(ui.Center)
+			drawn.add(o.top(r, winTop+wh-noteBottom-30), winTop+wh-noteBottom)
+			r.Children(func() { o.notePill(c, note) })
 		}
-		if until := o.toastUntil.Sub(now); until > 0 {
+		toast = o.toastUntil.Sub(now) > 0
+		if until := o.toastUntil.Sub(now); toast {
+			drawn.add(blockBottom-h-12-30, blockBottom-h-12)
 			c.After(until)
 			ui.Row(c).Absolute().Left(0).Right(0).Bottom(bottom + h + 12).Justify(ui.Center).Transition(fades).Children(func() {
 				pill(c, locales.LockedToast())
@@ -307,11 +330,23 @@ func (o *Overlay) View(c *ui.Context) {
 		o.mu.Unlock()
 	})
 	o.pointerOn.Store(column.Hovered())
+	if show || adjusting {
+		drawn.add(blockBottom-h, blockBottom)
+	}
+	if drawn.set {
+		o.reach = span{top: drawn.top - blockBottom, bottom: drawn.bottom - blockBottom, set: true}
+	}
+	o.place(c, show || adjusting || hover || peek || note.title != "" || toast,
+		ui.Rect{X: canvasLeft, Y: drawn.top, W: width, H: drawn.bottom - drawn.top})
+	o.lastTop = winTop
 }
 
 func (o *Overlay) fitToText(c *ui.Context, top float32) {
-	if top != o.textTopLastFrame {
-		o.textTopLastFrame = top
+	if top != 0 {
+		top += o.lastTop
+	}
+	if top != o.textTop {
+		o.textTop = top
 		c.After(16 * time.Millisecond)
 	}
 }

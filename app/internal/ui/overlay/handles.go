@@ -289,9 +289,10 @@ func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 		}
 		return
 	}
-	hb := h.Bounds()
-	x, y := hb.X+lx, hb.Y+ly
 	ww, _ := c.Size()
+	fw, ox, _ := o.canvas(ww)
+	hb := h.Bounds()
+	x, y := hb.X+lx+ox, hb.Y+ly
 	before := o.core.Preferences()
 	p := before.Clone()
 	defer func() { o.core.ApplyPreferences(before, p) }()
@@ -304,7 +305,7 @@ func (o *Overlay) follow(c *ui.Context, h ui.Element, kind int) {
 			grabFromCenter: at.X - o.area.X - int(p.AreaX*float64(o.area.Width)), grabAboveBottom: o.blockBottom() - at.Y}
 	}
 	r := o.resize
-	dx := float64((x - r.x0) / ww)
+	dx := float64((x - r.x0) / fw)
 	switch kind {
 	case moveArea:
 		if d := mygo.Screen.DisplayNearestPoint(at); d.ID != o.display.ID {

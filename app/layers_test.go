@@ -217,6 +217,8 @@ var platformFiles = []string{
 	"internal/resource/hide_windows.go",
 	"internal/resource/resource.go",
 	"internal/ui/kit/shortcut.go",
+	"internal/ui/overlay/fit_darwin.go",
+	"internal/ui/overlay/fit_other.go",
 	"internal/ui/overlay/glass_darwin.go",
 	"internal/ui/overlay/glass_other.go",
 	"internal/ui/overlay/window_linux.go",
