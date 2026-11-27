@@ -182,10 +182,10 @@ engine's voice activity.
   layer to make a test pass.
 - A protocol change updates the shared fixtures, the contract checks of all four implementations
   (app, tomoru-asr, the Windows engine, Swift) and the protocol document together.
-- Platform differences stay at the edges (engines, `capture`, `resource.Hide`, the tray icon in
-  `shell`); when only the wording differs on screen, use `shared.MacOr`. Domain packages may
-  read a platform fact (what the system has, where files go) but never behave differently by
-  platform. A file that names the platform joins `platformFiles` in `app/layers_test.go`.
+- Platform differences stay at the edges (engines, `capture`, `resource.Hide`,
+  `resource.DisableVulkanLayers`, the tray icon in `shell`); when only the wording differs on
+  screen, use `shared.MacOr`. Domain packages may read a platform fact (what the system has, where
+  files go) but never behave differently by platform. A file that names the platform joins `platformFiles` in `app/layers_test.go`.
 
 Releasing and signing are in the [release guide](release.md). How to contribute is in
 [CONTRIBUTING](../CONTRIBUTING.md).

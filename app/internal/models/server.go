@@ -12,11 +12,13 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"tomoru/internal/resource"
@@ -39,6 +41,7 @@ type process struct {
 	port   int
 	url    string
 	done   chan struct{}
+	killed atomic.Bool
 
 	warming sync.Once
 	warmed  chan struct{}
@@ -141,6 +144,7 @@ func (s *Server) stopLocked() {
 	if s.cur != nil {
 		p := s.cur
 		s.cur = nil
+		p.killed.Store(true)
 		_ = p.cmd.Process.Kill()
 		waitAtMost(p.done, shutdownWait)
 	}
@@ -160,14 +164,30 @@ func (s *Server) start(path, vision string, port int) (*process, error) {
 	}
 	cmd := exec.Command(s.bin, args...)
 	resource.Hide(cmd)
+	resource.DisableVulkanLayers(cmd)
 	cmd.Stdout, cmd.Stderr = s.logs, s.logs
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
 	p := &process{cmd: cmd, model: path, vision: vision, port: port, url: fmt.Sprintf("http://127.0.0.1:%d", port),
 		done: make(chan struct{}), warmed: make(chan struct{})}
-	go func() { cmd.Wait(); close(p.done) }()
+	go p.reap(s.logs)
 	return p, nil
+}
+
+func (p *process) reap(logs io.Writer) {
+	_ = p.cmd.Wait()
+	if st := p.cmd.ProcessState; st != nil && !p.killed.Load() && logs != nil {
+		fmt.Fprintln(logs, "models: llama-server exited:", exitStatus(st))
+	}
+	close(p.done)
+}
+
+func exitStatus(st *os.ProcessState) string {
+	if code := st.ExitCode(); code > 255 {
+		return fmt.Sprintf("%s (0x%X)", st, code)
+	}
+	return st.String()
 }
 
 func (p *process) exited() bool {

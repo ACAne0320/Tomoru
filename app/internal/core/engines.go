@@ -31,6 +31,11 @@ type LocalError struct{ Err error }
 func (e LocalError) Error() string { return "on-device model: " + e.Err.Error() }
 func (e LocalError) Unwrap() error { return e.Err }
 
+type LocalASRError struct{ Err error }
+
+func (e LocalASRError) Error() string { return "on-device recognition model: " + e.Err.Error() }
+func (e LocalASRError) Unwrap() error { return e.Err }
+
 func (c *Core) SetEngine(id string) {
 	c.EngineService.cancelPending(MT)
 	if id == c.Prefs.MT {

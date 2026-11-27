@@ -2,7 +2,7 @@
 
 [English](architecture.md)
 
-本文描述维护中的代码边界。开发与验证入口见 [开发指南](development_zh.md)，边界决策见 [ADR 001](adr/001-state-events-and-runtime-boundaries_zh.md)。代码不写注释：各部分背后的决定都在 [`adr/`](adr/)，从 [ADR 002](adr/002-live-session-and-segmenting_zh.md)（实时会话）到 [ADR 011](adr/011-hy-mt3-on-device_zh.md)（本机的 Hy-MT3）。
+本文描述维护中的代码边界。开发与验证入口见 [开发指南](development_zh.md)，边界决策见 [ADR 001](adr/001-state-events-and-runtime-boundaries_zh.md)。代码不写注释：各部分背后的决定都在 [`adr/`](adr/)，从 [ADR 002](adr/002-live-session-and-segmenting_zh.md)（实时会话）到 [ADR 012](adr/012-vulkan-layers-out-of-llama-server_zh.md)（其他软件的 Vulkan 层不进 llama-server）。
 
 ## 目录与职责
 
@@ -81,7 +81,7 @@ flowchart TD
 
 UI 主线程调度使用可取消 FIFO；生产者不等待主线程消费，避免主线程停止会话时与工作者互相等待。overlay 的指针观察使用可停止 ticker，字幕层没有可拖动的内容时停下。模型服务的健康及身份请求绑定 context，同时设每请求超时；子进程停止需要回收。
 
-平台差异只放在边界：引擎进程（macOS Swift、Windows 和 Linux Go）、`capture`（框选截图都走引擎的 `select`，它报告选区位置：macOS 上它运行系统的 `screencapture`，Windows 上是自己的框选窗口，Linux 上也是自己的，在截图上框选）、`resource.Hide`（Windows 上子进程不弹控制台）、托盘图标（Windows 上按深浅色着色；左键打开面板、右键打开系统快捷菜单，macOS 和 Windows 一致；AppIndicator 不报告点击，所以 Linux 上点击打开菜单，由菜单打开面板）、Linux 上窗口用的显示方式（`desktop_linux.go`：GNOME 不让 Wayland 窗口留在其他窗口之上，所以在 GNOME 上通过 XWayland 用 X11）和字幕层对指针的处理（`overlay/window_linux.go`：Wayland 下应用只在自己的窗口上知道指针位置），以及少量平台文案（`ui/shared.MacOr` 和 `OnEach`）。Windows 和 Linux 没有系统识别，起初不选任何识别（`prefs.SystemASR` 为空，开始翻译时报 `core.ErrNoASR`），由用户在引导或设置里选本地模型（选了才下载）或云端识别；引导跳过授权步骤（`core.AsksAccess`）。
+平台差异只放在边界：引擎进程（macOS Swift、Windows 和 Linux Go）、`capture`（框选截图都走引擎的 `select`，它报告选区位置：macOS 上它运行系统的 `screencapture`，Windows 上是自己的框选窗口，Linux 上也是自己的，在截图上框选）、`resource.Hide`（Windows 上子进程不弹控制台）、`resource.DisableVulkanLayers`（Windows 上其他软件的 Vulkan 层不进 llama-server）、托盘图标（Windows 上按深浅色着色；左键打开面板、右键打开系统快捷菜单，macOS 和 Windows 一致；AppIndicator 不报告点击，所以 Linux 上点击打开菜单，由菜单打开面板）、Linux 上窗口用的显示方式（`desktop_linux.go`：GNOME 不让 Wayland 窗口留在其他窗口之上，所以在 GNOME 上通过 XWayland 用 X11）和字幕层对指针的处理（`overlay/window_linux.go`：Wayland 下应用只在自己的窗口上知道指针位置），以及少量平台文案（`ui/shared.MacOr` 和 `OnEach`）。Windows 和 Linux 没有系统识别，起初不选任何识别（`prefs.SystemASR` 为空，开始翻译时报 `core.ErrNoASR`），由用户在引导或设置里选本地模型（选了才下载）或云端识别；引导跳过授权步骤（`core.AsksAccess`）。
 
 `resource.Bin` 只在入口显式传入的 roots 中查找，不访问 MyGo、当前工作目录或仓库标记。桌面入口决定打包和开发资源根；benchmark 接受 `-resources`。`provider` 接受已确定的配置，不读取 UI 设置或平台 API。
 

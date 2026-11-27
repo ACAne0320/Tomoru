@@ -22,6 +22,7 @@ var deviceLine = regexp.MustCompile(`^\s+(\S+): (.+) \((\d+) MiB, \d+ MiB free\)
 func Devices(ctx context.Context, bin string) ([]Device, error) {
 	cmd := exec.CommandContext(ctx, bin, "--list-devices")
 	resource.Hide(cmd)
+	resource.DisableVulkanLayers(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, err

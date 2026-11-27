@@ -121,6 +121,53 @@ func TestServerStopReapsChild(t *testing.T) {
 	s.Stop()
 }
 
+func TestCrasher(t *testing.T) {
+	if os.Getenv("TOMORU_CRASHER") == "" {
+		t.Skip("the child of TestReapLogsCrash")
+	}
+	os.Exit(3)
+}
+
+func TestReapLogsCrash(t *testing.T) {
+	cmd := exec.Command(os.Args[0], "-test.run=^TestCrasher$")
+	cmd.Env = append(os.Environ(), "TOMORU_CRASHER=1")
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	var logs strings.Builder
+	p := &process{cmd: cmd, done: make(chan struct{})}
+	go p.reap(&logs)
+	select {
+	case <-p.done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the crashed child was not reaped")
+	}
+	if got := logs.String(); got != "models: llama-server exited: exit status 3\n" {
+		t.Errorf("log %q", got)
+	}
+}
+
+func TestReapQuietWhenStopped(t *testing.T) {
+	cmd := exec.Command(os.Args[0], "-test.run=^TestSleeper$")
+	cmd.Env = append(os.Environ(), "TOMORU_SLEEPER=1")
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	var logs strings.Builder
+	p := &process{cmd: cmd, done: make(chan struct{})}
+	go p.reap(&logs)
+	s := &Server{cur: p}
+	s.Stop()
+	select {
+	case <-p.done:
+	default:
+		t.Fatal("Stop returned before reaping the child")
+	}
+	if got := logs.String(); got != "" {
+		t.Errorf("a stopped server logged %q", got)
+	}
+}
+
 func TestEnsureCancelledDoesNotStart(t *testing.T) {
 	marker := filepath.Join(t.TempDir(), "started")
 	script := filepath.Join(t.TempDir(), "server")

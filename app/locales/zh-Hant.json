@@ -234,6 +234,7 @@
   "modelReadyInUse": "{name} 已下載，已切換使用",
   "modelRunsOnCpu": "用 CPU 執行，無需顯示卡",
   "errAsrModelMissing": "本機辨識模型還沒下載。請在 設定 › 辨識與翻譯 裡下載。",
+  "errAsrLocal": "本機辨識模型沒能執行起來。",
   "engineQwenAsr": "Qwen ASR（阿里雲百煉）",
   "engineQwenAsrDescription": "按時長計費，靜音時不傳送",
   "engineOpenAiDescription": "按傳送的語音時長計費，也可用相容 OpenAI 轉寫介面的服務",

@@ -234,6 +234,7 @@
   "modelReadyInUse": "{name} のダウンロードが終わり、使い始めました",
   "modelRunsOnCpu": "CPU で動作、GPU 不要",
   "errAsrModelMissing": "オンデバイスの音声認識モデルがダウンロードされていません。設定 › 認識と翻訳 でダウンロードしてください。",
+  "errAsrLocal": "オンデバイスの音声認識モデルを実行できませんでした。",
   "engineQwenAsr": "Qwen ASR（Alibaba Cloud）",
   "engineQwenAsrDescription": "送った音声の長さで課金されます。何も流れていないあいだは送信しません。",
   "engineOpenAiDescription": "送った音声の長さで課金されます。OpenAI の文字起こし API と互換のサービスも使えます。",

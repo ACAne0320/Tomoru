@@ -683,7 +683,7 @@
   "@errModelMissing": {
     "description": "Why translating could not start."
   },
-  "errLocal": "Couldn't run the on-device model.",
+  "errLocal": "Couldn't run the on-device translation model.",
   "@errLocal": {
     "description": "Why translating stopped."
   },
@@ -1136,6 +1136,10 @@
   "errAsrModelMissing": "The speech recognition model isn't downloaded. Download it in Settings › Speech & translation.",
   "@errAsrModelMissing": {
     "description": "Where the subtitles show, when translating can't start: the recognition model chosen isn't downloaded."
+  },
+  "errAsrLocal": "Couldn't run the on-device speech recognition model.",
+  "@errAsrLocal": {
+    "description": "Where the subtitles show, when the recognition model chosen to run on the device fails to start."
   },
   "engineQwenAsr": "Qwen ASR (Alibaba Cloud)",
   "@engineQwenAsr": {

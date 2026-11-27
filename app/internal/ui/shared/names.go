@@ -201,6 +201,8 @@ func ErrorText(err error) string {
 		return locales.ErrNoVision()
 	case errors.Is(err, core.ErrMTCloudKey):
 		return locales.ErrMtCloudKey()
+	case errors.As(err, new(core.LocalASRError)):
+		return locales.ErrAsrLocal()
 	case errors.As(err, new(core.LocalError)):
 		return locales.ErrLocal()
 	}

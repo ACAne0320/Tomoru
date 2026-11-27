@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"log"
 	"os/exec"
 	"slices"
 	"time"
@@ -52,6 +53,7 @@ func (s *SessionController) start(r sessionRequest) {
 	s.State, s.Since = live.State{Phase: live.PhaseStarting}, 0
 	defer s.changed()
 	if r.Err != nil {
+		log.Println("session:", r.Err)
 		return
 	}
 	if r.Local {
@@ -94,6 +96,7 @@ func (s *SessionController) start(r sessionRequest) {
 				})
 			}
 			if err != nil {
+				log.Println("session:", err)
 				s.retire()
 				s.onStopped()
 				s.prepare, s.reports, s.Running, s.Err, s.State = nil, nil, false, err, live.State{}

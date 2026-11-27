@@ -123,6 +123,6 @@ go test ./...
 - 新增句子记录消费者订阅 `OnLine`，不能读取十行显示快照来猜完成状态。
 - 新增包族更新分层规则及规则测试；不要为了让测试通过放开整个上层依赖。
 - 协议变更同时修改共享 fixtures、四个实现（app、tomoru-asr、Windows 引擎、Swift）的契约检查和协议文档。
-- 平台差异放在边界（引擎、`capture`、`resource.Hide`、`shell` 的托盘图标）；界面上只有说法不同时用 `shared.MacOr`。领域包可以读取平台事实（系统有什么、文件放在哪），但不按平台改变行为。提到平台的文件要加入 `app/layers_test.go` 的 `platformFiles`。
+- 平台差异放在边界（引擎、`capture`、`resource.Hide`、`resource.DisableVulkanLayers`、`shell` 的托盘图标）；界面上只有说法不同时用 `shared.MacOr`。领域包可以读取平台事实（系统有什么、文件放在哪），但不按平台改变行为。提到平台的文件要加入 `app/layers_test.go` 的 `platformFiles`。
 
 发布步骤与签名要求见 [发布指南](release_zh.md)。贡献流程见 [贡献指南](../CONTRIBUTING_zh.md)。
