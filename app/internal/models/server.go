@@ -12,7 +12,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -178,16 +177,9 @@ func (s *Server) start(path, vision string, port int) (*process, error) {
 func (p *process) reap(logs io.Writer) {
 	_ = p.cmd.Wait()
 	if st := p.cmd.ProcessState; st != nil && !p.killed.Load() && logs != nil {
-		fmt.Fprintln(logs, "models: llama-server exited:", exitStatus(st))
+		fmt.Fprintln(logs, "models: llama-server exited:", st)
 	}
 	close(p.done)
-}
-
-func exitStatus(st *os.ProcessState) string {
-	if code := st.ExitCode(); code > 255 {
-		return fmt.Sprintf("%s (0x%X)", st, code)
-	}
-	return st.String()
 }
 
 func (p *process) exited() bool {
