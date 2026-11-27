@@ -2315,13 +2315,13 @@ func (msgs Messages) ErrModelMissing() string {
 	return Catalog.Format(msgs.locale, "errModelMissing", nil)
 }
 
-// ErrLocal says "Couldn't run the on-device model."
+// ErrLocal says "Couldn't run the on-device translation model."
 // in the language the app shows.
 //
 // Why translating stopped.
 func ErrLocal() string { return In(i18n.Locale()).ErrLocal() }
 
-// ErrLocal says "Couldn't run the on-device model."
+// ErrLocal says "Couldn't run the on-device translation model."
 // in the language of msgs.
 //
 // Why translating stopped.
@@ -3441,6 +3441,22 @@ func ErrAsrModelMissing() string { return In(i18n.Locale()).ErrAsrModelMissing()
 // model chosen isn't downloaded.
 func (msgs Messages) ErrAsrModelMissing() string {
 	return Catalog.Format(msgs.locale, "errAsrModelMissing", nil)
+}
+
+// ErrAsrLocal says "Couldn't run the on-device speech recognition model."
+// in the language the app shows.
+//
+// Where the subtitles show, when the recognition model chosen to run on the
+// device fails to start.
+func ErrAsrLocal() string { return In(i18n.Locale()).ErrAsrLocal() }
+
+// ErrAsrLocal says "Couldn't run the on-device speech recognition model."
+// in the language of msgs.
+//
+// Where the subtitles show, when the recognition model chosen to run on the
+// device fails to start.
+func (msgs Messages) ErrAsrLocal() string {
+	return Catalog.Format(msgs.locale, "errAsrLocal", nil)
 }
 
 // EngineQwenAsr says "Qwen ASR (Alibaba Cloud)"

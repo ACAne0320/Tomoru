@@ -234,6 +234,7 @@
   "modelReadyInUse": "{name} 已下载，已切换使用",
   "modelRunsOnCpu": "用 CPU 运行，无需显卡",
   "errAsrModelMissing": "本地识别模型还没下载。请在 设置 › 识别与翻译 里下载。",
+  "errAsrLocal": "本地识别模型没能运行起来。",
   "engineQwenAsr": "Qwen ASR（阿里云百炼）",
   "engineQwenAsrDescription": "按时长计费，静音时不发送",
   "engineOpenAiDescription": "按发送的语音时长计费，也可用兼容 OpenAI 转写接口的服务",

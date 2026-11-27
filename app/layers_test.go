@@ -216,6 +216,8 @@ var platformFiles = []string{
 	"internal/resource/hide_other.go",
 	"internal/resource/hide_windows.go",
 	"internal/resource/resource.go",
+	"internal/resource/vulkan_other.go",
+	"internal/resource/vulkan_windows.go",
 	"internal/ui/kit/shortcut.go",
 	"internal/ui/overlay/fit_darwin.go",
 	"internal/ui/overlay/fit_other.go",

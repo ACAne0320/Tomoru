@@ -6,7 +6,8 @@ This document describes the code boundaries as they are maintained. For setting 
 your work, see the [development guide](development.md); for the decisions behind the boundaries,
 see [ADR 001](adr/001-state-events-and-runtime-boundaries.md). The code carries no comments: the
 decisions behind each area are in [`adr/`](adr/), from [ADR 002](adr/002-live-session-and-segmenting.md)
-(the live session) to [ADR 011](adr/011-hy-mt3-on-device.md) (Hy-MT3 on the device).
+(the live session) to [ADR 012](adr/012-vulkan-layers-out-of-llama-server.md) (other apps' Vulkan layers
+out of llama-server).
 
 ## Directories
 
@@ -140,7 +141,8 @@ Platform differences live only at the edges: the engine process (Swift on macOS,
 `capture` (selecting a part of the screen always goes through the engine's `select`, which reports
 where the selection was: on macOS it runs the system's `screencapture`, on Windows its own
 selection window; on Linux its own too, over a screenshot); `resource.Hide` (no console window for child
-processes on Windows); the tray icon (tinted for light and dark on Windows; on both macOS and
+processes on Windows); `resource.DisableVulkanLayers` (on Windows, other apps' Vulkan layers stay
+out of llama-server); the tray icon (tinted for light and dark on Windows; on both macOS and
 Windows, a click opens the panel and a right click opens the system menu; on Linux a click opens
 the menu, which shows the panel, as AppIndicator tells no clicks); on Linux the windows' display
 (`desktop_linux.go`: X11 through XWayland on GNOME, which keeps no Wayland window over others) and

@@ -96,6 +96,8 @@ func TestErrorText(t *testing.T) {
 		batch.ErrBehind:                          locales.ErrAsrBehind(),
 		fmt.Errorf("dial: %w", proxy.ErrInvalid): locales.ErrProxyInvalid(),
 		core.ErrNoVision:                         locales.ErrNoVision(),
+		core.LocalError{Err: errors.New("x")}:    locales.ErrLocal(),
+		core.LocalASRError{Err: errors.New("x")}: locales.ErrAsrLocal(),
 	} {
 		if got := ErrorText(err); got != want {
 			t.Errorf("%v: %q, want %q", err, got, want)
@@ -105,15 +107,16 @@ func TestErrorText(t *testing.T) {
 
 func TestErrorFix(t *testing.T) {
 	for err, want := range map[error]Fix{
-		core.ErrMTCloudKey:                          FixEngines,
-		fmt.Errorf("start: %w", core.ErrNoASR):      FixEngines,
-		openai.ErrAuth:                              FixEngines,
-		batch.ErrBehind:                             FixEngines,
-		&engine.Error{Code: "unsupported-locale"}:   FixEngines,
-		&engine.Error{Code: "no-permission"}:        FixAccess,
-		&engine.Error{Code: "capture-failed"}:       FixRetry,
-		core.LocalError{Err: errors.New("crashed")}: FixRetry,
-		errors.New("network"):                       FixRetry,
+		core.ErrMTCloudKey:                             FixEngines,
+		fmt.Errorf("start: %w", core.ErrNoASR):         FixEngines,
+		openai.ErrAuth:                                 FixEngines,
+		batch.ErrBehind:                                FixEngines,
+		&engine.Error{Code: "unsupported-locale"}:      FixEngines,
+		&engine.Error{Code: "no-permission"}:           FixAccess,
+		&engine.Error{Code: "capture-failed"}:          FixRetry,
+		core.LocalError{Err: errors.New("crashed")}:    FixRetry,
+		core.LocalASRError{Err: errors.New("crashed")}: FixRetry,
+		errors.New("network"):                          FixRetry,
 	} {
 		if got := ErrorFix(err); got != want {
 			t.Errorf("%v: %d, want %d", err, got, want)

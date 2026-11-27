@@ -101,7 +101,7 @@ func (c *Core) Start() {
 			env.Context = ctx
 			var err error
 			if cfg.Recognize, err = spec.New(env); err != nil {
-				return LocalError{err}
+				return LocalASRError{err}
 			}
 			return nil
 		}
