@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.5
+
+On Windows, the local models run where screen recorders, game overlays and game tools are
+installed. On macOS, a screenshot can pick the subtitles alone, or the window under them.
+
+### Fixed
+
+- On Windows, the local models run where screen recorders, game overlays and game tools such as
+  OBS, Heybox or GamePP are installed: the Vulkan layers they add to every app could crash the
+  model as it loaded. When a recognition model can't run, Tomoru now says so, instead of naming the
+  translation model. ([#174](https://github.com/ACAne0320/Tomoru/pull/174))
+- A Qwen3-ASR download paused before 0.2.4 and resumed after it starts over, instead of running to
+  the end and then failing as damaged. ([#171](https://github.com/ACAne0320/Tomoru/pull/171))
+- On macOS, the screenshot tool's window picker passes over the subtitles while none show, so the
+  window under them can be picked, and picking the subtitles takes just their block instead of the
+  whole screen. ([#161](https://github.com/ACAne0320/Tomoru/pull/161))
+- On macOS, with Hide subtitles from screen recording on, the frame shown by Adjust position is
+  glass instead of black. ([#176](https://github.com/ACAne0320/Tomoru/pull/176))
+
 ## 0.2.4
 
 Hy-MT3 translates on the device, and each scene can choose its own recognition and translation.
