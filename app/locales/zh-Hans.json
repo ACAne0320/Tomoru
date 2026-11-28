@@ -103,6 +103,7 @@
   "draftLabel": "抢先翻译",
   "draftDesc": "话没说完先出大意",
   "aboutVersion": "版本 {version}",
+  "aboutWebsite": "官网",
   "aboutLicense": "自由软件，以 GPL-3.0 授权",
   "aboutLicenses": "第三方许可",
   "creditTranslation": "翻译模型",

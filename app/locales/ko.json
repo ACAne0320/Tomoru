@@ -103,6 +103,7 @@
   "draftLabel": "미리 번역",
   "draftDesc": "말이 끝나기 전에 대략적인 번역 표시",
   "aboutVersion": "버전 {version}",
+  "aboutWebsite": "웹사이트",
   "aboutLicense": "GPL-3.0 라이선스의 자유 소프트웨어",
   "aboutLicenses": "타사 라이선스",
   "creditTranslation": "번역 모델",

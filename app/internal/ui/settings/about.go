@@ -2,6 +2,7 @@ package settings
 
 import (
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/plugins/updater"
 	"github.com/egoist/mygo/ui"
 
@@ -15,11 +16,20 @@ import (
 
 func (s *Settings) about(c *ui.Context) {
 	p := kit.Colors(c)
+	site := core.SitePage(shownLanguage())
 	ui.Row(c).Gap(kit.Space(5)).AlignItems(ui.Center).Children(func() {
 		ui.Image(c, assets.AppIcon).Size(104, 104).Margin(-8)
-		ui.Column(c).Gap(kit.Space(1)).Children(func() {
-			ui.Text(c, "Tomoru").FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink)
+		ui.Column(c).Gap(kit.Space(1)).Grow(1).Children(func() {
+			ui.Link(c, "Tomoru", site).FontSize(kit.TextDisplay).FontWeight(kit.WeightHeavy).TextColor(p.Ink).AlignSelf(ui.Start)
 			ui.Text(c, locales.Tagline()).FontSize(kit.TextBody).TextColor(p.InkMuted)
+		})
+		ui.Row(c).Gap(kit.Space(2)).Children(func() {
+			if kit.Button(c, kit.Plain, kit.Small, assets.Globe, locales.AboutWebsite()).Clicked() {
+				c.OpenURL(site)
+			}
+			if kit.Button(c, kit.Plain, kit.Small, assets.GitHub, "GitHub").Clicked() {
+				c.OpenURL(core.Repo)
+			}
 		})
 	})
 	kit.RowsCard(c).Children(func() {
@@ -84,6 +94,11 @@ func (s *Settings) about(c *ui.Context) {
 			}
 		})
 	})
+}
+
+func shownLanguage() string {
+	_, lang, _ := locales.Catalog.Message(i18n.Locale(), "tagline")
+	return lang
 }
 
 type credit struct{ role, name, url, owner, license string }

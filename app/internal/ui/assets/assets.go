@@ -156,6 +156,12 @@ var (
 	opensSVG []byte
 	Opens    = ui.MustParseSVG(opensSVG)
 
+	//go:embed icons/globe.svg
+	globeSVG []byte
+	//go:embed icons/github.svg
+	gitHubSVG     []byte
+	Globe, GitHub = ui.MustParseSVG(globeSVG), ui.MustParseSVG(gitHubSVG)
+
 	Tray, _      = ui.DecodeBitmap(TrayIdle)
 	TrayAwake, _ = ui.DecodeBitmap(TrayOn)
 )

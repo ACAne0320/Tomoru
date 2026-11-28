@@ -1166,6 +1166,20 @@ func TestModelsFolder(t *testing.T) {
 	}
 }
 
+func TestAboutLinks(t *testing.T) {
+	s := New(coretest.New(), &coretest.Nav{})
+	s.Tab = "about"
+	tt := ui.NewTester(s.View, Width, Height)
+	for _, l := range []string{"Tomoru", locales.AboutWebsite(), "GitHub"} {
+		if err := tt.Click(l); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := tt.OpenedURLs(); len(got) != 3 || got[0] != core.Site+"en/" || got[1] != core.Site+"en/" || got[2] != core.Repo {
+		t.Errorf("opened %q", got)
+	}
+}
+
 func TestFeedback(t *testing.T) {
 	k := coretest.NewWith(func(d *core.Deps) {
 		d.Version, d.OS, d.Memory = "0.1.4", "macOS 26.6.2", func() (uint64, bool) { return 24 << 30, true }

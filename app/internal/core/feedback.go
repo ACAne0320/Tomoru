@@ -13,6 +13,15 @@ import (
 
 const Repo = "https://github.com/ACAne0320/Tomoru"
 
+const Site = "https://tomoru.acane.dev/"
+
+func SitePage(lang string) string {
+	if lang == "zh-Hans" {
+		return Site
+	}
+	return Site + strings.ToLower(lang) + "/"
+}
+
 const maxIssueURL = 4000
 
 func (c *Core) Versions() (app, os string) { return c.deps.Version, c.deps.OS }
