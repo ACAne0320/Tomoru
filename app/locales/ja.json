@@ -103,6 +103,7 @@
   "draftLabel": "先行翻訳",
   "draftDesc": "話し終わる前に大意を表示",
   "aboutVersion": "バージョン {version}",
+  "aboutWebsite": "公式サイト",
   "aboutLicense": "GPL-3.0 で公開されているフリーソフトウェア",
   "aboutLicenses": "サードパーティのライセンス",
   "creditTranslation": "翻訳モデル",

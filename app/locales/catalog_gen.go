@@ -1525,6 +1525,22 @@ func (msgs Messages) AboutVersion(version string) string {
 	return Catalog.Format(msgs.locale, "aboutVersion", map[string]any{"version": version})
 }
 
+// AboutWebsite says "Website"
+// in the language the app shows.
+//
+// About, a button beside GitHub at the right of the app's name: opens the
+// app's website.
+func AboutWebsite() string { return In(i18n.Locale()).AboutWebsite() }
+
+// AboutWebsite says "Website"
+// in the language of msgs.
+//
+// About, a button beside GitHub at the right of the app's name: opens the
+// app's website.
+func (msgs Messages) AboutWebsite() string {
+	return Catalog.Format(msgs.locale, "aboutWebsite", nil)
+}
+
 // AboutLicense says "Free software, under the GPL-3.0"
 // in the language the app shows.
 //

@@ -132,3 +132,17 @@ func must[T any](v T, err error) T {
 	}
 	return v
 }
+
+func TestSitePage(t *testing.T) {
+	for lang, want := range map[string]string{
+		"zh-Hans": Site,
+		"zh-Hant": Site + "zh-hant/",
+		"en":      Site + "en/",
+		"ja":      Site + "ja/",
+		"ko":      Site + "ko/",
+	} {
+		if got := SitePage(lang); got != want {
+			t.Errorf("SitePage(%q) = %q, want %q", lang, got, want)
+		}
+	}
+}

@@ -103,6 +103,7 @@
   "draftLabel": "搶先翻譯",
   "draftDesc": "話沒說完先出大意",
   "aboutVersion": "版本 {version}",
+  "aboutWebsite": "官網",
   "aboutLicense": "自由軟體，以 GPL-3.0 授權",
   "aboutLicenses": "第三方授權",
   "creditTranslation": "翻譯模型",

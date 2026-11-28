@@ -439,6 +439,10 @@
       }
     }
   },
+  "aboutWebsite": "Website",
+  "@aboutWebsite": {
+    "description": "About, a button beside GitHub at the right of the app's name: opens the app's website."
+  },
   "aboutLicense": "Free software, under the GPL-3.0",
   "@aboutLicense": {
     "description": "In About: the app's license."
